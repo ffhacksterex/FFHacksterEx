@@ -1,0 +1,717 @@
+;; Dialogue Handler Notes:
+;; INI file writes do not preserve comments, so do not put comments
+;; on the same line as content, they won't be kept in sync with the data.
+;;
+;; Since INI section names will be retrieved for writing,
+;; they don't have to be generic or numbered, so use the key
+;; names as the section names.
+;;
+;; all element offsets are relative to the bankaddr of the
+;; routine that owns them, ***NOT*** the base bankaddr/ptradd!
+
+;; Take special care with hcfanfare, see the notes for it in the
+;; VALUETYPES section.
+
+;; Format:
+;; [Key]
+;; desc = Description shown in the sprite editor's routine dropdown combo box
+;; bankaddr = address of the actual routine in ROM
+;; elemN = valuetype | offset from bankaddr | label to display in sprite editor list
+
+;;    offset from bankaddr specifies how many bytes into the routine the
+;;      value in question is found. add this amount to bankaddr to
+;;      to get the position in bank - address form (e.g.$9296).
+;;      to get the absolute ROM address, add the PTRADD value for the bank.
+;;     in this case, it's bank E, so add 0x30010 TO 0x9296.
+
+;;    valuetypes dictate how to interpret 'offset from bankaddr'.
+;;        for parameter data, these are indexes into the 4-byte param data stored
+;;          for the sprite in question.
+;;          the offset values are in the range 0-3, and are used to index
+;;          into the param data for the object (i.e. params[offset])
+;;        ________________________________________________
+;;        TYPE           MEANING OF BYTE AT PARAMS[OFFSET]
+;;
+;;        text:          index of dialog text (pointer table)
+;;        spr:           index of a sprite
+;;        obj:           same as spr (visibility change)
+;;        event:         same as spr (event flag check)
+;;        battle:        index of a battle
+;;        item:          index of item, added to(unsram + $20)
+;;        weapon:        index of a weapon
+;;        armor:         index of an armor
+
+;;        these with hc on the front are hardcoded into the routine.
+;;          that makes these routines difficult or impossible to reuse.
+;;        ________________________________________________
+;;        TYPE           MEANING OF BYTE(S) AT OFFSET
+;;
+;;        hctext:        1-byte index of dialog text (pointer table)
+;;        hcspr:         1-byte sprite index
+;;        hcobj:         1-byte sprite index (visibility change)
+;;        hcevent:       1-byte sprite index (event flag check)
+;;        hcbattle:      1-byte battle index
+;;        hcweapon:      1-byte weapon index
+;;        hcarmor:       1-byte armor index (NOT CURRENTLY USED)
+;;        hcnntele:      1-byte, index of NN teleport
+;;        hcnotele:      1-byte, index of NO teleport
+;;        hcuint8:       1-byte decimal value
+;;        hcbyte:        1-byte hex value
+;;        hcitem:        2-byte address of item (includes unsram + $20)
+;;        hcmap:         2-byte overworld map object (canal, bridge, etc)
+;;        hcitemorcanoe: 2-byte item or canoe
+;;        hcitemormap:   2-byte item or OW map object
+;;        hcfanfare:     2-byte value to increment the 'snd' register or ignore it:
+;;                           E6 7D (play)
+;;                           EA EA (don't)
+;;                           ***NOTE***
+;;                           the offset hare is to the INC instruction,
+;;                           not the opcode after it!
+;;							 e.g.
+;;                               hcfanfare|0x17|-1|play fanfare (bridge now built)
+;;                           means that offset 0x17 refers to the INC instruction,
+;;                           since we're writing both the INC instruction (E6)
+;;                           and the opcode (7D, the address of 'snd').
+;;                           Turning it off rite EA (no op) to both bytes.
+;;                           Don't forget this, or you'll corrupt the ROM!!!!!
+
+
+
+;; These are the value types used by the dialogue handler definitions below.
+;; The parser has to ignore this section.
+;; I'd rather make this an exclusion and keep these in the same file as the handlers.
+;; The format is:
+;;   key=bits|description
+;; e.g.
+;;   text=8|Text param
+;; means the text param marker is an 8-bit value with the description "Text param"
+
+[VALUETYPES]
+text=8|Text param
+spr=8|Sprite param
+obj=8|Sprite (visibility check) param
+event=8|Sprite (event flag check) param
+battle=8|Battle ID  param
+item=8|Item (offset from $items)  param
+weapon=8|Weapon param
+armor=8|Armor param
+nntele=8|In-to-In Teleport ID param
+notele=8|In-to-Out Teleport ID param
+canoe=8|Has Canoe? flag
+hctext=8|Hardcoded Text ID
+hcspr=8|Hardcoded Sprite ID
+hcobj=8|Hardcoded Sprite ID (object ID)
+hcevent=8|Hardcoded Sprite ID (event flag check ID)
+hcbattle=8|Hardcoded Battle ID
+hcitem=16|Hardcoded Item
+hcmap=16|Hardcoded Map Obj
+hcweapon=8|Hardcoded Weapon Index
+hcarmor=8|Hardcoded Armor Index
+hcitemormap=16|Hardcoded Item or OverworldMap sprite
+hcitemorcanoe=16|Hardcoded Item or Canoe
+hcfanfare=16|Hardcoded Increment Fanfare instruction and opcode
+hcnntele=8|Hardcoded In-to-In Teleport ID
+hcnotele=8|Hardcoded In-to-Out Teleport ID
+hcbyte=8|Hardcoded hexadecimal byte value
+hcint8=8|Hardcoded decimal byte value
+hcuint8=8|Hardcoded decimal byte value
+
+
+;;REMINDER:
+;; for hcfanfare, the offset is to the byte with the instruction,
+;; not the opcode. See above in VALUETYPES for more info.
+;; Be careful when modofying it, as referencing the offset to the
+;; opcode instead of the INC instruction will potentially corrupt
+;; the ROM!!!!!
+
+
+[Label_TalkJumpTable]
+value=lut_MapObjTalkJumpTbl
+desc=Label denoting the start of the Talk handler jump table
+
+[Label_EndParsingMarker]
+value=|:endtalkparsing
+desc=Marker that signals the end of talk handler parsing
+
+
+;;; No Dialogue  [$9296 :: 0x392A6]
+
+[Talk_None]
+desc=No dialogue (no elements)
+bankaddr=0x9296
+
+
+;;; King of Coneria  [$9297 :: 0x392A7]
+;;;  [1] if princess kidnapped
+;;;  [2] if princess rescued but bridge not built yet
+;;;  [3] if bridge has been built
+
+[Talk_KingConeria]
+desc=King of Coneria
+bankaddr=0x9297
+elem0=hcobj|0x1|-1|object ID to check (has princess been rescued?)
+elem1=text|0x8|1|text to display (princess not rescued yet)
+elem2=hcitemormap|0xB|-1|is item or map object visible (has bridge been built?)
+elem3=text|0x10|3|princess rescued, bridge built
+elem4=text|0x13|2|princess rescued, bridge not visible
+elem5=hcitemormap|0x15|-1|give item or show map object (make bridge visible)
+elem6=hcfanfare|0x17|-1|play fanfare (bridge now built)
+
+
+;;; Garland (regular, not the ToFR version)  [$92B1 :: 0x392C1]
+;;;  [1] always
+
+[Talk_Garland]
+desc=Garland in initial TOF
+bankaddr=0x92B1
+elem0=hcobj|0x1|-1|object ID to hide (Garland)
+elem1=hcbattle|0x6|-1|battle (Garland)
+elem2=text|0xB|1|pre-fight text
+
+
+;;; Kidnapped Princess (in the ToF)  [$92BE :: 0x392CE]
+;;;  [1] always
+
+[Talk_Princess1]
+desc=Kidnapped Princess
+bankaddr=0x92BE
+elem0=hcobj|0x1|-1|object ID to hide (kidnapped princess)
+elem1=hcobj|0x6|-1|object ID to show (rescued princess)
+elem2=hcnntele|0xB|-1|teleport with princess to king's room inside coneria castle
+elem3=text|0x10|1|text to display
+
+
+;;; Bikke the Pirate  [$92D0 :: 0x392E0]
+;;;  [1] if haven't fought him yet
+;;;  [2] if fought him but haven't taken his ship yet
+;;;  [3] after you have the ship
+
+[Talk_Bikke]
+desc=Bikke
+bankaddr=0x92D0
+elem0=hcevent|0x1|-1|event flag to check (did we fight bikke's pirates?)
+elem1=hcbattle|0xB|-1|battle pirates
+elem2=text|0x10|1|pre-fight text
+elem3=hcmap|0x13|-1|check map object visible (have the ship?)
+elem4=hcmap|0x18|-1|map object to enable (give player the ship)
+elem5=hcspr|0x1B|-1|show terrified townsperson 1
+elem6=hcspr|0x20|-1|show terrified townsperson 2
+elem7=hcspr|0x25|-1|show terrified townsperson 3
+elem8=text|0x2A|2|won the fight, get the ship
+elem9=hcfanfare|0x2B|-1|fanfare for getting the ship
+elem10=text|0x2F|3|final text
+
+
+;;; Elf Doctor (taking care of the sleeping prince)  [$9301 :: 0x09311]
+;;;  [1] if prince is sleeping and you don't have the herb
+;;;  [2] if prince is sleeping and you DO have the herb
+;;;  [3] once prince is awake
+
+[Talk_ElfDoc]
+desc=Elf Doctor
+bankaddr=0x9301
+elem0=hcevent|0x1|-1|event to check (is elf prince sleeping)
+elem1=text|0x8|3|final (prince is awake)
+elem2=hcitem|0xB|-1|do you have this item (does player have herb?)
+elem3=text|0x10|1|you don't have the item (herb)
+elem4=hcitem|0x13|-1|item to remove (give herb to doctor)
+elem5=hcfanfare|0x18|-1|prince is waking up
+elem6=text|0x1B|2|condition met (herb given to awaken prince)
+
+
+;;; Elf Prince  [$931E :: 0x3932E]
+;;;  [3] if sleeping
+;;;  [1] if awake and you don't have the key yet
+;;;  [2] once you have the key
+
+[Talk_ElfPrince]
+desc=Elf Prince
+bankaddr=0x931E
+elem0=hcevent|0x1|-1|event to check (is prince awake?)
+elem1=text|0x8|3|initial (still asleep)
+elem2=hcevent|0xB|-1|event to check (does player have key)
+elem3=text|0x10|2|condition met (already have key)
+elem4=hcitem|0x13|-1|give item (key)
+elem5=hcfanfare|0x15|-1|key given to player
+elem6=text|0x18|1|final
+
+
+;;; Astos  [$9338 :: 0x39348]
+;;;  [1] if you don't have the Crown
+;;;  [2] if you do
+
+[Talk_Astos]
+desc=Astos
+bankaddr=0x9338
+elem0=hcitem|0x1|-1|item to check (does player have crown)
+elem1=text|0x6|1|initial (no crown)
+elem2=hcitem|0x9|-1|item to give (crystal)
+elem3=hcobj|0xC|-1|sprite to hide (astos)
+elem4=hcbattle|0x11|-1|battle with astos
+elem5=hcfanfare|0x15|-1|astos revealed
+elem6=text|0x18|2|pre-fight (astos revealed)
+
+
+;;; Nerrick (dwarf who opens the Canal)  [$9352 :: 0x39362]
+;;;  [1] if you don't have the TNT
+;;;  [2] if you do
+
+[Talk_Nerrick]
+desc=Nerrick
+bankaddr=0x9352
+elem0=hcitem|0x1|-1|item to check (do we have TNT?)
+elem1=text|0x6|1|initial (no TNT)
+elem2=hcitem|0x9|-1|item to remove (give TNT)
+elem3=hcbyte|0xC|-1|set to 0 to hide the canal
+elem4=hcmap|0xE|-1|map object to hide (Nerrick destroys the canal)
+elem5=hcobj|0x11|-1|sprite to hide (Nerrick)
+elem6=hcfanfare|0x15|-1|play fanfare
+elem7=text|0x18|2|post event (Nerrick thanks us)
+
+
+
+;;; Smith (dwarf blacksmith)  [$936C :: 0x3937C]
+;;;  [1] if you don't have the adamant
+;;;  DLGID_DONTBEGREEDY  if you have adamant, but no free weapon slot (HARDCODED!)
+;;;  [2] if you have adamant and a free weapon slot
+;;;  [3] after you've handed over the adamant
+
+[Talk_Smith]
+desc=Dwareven Blacksmith
+bankaddr=0x936C
+elem0=hcobj|0x1|-1|sprite to check (already have XCalber)
+elem1=text|0x8|3|final (already made XCalber)
+elem2=hcitem|0xB|-1|item to check (do we have adamant)
+elem3=text|0x10|1|Initial (no adamant yet)
+elem4=hcweapon|0x18|-1|weapon to give to party (XCalber)
+elem5=hcobj|0x1D|-1|map obj to set (Smith just made XCalber)
+elem6=hcitem|0x22|-1|item to remove (take Adamant from party)
+elem7=hcfanfare|0x24|-1|fanfare
+elem8=text|0x27|2|condition met (Smith now makes XCalber)
+elem9=hctext|0x2A|-1|no room for weapon ('don't be greedy')
+
+
+;;; Matoya (witch with the herb) [$9398 :: 0x393A8]
+;;;  [1] if prince is asleep and you don't have the crystal
+;;;  [2] if you have the crystal
+;;;  [3] if you have the herb, or if prince is awake
+
+[Talk_Matoya]
+desc-Matoya
+bankaddr=0x9398
+elem0=hcitem|0x1|-1|item to check (herb)
+elem1=text|0x5|3|final
+elem2=hcitem|0x9|-1|do you have this item (crystal)
+elem3=hcobj|0xE|-1|map object to check (is prince sleeping)
+elem4=text|0x15|1|initial (prince asleep)
+elem5=hcitem|0x18|-1|item to receive (give Herb to player)
+elem6=hcitem|0x1B|-1|item to remove (give crystal to Matoya)
+elem7=hcfanfare|0x1D|-1|fanfare
+elem8=text|0x20|2|condition met (matoya gets crystal)
+
+
+;;; Dr. Unne  [$93BA :: 0x393CA]
+;;;  [1] if you don't know Lefeinish, don't have slab
+;;;  [2] if you have Slab, but don't know Lefeinish
+;;;  [3] if you know Lefeinish
+
+[Talk_Unne]
+desc=Dr. Unne
+bankaddr=0x93BA
+elem0=hcobj|0x1|-1|sprite event to check (has Unne taught Lefeinish)
+elem1=text|0x8|3|final
+elem2=hcitem|0xB|-1|item to check (does party have slab?)
+elem3=text|0x10|1|initial
+elem4=hcitem|0x13|-1|item to remove (give Unne he slab, elem0's flag auto-sets now)
+elem5=hcfanfare|0x18|-1|fanfare
+elem6=text|0x1B|2|condition met (Dr. Unne teaches you Lefeinish)
+
+
+;;; Vampire  [$93D7 :: 0x393E7]
+;;;  [1] always
+
+[Talk_Vampire]
+desc-Vampire in the Earth Cave
+bankaddr=0x93D7
+elem0=hcobj|0x1|-1|map obj to hide (hide vampire)
+elem1=hcbattle|0x6|-1|battle (Vampire)
+elem2=text|0xB|1|pre-fight text
+
+
+;;; Sarda (gives you the Rod)  [$93E4 :: 0x393F4]
+;;;  [1] if vampire has been killed but you don't have the Rod yet
+;;;  [2] if you have the Rod or Vampire is still alive
+
+[Talk_Sarda]
+desc=Sarda the Sage
+bankaddr=0x93E4
+elem0=hcitem|0x1|-1|item to check (does party already have Rod)
+elem1=hcobj|0x6|-1|map obj to check (is vampire still alive)
+elem2=hcitem|0xD|-1|item to receive (Sarda gives Rod)
+elem3=hcfanfare|0xF|-1|fanfare
+elem4=text|0x12|1|initial
+elem5=text|0x15|2|final
+
+
+;;; Bahamut[$93FB :: 0x3940B]
+;;;  [1] if haven't been promoted, and don't have the Tail
+;;;  [2] if haven't been promoted, and DO have the Tail
+;;;  [3] once promoted
+
+[Talk_Bahamut]
+desc=Bahamut
+bankaddr=0x93FB
+elem0=hcobj|0x1|-1|map object to check (did Bahamut promote us already?)
+elem1=text|0x8|3|final
+elem2=hcitem|0xB|-1|item to check (do we have the tail)
+elem3=text|0x10|1|initial
+elem4=hcitem|0x13|-1|item to remove (give tail to Bahamut)
+elem5=hcfanfare|0x1B|-1|fanfare
+elem6=text|0x1E|2|condition met (gave tail, gettign class change)
+
+
+;;; Generic condition check based on object visibility[$941B :: 0x3942B]
+;;;  [1] if object ID[0] is hidden
+;;;  [2] if it's visible
+
+[Talk_ifvis]
+desc=Talk If Visible
+bankaddr=0x941B
+elem0=obj|0x1|0|is object visible
+elem1=text|0x8|2|object is visible
+elem2=text|0xB|1|object is NOT visible
+
+
+;;; Submarine Engineer(in Onrac, blocking enterance to Sea Shrine)[$9428 :: 0x39438]
+;;;  [1] if you don't have the Oxyale
+;;;  [2] if you do
+
+[Talk_SubEng]
+desc=Submarine Engineer
+bankaddr=0x9428
+elem0=hcitem|0x1|-1|item to check (oxyale)
+elem1=text|0x6|1|initial (no oxyale)
+elem2=hcobj|0x9|-1|object to hide (sub engineer)
+elem3=text|0xE|2|final (has oxyale)
+
+
+;;; Waterfall Robot(gives you the cube)[$9438 :: 0x39448]
+;;;  [1] if you don't have the Cube
+;;;  [2] if you do
+
+[Talk_CubeBot]
+desc=Waterfall Robot
+bankaddr=0x9438
+elem0=hcitem|0x1|-1|item to check (do we have the cube?)
+elem1=text|0x6|2|final (already have the cube)
+elem2=hcitem|0x9|-1|item to receive (get the cube)
+elem3=text|0xC|1|condition met (get the cube)
+elem4=hcfanfare|0xD|-1|fanfare
+
+
+;;; Rescued Princess(in Coneria Castle)[$9448 :: 0x39458]
+;;;  [1] if you don't have the Lute
+;;;  [2] if you do
+
+[Talk_Princess2]
+desc=Rescued Princess (back at the castle)
+bankaddr=0x9448
+elem0=hcitem|0x1|-1|item to check (lute)
+elem1=text|0x6|2|already have the lute
+elem2=hcitem|0x9|-1|item to receive (princess gives the lute)
+elem3=hcfanfare|0xB|-1|fanfare
+elem4=text|0xE|1|receive the lute
+
+
+;;; Fairy(trapped in the Bottle)[$9458 :: 0x39468]
+;;;  [1] if you don't have the Oxyale
+;;;  [2] if you do
+
+[Talk_Fairy]
+desc=Fairy (Gaia)
+bankaddr=0x9458
+elem0=hcitem|0x1|-1|item to check (oxyale)
+elem1=text|0x6|2|condition met (already have Oxyale)
+elem2=hcitem|0x9|-1|item to give (oxyale)
+elem3=hcfanfare|0xB|-1|fanfare
+elem4=text|0xE|1|receiving item (oxyale)
+
+
+;;; Titan[$9468 :: 0x39478]
+;;;  [1] if you don't have the Ruby
+;;;  [2] if you do
+
+[Talk_Titan]
+desc=Titan
+bankaddr=0x9468
+elem0=hcitem|0x1|-1|item to check (ruby)
+elem1=text|0x6|1|initial
+elem2=hcitem|0x9|-1|item to remove (ruby)
+elem3=hcobj|0xC|-1|map object to remove (Titan)
+elem4=text|0x11|2|ruby given, Titan steps aside
+elem5=hcfanfare|0x12|-1|fanfare
+
+
+;;; Nameless sage who gives you the canoe[$947D :: 0x3948D]
+;;;  [1] if you don't have the canoe and Earth Orb has been lit
+;;;  [2] if you have the canoe or if Earth Orb hasn't been lit yet
+
+[Talk_CanoeSage]
+desc=Canoe Sage in Cresent Lake
+bankaddr=0x947D
+elem0=hcitemormap|0x1|-1|item to check (has_canoe)
+elem1=hcitem|0x6|-1|item to check (Earth orb)
+elem2=hcitemormap|0xB|-1|item to receive (canoe)
+elem3=hcfanfare|0xD|-1|fanfare
+elem4=text|0x10|1|receive the canoe
+elem5=text|0x13|2|default text
+
+
+;;; Generic eventless object[$9492 :: 0x394A2]
+;;;  [1] always
+
+[Talk_norm]
+desc=Talk Normal
+bankaddr=0x9492
+elem0=text|0x1|1|dialogue text
+
+
+;;; Replacable Object(first 2 of the 3 ToFR Garlands)[$9495 :: 0x394A5]
+;;;  [1] always-- - hide THIS object whose ID is[0], and show object ID[3]
+
+[Talk_Replace]
+desc=Replaceable Object (i.e. Linked Talking Sprites)
+bankaddr=0x9495
+elem0=obj|0x1|0|object to hide (this object)
+elem1=obj|0x6|3|object to show (linked object)
+elem2=text|0xB|1|dialogue text
+
+
+;;; Mysterious Sage(in the CoO -- disappears after you talk to him)[$94A2 :: 0x394B2]
+;;;  [1] always-- - hide THIS object whose ID is[0]
+
+[Talk_CoOGuy]
+desc=Castle of Ordeals sage
+bankaddr=0x94A2
+elem0=obj|0x1|0|object to hide (this object)
+elem1=text|0x6|1|dialogue text
+
+
+;;; Generic fight(Final ToFR Garland, Fiends)[$94AA :: 0x394BA]
+;;;  [1] always-- - hide THIS object whose ID is[0], and initiate battle ID[3]
+
+[Talk_fight]
+desc=Talk, then Fight
+bankaddr=0x94AA
+elem0=obj|0x1|0|object to hide (this object)
+elem1=battle|0x6|3|battle ID to trigger
+elem2=text|0xB|1|pre-fight text
+
+
+;;; Unused object / waste of space[$94B7 :: 0x394C7]
+;;;  note, though, that the label is in fact used(it is in the jump table)
+
+[Talk_Unused]
+desc=Unused object (no elements)
+bankaddr=0x94B7
+
+
+;;; Generic condition based on item index[$94B8 :: 0x394C8]
+;;;  [1] if party contains at least one of item index[0]
+;;;  [2] otherwise(none of that item)
+
+[Talk_ifitem]
+desc=Talk if Item
+bankaddr=0x94B8
+elem0=item|0x1|0|item index to check
+elem1=text|0x8|1|condition met (party has the item)
+elem2=text|0xB|2|condition NOT met (don't have the item)
+
+
+;;; Invisible Lady(infamous invisible lady in Coneria Castle)[$94C5 :: 0x394D5]
+;;;  [1] if princess not rescued and you don't have the Lute
+;;;  [2] if princess rescued or you do have the Lute
+
+[Talk_Invis]
+desc=The invisible lady in Coneria
+bankaddr=0x94C5
+elem0=hcobj|0x1|-1|object to check
+elem1=hcitem|0x8|-1|item to check (do we have the lute?)
+elem2=text|0xD|1|have the lute
+elem3=text|0x10|2|no lute or primcess not recued yet
+
+
+;;; Condition based on whether or not the bridge has been built[$94D7 :: 0x394E7]
+;;;   this condition is not used by any objects in the game, however it's still in the jump table
+;;;  [1] if bridge is built
+;;;  [2] otherwise
+
+[Talk_ifbridge]
+desc=Talk if Bridge
+bankaddr=0x94D7
+elem0=hcmap|0x1|-1|map object to check
+elem1=text|0x6|1|condition met (bridge built)
+elem2=text|0x9|2|condition NOT met
+
+
+;;; Generic condition based on game event flag[$94E2 :: 0x394F2]
+;;;  [1] if game event flag ID[0] is clear
+;;;  [2] if it's set
+
+[Talk_ifevent]
+desc=Talk if Event
+bankaddr=0x94E2
+elem0=event|0x1|0|event flag to check
+elem1=text|0x8|1|event not triggered
+elem2=text|0xB|2|event triggered
+
+
+;;; Some guard in Coneria town[$94F0 :: 0x39500]
+;;;  [1] if princess has been saved, but bridge isn't built yet
+;;;  [2] if princess still kidnapped or bridge is built
+
+[Talk_GoBridge]
+desc=Talk - go to Bridge
+bankaddr=0x94F0
+elem0=hcobj|0x1|-1|object to check (has princess been rescued?)
+elem1=hcmap|0x8|-1|map object to check (has bridge been built)
+elem2=text|0xD|1|princess rescued, but bridge not built
+elem3=text|0x10|2|prince rescued AND bridge built
+
+
+;;; The Black Orb[$9502 :: 0x39512]
+;;;  [1] if all 4 orbs are lit
+;;;  [2] otherwise
+
+[Talk_BlackOrb]
+desc=Black Orb
+bankaddr=0x9502
+elem0=hcitem|0x1|-1|item to check (fire orb)
+elem1=hcitem|0x4|-1|item to check (water orb)
+elem2=hcitem|0x7|-1|item to check (air orb)
+elem3=hcitem|0xA|-1|item to check (earth orb)
+elem4=hcobj|0xF|-1|object to hide (black orb)
+elem5=hcfanfare|0x13|-1|increment once for fanfare
+elem6=hcfanfare|0x15|-1|increment twice for treasure chest sound
+elem7=text|0x18|1|conditions met (all orbs lit)
+elem8=text|0x1B|2|condition NOT met
+
+
+;;; Conditional Check for 4 Orbs[$951F :: 0x3952F]
+;;;  [1] if all 4 orbs lit
+;;;  [2] otherwise
+
+[Talk_4Orb]
+desc=Talk if all 4 Orbs are lit
+bankaddr=0x951F
+elem0=hcitem|0x1|-1|item to check (fire orb)
+elem1=hcitem|0x4|-1|item to check (water orb)
+elem2=hcitem|0x7|-1|item to check (air orb)
+elem3=hcitem|0xA|-1|item to check (earth orb)
+elem4=text|0xF|1|conditions met (all 4 orbs lit)
+elem5=text|0x12|2|conditions NOT met
+
+
+;;; Conditional check for canoe(some lady in Elfland)[$9533 :: 0x39543]
+;;;  [1] if you have the canoe
+;;;  [2] if you don't
+
+[Talk_ifcanoe]
+desc=Talk if Canoe is in inventory
+bankaddr=0x9533
+elem0=hcitemorcanoe|0x1|-1|item to check (canoe)
+elem1=text|0x6|1|condition met (have canoe)
+elem2=text|0x9|2|condition NOT met (no canoe)
+
+
+;;; Conditional check for Canal(some dwarves)[$953E :: 0x3954E]
+;;;  [1] if Canal has been opened up
+;;;  [2] if Canal is still blocked
+
+[Talk_ifcanal]
+desc=Talk if Canal
+bankaddr=0x953E
+elem0=hcmap|0x1|-1|map object to check (canoe)
+elem1=text|0x6|1|condition met (canal opened)
+elem2=text|0x9|2|condition NOT met (canal still blocked)
+
+
+;;; Conditional check for key + TNT(some dwarf ? )[$9549 :: 0x39559]
+;;;  [1] if have key, but not TNT
+;;;  [2] if no key, or have TNT
+
+[Talk_ifkeytnt]
+desc=Talk if Key and TNT
+bankaddr=0x9549
+elem0=hcitem|0x1|-1|item to check (mystic key)
+elem1=hcitem|0x6|-1|item to check (TNT)
+elem2=text|0xB|1|key, but no TNT
+elem3=text|0xE|2|either no key, or has both key and TNT
+
+
+;;; Conditional check for Earth Orb and Vampire(people in Melmond)[$9559 :: 0x39569]
+;;;  [1] if Vampire is dead and Earth Orb not lit
+;;;  [2] if Vampire lives, or Earth Orb has been lit
+
+[Talk_ifearthvamp]
+desc=Talk if Earth Vampire
+bankaddr=0x9559
+elem0=hcobj|0x1|-1|object to check (is vampire dead?)
+elem1=hcitem|0x8|-1|item to check (is earth orb lit?)
+elem2=text|0xD|1|vampire dead, but earth orb NOT lit
+elem3=text|0x10|2|conditions met
+
+
+;;; Conditional check for airship[$956B :: 0x3957B]
+;;;  [1] if you don't have the airship
+;;;  [2] if you do
+
+[Talk_ifairship]
+desc=Talk if Airship
+bankaddr=0x956B
+elem0=hcmap|0x1|-1|map object to check (is airship visible)
+elem1=text|0x6|1|condition NOT met (no airship)
+elem2=text|0x9|2|condition met (party has airship)
+
+
+;;; Conditional check for earth / fire orbs[$9576 :: 0x39586]
+;;;  [1] if Earth Orb not lit, or Fire Orb Lit
+;;;  [2] if Earth Orb lit, and Fire Obj not lit
+
+[Talk_ifearthfire]
+desc=Talk if Earth and Fire Orbs
+bankaddr=0x9576
+elem0=hcitem|0x1|-1|item to check (earth orb)
+elem1=hcitem|0x6|-1|item to check (fire orb)
+elem2=text|0xB|1|conditions NOT met (Earth, but not Fire)
+elem3=text|0xE|2|conditions met (Earth and Fire)
+
+
+;;; [$9586 :: 0x39596] [UNUSED] 14 bytes, Talk_CubeBotBad is an Unused duplicate of Cube bot(doesn't play fanfare)
+;;;  [1] if you don't have the Cube
+;;;  [2] if you do.
+
+[Talk_CubeBotBad]
+desc=Bad/Unused Cube Robot
+bankaddr=0x9586
+elem0=hcitem|0x1|-1|item to check (cube)
+elem1=text|0x6|2|condition met (already have the cube)
+elem2=hcitem|0x9|-1|item to give (cube)
+elem3=text|0xC|1|give cube (with no fanfare)
+
+
+;;; Guy with the Chime(in Lefein)[$9594 :: 0x395A4]
+;;;  [1] if you speak Lefeinish, and don't have the Chime
+;;;  [2] if you speak Lefeinish, and do have the Chime
+;;;  [3] if you don't speak Lefeinish
+
+[Talk_Chime]
+desc=Talk to Chime guy in Lefein
+bankaddr=0x9594
+elem0=hcobj|0x1|-1|object to check (has Dr. Unne taught Lefeinish yet?)
+elem1=text|0x8|3|don't speek Lefeinish yet
+elem2=hcitem|0xB|-1|item to check (do we have the chime?)
+elem3=text|0x10|2|already have the chime
+elem4=hcitem|0x13|-1|item to give (chime)
+elem5=hcfanfare|0x15|-1|fanfare
+elem6=text|0x18|1|get the chime

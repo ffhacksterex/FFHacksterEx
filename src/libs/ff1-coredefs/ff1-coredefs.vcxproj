@@ -1,0 +1,299 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2CBE0A61-1F42-4BA0-9266-F9E99373F284}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>ff1coredefs</RootNamespace>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\compat.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\compat.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\compat.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\compat.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);;$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);;$(WindowsSdk_71A_LibraryPath_x86)</LibraryPath>
+    <OutDir>$(SolutionDir)..\output\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(WindowsSdk_71A_LibraryPath_x86);</LibraryPath>
+    <OutDir>$(SolutionDir)..\output\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
+    <OutDir>$(SolutionDir)..\output\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
+    <OutDir>$(SolutionDir)..\output\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;NO_WARN_MBCS_MFC_DEPRECATION;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <Lib>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>Version.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;NO_WARN_MBCS_MFC_DEPRECATION;_CRT_SECURE_NO_WARNINGS;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>Version.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;NO_WARN_MBCS_MFC_DEPRECATION;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>Version.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;NO_WARN_MBCS_MFC_DEPRECATION;_CRT_SECURE_NO_WARNINGS;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>Version.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AppSettings.cpp" />
+    <ClCompile Include="aseembly_types.cpp" />
+    <ClCompile Include="ci_support.cpp" />
+    <ClCompile Include="collection_helpers.cpp" />
+    <ClCompile Include="core_exceptions.cpp" />
+    <ClCompile Include="dialogue_helpers.cpp" />
+    <ClCompile Include="DirPathRemover.cpp" />
+    <ClCompile Include="draw_functions.cpp" />
+    <ClCompile Include="Editors2.cpp" />
+    <ClCompile Include="FFHacksterProject.cpp" />
+    <ClCompile Include="FilePathRemover.cpp" />
+    <ClCompile Include="FilePathRestorer.cpp" />
+    <ClCompile Include="GameSerializer.cpp" />
+    <ClCompile Include="imaging_helpers.cpp" />
+    <ClCompile Include="general_functions.cpp" />
+    <ClCompile Include="IniOverrider.cpp" />
+    <ClCompile Include="ini_functions.cpp" />
+    <ClCompile Include="asmdll_impl.cpp" />
+    <ClCompile Include="io_functions.cpp" />
+    <ClCompile Include="LoadLibraryHandleScope.cpp" />
+    <ClCompile Include="map_types.cpp" />
+    <ClCompile Include="path_functions.cpp" />
+    <ClCompile Include="rc_functions.cpp" />
+    <ClCompile Include="regex_helpers.cpp" />
+    <ClCompile Include="ResourceHandleScope.cpp" />
+    <ClCompile Include="EditorSettingsSerializer.cpp" />
+    <ClCompile Include="SetResourceHandleScope.cpp" />
+    <ClCompile Include="set_types.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="std_assembly.cpp" />
+    <ClCompile Include="stream_ops.cpp" />
+    <ClCompile Include="string_functions.cpp" />
+    <ClCompile Include="type_support.cpp" />
+    <ClCompile Include="upgrade_functions.cpp" />
+    <ClCompile Include="vector_types.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ff1-coredefs.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\advdrawi.bmp" />
+    <Image Include="res\drawingtools.bmp" />
+    <Image Include="res\iconmonstr-book-27-24.png" />
+    <Image Include="res\iconmonstr-gear-3-24.png" />
+    <Image Include="res\iconmonstr-help-1-24.png" />
+    <Image Include="res\iconmonstr-info-6-24.png" />
+    <Image Include="res\iconmonstr-minus-2-24.png" />
+    <Image Include="res\iconmonstr-x-mark-2-24.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AppSettings.h" />
+    <ClInclude Include="asmdll_impl.h" />
+    <ClInclude Include="AsmFiles.h" />
+    <ClInclude Include="assembly_types.h" />
+    <ClInclude Include="ci_support.h" />
+    <ClInclude Include="collection_helpers.h" />
+    <ClInclude Include="common_symbols.h" />
+    <ClInclude Include="DATA.h" />
+    <ClInclude Include="datanode.h" />
+    <ClInclude Include="dialogue_helpers.h" />
+    <ClInclude Include="DirPathRemover.h" />
+    <ClInclude Include="draw_functions.h" />
+    <ClInclude Include="DRAW_STRUCT.h" />
+    <ClInclude Include="EditorInterop.h" />
+    <ClInclude Include="Editors2.h" />
+    <ClInclude Include="EditorSettingsSerializer.h" />
+    <ClInclude Include="FFHacksterProject.h" />
+    <ClInclude Include="FilePathRemover.h" />
+    <ClInclude Include="FilePathRestorer.h" />
+    <ClInclude Include="FontStack.h" />
+    <ClInclude Include="function_types.h" />
+    <ClInclude Include="GameSerializer.h" />
+    <ClInclude Include="general_functions.h" />
+    <ClInclude Include="HelpType.h" />
+    <ClInclude Include="imaging_helpers.h" />
+    <ClInclude Include="IniOverrider.h" />
+    <ClInclude Include="ini_functions.h" />
+    <ClInclude Include="interop_assembly_interface.h" />
+    <ClInclude Include="io_functions.h" />
+    <ClInclude Include="IProgress.h" />
+    <ClInclude Include="LoadLibraryHandleScope.h" />
+    <ClInclude Include="logging_functions.h" />
+    <ClInclude Include="map_types.h" />
+    <ClInclude Include="outputdebugbuf.h" />
+    <ClInclude Include="pair_result.h" />
+    <ClInclude Include="path_functions.h" />
+    <ClInclude Include="rc_functions.h" />
+    <ClInclude Include="regex_helpers.h" />
+    <ClInclude Include="ResourceHandleScope.h" />
+    <ClInclude Include="resource_coredefs.h" />
+    <ClInclude Include="SetResourceHandleScope.h" />
+    <ClInclude Include="set_types.h" />
+    <ClInclude Include="shared_resids.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="std_assembly.h" />
+    <ClInclude Include="std_project_properties.h" />
+    <ClInclude Include="stream_ops.h" />
+    <ClInclude Include="string_functions.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="type_support.h" />
+    <ClInclude Include="upgrade_functions.h" />
+    <ClInclude Include="vector_types.h" />
+    <ClInclude Include="window_messages.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

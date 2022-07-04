@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="asm-ff1disch.cpp" />
+    <ClCompile Include="dialogue_functions.cpp" />
+    <ClCompile Include="data_functions.cpp" />
+    <ClCompile Include="shared.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="asm-ff1disch.h" />
+    <ClInclude Include="dialogue_functions.h" />
+    <ClInclude Include="data_functions.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="shared.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="version-number.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="asm-ff1disch.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="asm-ff1disch.rc2" />
+    <None Include="PostBuild.targets">
+      <Filter>Packaging</Filter>
+    </None>
+    <None Include="ff-packaging.targets">
+      <Filter>Packaging</Filter>
+    </None>
+    <None Include="ff-content.targets">
+      <Filter>Packaging</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="README.md" />
+    <Text Include="readme-ff1asm-disch.txt">
+      <Filter>Content</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Packaging">
+      <UniqueIdentifier>{194f97dc-136a-4b26-929d-e0c9e8650cbf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Content">
+      <UniqueIdentifier>{f49baf4b-5ad5-4c84-af4e-036cd0055904}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,75 @@
+<!--
+  FFHacksterEx
+  Implements the Copy File operation for content items.
+  2015 does not support Copy File (entering it manually breaks the build).
+  The workaround is using this manual targets file to perform Clean and Build.
+  
+  Upon upgrading to the 2017 compiler, if you wish you can do the following:
+  1) set the properties of the files below to the following:
+    Content: Yes
+    Item Type: Copy File
+  2) Rmeove the import of this file from PostBuild.targsts
+  3) Delete this file from the project
+  
+  That would instruct the compiler to include those files in
+  both Build and Clean operations without having to manually
+  use a targets file like this to do it.
+  
+  I'm not sure what happens if the content is in subfolders, so test accordingly.
+  And the targets file is pretty flexible, it can do things that Copy File can't.
+-->
+  
+    
+  <Project>
+	<PropertyGroup>
+	</PropertyGroup>
+
+  <Target Name="CleanContentFromOutdir" AfterTargets="Clean">
+    <Message Importance="High" Text="[TASK CleanContentFromOutdir]" />
+		<Message Importance="High" Text=" -> This will clean content files from $(Outdir)" />
+
+    <ItemGroup>
+      <TemplateFiles Include="$(Outdir)*.template" />
+      <Executables Include="$(Outdir)7za.exe" />
+      <OtherFiles Include="$(Outdir)FFHacksterEx.exe-trace.bat" />
+      <OtherFiles Include="$(Outdir)FFHacksterEx.helpconfig" />
+      <OtherFiles Include="$(Outdir)readme.txt" />
+    </ItemGroup>
+
+    <Delete
+      Files="@(TemplateFiles)"
+    />
+    <Delete
+      Files="@(Executables)"
+    />
+    <Delete
+      Files="@(OtherFiles)"
+    />
+  </Target>
+
+	<Target Name="CopyContentToOutdir" AfterTargets="CopyFilesToOutputDirectory">
+    <Message Importance="High" Text="[TASK CopyContentToOutdir]" />
+		<Message Importance="High" Text=" -> This will copy files to $(Outdir)" />
+
+    <ItemGroup>
+      <TemplateFiles Include="*.template" />
+      <Executables Include="7za.exe" />
+      <OtherFiles Include="FFHacksterEx.exe-trace.bat" />
+      <OtherFiles Include="FFHacksterEx.helpconfig" />
+      <OtherFiles Include="readme.txt" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(TemplateFiles)"
+      DestinationFolder="$(Outdir)"
+    />
+    <Copy
+      SourceFiles="@(Executables)"
+      DestinationFolder="$(Outdir)"
+    />
+    <Copy
+      SourceFiles="@(OtherFiles)"
+      DestinationFolder="$(Outdir)"
+    />
+	</Target>
+</Project>

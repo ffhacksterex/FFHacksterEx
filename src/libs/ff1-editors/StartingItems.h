@@ -1,0 +1,57 @@
+#pragma once
+
+#include <EditorWithBackground.h>
+#include <vector>
+class CFFHacksterProject;
+
+// CStartingItems dialog
+
+class CStartingItems : public CEditorWithBackground
+{
+	DECLARE_DYNAMIC(CStartingItems)
+
+public:
+	CStartingItems(CWnd* pParent = nullptr);   // standard constructor
+	virtual ~CStartingItems();
+
+// Dialog Data
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_STARTINGITEMS };
+#endif
+
+protected:
+	int HASCANOE_OFFSET;
+	int BRIDGESCENE_OFFSET;
+	int STARTINGITEMS_OFFSET;
+	int STARTINGCONSUMABLES_OFFSET;
+	int BANK00_OFFSET;
+	int BANK0A_OFFSET;
+
+	std::vector<int> m_itemids;
+	std::vector<int> m_comsumeids;
+	std::vector<int> m_consumelabelids;
+
+	CClearComboBox m_comboBridge;
+	CClearButton m_checkHasCanoe;
+	CClearEdit m_comumableedit1;
+	CClearEdit m_comumableedit2;
+	CClearEdit m_comumableedit3;
+	CClearEdit m_comumableedit4;
+	CClearEdit m_comumableedit5;
+	CClearEdit m_comumableedit6;
+	CCloseButton m_closebutton;
+	CClearButton m_savebutton;
+	CClearButton m_okbutton;
+	CClearButton m_cancelbutton;
+	CHelpbookButton m_helpbookbutton;
+
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual BOOL OnInitDialog();
+
+	void LoadRom();
+	virtual void SaveRom();
+	void LoadValues();
+	virtual void StoreValues();
+
+	DECLARE_MESSAGE_MAP()
+};

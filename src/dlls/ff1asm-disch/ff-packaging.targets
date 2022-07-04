@@ -1,0 +1,117 @@
+<!--
+  ff1asm-disch
+  This can be made into a reusable target if some of the values are placed
+  into a either a .props file for each project or into th eproject directly.
+  e.g.
+  Target GetDeployFileName param "Key"
+  Property 
+-->
+
+  <Project> 
+  <!-- 
+      Use an inline task to define the function that creates the batch filename.
+
+      DeployFmt is a string expected to contain a placeholder "{0}" that will be
+      replaced by either the version number or - if not found - an empty string.
+  -->
+  <UsingTask TaskName="GetDeployFileName"
+              TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Path ParameterType="System.String" Required="true" />
+      <Key ParameterType="System.String" Required="true" />
+      <DeployFmt ParameterType="System.String" Required="true" />
+      <OutFile ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        // Get the lines from version-number.h, then find the one containing key
+        // and split the line on key.
+        var lines = File.ReadAllLines(Path);
+        var content = lines.Where(s => s.Contains(Key)).ToArray();
+        var prodparts = content.Select(c => c.Split(new string[]{Key}, StringSplitOptions.None));
+        
+        // If split, then the second part of the line will be the version number.
+        // Convert commas to dots (Windows version resources natively use commas).
+        var vertext = "";
+		    if (prodparts.Any()) {
+          // Note that a leading dash is included here.
+          vertext = string.Format("-{0}", prodparts.First()[1].Trim().Replace(",", "."));
+		    }
+        
+        // DeployFmt's "{0}" placeholder is used with vertext.
+        OutFile = string.Format(DeployFmt, vertext);
+        //Log.LogMessage(MessageImportance.High, OutFile);
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <PropertyGroup>
+    <!-- Path to the version number header -->
+    <FFVersionPath>$(ProjectDir)version-number.h</FFVersionPath>
+
+    <!-- Format the platform name and output file name for packaging -->
+    <FFPlatform>$(Platform)</FFPlatform>
+    <FFPlatform Condition=" '$(Platform)' == 'x64'">Win64</FFPlatform>
+    <FFConfig>-$(Configuration)</FFConfig>
+    <FFConfig Condition=" '$(Configuration)' == 'RELEASE'"></FFConfig>
+
+    <FFDeployFolder>$(SolutionDir)..\dist</FFDeployFolder>
+    <FFPlatformDetail>$(FFPlatform)-$(PlatformShortName)-$(PlatformToolset)$(FFConfig)</FFPlatformDetail>
+    
+    <FFDeployFormat>$(FFDeployFolder)\$(ProjectName){0}-$(FFPlatformDetail).bat</FFDeployFormat>
+  </PropertyGroup>
+
+  <Target Name="Dummy" AfterTargets="AfterBuild;AfterRebuild">
+    <Message Importance="High" Text="Build is done!" />
+  </Target>
+
+  <!-- Create a batch file in the distribution directory that creates a zip of the current build files  -->
+<Target Name="BuildPackageScript" AfterTargets="Dummy">
+    <PropertyGroup>
+      <!-- The commands to write to the packaging batch file -->
+      <FFCommands>
+@setlocal
+@set projname=$(ProjectName)
+@set srcdir=$(OutDir)
+@set targname=$(TargetName)
+@set targfile=$(TargetFileName)
+
+rem Use this file's title to name the zip file
+@set zipf=%~dpn0.zip
+@set zipexe=%srcdir%7za
+
+@if exist "%zipf%" @del /q %zipf%
+
+@echo Zipping the '%projname%' project's executable...
+"%zipexe%" a %zipf% "%srcdir%/%targfile%"
+
+@echo Zipping readme...
+"%zipexe%" a %zipf% "%srcdir%/readme-ff1asm-disch.txt"
+
+@echo Done.
+@endlocal
+      </FFCommands>
+    </PropertyGroup>
+
+    <Message Importance="High" Text=" -> Building packaging script for $(FFPlatformDetail) ($(Configuration))" />
+  
+    <!-- Build the filename using the version and hold it in item @(FFOutFilePath) -->
+    <GetDeployFileName Path="$(FFVersionPath)" Key="ASMDISCH_VERSION_PROD_NUMBER"
+                    DeployFmt="$(FFDeployFormat)">
+      <Output ItemName="FFOutFilePath" TaskParameter="OutFile" />
+    </GetDeployFileName>
+
+    <!-- Convert deploy item to a path, then to lowercase -->
+    <PropertyGroup>
+      <FFDeployPathString>@(FFOutFilePath)</FFDeployPathString>
+      <FFLowerDeployPath>$(FFDeployPathString.ToLower())</FFLowerDeployPath>
+    </PropertyGroup>
+
+    <!-- Write the FFCommands to a batch file (overwrites an existing file) -->
+    <WriteLinesToFile
+        File="$(FFLowerDeployPath)"
+        Overwrite="true"
+        Lines="$(FFCommands)" />
+    <Message Importance="High" Text="Packaging complete for $(FFPlatformDetail) ($(Configuration))." />
+  </Target>
+</Project>

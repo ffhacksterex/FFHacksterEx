@@ -1,0 +1,295 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2F35299A-D285-4526-BC40-D1D5D8F0894A}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>ff1utils</RootNamespace>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\compat.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\compat.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\compat.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\compat.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>../ff1-coredefs;$(VC_IncludePath);$(WindowsSDK_IncludePath);;$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);;$(WindowsSdk_71A_LibraryPath_x86)</LibraryPath>
+    <OutDir>$(SolutionDir)..\output\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>../ff1-coredefs;$(VC_IncludePath);$(WindowsSDK_IncludePath);;$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(WindowsSdk_71A_LibraryPath_x86);</LibraryPath>
+    <OutDir>$(SolutionDir)..\output\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>../ff1-coredefs;$(VC_IncludePath);$(WindowsSDK_IncludePath);;$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
+    <OutDir>$(SolutionDir)..\output\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>../ff1-coredefs;$(VC_IncludePath);$(WindowsSDK_IncludePath);;$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
+    <OutDir>$(SolutionDir)..\output\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;NO_WARN_MBCS_MFC_DEPRECATION;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <Lib>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;NO_WARN_MBCS_MFC_DEPRECATION;_CRT_SECURE_NO_WARNINGS;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;NO_WARN_MBCS_MFC_DEPRECATION;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;NO_WARN_MBCS_MFC_DEPRECATION;_CRT_SECURE_NO_WARNINGS;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BackgroundMixin.h" />
+    <ClInclude Include="BorderedEdit.h" />
+    <ClInclude Include="BorderedListCtrl.h" />
+    <ClInclude Include="BorderedListBox.h" />
+    <ClInclude Include="BrowseForFolderDialog.h" />
+    <ClInclude Include="CloseButton.h" />
+    <ClInclude Include="DataListDialog.h" />
+    <ClInclude Include="DialogWithBackground.h" />
+    <ClInclude Include="EditorWithBackground.h" />
+    <ClInclude Include="FFBaseApp.h" />
+    <ClInclude Include="FFBaseDlg.h" />
+    <ClInclude Include="FontSet.h" />
+    <ClInclude Include="Help.h" />
+    <ClInclude Include="InfoButton.h" />
+    <ClInclude Include="HelpbookButton.h" />
+    <ClInclude Include="ClearButton.h" />
+    <ClInclude Include="ClearComboBox.h" />
+    <ClInclude Include="ClearListCtrl.h" />
+    <ClInclude Include="ClearStatic.h" />
+    <ClInclude Include="ColorStatic.h" />
+    <ClInclude Include="DlgInputLine.h" />
+    <ClInclude Include="editor_label_defaults.h" />
+    <ClInclude Include="editor_label_functions.h" />
+    <ClInclude Include="ClearEdit.h" />
+    <ClInclude Include="EntriesLoader.h" />
+    <ClInclude Include="ff1-utils-controls.h" />
+    <ClInclude Include="FFHExtensionModule.h" />
+    <ClInclude Include="ingame_text_functions.h" />
+    <ClInclude Include="InplaceCheck.h" />
+    <ClInclude Include="InplaceCombo.h" />
+    <ClInclude Include="InplaceEdit.h" />
+    <ClInclude Include="ListCtrlHideColumns.h" />
+    <ClInclude Include="MainBanner.h" />
+    <ClInclude Include="ODBackground.h" />
+    <ClInclude Include="ClearListBox.h" />
+    <ClInclude Include="ODUtils.h" />
+    <ClInclude Include="ProjectLoader.h" />
+    <ClInclude Include="RadioButton.h" />
+    <ClInclude Include="ram_value_functions.h" />
+    <ClInclude Include="resource_utils.h" />
+    <ClInclude Include="SaveableDialog.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StrikeCheck.h" />
+    <ClInclude Include="SubBanner.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="ui_helpers.h" />
+    <ClInclude Include="ui_prompts.h" />
+    <ClInclude Include="WaitingDlg.h" />
+    <ClInclude Include="XPVersionHack.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BackgroundMixin.cpp" />
+    <ClCompile Include="BorderedEdit.cpp" />
+    <ClCompile Include="BorderedListCtrl.cpp" />
+    <ClCompile Include="BorderedListBox.cpp" />
+    <ClCompile Include="BrowseForFolderDialog.cpp" />
+    <ClCompile Include="CloseButton.cpp" />
+    <ClCompile Include="DataListDialog.cpp" />
+    <ClCompile Include="DialogWithBackground.cpp" />
+    <ClCompile Include="EditorWithBackground.cpp" />
+    <ClCompile Include="FFBaseApp.cpp" />
+    <ClCompile Include="FFBaseDlg.cpp" />
+    <ClCompile Include="FontSet.cpp" />
+    <ClCompile Include="Help.cpp" />
+    <ClCompile Include="InfoButton.cpp" />
+    <ClCompile Include="HelpbookButton.cpp" />
+    <ClCompile Include="ClearButton.cpp" />
+    <ClCompile Include="ClearComboBox.cpp" />
+    <ClCompile Include="ClearListCtrl.cpp" />
+    <ClCompile Include="ClearStatic.cpp" />
+    <ClCompile Include="ColorStatic.cpp" />
+    <ClCompile Include="DlgInputLine.cpp" />
+    <ClCompile Include="editor_label_functions.cpp" />
+    <ClCompile Include="ClearEdit.cpp" />
+    <ClCompile Include="EntriesLoader.cpp" />
+    <ClCompile Include="FFHExtensionModule.cpp" />
+    <ClCompile Include="ingame_text_functions.cpp" />
+    <ClCompile Include="InplaceCheck.cpp" />
+    <ClCompile Include="InplaceCombo.cpp" />
+    <ClCompile Include="InplaceEdit.cpp" />
+    <ClCompile Include="ListCtrlHideColumns.cpp" />
+    <ClCompile Include="MainBanner.cpp" />
+    <ClCompile Include="ODBackground.cpp" />
+    <ClCompile Include="ClearListBox.cpp" />
+    <ClCompile Include="ODUtils.cpp" />
+    <ClCompile Include="ProjectLoader.cpp" />
+    <ClCompile Include="RadioButton.cpp" />
+    <ClCompile Include="ram_value_functions.cpp" />
+    <ClCompile Include="SaveableDialog.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="StrikeCheck.cpp" />
+    <ClCompile Include="SubBanner.cpp" />
+    <ClCompile Include="ui_helpers.cpp" />
+    <ClCompile Include="ui_prompts.cpp" />
+    <ClCompile Include="WaitingDlg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ff1-utils.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ff1.colors.h" />
+    <None Include="ff1-utils.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ff1-coredefs\ff1-coredefs.vcxproj">
+      <Project>{2cbe0a61-1f42-4ba0-9266-f9e99373f284}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="ff1-utils.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

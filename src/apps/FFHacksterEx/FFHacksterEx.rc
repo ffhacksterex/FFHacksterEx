@@ -1,0 +1,651 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "version-number.h"
+#include "shared_resids.h"
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+    "shared_resids.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""version-number.h""\r\n"
+    "#include ""shared_resids.h""\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\FFHackster.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\FFHackster.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_FFHACKSTER_DIALOG DIALOGEX 0, 0, 532, 323
+STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_BORDER
+EXSTYLE WS_EX_APPWINDOW
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Import FFH DAT",IDC_FFH_BTN_IMPORTFFHDAT,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,107,100,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Revert",IDC_FFH_BTN_REVERT,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,152,100,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Archive",IDC_FFH_BTN_ARCHIVEPROJECT,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,197,100,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Clone",IDC_BUTTON1,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,242,100,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Publish",IDC_FFH_BTN_PUBLISH,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,287,100,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Compile",IDC_FFH_BTN_COMPILE,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,332,100,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Run",IDC_FFH_BTN_RUN,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,377,100,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Labels",IDC_FFH_BTN_LABELS,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,152,137,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Values",IDC_FFH_BTN_VALUES,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,197,137,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "RAM",IDC_FFH_BTN_RAM,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,242,137,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Proj Settings",IDC_FFH_BTN_PROJSETTINGS,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,287,137,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Editors",IDC_FFH_BTN_EDITORS,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | WS_TABSTOP,332,137,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "",IDC_FRAME_CONTENT,"Static",SS_BLACKFRAME | NOT WS_VISIBLE,7,177,518,108
+    CONTROL         "App Settting",IDC_FFH_BTN_APPSETTINGS,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,356,7,31,24,WS_EX_TRANSPARENT
+    CONTROL         "H",IDHELPBOOK,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,390,7,31,24,WS_EX_TRANSPARENT
+    CONTROL         "?",IDABOUT,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,424,7,31,24,WS_EX_TRANSPARENT
+    CONTROL         "_",IDC_FFH_BTN_MIN,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,458,7,31,24,WS_EX_TRANSPARENT
+    CONTROL         "x",IDCANCEL,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,494,7,31,24,WS_EX_TRANSPARENT
+    LTEXT           "Static",IDC_STATIC_EDITORDESC,12,288,504,28,0,WS_EX_TRANSPARENT
+END
+
+IDD_ABOUT DIALOGEX 0, 0, 284, 269
+STYLE DS_SETFONT | WS_POPUP | WS_BORDER | WS_SYSMENU
+FONT 8, "MS Sans Serif", 400, 0, 0x0
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_ICONSTATIC,87,31,20,20,NOT WS_VISIBLE
+    LTEXT           "FFHacksterEx",IDC_ABOUT_STATIC_PROGNAME,119,33,148,10,0,WS_EX_TRANSPARENT
+    LTEXT           "Release",IDC_ABOUT_STATIC_RELEASE,120,42,148,10,0,WS_EX_TRANSPARENT
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDFRAME,24,56,236,1
+    LTEXT           "Programming",IDC_STATIC,27,68,42,8,0,WS_EX_TRANSPARENT
+    LTEXT           "Esselle Jaye ( FFHacksterEx ), Disch (",IDC_STATIC,27,77,121,8,0,WS_EX_TRANSPARENT
+    LTEXT           ")",IDC_STATIC,187,77,8,8
+    CONTROL         "FFHackster",IDC_MFCLINK_FFH,"MfcLink",WS_TABSTOP,148,76,40,12
+    LTEXT           "Influenced by",IDC_STATIC,27,95,44,8,0,WS_EX_TRANSPARENT
+    LTEXT           "Y Diennyddwr Da ( FFBytes ), Paulygon (",IDC_STATIC,27,103,131,8,0,WS_EX_TRANSPARENT
+    CONTROL         "FFHackster Companion",IDC_MFCLINK_FFHPLUS,"MfcLink",WS_TABSTOP,156,101,76,12
+    LTEXT           ")",IDC_STATIC,232,103,8,8
+    LTEXT           "Additional thanks to:",IDC_ABOUT_STATIC_LABEL1,27,121,133,8,0,WS_EX_TRANSPARENT
+    LTEXT           "Anomie, AstralEsper, Grond, \nAlex Jackson, and many others from the",IDC_ABOUT_STATIC_DETAIL1,27,130,130,16,0,WS_EX_TRANSPARENT
+    CONTROL         "GameFAQs FF1 board",IDC_MFCLINK_FFGAMEFAQS,"MfcLink",WS_TABSTOP,154,136,76,12
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDFRAME,23,152,236,1
+    LTEXT           "License - 7-Zip 7za tools: LGPL",IDC_STATIC,27,164,100,10,SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "https://www.7-zip.org/license.txt",IDC_MFCLINK_7ZIP,
+                    "MfcLink",WS_TABSTOP,27,172,112,12
+    LTEXT           "License - Iconmonstr:",IDC_ABOUT_STATIC_LABEL3,27,193,100,10,0,WS_EX_TRANSPARENT
+    CONTROL         "https://iconmonstr.com/license/",IDC_MFCLINK_ICONMONSTR,
+                    "MfcLink",WS_TABSTOP,27,200,112,12
+    LTEXT           "License - FFHacksterEx app : MIT/Expat",IDC_STATIC,27,221,130,8,0,WS_EX_TRANSPARENT
+    CONTROL         "Great! Let's start hackin!",IDOK,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,241,270,21,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Cancel",IDCANCEL,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,253,6,24,20,WS_EX_TRANSPARENT
+END
+
+IDD_WELCOME DIALOGEX 0, 0, 322, 215
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_BORDER
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CTEXT           "Welcome to FFHackster 2017!",IDC_PROJECTS_STATIC_BANNER,7,3,23,8,NOT WS_VISIBLE
+    LTEXT           "Welcome to FFHackster!\nThis edition allows editing of either a Final Fantasy 1 ROM image or an assembly folder.\nChoose an option below to begin.",IDC_STATIC2,13,32,284,25,0,WS_EX_TRANSPARENT
+    CONTROL         "Edit ROM",IDC_PROJECTS_BTN_EDITROM,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_GROUP | WS_TABSTOP,13,65,29,25,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Open",IDC_PROJECTS_BTN_OPENROM,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,13,93,29,25,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Nw ROM",IDC_PROJECTS_BTN_NEWROM,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,13,121,29,25,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "New Asm",IDC_PROJECTS_BTN_NEWASM,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,13,149,29,25,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Unzip",IDC_PROJECTS_BTN_UNZIP,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,13,177,29,25,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "*",IDC_FFH_BTN_APPSETTINGS,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,202,7,24,20,WS_EX_TRANSPARENT
+    CONTROL         "H",IDHELPBOOK,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,231,7,24,20,WS_EX_TRANSPARENT
+    CONTROL         "?",IDABOUT,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,260,7,24,20,WS_EX_TRANSPARENT
+    CONTROL         "X",IDCANCEL,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,289,7,24,20,WS_EX_TRANSPARENT
+    LTEXT           "EDIT ROM\nEdit a ROM immediately (a project will auto-create around the ROM).",IDC_STATIC3,48,65,259,25,NOT WS_GROUP,WS_EX_TRANSPARENT
+    LTEXT           "OPEN PROJECT\nOpen a project of any supported type",IDC_STATIC6,48,93,259,25,SS_NOTIFY | NOT WS_GROUP,WS_EX_TRANSPARENT
+    LTEXT           "NEW ROM PROJECT\nBased on a clean copy of the FF1 NES ROM that you specify.",IDC_STATIC4,48,121,259,25,NOT WS_GROUP,WS_EX_TRANSPARENT
+    LTEXT           "NEW ASSEMBLY PROJECT\nBased on an annotated version of Disch's commented disassembly.",IDC_STATIC5,48,149,259,25,NOT WS_GROUP,WS_EX_TRANSPARENT
+    LTEXT           "UNZIP PROJECT\nOpen a zipped project.",IDC_STATIC8,48,177,179,25,NOT WS_GROUP,WS_EX_TRANSPARENT
+END
+
+IDD_DLG_NEWASM DIALOGEX 0, 0, 504, 295
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_BORDER
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Parent Folder that will contain the project",IDC_STATIC5,7,35,490,8,SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "Browse...",IDC_NEWASM_BUTTON_PARENTFOLDER,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,20,45,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_NEWASM_EDIT_PARENTFOLDER,75,45,311,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    LTEXT           "Project Name (this will be the name of both the folder and project file)",IDC_STATIC4,7,64,490,8,SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_NEWASM_EDIT_PROJECTNAME,75,73,311,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    LTEXT           "Protoype file path (used to revert project data to an initial state)",IDC_NEWASM_STATIC_ZIPARCHIVE,7,90,490,8,SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "Browse...",IDC_NEWASM_BUTTON_ZIPARCHIVE,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,20,99,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_NEWASM_EDIT_ZIPARCHIVE,75,99,311,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    LTEXT           "Assembly-handling DLL",IDC_STATIC1,7,120,74,8,0,WS_EX_TRANSPARENT
+    CONTROL         " Look in the application folder for ""ff1asm-disch.dll""",IDC_CHECK2,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,21,130,178,10,WS_EX_TRANSPARENT
+    CONTROL         "Browse...",IDC_BUTTON1,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,20,142,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_NEWASM_EDIT_ASMDLL,75,142,311,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    CONTROL         "Create labels from internal defaults only (DO NOT use the strings.template file)",IDC_CHECK1,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,164,269,10,WS_EX_TRANSPARENT
+    CONTROL         "Import a Hackster DAT file?",IDC_NEWASM_CHECK_IMPORTDAT,
+                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,178,490,8,WS_EX_TRANSPARENT
+    CONTROL         "Browse...",IDC_NEWASM_BUTTON_IMPORTDAT,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_DISABLED | WS_TABSTOP,20,188,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_NEWASM_EDIT_DATFILE,75,188,311,14,ES_AUTOHSCROLL | WS_DISABLED,WS_EX_TRANSPARENT
+    LTEXT           "Additonal Modules Folder (optional)",IDC_STATIC3,7,208,114,8,0,WS_EX_TRANSPARENT
+    CONTROL         "Browse...",IDC_BUTTON2,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,20,218,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_EDIT1,75,218,311,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    LTEXT           "Publish to this filepath (optional)",IDC_STATIC2,7,239,490,8,SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "Browse...",IDC_NEWASM_BUTTON_PUBLISH,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,20,249,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_NEWASM_EDIT_PUBLISH,75,249,311,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    CONTROL         "OK",IDOK,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,392,274,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Cancel",IDCANCEL,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,447,274,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "H",IDHELPBOOK,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,474,7,23,20,WS_EX_TRANSPARENT
+END
+
+IDD_PROJECTSETTINGS DIALOGEX 0, 0, 402, 271
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_BORDER
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Project Type",IDC_PROJSET_STATIC_PROJTYPE,7,33,85,18,0,WS_EX_TRANSPARENT
+    LTEXT           "Select a new reversion (Clean Copy) file\nThe selected file will be imported into the project and overwrite the current reversion file.\nThe reversion file is used to revert the project with the main window's Revert command.",IDC_STATIC1,7,55,356,25,0,WS_EX_TRANSPARENT
+    CONTROL         "Select",IDC_PROJSET_BUTTON_REVERTPATH,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,82,40,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Clear",IDC_PROJSET_BUTTON_REVERTCLEAR,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,97,40,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_PROJSET_EDIT_REVERTPATH,49,82,313,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    LTEXT           "Publish path",IDC_STATIC2,7,116,40,8,0,WS_EX_TRANSPARENT
+    CONTROL         "Browse",IDC_PROJSET_BUTTON_PUBLISHPATH,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,126,40,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_EDIT2,49,126,313,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    LTEXT           "Additional Module Folder",IDC_STATIC3,7,152,79,8,SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "Browse",IDC_APPSETTINGS_BTN_ADDLMODFOLDER,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,162,40,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_APPSETTINGS_EDIT_ADDLMODFOLDER,49,162,313,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    LTEXT           "Assembly DLL path",IDC_STATIC4,7,189,61,8
+    CONTROL         "Browse",IDC_BUTTON1,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,199,40,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_EDIT1,49,199,313,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    CONTROL         "OK",IDOK,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,290,250,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Cancel",IDCANCEL,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,345,250,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "",IDC_PROJSET_XFRAME_MOVEUP,"Static",SS_BLACKFRAME | NOT WS_VISIBLE,2,127,2,43
+    CONTROL         "x",IDCANCEL2,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,371,7,24,20,WS_EX_TRANSPARENT
+    CONTROL         "H",IDHELPBOOK,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,345,7,23,20,WS_EX_TRANSPARENT
+    CONTROL         "Suppress the Warning for Assembly-DLL mismatch (does NOT suppress enforcement)",IDC_PROJSTGS_CHECK_SUPPRESSASMWARNING,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,221,287,10
+    CONTROL         "Coerce Asm To DLL Compatibility",IDC_PROJSTGS_BUTTON_COERCEASM,
+                    "Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,231,124,14,WS_EX_TRANSPARENT | WS_EX_STATICEDGE
+END
+
+IDD_APPSETTINGS DIALOGEX 0, 0, 358, 292
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_BORDER
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "Prompt before closing projects (helps avoid accidental Escape &Key double-taps)",IDC_APPSET_CHECK_PROMPTONCLOSE,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,34,344,10,WS_EX_TRANSPARENT
+    CONTROL         "P&urge log file on startup",IDC_APPSET_CHECK_PURGELOGONSTARTUP,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,46,344,10,WS_EX_TRANSPARENT
+    CONTROL         "Save hexadecimal values as &UPPERCASE",IDC_CHECK1,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,58,344,10,WS_EX_TRANSPARENT
+    CONTROL         "Show background &art",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | BS_FLAT | NOT WS_VISIBLE | WS_TABSTOP,7,70,344,10,WS_EX_TRANSPARENT
+    CONTROL         "Display &Strikeout checkboxes in editors (where supported)",IDC_CHECK4,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,82,202,10,WS_EX_TRANSPARENT
+    CONTROL         "",IDC_STATIC2,"Static",SS_BLACKFRAME | SS_NOTIFY,215,82,37,10
+    CONTROL         "Force new &label creation for new projects (instead of copying app defaults)",IDC_CHECK3,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,94,344,10,WS_EX_TRANSPARENT
+    CONTROL         "Always &compile before running (assembly projects only)",IDC_CHECK5,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,106,344,10
+    CONTROL         "&Browse for folders with the File Dialog instead of the Shell Browse For Folder dialog",IDC_CHECK6,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,118,344,10
+    CONTROL         "&Enforce compatibility between assembly source and assembly DLL",IDC_CHECK7,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,130,344,10,WS_EX_TRANSPARENT
+    CONTROL         "&Warn if loading assembly source using incompatible DLL",IDC_CHECK8,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,142,344,10,WS_EX_TRANSPARENT
+    LTEXT           "&Help Type",IDC_APPSTGS_STATIC_HELPTYPE,7,160,33,14,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_HELP_TYPES,63,161,65,64,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "NOTE: Web help always points to the most recent program version.\nIt's best to use Local App help with older versions.",IDC_STATIC,134,159,217,18,0,WS_EX_TRANSPARENT
+    CONTROL         "Browse...",IDC_BUTTON_LOCALHELP,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_GROUP | WS_TABSTOP,7,179,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_EDIT_LOCALHELP,63,179,288,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    LTEXT           "E&xecutable to run",IDC_APPSTGS_STATIC_EXECTORUN,7,201,170,8,SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "Browse...",IDC_APPSETTINGS_BTN_RUNEXE,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,211,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_APPSETTINGS_EDIT_RUNEXE,63,211,288,14,ES_AUTOHSCROLL,WS_EX_TRANSPARENT
+    LTEXT           "&Parameters (%1 represents the working ROM file)",IDC_STATIC,64,228,288,8,SS_CENTERIMAGE
+    EDITTEXT        IDC_APPSETTINGS_EDIT_PARAMS,63,238,288,14,ES_AUTOHSCROLL,WS_EX_CLIENTEDGE
+    CONTROL         "Clear MRU Now",IDC_BUTTON1,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,256,69,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Clear Invalid MRU Entries Now",IDC_BUTTON2,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,80,256,112,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "OK",IDOK,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,248,270,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Cancel",IDCANCEL,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,301,270,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "H",IDHELPBOOK,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,299,7,24,20,WS_EX_TRANSPARENT
+    CONTROL         "x",IDCANCEL2,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,327,7,24,20,WS_EX_TRANSPARENT
+END
+
+IDD_IMPORT DIALOGEX 0, 0, 309, 159
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "Import"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Select a DAT file to import the following:\nDTE settings, Last Click and Domain grid flags, Tint tiles and variant, Smart tool settings, and labels.",IDC_STATIC,7,7,295,23
+    CONTROL         "FFHackster.DAT",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,33,68,10
+    PUSHBUTTON      "Browse",IDC_BUTTON1,7,44,50,14,BS_FLAT
+    EDITTEXT        IDC_EDIT1,62,44,240,14,ES_AUTOHSCROLL
+    LTEXT           "Select a project, then choose to imports its values, labels, and/or dialogue.",IDC_STATIC,7,66,283,10,SS_CENTERIMAGE
+    CONTROL         "Labels",IDC_CHECK4,"Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,77,36,10
+    CONTROL         "Values",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,88,37,10
+    CONTROL         "Dialogue file (NOTE: does NOT import ROM dialogue data)",IDC_CHECK3,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,99,201,10
+    PUSHBUTTON      "Browse",IDC_BUTTON2,7,110,50,14,BS_FLAT
+    EDITTEXT        IDC_EDIT2,62,110,240,14,ES_AUTOHSCROLL
+    LTEXT           "Note that the Labels will overwrite similar data imported from the DAT if both are selected.",IDC_STATIC,7,136,181,16
+    DEFPUSHBUTTON   "OK",IDOK,198,137,50,14,BS_FLAT
+    PUSHBUTTON      "Cancel",IDCANCEL,252,137,50,14,BS_FLAT
+END
+
+IDD_EDITORDIGEST2 DIALOGEX 0, 0, 630, 311
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_BORDER
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Editors on the main screen will use the ordering below.\nBold sources indicate multiple possible modules, click the source to change it.",IDC_STATIC2,7,35,449,28,0,WS_EX_TRANSPARENT
+    CONTROL         "",IDC_LIST1,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_OWNERDRAWFIXED | LVS_ALIGNLEFT | WS_TABSTOP,7,63,616,221
+    RTEXT           "Reorder",IDC_STATIC1,505,37,50,24,SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "Button3",IDC_ED_BTN_UP,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,561,37,29,24,WS_EX_TRANSPARENT
+    CONTROL         "Button4",IDC_ED_BTN_DOWN,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,594,37,29,24,WS_EX_TRANSPARENT
+    CONTROL         "Select Only Builtins",IDC_BUTTON1,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,289,86,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "OK",IDOK,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,517,289,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "Cancel",IDCANCEL,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,573,289,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "H",IDHELPBOOK,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,570,7,23,20,WS_EX_TRANSPARENT
+    CONTROL         "x",IDCANCEL2,"Button",BS_OWNERDRAW | BS_BITMAP | BS_FLAT | WS_TABSTOP,600,7,23,20,WS_EX_TRANSPARENT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,9,7,0
+ PRODUCTVERSION 0,9,7,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "Esselle Jaye"
+            VALUE "FileDescription", "FFHacksterEx - an extension of FFHackster for experimentatl rom hacking"
+            VALUE "FileVersion", "0,9,7,0"
+            VALUE "InternalName", "FFHacksterEx"
+            VALUE "LegalCopyright", "Copyright (C) 2022 MIT/Expat"
+            VALUE "OriginalFilename", "FFHacksterEx.EXE"
+            VALUE "ProductName", "FFHacksterEx"
+            VALUE "ProductVersion", "0,9,7,0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_FFHACKSTER_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 525
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 316
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 277
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 262
+    END
+
+    IDD_WELCOME, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 313
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 208
+    END
+
+    IDD_DLG_NEWASM, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 497
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 288
+    END
+
+    IDD_PROJECTSETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 395
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 264
+    END
+
+    IDD_APPSETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 351
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 284
+    END
+
+    IDD_IMPORT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 151
+    END
+
+    IDD_EDITORDIGEST2, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 623
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 303
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_WELCOME AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_FFHACKSTER_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DLG_NEWASM AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PROJECTSETTINGS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_APPSETTINGS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_ABOUT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_IMPORT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_EDITORDIGEST2 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// PNG
+//
+
+IDPNG_GAMEPAD           PNG                     "res\\icon\\iconmonstr-gamepad-1-48.png"
+
+IDPNG_EDITOR            PNG                     "res\\icon\\iconmonstr-edit-5-48.png"
+
+IDPNG_SAVEDOWN          PNG                     "res\\icon\\iconmonstr-save-11-48.png"
+
+IDPNG_LABEL             PNG                     "res\\icon\\iconmonstr-tag-17-48.png"
+
+IDPNG_SCREWRENCH        PNG                     "res\\icon\\iconmonstr-tools-3-48.png"
+
+IDPNG_REVERT            PNG                     "res\\icon\\iconmonstr-undo-4-48.png"
+
+IDPNG_PUBLISH           PNG                     "res\\icon\\iconmonstr-upload-6-48.png"
+
+IDPNG_ADDFILESM         PNG                     "res\\icon\\iconmonstr-file-14-24.png"
+
+IDPNG_EXPORT            PNG                     "res\\icon\\iconmonstr-share-8-48.png"
+
+IDPNG_IMPORT            PNG                     "res\\icon\\iconmonstr-inbox-5-48.png"
+
+IDPNG_CONTROLPANEL      PNG                     "res\\icon\\iconmonstr-control-panel-4-48.png"
+
+IDPNG_EDITVALUES        PNG                     "res\\icon\\iconmonstr-text-21-48.png"
+
+IDPNG_RAMCHIP           PNG                     "res\\icon\\iconmonstr-ruler-3-48.png"
+
+IDPNG_NEWPROJECT        PNG                     "res\\icon\\iconmonstr-folder-3-24.png"
+
+IDPNG_FOLDERBLACK       PNG                     "res\\icon\\iconmonstr-folder-3-24.png"
+
+IDPNG_FOLDERWHITE       PNG                     "res\\icon\\iconmonstr-folder-4-24.png"
+
+IDPNG_OPENBLACKFOLDER   PNG                     "res\\icon\\iconmonstr-folder-21-24.png"
+
+IDPNG_ARROWDOWN         PNG                     "res\\icon\\iconmonstr-arrow-65-24.png"
+
+IDPNG_ARROWUP           PNG                     "res\\icon\\iconmonstr-arrow-66-24.png"
+
+IDPNG_CLONESM           PNG                     "res\\icon\\iconmonstr-copy-14-24.png"
+
+IDPNG_UNZIP             PNG                     "res\\icon\\iconmonstr-zip-5-48.png"
+
+IDPNG_ZIP               PNG                     "res\\icon\\iconmonstr-zip-14-48.png"
+
+IDPNG_UNZIP24           PNG                     "res\\icon\\iconmonstr-zip-5-24.png"
+
+IDPNG_CLONE             PNG                     "res\\icon\\iconmonstr-copy-7-48.png"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RES_H
+//
+
+RESOURCE.H              RES_H                   "resource.h"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RES_RC
+//
+
+FFHACKSTEREX.RC         RES_RC                  "FFHacksterEx.rc"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_ABOUT DLGINIT
+BEGIN
+    IDC_MFCLINK_FFH, 0x37c, 198, 0
+0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x683e, 0x7474, 0x7370, 
+0x2f3a, 0x772f, 0x7777, 0x722e, 0x6d6f, 0x6168, 0x6b63, 0x6e69, 0x2e67, 
+0x656e, 0x2f74, 0x7475, 0x6c69, 0x7469, 0x6569, 0x2f73, 0x3631, 0x2f33, 
+0x2f3c, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x7255, 0x3e6c, 0x4d3c, 0x4346, 
+0x694c, 0x6b6e, 0x555f, 0x6c72, 0x7250, 0x6665, 0x7869, 0x3c3e, 0x4d2f, 
+0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x7250, 0x6665, 0x7869, 0x3c3e, 
+0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 0x2f3c, 
+0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 0x4d3c, 
+0x4346, 0x694c, 0x6b6e, 0x465f, 0x6c75, 0x546c, 0x7865, 0x5474, 0x6f6f, 
+0x746c, 0x7069, 0x463e, 0x4c41, 0x4553, 0x2f3c, 0x464d, 0x4c43, 0x6e69, 
+0x5f6b, 0x7546, 0x6c6c, 0x6554, 0x7478, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 
+
+    IDC_MFCLINK_FFHPLUS, 0x37c, 198, 0
+0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x683e, 0x7474, 0x7370, 
+0x2f3a, 0x772f, 0x7777, 0x722e, 0x6d6f, 0x6168, 0x6b63, 0x6e69, 0x2e67, 
+0x656e, 0x2f74, 0x7475, 0x6c69, 0x7469, 0x6569, 0x2f73, 0x3532, 0x2f37, 
+0x2f3c, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x7255, 0x3e6c, 0x4d3c, 0x4346, 
+0x694c, 0x6b6e, 0x555f, 0x6c72, 0x7250, 0x6665, 0x7869, 0x3c3e, 0x4d2f, 
+0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x7250, 0x6665, 0x7869, 0x3c3e, 
+0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 0x2f3c, 
+0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 0x4d3c, 
+0x4346, 0x694c, 0x6b6e, 0x465f, 0x6c75, 0x546c, 0x7865, 0x5474, 0x6f6f, 
+0x746c, 0x7069, 0x463e, 0x4c41, 0x4553, 0x2f3c, 0x464d, 0x4c43, 0x6e69, 
+0x5f6b, 0x7546, 0x6c6c, 0x6554, 0x7478, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 
+
+    IDC_MFCLINK_FFGAMEFAQS, 0x37c, 214, 0
+0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x683e, 0x7474, 0x7370, 
+0x2f3a, 0x672f, 0x6d61, 0x6665, 0x7161, 0x2e73, 0x6167, 0x656d, 0x7073, 
+0x746f, 0x632e, 0x6d6f, 0x622f, 0x616f, 0x6472, 0x2f73, 0x3235, 0x3532, 
+0x3539, 0x662d, 0x6e69, 0x6c61, 0x662d, 0x6e61, 0x6174, 0x7973, 0x2f3c, 
+0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x7255, 0x3e6c, 0x4d3c, 0x4346, 0x694c, 
+0x6b6e, 0x555f, 0x6c72, 0x7250, 0x6665, 0x7869, 0x3c3e, 0x4d2f, 0x4346, 
+0x694c, 0x6b6e, 0x555f, 0x6c72, 0x7250, 0x6665, 0x7869, 0x3c3e, 0x464d, 
+0x4c43, 0x6e69, 0x5f6b, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 0x2f3c, 0x464d, 
+0x4c43, 0x6e69, 0x5f6b, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 0x4d3c, 0x4346, 
+0x694c, 0x6b6e, 0x465f, 0x6c75, 0x546c, 0x7865, 0x5474, 0x6f6f, 0x746c, 
+0x7069, 0x463e, 0x4c41, 0x4553, 0x2f3c, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 
+0x7546, 0x6c6c, 0x6554, 0x7478, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 
+    IDC_MFCLINK_7ZIP, 0x37c, 190, 0
+0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x683e, 0x7474, 0x7370, 
+0x2f3a, 0x772f, 0x7777, 0x372e, 0x7a2d, 0x7069, 0x6f2e, 0x6772, 0x6c2f, 
+0x6369, 0x6e65, 0x6573, 0x742e, 0x7478, 0x2f3c, 0x464d, 0x4c43, 0x6e69, 
+0x5f6b, 0x7255, 0x3e6c, 0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 
+0x7250, 0x6665, 0x7869, 0x3c3e, 0x4d2f, 0x4346, 0x694c, 0x6b6e, 0x555f, 
+0x6c72, 0x7250, 0x6665, 0x7869, 0x3c3e, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 
+0x6f54, 0x6c6f, 0x6974, 0x3e70, 0x2f3c, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 
+0x6f54, 0x6c6f, 0x6974, 0x3e70, 0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x465f, 
+0x6c75, 0x546c, 0x7865, 0x5474, 0x6f6f, 0x746c, 0x7069, 0x463e, 0x4c41, 
+0x4553, 0x2f3c, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x7546, 0x6c6c, 0x6554, 
+0x7478, 0x6f54, 0x6c6f, 0x6974, 0x3e70, 
+    IDC_MFCLINK_ICONMONSTR, 0x37c, 188, 0
+0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x683e, 0x7474, 0x7370, 
+0x2f3a, 0x692f, 0x6f63, 0x6d6e, 0x6e6f, 0x7473, 0x2e72, 0x6f63, 0x2f6d, 
+0x696c, 0x6563, 0x736e, 0x2f65, 0x2f3c, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 
+0x7255, 0x3e6c, 0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 0x7250, 
+0x6665, 0x7869, 0x3c3e, 0x4d2f, 0x4346, 0x694c, 0x6b6e, 0x555f, 0x6c72, 
+0x7250, 0x6665, 0x7869, 0x3c3e, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x6f54, 
+0x6c6f, 0x6974, 0x3e70, 0x2f3c, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x6f54, 
+0x6c6f, 0x6974, 0x3e70, 0x4d3c, 0x4346, 0x694c, 0x6b6e, 0x465f, 0x6c75, 
+0x546c, 0x7865, 0x5474, 0x6f6f, 0x746c, 0x7069, 0x463e, 0x4c41, 0x4553, 
+0x2f3c, 0x464d, 0x4c43, 0x6e69, 0x5f6b, 0x7546, 0x6c6c, 0x6554, 0x7478, 
+0x6f54, 0x6c6f, 0x6974, 0x3e70, 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_PROGRAMCAPTION      "FFHacksterEX"
+    IDS_PROGRAMSUBTITLE     "An experimental extension to FFHackster"
+    IDS_ASMDLL_DEFAULT      "ff1asm-disch.dll"
+    IDS_RELEASETEXT         "July 2022"
+    IDD_DLG_NEWROM          "IDD_DLG_NEWROM"
+END
+
+STRINGTABLE
+BEGIN
+    IDD_EDIT_LABELS         "IDD_EDIT_LABELS"
+    IDD_EDIT_VALUES         "IDD_EDIT_VALUES"
+    IDD_EDIT_RAM            "IDD_EDIT_RAM"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\FFHackster.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

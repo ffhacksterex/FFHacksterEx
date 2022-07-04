@@ -1,0 +1,248 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="About.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgAppSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgCreateNewProject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgImport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgProjectSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgWelcome.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorDigestDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorDigestListCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FFHackster.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FFHacksterDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FFHacksterGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="About.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AsmFiles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgAppSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgCreateNewProject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgImport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgProjectSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgWelcome.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorDigestDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorDigestListCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FFHackster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FFHacksterDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FFHacksterGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sProjectGeneratorValues.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="version-number.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\FFHackster.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-gamepad-1-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-edit-5-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-save-11-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-tag-17-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-tools-3-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-undo-4-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-upload-6-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-file-14-24.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-share-8-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-inbox-5-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-control-panel-4-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-text-21-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-ruler-3-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-folder-3-24.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-folder-4-24.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-folder-21-24.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-arrow-65-24.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-arrow-66-24.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-copy-14-24.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-zip-5-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-zip-14-48.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-zip-5-24.png">
+      <Filter>icon</Filter>
+    </Image>
+    <Image Include="res\icon\iconmonstr-copy-7-48.png">
+      <Filter>icon</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\FFHackster.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="PostBuild.targets">
+      <Filter>Packaging</Filter>
+    </None>
+    <None Include="ff-packaging.targets">
+      <Filter>Packaging</Filter>
+    </None>
+    <None Include="ff-content.targets">
+      <Filter>Packaging</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{f2bec558-e5d2-4246-9ac0-6bf3602ae15e}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{30afcb31-c3f9-4b55-87a0-6c9e9a16d114}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{84b5c705-2e3f-4d74-85ae-e9ee14881dd4}</UniqueIdentifier>
+      <Extensions>*.rc2</Extensions>
+    </Filter>
+    <Filter Include="icon">
+      <UniqueIdentifier>{2f946d94-5f5c-46e8-a854-2f504802304e}</UniqueIdentifier>
+      <Extensions>png</Extensions>
+    </Filter>
+    <Filter Include="Content">
+      <UniqueIdentifier>{03448fa0-c8b2-41b2-bc0c-f3bcf7aaab32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Content\Templates">
+      <UniqueIdentifier>{22f57e89-1c62-4714-ac8d-fadbced0d6ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Packaging">
+      <UniqueIdentifier>{c5e67a67-ed90-4875-bef1-484ba876f6b6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="FFHacksterEx.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="FFHacksterEx.helpconfig">
+      <Filter>Content</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="FFHacksterEx.dialogue.template">
+      <Filter>Content\Templates</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="FFHacksterEx.dte.tbl.template">
+      <Filter>Content\Templates</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="FFHacksterEx.editorsettings.template">
+      <Filter>Content\Templates</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="FFHacksterEx.pal.template">
+      <Filter>Content\Templates</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="FFHacksterEx.std.tbl.template">
+      <Filter>Content\Templates</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="FFHacksterEx.strings.template">
+      <Filter>Content\Templates</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="FFHacksterEx.values.template">
+      <Filter>Content\Templates</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="7za.exe">
+      <Filter>Content</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="FFHacksterEx.exe-trace.bat">
+      <Filter>Content</Filter>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="readme.txt">
+      <Filter>Content</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,5 @@
+<!-- ff1asm-disch -->
+<Project>
+  <Import Project="ff-content.targets" Condition="Exists('ff-content.targets')" />
+  <Import Project="ff-packaging.targets" Condition="Exists('ff-packaging.targets')" />
+</Project>

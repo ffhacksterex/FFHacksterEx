@@ -1,0 +1,166 @@
+;; HELP CONFIG
+;; Maps Resource ID Names for a dialog and its controls to help pages.
+
+;; Given a dialog with resource name IDD_SAMPLE
+;; [IDD_SAMPLE]                       -> Section refers to dialog with resource id name IDD_SAMPLE
+;; IDD_SAMPLE=sample-page.html        -> pressing F1 invokes sample-page-html
+;; IDC_TEST_BTN=#test                 -> when focused, SHIFT + F1 invokes sample-page.html@test
+;; IDC_RUN_BTN=#run                   -> when focused, SHIFT + F1 invokes sample-page.html@run
+;; IDC_SETTINGS_BTN=settings.html     -> when focused, SHIFT + F1 invokes settings.html
+;; IDC_PROPS_BTN=settings.html#props  -> when focused, SHIFT + F1 invokes settings.html#props
+
+;; Note:
+;; [IDD_SAMPLE] is the dialog section header
+;; IDD_SAMPLE=... is the main page reference for the dialog, invoked via F1
+;; The rest of the lines are control references:
+;;  - IDC_TEST_BTN=#test
+;;      a control anchor reference has just an #anchor after the equal sign,
+;;      which is appended to the main page ref.
+;;  - IDC_SETTINGS_BTN=settings.html
+;;      a control page reference has a page filename (with optional anchor)
+;;     after the equal sign and make no reference to the main page filename.
+
+
+[IDD_WELCOME]
+IDD_WELCOME=setupandstart.html
+IDC_FFH_BTN_APPSETTINGS=settings.html#appsettings
+IDC_PROJECTS_BTN_EDITROM=#editrom
+IDC_PROJECTS_BTN_OPENROM=#openproject
+IDC_PROJECTS_BTN_NEWROM=#newrom
+IDC_PROJECTS_BTN_NEWASM=#newasm
+IDC_PROJECTS_BTN_UNZIP=#unzipproject
+
+
+[IDD_FFHACKSTER_DIALOG]
+IDD_FFHACKSTER_DIALOG=mainwindow.html
+IDC_FFH_BTN_APPSETTINGS=settings.html#appsettings
+IDC_FFH_BTN_IMPORTFFHDAT=#import-dat
+IDC_FFH_BTN_REVERT=#revert-archive-clone
+IDC_FFH_BTN_ARCHIVEPROJECT=#revert-archive-clone
+IDC_BUTTON1=#revert-archive-clone
+IDC_FFH_BTN_PUBLISH=#publish-compile-run
+IDC_FFH_BTN_COMPILE=#publish-compile-run
+IDC_FFH_BTN_RUN=#publish-compile-run
+IDC_FFH_BTN_LABELS=#edit-labels
+IDC_FFH_BTN_VALUES=#edit-values
+IDC_FFH_BTN_RAM=#edit-ram
+IDC_FFH_BTN_PROJSETTINGS=settings.html#projectsettings
+IDC_FFH_BTN_EDITORS=#manage-editors
+
+
+[IDD_APPSETTINGS]
+IDD_APPSETTINGS=settings.html
+
+[IDD_EDITORDIGEST2]
+IDD_EDITORDIGEST2=mainwindow.html#manage-editors
+
+[IDD_PROJECTSETTINGS]
+IDD_PROJECTSETTINGS=settings.html#projectsettings
+
+[IDD_DLG_NEWASM]
+IDD_DLG_NEWASM=setupandstart.html#newasm
+
+[IDD_DLG_NEWROM]
+IDD_DLG_NEWROM=setupandstart.html#newrom
+
+[IDD_ARMOR]
+IDD_ARMOR=editors.html#armor
+
+[IDD_ATTACK]
+IDD_ATTACK=editors.html#attacks
+
+[IDD_BATTLE]
+IDD_BATTLE=editors.html#battles
+
+[IDD_CLASSES]
+IDD_CLASSES=editors.html#classes
+
+[IDD_PASTETARGETS]
+IDD_PASTETARGETS=editors.html#paste-targets
+
+[IDD_ENEMY]
+IDD_ENEMY=editors.html#enemies
+
+[IDD_MAGIC]
+IDD_MAGIC=editors.html#magic
+
+[IDD_MAPS]
+IDD_MAPS=editors.html#standardmaps
+
+[IDD_OVERWORLDMAP]
+IDD_OVERWORLDMAP=editors.html#overworldmaps
+
+[IDD_PARTYSETUP]
+IDD_PARTYSETUP=editors.html#partysetup
+
+[IDD_SHOP]
+IDD_SHOP=editors.html#shops
+
+[IDD_SPRITE_DIALOGUE2]
+IDD_SPRITE_DIALOGUE2=editors.html#spritedialogue
+
+[IDD_STARTINGITEMS]
+IDD_STARTINGITEMS=editors.html#startingitems
+
+[IDD_TEXT]
+IDD_TEXT=editors.html#text
+
+[IDD_WEAPON]
+IDD_WEAPON=editors.html#weapons
+
+[IDD_CLASSES_SETTINGS]
+IDD_CLASSES_SETTINGS=settings.html#class-settings
+
+[IDD_ENEMY_SETTINGS]
+IDD_ENEMY_SETTINGS=settings.html#enemy-settings
+
+[IDD_MAGIC_SETTINGS]
+IDD_MAGIC_SETTINGS=settings.html#magic-settings
+
+[IDD_SPRITE_DIALOGUE_SETTINGS]
+IDD_SPRITE_DIALOGUE_SETTINGS=settings.html#sprite-dialogue-settings
+
+[IDD_EDIT_LABELS]
+IDD_EDIT_LABELS=mainwindow.html#edit-labels
+
+[IDD_EDIT_VALUES]
+IDD_EDIT_VALUES=mainwindow.html#edit-values
+
+[IDD_EDIT_RAM]
+IDD_EDIT_RAM=mainwindow.html#edit-ram
+
+[IDD_BACKDROPGRAPHIC]
+IDD_BACKDROPGRAPHIC=subeditors.html
+
+[IDD_BATTLEPALETTES]
+IDD_BATTLEPALETTES=subeditors.html#battle-palettes
+
+[IDD_BATTLEPATTERNTABLES]
+IDD_BATTLEPATTERNTABLES=subeditors.html#battle-pattern-tables
+
+[IDD_BATTLEPIC]
+IDD_BATTLEPIC=subeditors.html#battle-sprites
+
+[IDD_COORDS]
+IDD_COORDS=subeditors.html#coords
+
+[IDD_CUSTOMTOOL]
+IDD_CUSTOMTOOL=subeditors.html#custom-tools
+
+[IDD_MAPMAN]
+IDD_MAPMAN=subeditors.html#map-sprites
+
+[IDD_MINIMAP]
+IDD_MINIMAP=subeditors.html#minimap
+
+[IDD_NESPALETTE]
+IDD_NESPALETTE=subeditors.html#nes=palette
+
+[IDD_TILEEDIT]
+IDD_TILEEDIT=subeditors.html#tiles
+
+[IDD_TINT]
+IDD_TINT=subeditors.html#tint
+
+[IDD_WEPMAG_GRAPHIC]
+idd_wepmag_graphic=subeditors.html#wepmag-graphic
