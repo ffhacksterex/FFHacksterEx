@@ -15,6 +15,7 @@ public:
 
 	bool ShowActualText;
 	int ShortTextLength;
+	bool ThrowOnBadSpriteAddr;
 
 private:
 	CFFHacksterProject * m_proj;

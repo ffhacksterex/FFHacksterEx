@@ -12,17 +12,20 @@
 #include <WaitingDlg.h>
 
 #include <AsmFiles.h>
+#include <dialogue_helpers.h>
 #include <editor_label_functions.h>
 #include <general_functions.h>
 #include <imaging_helpers.h>
 #include <ini_functions.h>
 #include <io_functions.h>
+#include <map_types.h>
 #include <path_functions.h>
 #include <string_functions.h>
 #include <type_support.h>
 #include <ui_helpers.h>
-#include <dialogue_helpers.h>
+
 #include <FFHacksterProject.h>
+#include <SpriteDialogueSettings.h>
 #include <SpriteDialogueSettingsDlg.h>
 #include <iterator>
 
@@ -40,13 +43,12 @@ using namespace Ui;
 
 namespace SpriteDialogue_Helpers // DECLARATION
 {
-
 	enum class asm_search { nomatch, match, prefix, inimatch };
 
 	mfcstringvector read_names_vector(CFFHacksterProject & proj, mfcstringvector keynames);
 	std::string search_for_match(CFFHacksterProject & proj, asm_search searchtype, std::string key, int index);
 
-	stdstringvector GetTalkRoutineNames(CFFHacksterProject & proj);
+	stdstringvector GetIniTalkRoutineNames(CFFHacksterProject & proj);
 
 }
 using namespace SpriteDialogue_Helpers;
@@ -158,8 +160,8 @@ void CSpriteDialogue2::SaveRom()
 		waiting.SetMessage("Saving sprite dialogue data...");
 		GameSerializer ser(m_proj, &waiting);
 
-		auto prenames = m_asmroutinenames;
-		auto premap = m_asmroutinemap;
+		const auto & prenames = m_asmroutinenames;
+		const auto & premap = m_asmroutinemap;
 		SaveAsmTalkData(ser);
 
 #ifdef TEST_SAVE
@@ -177,41 +179,20 @@ void CSpriteDialogue2::LoadRomTalkData()
 	m_routineaddrmap.clear();
 
 	// Load the names from the .dialogue file into the routine combo.
-	intset srcset;
 	auto sectionnames = ReadIniSectionNames(m_proj.DialoguePath);
-	for (auto name : sectionnames) {
-		if (_strnicmp(name, "talk", 4) == 0) {
-			int bankaddr = hex(ReadIni(m_proj.DialoguePath, name, "bankaddr", "0x0"));
-			if (!has(m_routineaddrmap, name)) {
-				Ui::AddEntry(m_comboRoutineType, name, bankaddr);
-				m_routineaddrmap[name] = bankaddr;
-				srcset.insert(bankaddr);
-			}
+	sectionnames.erase(std::remove_if(begin(sectionnames), end(sectionnames), [](const auto& n) { return _strnicmp(n, "talk", 4) != 0; }), end(sectionnames));
+
+	// Load the routine address map
+	for (const auto & name : sectionnames) {
+		int bankaddr = hex(ReadIni(m_proj.DialoguePath, name, "bankaddr", "0x0"));
+		if (!has(m_routineaddrmap, name)) {
+			Ui::AddEntry(m_comboRoutineType, name, bankaddr);
+			m_routineaddrmap[name] = bankaddr;
 		}
 	}
 
-	intset romset;
-	for (int i = 0; i < m_mainlist.GetCount(); ++i) {
-		int addr = ReadFuncAddr(i);
-		if (addr != 0) romset.insert(addr);
-	}
-
-	intset differences;
-	std::set_symmetric_difference(cbegin(srcset), cend(srcset), cbegin(romset), cend(romset), std::inserter(differences, begin(differences)));
-	if (!differences.empty()) {
-		std::vector<std::string> names;
-		auto cvt = [](const int val) { return std::string((LPCSTR)hex(val)); };
-		std::transform(cbegin(differences), cend(differences), std::back_inserter(names), cvt);
-		auto straddrs = join(names, ",");
-
-		CString msg;
-		msg.Format("There is a mismatch between the ROM functions used and the functions in the dialogue INI.\n"
-			"Any sprites using unreolved functions will be disabled in the sprite editor.\n"
-			"Bank addresses in question are:\n%s", straddrs.c_str());
-		AfxMessageBox(msg);
-	}
-
-	DetermineIgnoredRoutines();
+	EnaureSynchedHandlerTables();
+	EnsureValidSpriteHandlers();
 }
 
 void CSpriteDialogue2::SaveRomTalkData()
@@ -228,11 +209,12 @@ void CSpriteDialogue2::LoadAsmTalkData(GameSerializer & ser)
 	auto asmfile = Paths::Combine({ m_proj.ProjectFolder, "asm", ASM_0E });
 	ser.LoadDialogue(asmfile, label, m_asmroutinenames, m_asmroutinemap);
 
-	// Write the hardcoded elements for the defined routines that we're actually using.
+	// Load the routine address map.
+	// Also load the hardcoded elements from the assembly source into the working ROM.
 	stdstringset srcset;
-	for (auto & kv : m_asmroutinemap) {
-		auto routine = kv.first;
-		auto lines = kv.second;
+	for (const auto & kv : m_asmroutinemap) {
+		const std::string & routine = kv.first;
+		const talkelementvector & lines = kv.second;
 		CString csroutinename = routine.c_str();
 
 		srcset.insert(routine);
@@ -248,9 +230,11 @@ void CSpriteDialogue2::LoadAsmTalkData(GameSerializer & ser)
 
 		for (auto & line : lines) {
 			auto delem = dialogue_helpers::ReadElement(m_proj, csroutinename, line.element.c_str());
-			auto marker = delem.marker;
-
+			const auto & marker = delem.marker;
 			if (marker.Find("hc") == 0) {
+				//N.B. - the Write calls below are writing assembly file data to the working ROM buffer
+				//		This allows the FFHEx editor to manipulate values from the assembly file.
+				//		This is done using markers, which is why the Annotated Disch assembly is required.
 				auto routineoffset = delem.routineoffset;
 				auto offset = bankaddr + routineoffset;
 				auto newvalue = TextToValue(marker, line.value.c_str());
@@ -271,29 +255,23 @@ void CSpriteDialogue2::LoadAsmTalkData(GameSerializer & ser)
 		}
 	}
 
-	auto ininameslist = GetTalkRoutineNames(m_proj);
-	stdstringset iniset(cbegin(ininameslist), cend(ininameslist));
-	if (srcset != iniset) {
-		stdstringset differences;
-		std::set_symmetric_difference(cbegin(srcset), cend(srcset), cbegin(iniset), cend(iniset), std::inserter(differences, begin(differences)));
-
-		std::string difftext = join(differences, ",");
-		CString msg;
-		msg.AppendFormat("Please ensure that all routines listed below are synched between the assembly source and dialogue INI.\n"
-			"Any sprite referencing them will be disabled in the editor:\n%s", difftext.c_str());
-		AfxMessageBox(msg);
-	}
-
-	// Now write the entries that we know (from the dialogueini file).
+	// Now write the entries that we know (from the dialogueini file) into
+	// the working ROM buffer's routine pointer table.
+	// We can do this because m_asmroutinenames is 1-to-1 with the main sprite list,
+	// and both refer to sprites using the same ordering.
 	for (size_t index = 0; index < m_asmroutinenames.size(); ++index) {
-		const auto & name = m_asmroutinenames[index];
+		const auto& name = m_asmroutinenames[index];
 		auto iter = m_routineaddrmap.find(name.c_str());
 		auto bankaddr = iter != cend(m_routineaddrmap) ? iter->second : 0;
-		if (bankaddr != 0)
-			this->WriteFuncAddr((int)index, bankaddr);
+		if (bankaddr != 0) {
+			this->WriteHandlerAddr((int)index, bankaddr);
+		}
 	}
 
-	DetermineIgnoredRoutines();
+	// Build the known handler list from the INI, since it's how the game
+	// knows what to read and where to read it in both ROM and ASM.
+	EnaureSynchedHandlerTables();
+	EnsureValidSpriteHandlers();
 }
 
 void CSpriteDialogue2::SaveAsmTalkData(GameSerializer & ser)
@@ -302,27 +280,34 @@ void CSpriteDialogue2::SaveAsmTalkData(GameSerializer & ser)
 	for (int mainindex = 0; mainindex < m_mainlist.GetCount(); ++mainindex) {
 		if (m_mainlist.GetItemData(mainindex) == IGNOREDITEM) continue;
 
-		auto newbankaddr = ReadFuncAddr(mainindex);
+		auto newbankaddr = ReadHandlerAddr(mainindex);
 		auto iter = find_by_data(m_routineaddrmap, newbankaddr);
 		if (iter == end(m_routineaddrmap)) {
+			// This means that the sprite's current bankaddr refers to a bank address that
+			// DOES NOT match any address in the routine table TALKROUTINEPTRTABLE_OFFSET.
 			ErrorHere << "Unmapped routines cannot be used, so sprite " << mainindex << " will not be saved" << std::endl;
 			++failcount;
 			continue;
 		}
 
 		// Update the routine table to reflect the new name, and the routine map to reflect the new address.
+		//TODO - for now, there's no facility to rename routine labels, so this has no effect.
 		std::string routinename = (LPCSTR)iter->first;
 		m_asmroutinenames[mainindex] = routinename.c_str();
 		iter->second = newbankaddr;
 
 		// Update the hardcoded elements.
+		// Params are already saved inplace in the parameters table TALKROUTINEDATA_OFFSET.
 		auto & lines = m_asmroutinemap[routinename];
 		for (auto & line : lines) {
 			auto delem = dialogue_helpers::ReadElement(m_proj, routinename.c_str(), line.element.c_str());
-			auto marker = delem.marker;
+			const auto & marker = delem.marker;
 
 			// We only process hardcoded elements when writing to assembly files.
 			if (marker.Find("hc") == 0) {
+				//N.B. - the Read calls below are reading values from the working ROM buffer.
+				//		This allows FFHEx (via the asmdll) to write those values to the assembly source file.
+				//		This is done using markers, which is why the Annotated Disch assembly is required.
 				auto offset = newbankaddr + delem.routineoffset;
 				if (marker == "hcfanfare") {
 					auto newvalue = Read16(offset);
@@ -357,24 +342,144 @@ void CSpriteDialogue2::SaveAsmTalkData(GameSerializer & ser)
 	ser.SaveDialogue(asmfile, label, m_asmroutinenames, m_asmroutinemap);
 }
 
-void CSpriteDialogue2::DetermineIgnoredRoutines()
+void CSpriteDialogue2::EnsureValidSpriteHandlers()
 {
-	// Read all of the address offsets from the routine address table.
-	// Now, any sprite in the sprite list that has an unmapped routine bankaddr should be marked as IGNORED.
+	// Define local functions for ROM and ASM handling
+	std::function<bool(int)> romhandler = [this](int i) -> bool {
+		int addr = ReadHandlerAddr(i);
+		bool found = find_by_data(m_routineaddrmap, addr) != cend(m_routineaddrmap);
+		bool mapped = (addr != 0) && found;
+		return mapped;
+	};
+	std::function<bool(int)> asmhandler = [this](int i) -> bool {
+		const auto& name = m_asmroutinenames[i];
+		bool found = has(m_asmroutinemap, name);
+		bool mapped = !name.empty() && found;
+		return mapped;
+	};
+
+	std::function<CString(int)> romerrfunc = [this](int i) {
+		int addr = ReadHandlerAddr(i);
+		CString cs, label;
+		m_mainlist.GetText(i, label);
+		cs.Format("%s: bank address '%04X'", label, addr);
+		return cs;
+	};
+	std::function<CString(int)> asmerrfunc = [this](int i) {
+		CString cs, label;
+		CString str = this->m_asmroutinenames[i].c_str();
+		m_mainlist.GetText(i, label);
+		cs.Format("%s: handler label '%s'", label, str);
+		return cs;
+	};
+
+	const auto& handler = Project->IsRom() ? romhandler : asmhandler;
+	const auto& errfunc = Project->IsRom() ? romerrfunc : asmerrfunc;
+	static const int limit = 20;
+
+	// Ignore missing handlers (if we aren't throwing on errors)
+	CSpriteDialogueSettings stgs(*Project);
+	bool throws = stgs.ThrowOnBadSpriteAddr;
+	int errcount = 0;
+	CString missing;
 	for (int i = 0; i < m_mainlist.GetCount(); ++i) {
-		int addr = ReadFuncAddr(i);
-		auto mapped = find_by_data(m_routineaddrmap, addr) != cend(m_routineaddrmap);
-		int ignore = (addr == 0 || !mapped) ? IGNOREDITEM : 0;
+		auto mapped = handler(i);
+		int ignore = mapped ? 0 : IGNOREDITEM;
 		m_mainlist.SetItemData(i, ignore);
+		if (!mapped) {
+			++errcount;
+			if (throws && errcount <= limit) missing.AppendFormat("%s\n", errfunc(i));
+		}
+	}
+
+	if (errcount > 0) {
+		if (throws) {
+			missing.Insert(0, "Found one or more sprites with invalid handlers.\n");
+			if (errcount > limit) missing.AppendFormat("Only displaying the first %d of them here.", limit);
+			throw std::runtime_error((LPCSTR)missing);
+		}
+		else {
+			missing.Format("Disabling %d sprite(s) due to an invalid handler.", errcount);
+			AfxMessageBox(missing);
+		}
 	}
 }
+
+void CSpriteDialogue2::EnaureSynchedHandlerTables()
+{
+	CSpriteDialogueSettings stgs(*Project);
+	bool throws = stgs.ThrowOnBadSpriteAddr;
+	auto ininames = GetIniTalkRoutineNames(*Project);
+
+	// Ensure thewe have the same handler count in INI and ASM/ROM
+	if (ininames.size() != m_routineaddrmap.size()) {
+		CString msg;
+		msg.Format("Dialogue INI defines %d handlers, but the game only defines %d.",
+			ininames.size(), m_routineaddrmap.size());
+		if (throws) throw std::runtime_error((LPCSTR)msg);
+
+		msg.Append("\n\nWARNING: be careful editing, it's advised to ensure the handlers "
+			"are synchronized between the INI and the game before continuing.");
+		AfxMessageBox(msg);
+	}
+
+	// Report on which sprite handlers aren't used in the game
+	static const int limit = 20;
+	int errors = 0;
+	CString err;
+	if (Project->IsRom()) {
+		std::set<int> iniset;
+		for (const auto& name : ininames) {
+			int bankaddr = hex(ReadIni(m_proj.DialoguePath, name.c_str(), "bankaddr", "0x0"));
+			if (bankaddr != 0)
+				iniset.insert(bankaddr);
+		}
+
+		for (const auto& kv : m_routineaddrmap) {
+			int bankaddr = kv.second;
+			if (!has(iniset, bankaddr)) {
+				++errors;
+				if (errors <= limit)
+					err.AppendFormat("ROM routine addr '%04X' not in the dialogue INI.\n", bankaddr);
+			}
+		}
+	}
+	else if (Project->IsAsm()) {
+		// Compare the names since ASM doesn't have the bank addresses
+		// Identify ASM routines that aren't declared in the dialogue INI
+		std::set<std::string> iniset;
+		for (const auto & name : ininames) iniset.insert(name);
+
+		for (const auto & kv: m_asmroutinemap) {
+			const auto & asmname = kv.first;
+			if (!has(iniset, asmname)) {
+				++errors;
+				if (errors <= limit)
+					err.AppendFormat("ASM routine '%s' not in the dialogue INI.\n", asmname.c_str());
+			}
+		}
+	}
+
+	if (errors > 0) {
+		CString msg;
+		msg.Format("%d routine(s) found in the game but not in the INI:\n", errors);
+		err.Insert(0, msg);
+		if (errors > limit) err.AppendFormat("Only the first %d will display here.", limit);
+		if (throws) throw std::runtime_error((LPCSTR)err);
+
+		err.Append("\n\nWARNING: be careful editing, it's advised to ensure that all routines "
+			"defined in the game are also specified in the dialogue INI file before continuing.");
+		AfxMessageBox(msg);
+	}
+}
+
 
 void CSpriteDialogue2::LoadValues()
 {
 	ASSERT(m_curindex >= 0);
 	ASSERT(m_curindex < m_mainlist.GetCount());
 
-	auto bankaddr = ReadFuncAddr(m_curindex);
+	auto bankaddr = ReadHandlerAddr(m_curindex);
 	bool ignored = m_mainlist.GetItemData(m_curindex) == IGNOREDITEM;
 	int nshow = ignored ? SW_HIDE : SW_SHOW;
 	m_elementlist.ShowWindow(nshow);
@@ -406,7 +511,7 @@ void CSpriteDialogue2::StoreValues()
 	if (m_mainlist.GetItemData(m_curindex) == IGNOREDITEM) return;
 
 	auto funcaddr = GetSelectedItemData(m_comboRoutineType);
-	WriteFuncAddr(m_curindex, (int)funcaddr);
+	WriteHandlerAddr(m_curindex, (int)funcaddr);
 	SaveElementList();
 }
 
@@ -446,7 +551,7 @@ void CSpriteDialogue2::LoadElementList()
 	m_comboRoutineType.GetWindowText(routinename);
 	auto bankaddr = hex(ReadIni(m_proj.DialoguePath, routinename, "bankaddr", ""));
 	auto elemnames = Ini::ReadIniKeyNames(m_proj.DialoguePath, routinename);
-	for (auto elem : elemnames) {
+	for (const auto & elem : elemnames) {
 		if (elem.Find("elem") != 0) continue;
 
 		int elemindex = -1;
@@ -465,7 +570,7 @@ void CSpriteDialogue2::SaveElementList()
 	m_comboRoutineType.GetWindowText(routinename);
 	auto bankaddr = hex(ReadIni(m_proj.DialoguePath, routinename, "bankaddr", ""));
 	auto elemnames = Ini::ReadIniKeyNames(m_proj.DialoguePath, routinename);
-	for (auto elem : elemnames) {
+	for (const auto & elem : elemnames) {
 		if (elem.Find("elem") != 0) continue;
 
 		int elemindex = -1;
@@ -482,9 +587,9 @@ void CSpriteDialogue2::LoadElement(int elementindex, int bankaddr, CString routi
 	elem.Format("elem%d", elementindex);
 
 	auto delem = dialogue_helpers::ReadElement(m_proj, routinename, elem);
-	auto marker = delem.marker;
-	auto comment = delem.comment;
-	auto inputvalue = delem.isHardcoded() ? hex(delem.routineoffset) : dec(delem.paramindex);
+	const auto & marker = delem.marker;
+	const auto & comment = delem.comment;
+	const auto & inputvalue = delem.isHardcoded() ? hex(delem.routineoffset) : dec(delem.paramindex);
 
 	if (m_proj.IsRom()) {
 		//TODO - this function has to change to complete the move from parts to delem
@@ -533,8 +638,8 @@ void CSpriteDialogue2::SaveElement(int elementindex, int bankaddr, CString routi
 
 	auto newcomment = m_elementlist.GetItemText(elementindex, 2);
 	auto delem = dialogue_helpers::ReadElement(m_proj, routinename, elem);
-	auto marker = delem.marker;
-	auto inputvalue = delem.isHardcoded() ? hex(delem.routineoffset) : dec(delem.paramindex);
+	const auto & marker = delem.marker;
+	const auto & inputvalue = delem.isHardcoded() ? hex(delem.routineoffset) : dec(delem.paramindex);
 
 	// Update ROM
 	//TODO - this function might also need to change to move from parts to delem
@@ -873,14 +978,14 @@ void CSpriteDialogue2::EditElementComment(int elementindex, CString comment)
 	};
 }
 
-int CSpriteDialogue2::ReadFuncAddr(int index)
+int CSpriteDialogue2::ReadHandlerAddr(int index)
 {
 	int romoffset = TALKROUTINEPTRTABLE_OFFSET + (index * TALKROUTINEPTRTABLE_BYTES);
 	int value = m_proj.ROM[romoffset] + (m_proj.ROM[romoffset + 1] << 8);
 	return value;
 }
 
-void CSpriteDialogue2::WriteFuncAddr(int index, int data)
+void CSpriteDialogue2::WriteHandlerAddr(int index, int data)
 {
 	int romoffset = TALKROUTINEPTRTABLE_OFFSET + (index * TALKROUTINEPTRTABLE_BYTES);
 	m_proj.ROM[romoffset] = (data) & 0xFF;
@@ -1005,7 +1110,6 @@ std::string CSpriteDialogue2::ValueToText(CString marker, int newvalue)
 	return (LPCSTR)addr(newvalue & 0xFF);
 }
 
-
 void CSpriteDialogue2::DoDataExchange(CDataExchange* pDX)
 {
 	CEditorWithBackground::DoDataExchange(pDX);
@@ -1095,7 +1199,7 @@ namespace SpriteDialogue_Helpers // IMPLEMENTATION
 	mfcstringvector read_names_vector(CFFHacksterProject & proj, mfcstringvector keynames)
 	{
 		mfcstringvector allvalnames;
-		for (auto keyname : keynames) {
+		for (const auto & keyname : keynames) {
 			mfcstringvector valnames;
 			try {
 				valnames = ReadIni(proj.ValuesPath, keyname, "value", mfcstringvector{});
@@ -1128,7 +1232,7 @@ namespace SpriteDialogue_Helpers // IMPLEMENTATION
 			{
 				auto prefixes = split(key, " ");
 				auto iter = std::find_if(cbegin(varmap), cend(varmap), [index, prefixes](const auto & node) -> bool {
-					for (auto prefix : prefixes) {
+					for (const auto & prefix : prefixes) {
 						if (node.second == index && node.first.find(prefix) == 0) return true;
 					}
 					return false;
@@ -1142,7 +1246,7 @@ namespace SpriteDialogue_Helpers // IMPLEMENTATION
 				auto keynames = split(key.c_str(), CString(" "));
 				auto names = read_names_vector(proj, keynames);
 				auto iter = std::find_if(cbegin(varmap), cend(varmap), [index, names](const auto & node) -> bool {
-					for (auto name : names) {
+					for (const auto & name : names) {
 						if (node.second == index && node.first == (LPCSTR)name)
 							return true;
 					}
@@ -1157,7 +1261,7 @@ namespace SpriteDialogue_Helpers // IMPLEMENTATION
 		return result;
 	}
 
-	stdstringvector GetTalkRoutineNames(CFFHacksterProject & proj)
+	stdstringvector GetIniTalkRoutineNames(CFFHacksterProject & proj)
 	{
 		auto ininames = ReadIniSectionNames(proj.DialoguePath);
 		ininames.erase(std::remove_if(begin(ininames), end(ininames), [](const auto & n) { return _strnicmp(n, "talk", 4) != 0; }), end(ininames));

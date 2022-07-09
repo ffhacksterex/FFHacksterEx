@@ -36,7 +36,8 @@ protected:
 	void LoadAsmTalkData(GameSerializer & ser);
 	void SaveAsmTalkData(GameSerializer & ser);
 
-	void DetermineIgnoredRoutines();
+	void EnsureValidSpriteHandlers();
+	void EnaureSynchedHandlerTables();
 
 	void LoadValues();
 	void StoreValues();
@@ -54,8 +55,8 @@ protected:
 	void EditElementValue(int elementindex, CString marker, CString value);
 	void EditElementComment(int elementindex, CString comment);
 
-	int ReadFuncAddr(int index);
-	void WriteFuncAddr(int index, int data);
+	int ReadHandlerAddr(int index);
+	void WriteHandlerAddr(int index, int data);
 	BYTE Read8(int addedoffset);
 	void Write8(int addedoffset, BYTE data);
 	int Read16(int addedoffset);

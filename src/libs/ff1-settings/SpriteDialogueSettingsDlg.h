@@ -3,6 +3,7 @@
 #include "afxwin.h"
 #include "resource_settings.h"
 #include <FFBaseDlg.h>
+#include <ClearEdit.h>
 class CFFHacksterProject;
 
 // CSpriteDialogueSettingsDlg dialog
@@ -22,7 +23,8 @@ public:
 
 protected:
 	CButton m_showactualtextcheck;
-	CEdit m_shorttextlengthedit;
+	CClearEdit m_shorttextlengthedit;
+	CButton m_throwonbadspraddcheck;
 
 	DECLARE_MESSAGE_MAP()
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
