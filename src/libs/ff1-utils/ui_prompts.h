@@ -10,7 +10,7 @@ namespace Ui
 	CString PromptForProject(CWnd * parent);
 	CString PromptToSaveProject(CWnd * parent, bool isrom, const char* promptcaption = nullptr);
 	CString PromptToSaveProjectByFilter(CWnd * parent, CString defext, CString filter, CString defaultfilename = "");
-	CString PromptForEXE(CWnd * parent);
+	CString PromptForEXE(CWnd * parent, CString defaultfilename = "");
 
 	pair_result<CString> PromptForAsmDll(CWnd* parent, LPCSTR initialdir = nullptr);
 	pair_result<CString> BrowseForProject(CWnd* parent, CString title = "Open Project");

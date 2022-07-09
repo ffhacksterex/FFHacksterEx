@@ -106,9 +106,10 @@ namespace Ui
 		return "";
 	}
 
-	CString PromptForEXE(CWnd * parent)
+	CString PromptForEXE(CWnd * parent, CString defaultfilename)
 	{
-		CFileDialog dlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | UiTemp::COMMON_OFN,
+		LPCSTR pszfilename = !defaultfilename.IsEmpty() ? (LPCSTR)defaultfilename : nullptr;
+		CFileDialog dlg(TRUE, nullptr, pszfilename, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | UiTemp::COMMON_OFN,
 			"NES Executable (*.exe)|*.exe||", parent);
 
 		auto modalresult = dlg.DoModal();
