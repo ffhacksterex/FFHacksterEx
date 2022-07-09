@@ -219,8 +219,13 @@ END_MESSAGE_MAP()
 
 void CDlgAppSettings::OnBnClickedAppsettingsBtnRunexe()
 {
-	auto exepath = PromptForEXE(this);
-	m_editRunExe.SetWindowText(exepath);
+	CString oldfile = Ui::GetControlText(m_editRunExe);
+	CString deffile = Paths::FileExists(oldfile) ? oldfile : "";
+	CString exepath = PromptForEXE(this, deffile);
+	if (Paths::FileExists(exepath))
+		m_editRunExe.SetWindowText(exepath);
+	else if (!exepath.IsEmpty())
+		AfxMessageBox("Please select an existing file.");
 }
 
 void CDlgAppSettings::OnBnClickedButtonLocalhelp()
