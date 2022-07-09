@@ -61,7 +61,7 @@ std::string dialogue_file::break_raw_tag(std::string rawtag, std::string & rest)
 
 	// Strip the rest (e.g. true/false parts) and return those as 'rest'
 	auto ispace = rawtag.find(' ');
-	auto cleantag = (ispace != std::string::npos) ? rawtag.substr(0, ispace) : rawtag;
+	const auto & cleantag = (ispace != std::string::npos) ? rawtag.substr(0, ispace) : rawtag;
 	rest = (ispace != std::string::npos) ? rawtag.substr(ispace + 1) : "";
 
 	return cleantag;
