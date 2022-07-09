@@ -275,7 +275,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,99,201,10
     PUSHBUTTON      "Browse",IDC_BUTTON2,7,110,50,14,BS_FLAT
     EDITTEXT        IDC_EDIT2,62,110,240,14,ES_AUTOHSCROLL
-    LTEXT           "Note that the Labels will overwrite similar data imported from the DAT if both are selected.",IDC_STATIC,7,136,181,16
+    LTEXT           "Note that the Project into will overwrite similar data imported from the DAT if both are selected.",IDC_STATIC,7,136,181,16
     DEFPUSHBUTTON   "OK",IDOK,198,137,50,14,BS_FLAT
     PUSHBUTTON      "Cancel",IDCANCEL,252,137,50,14,BS_FLAT
 END

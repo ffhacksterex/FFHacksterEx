@@ -94,8 +94,11 @@ BOOL CDlgImport::OnInitDialog()
 void CDlgImport::OnOK()
 {
 	CWaitCursor wait;
+
+	// Import the DAT file first if one was specified.
 	CString errmsg;
-	if (m_datcheck.GetCheck() == BST_CHECKED) {
+	bool datchecked = m_datcheck.GetCheck() == BST_CHECKED;
+	if (datchecked) {
 		auto datfile = GetControlText(m_datedit);
 		if (Paths::FileExists(datfile)) {
 			Project->ImportHacksterDAT(datfile);
@@ -108,54 +111,45 @@ void CDlgImport::OnOK()
 		}
 	}
 
-	// If a previous step failed, don't allow any step to actually process an action.
-	// However, do allow other steps to check for an error and append a message if needed.
-	auto projfile = GetControlText(m_projectedit);
-	if (!Paths::FileExists(projfile)) {
-		AfxMessageBox("Can't find the specified project file for label/value/dialogue import.", MB_ICONERROR);
-		return;
-	}
-
-	//REFACTOR - this can be tightened into a loop.
-	if (m_valuescheck.GetCheck() == BST_CHECKED) {
-		auto inifile = CFFHacksterProject::GetIniFilePath(projfile, FFHFILE_ValuesPath);
-		if (Paths::FileExists(inifile)) {
-			if (errmsg.IsEmpty()) {
-				if (!Paths::FileCopy(inifile, Project->ValuesPath)) {
-					errmsg.AppendFormat("Couldn't import the values file tied to the the project '%s'.\n", (LPCSTR)projfile);
-				}
-			}
+	// Process project options if any were selected AND no errors occurred yet.
+	if (errmsg.IsEmpty() &&
+		(m_valuescheck.GetCheck() == BST_CHECKED ||
+		m_labelscheck.GetCheck() == BST_CHECKED ||
+		m_dialoguecheck.GetCheck() == BST_CHECKED))
+	{
+		auto projfile = GetControlText(m_projectedit);
+		if (!Paths::FileExists(projfile)) {
+			if (datchecked && errmsg.IsEmpty()) errmsg = "DAT import succeeded.\nHowever, ";
+			errmsg.Append("Project import failed because the specified "
+				"Project file could not be located.");
 		}
 		else {
-			errmsg.AppendFormat("Couldn't find the values file tied to the the project '%s'.\n", (LPCSTR)projfile);
-		}
-	}
+			std::vector<std::tuple<CButton*, CString, CString>> projectsteps{
+				{ &m_valuescheck, FFHFILE_ValuesPath, Project->ValuesPath},
+				{ &m_labelscheck, FFHFILE_StringsPath, Project->StringsPath},
+				{ &m_dialoguecheck, FFHFILE_DialoguePath, Project->DialoguePath}
+			};
+			for (const auto& step : projectsteps) {
+				if (!errmsg.IsEmpty())
+					break; // bail on the first error
 
-	if (m_labelscheck.GetCheck() == BST_CHECKED) {
-		auto inifile = CFFHacksterProject::GetIniFilePath(projfile, FFHFILE_StringsPath);
-		if (Paths::FileExists(inifile)) {
-			if (errmsg.IsEmpty()) {
-				if (!Paths::FileCopy(inifile, Project->StringsPath)) {
-					errmsg.AppendFormat("Couldn't import the labels file tied to the the project '%s'.\n", (LPCSTR)projfile);
+				auto& checkbox = *std::get<0>(step);
+				if (checkbox.GetCheck() == BST_CHECKED) {
+					const auto& stepname = std::get<1>(step);
+					const auto& destini = std::get<2>(step);
+					auto srcini = CFFHacksterProject::GetIniFilePath(projfile, stepname);
+					if (Paths::FileExists(srcini)) {
+						if (!Paths::FileCopy(srcini, destini)) {
+							errmsg.AppendFormat("Couldn't import the '%s' file tied to the the project '%s'.\n",
+								(LPCSTR)stepname, (LPCSTR)projfile);
+						}
+					}
+					else {
+						errmsg.AppendFormat("Couldn't find the '%s' file tied to the the project '%s'.\n",
+							(LPCSTR)stepname, (LPCSTR)projfile);
+					}
 				}
 			}
-		}
-		else {
-			errmsg.AppendFormat("Couldn't find the labels file tied to the the project '%s'.\n", (LPCSTR)projfile);
-		}
-	}
-
-	if (m_dialoguecheck.GetCheck() == BST_CHECKED) {
-		auto inifile = CFFHacksterProject::GetIniFilePath(projfile, FFHFILE_DialoguePath);
-		if (Paths::FileExists(inifile)) {
-			if (errmsg.IsEmpty()) {
-				if (!Paths::FileCopy(inifile, Project->DialoguePath)) {
-					errmsg.AppendFormat("Couldn't import the dialogue file tied to the the project '%s'.\n", (LPCSTR)projfile);
-				}
-			}
-		}
-		else {
-			errmsg.AppendFormat("Couldn't find the dialogue file tied to the the project '%s'.\n", (LPCSTR)projfile);
 		}
 	}
 
