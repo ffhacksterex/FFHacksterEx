@@ -29,7 +29,7 @@ protected:
 	CButton m_valuescheck;
 	CButton m_labelscheck;
 	CButton m_dialoguecheck;
-	CButton m_projectcheck;
+	CButton m_projectbrowsebtn;
 	CClearEdit m_projectedit;
 
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
