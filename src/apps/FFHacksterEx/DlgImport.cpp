@@ -44,7 +44,7 @@ void CDlgImport::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON1, m_datbutton);
 	DDX_Control(pDX, IDC_EDIT1, m_datedit);
 	DDX_Control(pDX, IDC_CHECK2, m_valuescheck);
-	DDX_Control(pDX, IDC_BUTTON2, m_projectcheck);
+	DDX_Control(pDX, IDC_BUTTON2, m_projectbrowsebtn);
 	DDX_Control(pDX, IDC_EDIT2, m_projectedit);
 	DDX_Control(pDX, IDC_CHECK3, m_dialoguecheck);
 	DDX_Control(pDX, IDC_CHECK4, m_labelscheck);
@@ -73,7 +73,7 @@ void CDlgImport::OnBnClickedCheckDat()
 void CDlgImport::OnBnClickedProjectCheckBoxes()
 {
 	auto checked = IsProjectChecked();
-	m_projectcheck.EnableWindow(checked);
+	m_projectbrowsebtn.EnableWindow(checked);
 	m_projectedit.EnableWindow(checked);
 }
 
@@ -123,6 +123,10 @@ void CDlgImport::OnOK()
 			errmsg.Append("Project import failed because the specified "
 				"Project file could not be located.");
 		}
+		else if (projfile == Project->ProjectPath) {
+			errmsg.Append("Please select a project file that's different from the current project.");
+			m_projectbrowsebtn.SetFocus();
+		}
 		else {
 			std::vector<std::tuple<CButton*, CString, CString>> projectsteps{
 				{ &m_valuescheck, FFHFILE_ValuesPath, Project->ValuesPath},
@@ -167,6 +171,7 @@ void CDlgImport::OnBnClickedButtonDat()
 		"Open an FFHackster Data file");
 	if (result) {
 		m_datedit.SetWindowText(result.value);
+		m_datedit.SetFocus();
 	}
 	else if (!result.value.IsEmpty()) {
 		AfxMessageBox(result.value, MB_ICONERROR);
@@ -178,6 +183,7 @@ void CDlgImport::OnBnClickedButtonProject()
 	auto result = BrowseForProject(this, "Open Project containing Values file");
 	if (result) {
 		m_projectedit.SetWindowText(result.value);
+		m_projectedit.SetFocus();
 	}
 	else if (!result.value.IsEmpty()) {
 		AfxMessageBox(result.value, MB_ICONERROR);
