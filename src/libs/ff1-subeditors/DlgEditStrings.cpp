@@ -49,8 +49,6 @@ void CDlgEditStrings::InitMainList()
 
 void CDlgEditStrings::LoadValues()
 {
-	CWaitCursor wait;
-
 	CString inifile = m_proj->StringsPath;
 	CString section;
 	CString strslot;
@@ -59,8 +57,6 @@ void CDlgEditStrings::LoadValues()
 
 	m_elementlist.DeleteAllItems();
 	m_listgroups.GetText(m_curindex, section);
-
-	RedrawScope redraw(&m_elementlist);
 
 	auto countname = ReadIni(m_proj->ProjectPath, "STRINGCOUNTS", section, "");
 	if (countname.IsEmpty()) THROWEXCEPTION(std::runtime_error, std::string("no count variable was specified for group ") + (LPCSTR)section);
@@ -94,8 +90,6 @@ void CDlgEditStrings::StoreValues()
 	CString inifile = m_proj->StringsPath;
 	CString section;
 	m_listgroups.GetText(m_curindex, section);
-
-	RedrawScope redraw(&m_elementlist);
 
 	for (int item = 0, count = m_elementlist.GetItemCount(); item < count; ++item) {
 		auto rowindex = m_elementlist.GetItemData(item);
@@ -206,6 +200,8 @@ void CDlgEditStrings::OnBnClickedSave()
 
 void CDlgEditStrings::OnLbnSelchangeListgroups()
 {
+	RedrawScope redraw(&m_elementlist);
+	CWaitCursor wait;
 	try {
 		if (m_curindex != -1) StoreValues();
 		m_curindex = m_listgroups.GetCurSel();
