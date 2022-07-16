@@ -146,7 +146,7 @@ namespace Editorlabels
 				if (showindex) name.Format("%02X: ", d.value);
 				name.AppendFormat("%s", d.name);
 				dataintnode dx(name, d.value);
-				v.push_back(d);
+				v.push_back(dx);
 			}
 		}
 		for (const auto& d : labels) {
