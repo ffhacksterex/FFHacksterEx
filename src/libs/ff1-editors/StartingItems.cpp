@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include "resource_editors.h"
 #include "StartingItems.h"
 #include "afxdialogex.h"
 #include "ui_helpers.h"
@@ -52,6 +53,10 @@ void CStartingItems::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDOK, m_okbutton);
 	DDX_Control(pDX, IDCANCEL, m_cancelbutton);
 	DDX_Control(pDX, IDHELPBOOK, m_helpbookbutton);
+	DDX_Control(pDX, IDC_STARTITEMS_CHECK_SHIPVIS, m_checkHasShip);
+	DDX_Control(pDX, IDC_STARTITEMS_CHECK_AIRSHIPVIS, m_checkHasAirship);
+	DDX_Control(pDX, IDC_STARTITEMS_CHECK_BRIDGEVIS, m_checkHasBridge);
+	DDX_Control(pDX, IDC_STARTITEMS_CHECK_CANALVIS, m_checkHasCanal);
 }
 
 BOOL CStartingItems::OnInitDialog()
@@ -96,6 +101,11 @@ void CStartingItems::LoadRom()
 	Project->ClearROM();
 
 	HASCANOE_OFFSET = ReadHex(Project->ValuesPath, "HASCANOE_OFFSET");
+	SHIPVIS_OFFSET = ReadHex(Project->ValuesPath, "SHIPVIS_OFFSET");
+	AIRSHIPVIS_OFFSET = ReadHex(Project->ValuesPath, "AIRSHIPVIS_OFFSET");
+	BRIDGEVIS_OFFSET = ReadHex(Project->ValuesPath, "BRIDGEVIS_OFFSET");
+	CANALVIS_OFFSET = ReadHex(Project->ValuesPath, "CANALVIS_OFFSET");
+
 	BRIDGESCENE_OFFSET = ReadHex(Project->ValuesPath, "BRIDGESCENE_OFFSET");
 	STARTINGITEMS_OFFSET = ReadHex(Project->ValuesPath, "STARTINGITEMS_OFFSET");
 	STARTINGCONSUMABLES_OFFSET = ReadHex(Project->ValuesPath, "STARTINGCONSUMABLES_OFFSET");
@@ -138,6 +148,10 @@ void CStartingItems::LoadValues()
 	m_comboBridge.SetCurSel(__max(0, selindex));
 
 	SetCheckValue(m_checkHasCanoe, Project->ROM[HASCANOE_OFFSET] == 1);
+	SetCheckValue(m_checkHasShip, Project->ROM[SHIPVIS_OFFSET] == 1);
+	SetCheckValue(m_checkHasAirship, Project->ROM[AIRSHIPVIS_OFFSET] == 1);
+	SetCheckValue(m_checkHasBridge, Project->ROM[BRIDGEVIS_OFFSET] == 1);
+	SetCheckValue(m_checkHasCanal, Project->ROM[CANALVIS_OFFSET] == 1);
 
 	int offset = STARTINGITEMS_OFFSET;
 	for (size_t st = 0; st < m_itemids.size(); ++st) {
@@ -180,6 +194,10 @@ void CStartingItems::StoreValues()
 		Project->ROM[BRIDGESCENE_OFFSET] = (unsigned char)seldata;
 
 	Project->ROM[HASCANOE_OFFSET] = GetCheckValue(m_checkHasCanoe) ? 1 : 0;
+	Project->ROM[SHIPVIS_OFFSET] = GetCheckValue(m_checkHasShip) ? 1 : 0;
+	Project->ROM[AIRSHIPVIS_OFFSET] = GetCheckValue(m_checkHasAirship) ? 1 : 0;
+	Project->ROM[BRIDGEVIS_OFFSET] = GetCheckValue(m_checkHasBridge) ? 1 : 0;
+	Project->ROM[CANALVIS_OFFSET] = GetCheckValue(m_checkHasCanal) ? 1 : 0;
 
 	int offset = STARTINGITEMS_OFFSET;
 	for (size_t st = 0; st < m_itemids.size(); ++st) {

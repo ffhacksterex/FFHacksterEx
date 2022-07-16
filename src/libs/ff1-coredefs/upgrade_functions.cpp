@@ -48,11 +48,12 @@ namespace Upgrades
 	pair_result<CString> UpgradeProject_7_to_8(int oldver, int newver, CString projectfolder, CString projectini);
 	pair_result<CString> UpgradeProject_8_to_9(int oldver, int newver, CString projectfolder, CString projectini);
 	pair_result<CString> UpgradeProject_9_to_10(int oldver, int newver, CString projectfolder, CString projectini);
+	pair_result<CString> UpgradeProject_10_to_971(int oldver, int newver, CString projectfolder, CString projectini);
 
 
 	// PUBLIC IMPLEMENTATION
 
-	constexpr int CURRENT_VERSION = CFFHacksterProject::Version;
+	const int CURRENT_VERSION = CFFHacksterProject::Version;
 
 	bool NeedsConversion(CString projectpath)
 	{
@@ -120,6 +121,8 @@ namespace Upgrades
 			upgresult = DoProjectUpgrade(8, 9, tempfolder, tempini, UpgradeProject_8_to_9);
 		if (upgresult)
 			upgresult = DoProjectUpgrade(9, 10, tempfolder, tempini, UpgradeProject_9_to_10);
+		if (upgresult)
+			upgresult = DoProjectUpgrade(10, 971, tempfolder, tempini, UpgradeProject_10_to_971);
 
 		if (Paths::FileExists(errlogpath))
 			Paths::FileMoveToFolder(errlogpath, projectfolder);
@@ -798,6 +801,24 @@ namespace Upgrades
 		auto appini = Paths::Combine({ Paths::GetProgramFolder(), Paths::GetProgramName() + ".values.template" });
 		auto valuesini = CFFHacksterProject::GetIniFilePath(projectini, FFHFILE_ValuesPath);
 		auto names = mfcstringvector{ "MAPBATTLERATE_OFFSET", "OWBATTLERATE_LAND_OFFSET", "OWBATTLERATE_SEA_OFFSET" };
+		for (const auto& n : names) {
+			if (!Ini::HasIniSection(valuesini, n)) {
+				// copy from the template
+				Ini::CopyIniSection(appini, valuesini, n);
+			}
+		}
+		return { true, "" };
+	}
+
+	pair_result<CString> UpgradeProject_10_to_971(int oldver, int newver, CString projectfolder, CString projectini)
+	{
+		UNREFERENCED_PARAMETER(oldver);
+		UNREFERENCED_PARAMETER(newver);
+
+		auto appini = Paths::Combine({ Paths::GetProgramFolder(), Paths::GetProgramName() + ".values.template" });
+		auto valuesini = CFFHacksterProject::GetIniFilePath(projectini, FFHFILE_ValuesPath);
+		auto names = mfcstringvector{
+			"SHIPVIS_OFFSET", "AIRSHIPVIS_OFFSET", "BRIDGEVIS_OFFSET", "CANALVIS_OFFSET"};
 		for (const auto& n : names) {
 			if (!Ini::HasIniSection(valuesini, n)) {
 				// copy from the template
