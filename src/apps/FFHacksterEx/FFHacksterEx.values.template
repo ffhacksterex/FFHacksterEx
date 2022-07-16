@@ -1271,6 +1271,26 @@ value=0x3022
 desc=Offset to the has_canoe ROM init value
 type=bword
 group=Starting
+[SHIPVIS_OFFSET]
+value=0x3010
+desc=Offset to the ship visibility init value
+type=bword
+group=Starting
+[AIRSHIPVIS_OFFSET]
+value=0x3014
+desc=Offset to the airship visibility ROM init value
+type=bword
+group=Starting
+[BRIDGEVIS_OFFSET]
+value=0x3018
+desc=Offset to the bridge visibility ROM init value
+type=bword
+group=Starting
+[CANALVIS_OFFSET]
+value=0x301c
+desc=Offset to the canal visibility ROM init value
+type=bword
+group=Starting
 [BRIDGESCENE_OFFSET]
 value=0x3026
 desc=Offset of the bridgescene ROM init value

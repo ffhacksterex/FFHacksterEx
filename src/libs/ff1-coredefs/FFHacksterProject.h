@@ -34,7 +34,7 @@ public:
 	CFFHacksterProject();
 	~CFFHacksterProject();
 
-	static constexpr int Version = 10;
+	static const int Version;
 
 	static int ReadProjectVersion(CString inifile);
 	static void WriteProjectVersion(CString inifile, int version);

@@ -82,6 +82,9 @@ const CString CFFHacksterProject::MAGIC = "MAGIC";
 
 const bool CFFHacksterProject::DEF_TEXTVIEWINDTE[20] = { false, false, false, false, false, true, false, false, true, false, true, true, true, true, true, 0 };
 
+//STATIC
+const int CFFHacksterProject::Version = 971;
+
 CFFHacksterProject::CFFHacksterProject()
 	: m_projtype(ProjType::Unknown)
 	, ROMSize(0)

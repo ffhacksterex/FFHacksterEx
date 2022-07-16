@@ -21,6 +21,10 @@ public:
 
 protected:
 	int HASCANOE_OFFSET;
+	int SHIPVIS_OFFSET = -1;
+	int AIRSHIPVIS_OFFSET = -1;
+	int BRIDGEVIS_OFFSET = -1;
+	int CANALVIS_OFFSET = -1;
 	int BRIDGESCENE_OFFSET;
 	int STARTINGITEMS_OFFSET;
 	int STARTINGCONSUMABLES_OFFSET;
@@ -32,7 +36,11 @@ protected:
 	std::vector<int> m_consumelabelids;
 
 	CClearComboBox m_comboBridge;
-	CClearButton m_checkHasCanoe;
+	CButton m_checkHasCanoe;
+	CButton m_checkHasShip;
+	CButton m_checkHasAirship;
+	CButton m_checkHasBridge;
+	CButton m_checkHasCanal;
 	CClearEdit m_comumableedit1;
 	CClearEdit m_comumableedit2;
 	CClearEdit m_comumableedit3;
