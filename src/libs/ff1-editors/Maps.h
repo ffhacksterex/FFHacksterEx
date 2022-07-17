@@ -75,6 +75,7 @@ protected:
 	std::vector<short> Sprite_Value; // MAPSPRITE_COUNT;
 
 	int kab;
+	bool m_songsenabled = false;
 
 	CPoint ptHover;
 	void UpdateClick(CPoint);
@@ -136,6 +137,7 @@ protected:
 	CClearComboBox	m_fight_list;
 	CButton	m_fight;
 	CClearComboBox	m_tileset;
+	CClearComboBox m_tilesetsong;
 	CClearEdit	m_probability8;
 	CClearEdit	m_probability7;
 	CClearEdit	m_probability6;
@@ -192,6 +194,7 @@ protected:
 	int MAPSPRITE_OFFSET = -1;
 	int BATTLEDOMAIN_OFFSET = -1;
 	unsigned int BATTLEPROBABILITY_OFFSET = (unsigned int)-1;
+	unsigned int TILESETSONGLIST_OFFSET = (unsigned int)-1;
 	int TREASURE_OFFSET = -1;
 	unsigned int MAPBATTLERATE_OFFSET = (unsigned int )-1;
 

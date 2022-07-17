@@ -348,10 +348,11 @@ namespace Upgrades
 		return{ true, "" };
 	}
 
+	const CString section = "STRINGCOUNTS";
+
 	namespace v2to3 {
 		bool WriteStringCounts(CString projectini)
 		{
-			const CString section = "STRINGCOUNTS";
 			WriteIni(projectini, section, "WEPMAGLABELS", "WEAPONMAGICGRAPHIC_COUNT");
 			WriteIni(projectini, section, "AILABELS", "AI_COUNT");
 			WriteIni(projectini, section, "SHOPLABELS", "SHOP_COUNT");
@@ -815,16 +816,32 @@ namespace Upgrades
 		UNREFERENCED_PARAMETER(oldver);
 		UNREFERENCED_PARAMETER(newver);
 
+		// Add new values if they aren't already there
 		auto appini = Paths::Combine({ Paths::GetProgramFolder(), Paths::GetProgramName() + ".values.template" });
 		auto valuesini = CFFHacksterProject::GetIniFilePath(projectini, FFHFILE_ValuesPath);
 		auto names = mfcstringvector{
-			"SHIPVIS_OFFSET", "AIRSHIPVIS_OFFSET", "BRIDGEVIS_OFFSET", "CANALVIS_OFFSET"};
+			"SHIPVIS_OFFSET", "AIRSHIPVIS_OFFSET", "BRIDGEVIS_OFFSET", "CANALVIS_OFFSET",
+			"SONGS_BASEINDEX", "SONGLABELS_COUNT", "TILESETSONGLIST_OFFSET", "TILESETSONGLIST_ASMLABEL"};
 		for (const auto& n : names) {
 			if (!Ini::HasIniSection(valuesini, n)) {
 				// copy from the template
 				Ini::CopyIniSection(appini, valuesini, n);
 			}
 		}
+
+		// Add labels if not already there
+		auto stringsections = mfcstringvector{ "SONGLABELS" };
+		auto applabelsini = Paths::Combine({ Paths::GetProgramFolder(), Paths::GetProgramName() + ".strings.template" });
+		auto stringsini = CFFHacksterProject::GetIniFilePath(projectini, FFHFILE_StringsPath);
+		for (const CString& sect : stringsections) {
+			if (!HasIniSection(stringsini, sect)) {
+				Ini::CopyIniSection(applabelsini, stringsini, sect);
+			}
+		}
+
+		// Set necessary stringcounts mappings
+		const CString section = "STRINGCOUNTS";
+		WriteIni(projectini, section, "SONGLABELS", "SONGLABELS_COUNT");
 		return { true, "" };
 	}
 

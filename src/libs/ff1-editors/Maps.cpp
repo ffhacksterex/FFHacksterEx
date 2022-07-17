@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include "resource_editors.h"
 #include "OverworldMap.h"
 #include "Maps.h"
 #include <collection_helpers.h>
@@ -128,6 +129,7 @@ void CMaps::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_MAPPALETTES, m_palettestatic);
 	DDX_Control(pDX, IDHELPBOOK, m_helpbookbutton);
 	DDX_Control(pDX, IDC_MAPS_ENCOUNTERRATE, m_encounterrateedit);
+	DDX_Control(pDX, IDC_TILESET_SONG, m_tilesetsong);
 }
 
 
@@ -206,6 +208,7 @@ void CMaps::LoadRom()
 	BATTLEPROBABILITY_OFFSET = ReadHex(cart->ValuesPath, "BATTLEPROBABILITY_OFFSET");
 	TREASURE_OFFSET = ReadHex(cart->ValuesPath, "TREASURE_OFFSET");
 	MAPBATTLERATE_OFFSET = ReadHex(cart->ValuesPath, "MAPBATTLERATE_OFFSET");
+	TILESETSONGLIST_OFFSET = ReadHex(cart->ValuesPath, "TILESETSONGLIST_OFFSET");
 
 	BANK0A_OFFSET = ReadHex(cart->ValuesPath, "BANK0A_OFFSET");
 	BANK00_OFFSET = ReadHex(cart->ValuesPath, "BANK00_OFFSET");
@@ -238,7 +241,21 @@ void CMaps::LoadRom()
 		ser.LoadAsmBin(BIN_BATTLEDOMAINDATA, BATTLEDOMAIN_OFFSET);
 		ser.LoadAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
 		ser.LoadAsmBin(BIN_MAPENCOUNTERRATES, MAPBATTLERATE_OFFSET);
-		ser.LoadInline(ASM_0F, { { asmlabel, "lut_FormationWeight", { BATTLEPROBABILITY_OFFSET } } });
+
+		asmsourcemappingvector bankf{ { asmlabel, "lut_FormationWeight", { BATTLEPROBABILITY_OFFSET } } };
+		auto tilesetTrackLabel = Ini::ReadIni(Project->ValuesPath, "TILESETSONGLIST_ASMLABEL", "value", "");
+		if (!tilesetTrackLabel.IsEmpty())
+			bankf.push_back({ asmlabel, "@lut_TilesetMusicTrack", { TILESETSONGLIST_OFFSET } });
+		ser.LoadInline(ASM_0F, bankf);
+
+		//N.B. - exception is thrown if tileset track is specified here but fails loading from Bank F.
+		//	So if it's specified, then it must have been loaded if we got here.
+		m_songsenabled = !tilesetTrackLabel.IsEmpty();
+
+		//ser.LoadInline(ASM_0F, {
+		//	{ asmlabel, "lut_FormationWeight", { BATTLEPROBABILITY_OFFSET } },
+		//	{ asmlabel, "@lut_TilesetMusicTrack", { TILESETSONGLIST_OFFSET } }
+		//	});
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)cart->ProjectTypeName);
@@ -266,7 +283,10 @@ void CMaps::SaveRom()
 		ser.SaveAsmBin(BIN_BATTLEDOMAINDATA, BATTLEDOMAIN_OFFSET);
 		ser.SaveAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
 		ser.SaveAsmBin(BIN_MAPENCOUNTERRATES, MAPBATTLERATE_OFFSET);
-		ser.SaveInline(ASM_0F, { { asmlabel, "lut_FormationWeight", { BATTLEPROBABILITY_OFFSET } } });
+		ser.SaveInline(ASM_0F, {
+			{ asmlabel, "lut_FormationWeight", { BATTLEPROBABILITY_OFFSET } },
+			{ asmlabel, "lut_TilesetMusicTrack", { TILESETSONGLIST_OFFSET } }
+			});
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)cart->ProjectTypeName);
@@ -343,6 +363,13 @@ BOOL CMaps::OnInitDialog()
 		LoadCombo(m_text_list, (dlgstgs.ShowActualText ? LoadGameTextEntries : LoadTextLabels)(*cart, true));
 
 		LoadCombo(m_tileset, LoadTilesetLabels(*cart));
+		if (m_songsenabled) {
+			LoadCombo(m_tilesetsong, LoadSongLabels(*cart));
+		}
+		else {
+			m_tilesetsong.ShowWindow(SW_HIDE);
+			GetDlgItem(IDC_TILESET_SONGLABEL)->ShowWindow(SW_HIDE);
+		}
 		LoadCombo(m_fight_list, LoadBattleLabels(*cart));
 		m_fight_list.InsertString(0, "--Random Encounters--");
 
@@ -462,6 +489,12 @@ void CMaps::LoadValues()
 	//load the tileset
 	cur_tileset = cart->ROM[MAPTILESET_ASSIGNMENT + cur_map];
 	m_tileset.SetCurSel(cur_tileset);
+
+	if (m_songsenabled) {
+		// Song for this tileset
+		int songid = cart->ROM[TILESETSONGLIST_OFFSET + cur_tileset];
+		Ui::SelectItemByData(m_tilesetsong, songid);
+	}
 
 	//load the palettes
 	int offset = MAPPALETTE_OFFSET + (cur_map * 0x30) + 0x10;
@@ -600,6 +633,15 @@ void CMaps::StoreValues()
 
 	//store the tileset
 	cart->ROM[MAPTILESET_ASSIGNMENT + cur_map] = (BYTE)cur_tileset;
+
+	if (m_songsenabled) {
+		// Song for this tileset
+		int songsel = m_tilesetsong.GetCurSel();
+		if (songsel != CB_ERR) {
+			int songid = m_tilesetsong.GetItemData(songsel);
+			cart->ROM[TILESETSONGLIST_OFFSET + cur_tileset] = songid;
+		}
+	}
 
 	//store the palettes
 	int offset = MAPPALETTE_OFFSET + (cur_map * 0x30) + 0x10;

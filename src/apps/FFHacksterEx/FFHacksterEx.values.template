@@ -1820,6 +1820,7 @@ value=|:endtalkparsing
 desc=Optional marker at which scanning for talkroutines stops
 type=str
 
+
 [BATTLESPRITETILE_COUNT]
 value=32
 type=uint8
@@ -1840,6 +1841,28 @@ value=16
 type=uint8
 group=Graphics
 desc=The size of each mapman character composite tile in bytes
+
+
+[SONGS_BASEINDEX]
+value=0x41
+type=hex8
+desc=Base hex index value for the song list
+group=Audio
+[SONGLABELS_COUNT]
+value=24
+type=uint8
+group=Audio
+desc=The number of songs defined in the game
+[TILESETSONGLIST_OFFSET]
+value=0x3CFD3
+desc=Table of tileset songs, 1 per tileset
+type=bword
+group=Audio
+[TILESETSONGLIST_ASMLABEL]
+value=@lut_TilesetMusicTrack
+desc=Assembly source label for Table of tileset songs
+type=string
+group=Audio
 
 
 [TESTBOOL]

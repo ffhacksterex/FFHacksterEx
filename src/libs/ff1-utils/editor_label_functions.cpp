@@ -167,6 +167,16 @@ namespace Editorlabels
 	dataintnodevector LoadElementLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "ELEMENTLABELS", showindex); }
 	dataintnodevector LoadEnemyCategoryLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "ENEMYCATEGORYLABELS", showindex); }
 
+	dataintnodevector LoadSongLabels(CFFHacksterProject& proj, bool showindex)
+	{
+		const int SONGS_BASEINDEX = ReadHex(proj.ValuesPath, "SONGS_BASEINDEX");
+		auto labels = LoadIniLabels(proj, "SONGLABELS", showindex);
+		for (auto & label : labels) {
+			label.value += SONGS_BASEINDEX;
+		}
+		return labels;
+	}
+
 	dataintnodevector LoadSMTeleportLabels(CFFHacksterProject & proj, bool showindex)
 	{
 		// The entry values must progress contiguously, so simply adding the entry vectors together won't work.
@@ -258,6 +268,14 @@ namespace Editorlabels
 	dataintnode LoadAilEffectLabel(CFFHacksterProject & proj, int index, bool showindex) { return LoadIniLabel(proj, "AILEFFECTLABELS", index, showindex); }
 	dataintnode LoadElementLabel(CFFHacksterProject & proj, int index, bool showindex) { return LoadIniLabel(proj, "ELEMENTLABELS", index, showindex); }
 	dataintnode LoadEnemyCategoryLabel(CFFHacksterProject & proj, int index, bool showindex) { return LoadIniLabel(proj, "ENEMYCATEGORYLABELS", index, showindex); }
+
+	dataintnode LoadSongLabel(CFFHacksterProject& proj, int index, bool showindex)
+	{
+		const int SONGS_BASEINDEX = ReadHex(proj.ValuesPath, "SONGS_BASEINDEX");
+		auto label = LoadIniLabel(proj, "SONGLABELS", index, showindex);;
+		label += SONGS_BASEINDEX;
+		return label;
+	}
 
 	dataintnode LoadSMTeleportLabel(CFFHacksterProject & proj, int index, bool showindex)
 	{

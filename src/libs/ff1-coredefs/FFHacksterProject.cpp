@@ -985,6 +985,8 @@ bool CFFHacksterProject::WriteStringCounts(CString projectini)
 	WriteIni(projectini, section, "AILEFFECTLABELS", "AILEFFECT_COUNT");
 	WriteIni(projectini, section, "ELEMENTLABELS", "ELEMENT_COUNT");
 	WriteIni(projectini, section, "ENEMYCATEGORYLABELS", "ENEMYCATEGORY_COUNT");
+	WriteIni(projectini, section, "ENEMYCATEGORYLABELS", "ENEMYCATEGORY_COUNT");
+	WriteIni(projectini, section, "SONGLABELS", "SONGLABELS_COUNT");
 	return true;
 }
 
