@@ -19,6 +19,7 @@ public:
 	CString Caption;
 	CString Type;
 	CString ArrayText;
+	CString NewValueText;
 	bool HexUppercase;
 
 // Dialog Data

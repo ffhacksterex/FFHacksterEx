@@ -72,7 +72,7 @@ void CInplaceArrayEdit::Add(int item)
 {
 	auto strindex = std::to_string(item);
 	auto slot = m_list.InsertItem(item, strindex.c_str());
-	m_list.SetItemText(slot, 1, "newitem");
+	m_list.SetItemText(slot, 1, NewValueText);
 	Edit(slot);
 
 	RedrawScope redraw(&m_list);

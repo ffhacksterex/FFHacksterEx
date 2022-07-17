@@ -191,8 +191,8 @@ namespace Types
 		CString newstring;
 		CString failmsg;
 
-		std::set<CString> signedtypes = types_shex; //{ "hex8", "hex16", "hex24", "hex32" };
-		std::set<CString> unsignedtypes = types_uhex; //{ "byte", "word", "bword", "dword" };
+		std::set<CString> signedtypes = types_shex;
+		std::set<CString> unsignedtypes = types_uhex + types_rgb;
 		if (!has(signedtypes, type) && !has(unsignedtypes, type)) {
 			failmsg.Format("Type '%s' is unknown, the edit will be cancelled.", (LPCSTR)type);
 		}
@@ -229,6 +229,59 @@ namespace Types
 
 		bool valid = failmsg.IsEmpty();
 		return{ valid, valid ? newstring : failmsg };
+	}
+
+	pair_result<CString> ValidateArray(CString type, CString text)
+	{
+		//DEVNOTE - if the type system is rewritten, then the text.IsEmpty check below might need revision.
+		if (type.IsEmpty()) return { false, "Empty type names ('') are not supported; a type must be declared." };
+		if (text.IsEmpty()) return { false, "The '" + type + "' array value cannot be an empty string." };
+		if (text[text.GetLength() - 1] != '}') return { false, "The '" + type + "' value is missing its closing brace." };
+
+		try {
+			std::string strtype = (LPCSTR)type;
+			if (type == "str[]") {
+				if (text.Find(type + "{") != 0)
+					throw std::runtime_error("The '" + strtype + "' value is malformed.");
+
+				return { true, text };
+			}
+			else if (type == "bool[]") {
+				// if any terms aren't boolean, throw an exception
+				//TODO - type system is in desperate need of a rewrite, but
+				//		I can't tackle that for now.
+				if (text.Find(type + "{") != 0)
+					throw std::runtime_error("The '" + strtype + "' value is malformed.");
+
+				auto mstrvec = as_mfcstrvec(text);
+				for (auto i = 0; i < mstrvec.size(); ++i ) {
+					const CString& str = mstrvec[i];
+					if (str.CompareNoCase("true") != 0 && str.CompareNoCase("false") != 0)
+						throw std::runtime_error("Can't convert index " + std::to_string(i) + " '"
+							+ std::string((LPCSTR)str) + "' into a '" + strtype + "'.");
+				}
+				return { true, text };
+			}
+			else if (type == "byte[]") {
+				if (text.Find(type + "{") != 0)
+					throw std::runtime_error("The '" + strtype + "' value is malformed.");
+
+				auto mstrvec = as_mfcstrvec(text);
+				for (auto i = 0; i < mstrvec.size(); ++i) {
+					const CString& str = mstrvec[i];
+					if (str.CompareNoCase("true") != 0 && str.CompareNoCase("false") != 0)
+						throw std::runtime_error("Can't convert index " + std::to_string(i) + " '"
+							+ std::string((LPCSTR)str) + "' into a '" + strtype + "'.");
+				}
+				return { true, text };
+			}
+			else {
+				return { false, "Array type '" + type + "' cannot be validated." };
+			}
+		}
+		catch (std::exception& ex) {
+			return { false, "Array type '" + type + "' failed validation.\n" + CString(ex.what()) };
+		}
 	}
 
 
@@ -571,6 +624,8 @@ namespace Types
 		return CString(o.str().c_str());
 	}
 
+	//TODO - need to use ICU for text at some point.
+	//		The C++ standard doesn't have good tools to handle text manipulation.
 	boolvector boolvec(CString text)
 	{
 		if (text.IsEmpty()) return{};
@@ -700,6 +755,49 @@ namespace Types
 			return BYTETAG.c_str();
 
 		return CString();
+	}
+
+	namespace // unnamed
+	{
+		// Remove the array type declaration if it's present
+		// and return the ready-to-convert altered string.
+		CString prep_as_strvec(CString text)
+		{
+			CString buf = text;
+			auto tag = get_arraytype(buf);
+			if (!tag.IsEmpty()) {
+				buf.Delete(0, tag.GetLength());
+				if (buf.Find('{') == 0) buf.Delete(0, 1);
+				if (buf.ReverseFind('}') == (buf.GetLength() - 1)) buf.Delete(buf.GetLength() - 1, 1);
+			}
+			return buf;
+		}
+	}
+
+	// Convert a string to stdstringvector even if it isn't a str[]{}
+	stdstringvector as_stdstrvec(CString text)
+	{
+		CString buf = prep_as_strvec(text);
+		std::istringstream is((LPCSTR)buf);
+		std::istream_iterator<std::string> iend;
+		stdstringvector vec;
+		for (std::istream_iterator<std::string> iter(is); iter != iend; ++iter) {
+			vec.push_back(*iter);
+		}
+		return vec;
+	}
+
+	// Convert a string to mfcstringvector even if it isn't a str[]{}
+	mfcstringvector as_mfcstrvec(CString text)
+	{
+		CString buf = prep_as_strvec(text);
+		std::istringstream is((LPCSTR)buf);
+		std::istream_iterator<std::string> iend;
+		mfcstringvector vec;
+		for (std::istream_iterator<std::string> iter(is); iter != iend; ++iter) {
+			vec.push_back(iter->c_str());
+		}
+		return vec;
 	}
 
 } // end namespace Types

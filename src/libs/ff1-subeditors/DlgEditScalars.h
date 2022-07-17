@@ -5,6 +5,7 @@
 #include "vector_types.h"
 #include "set_types.h"
 #include "InplaceEdit.h"
+#include "InplaceCheck.h"
 #include "ListCtrlHideColumns.h"
 #include <FFBaseDlg.h>
 class CFFHacksterProject;
@@ -48,6 +49,7 @@ protected:
 	ListCtrlClass m_elementlist;
 	CMFCLinkCtrl m_importlink;
 	CInplaceEdit m_inplaceedit;
+	CInplaceCheck m_inplacecheck;
 	//CFont m_italicfont; //REMOVE - display bug makes this unusable
 	CFont m_font;
 
@@ -78,11 +80,15 @@ protected:
 	void PrepTextEdit(int item, int subitem);
 	void BeginTextEdit(int item, int subitem, StringTransformFunc intfunc);
 
+	void PrepCheckEdit(int item, int subitem);
+	void BeginCheckEdit(int item, int subitem, StringTransformFunc xformfunc);
+
 	void Edit(CString type, int item, int subitem);
 	void DoIntEdit(CString type, int item, int subitem, int intwidth);
 	void DoArrayEdit(CString type, int item, int subitem);
 	void DoColorEdit(int item, int subitem);
 	void DoTextEdit(int item, int subitem);
+	void DoCheckEdit(int item, int subitem);
 
 	CString ValidateAddrIntAndUpdate(CString type, int item, int subitem, int bytewidth, CString text);
 	CString ValidateDecIntAndUpdate(CString type, int item, int subitem, int bytewidth, CString text);

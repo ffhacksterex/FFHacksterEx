@@ -21,6 +21,7 @@ namespace Types
 	pair_result<CString> ValidateAddrInt(CString type, int bytewidth, CString text, Int64ToStrConvFunc cvtfunc);
 	pair_result<CString> ValidateDecInt(CString type, int bytewidth, CString text, Int64ToStrConvFunc cvtfunc);
 	pair_result<CString> ValidateHexInt(CString type, int bytewidth, CString text, Int64ToStrConvFunc cvtfunc);
+	pair_result<CString> ValidateArray(CString type, CString text);
 
 
 	// Notional type functions
@@ -81,4 +82,7 @@ namespace Types
 
 	bool is_strvec(CString text);
 	CString get_arraytype(CString text);
+
+	stdstringvector as_stdstrvec(CString text);
+	mfcstringvector as_mfcstrvec(CString text);
 }
