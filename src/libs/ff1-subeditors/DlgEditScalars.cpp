@@ -112,6 +112,9 @@ BOOL CDlgEditScalars::OnInitDialog()
 	CenterToParent(this);
 	m_inplaceedit.Create(m_inplaceedit.IDD, &m_elementlist);
 
+	m_inplacecheck.Create(m_inplacecheck.IDD, &m_elementlist);
+	m_inplacecheck.SetOwner(&m_elementlist);
+
 	InitMainList();
 	m_importlink.m_bDefaultClickProcess = TRUE;
 
@@ -440,12 +443,51 @@ void CDlgEditScalars::BeginTextEdit(int item, int subitem, StringTransformFunc x
 			return true;
 		}
 		catch (std::exception & ex) {
-			ErrorHere << "BeginEditText failed to save the text for item " << item << " subitem " << subitem << ": " << ex.what() << std::endl;
+			ErrorHere << "BeginTextEdit failed to save the text for item " << item << " subitem " << subitem << ": " << ex.what() << std::endl;
 			AfxMessageBox(ex.what(), MB_ICONERROR);
 		}
 		catch (...) {
-			ErrorHere << "BeginEditText failed to save the text for item " << item << " subitem " << subitem << std::endl;
+			ErrorHere << "BeginTextEdit failed to save the text for item " << item << " subitem " << subitem << std::endl;
 			AfxMessageBox("An unexpected exception prevented the inplace edit.", MB_ICONERROR);
+		}
+		return false;
+	};
+}
+
+void CDlgEditScalars::PrepCheckEdit(int item, int subitem)
+{
+	CRect client(0, 0, 0, 0);
+	m_elementlist.GetClientRect(&client);
+	CRect rcitem(0, 0, 0, 0);
+	VERIFY(m_elementlist.GetSubItemRect(item, subitem, LVIR_BOUNDS, rcitem));
+	if (rcitem.right > client.right) rcitem.right = client.right;
+
+	m_elementlist.ClientToScreen(&rcitem); // it's actually a dialog that uses screen coords
+
+	m_inplacecheck.OKFunc = nullptr;
+	m_inplacecheck.ClearData();
+	m_inplacecheck.SetPosition(rcitem);
+	m_inplacecheck.ShowWindow(SW_SHOW);
+}
+
+void CDlgEditScalars::BeginCheckEdit(int item, int subitem, StringTransformFunc xformfunc)
+{
+	PrepCheckEdit(item, subitem);
+	CString value = m_elementlist.GetItemText(item, subitem);
+	auto rcitem = GetSubitemRect(m_elementlist, item, subitem);
+	m_inplacecheck.InitEdit(rcitem, "", value == "true");
+	m_inplacecheck.OKFunc = [&, this, item, subitem, xformfunc](bool checked) {
+		try {
+			m_elementlist.SetItemText(item, subitem, checked ? "true" : "false");
+			return true;
+		}
+		catch (std::exception& ex) {
+			ErrorHere << "BeginCheckEdit failed to save the text for item " << item << " subitem " << subitem << ": " << ex.what() << std::endl;
+			AfxMessageBox("An unexpected exception prevented the inplace check edit.\n" + CString(ex.what()), MB_ICONERROR);
+		}
+		catch (...) {
+			ErrorHere << "BeginCheckEdit failed to save the text for item " << item << " subitem " << subitem << std::endl;
+			AfxMessageBox("An unexpected exception prevented the inplace check edit.", MB_ICONERROR);
 		}
 		return false;
 	};
@@ -465,6 +507,10 @@ void CDlgEditScalars::Edit(CString type, int item, int subitem)
 	}
 	else if (type == "str") {
 		DoTextEdit(item, subitem);
+		foundeditor = true;
+	}
+	else if (type == "bool") {
+		DoCheckEdit(item, subitem);
 		foundeditor = true;
 	}
 	else if (IsIntegralType(type)) {
@@ -516,12 +562,15 @@ void CDlgEditScalars::DoArrayEdit(CString type, int item, int subitem)
 
 	if (type == "str[]") {
 		dlg.ArrayText = m_elementlist.GetItemText(item, subitem);
+		dlg.NewValueText = "NewItem";
 	}
 	else if (type == "byte[]") {
 		dlg.ArrayText = m_elementlist.GetItemText(item, subitem);
+		dlg.NewValueText = "0x00";
 	}
 	else if (type == "bool[]") {
 		dlg.ArrayText = m_elementlist.GetItemText(item, subitem);
+		dlg.NewValueText = "false";
 	}
 
 	if (!dlg.ArrayText.IsEmpty()) {
@@ -552,6 +601,11 @@ void CDlgEditScalars::DoColorEdit(int item, int subitem)
 void CDlgEditScalars::DoTextEdit(int item, int subitem)
 {
 	BeginTextEdit(item, subitem, [](CString text) { return text; });
+}
+
+void CDlgEditScalars::DoCheckEdit(int item, int subitem)
+{
+	BeginCheckEdit(item, subitem, [](CString text) { return text; });
 }
 
 //DEVNOTE - to get total control over this display, type traits would have to be introduced.
@@ -683,6 +737,7 @@ void CDlgEditScalars::OnClickAdd()
 			m_elementlist.SetFocus();
 			m_elementlist.SetSelectionMark(m_elementlist.GetItemCount() - 1);
 			m_elementlist.SetItemState(m_elementlist.GetSelectionMark(), LVIS_SELECTED, LVIS_SELECTED);
+			m_elementlist.EnsureVisible(m_elementlist.GetSelectionMark(), FALSE);
 		}
 		else {
 			CString dupegroupname = !prevnode->group.IsEmpty() ? prevnode->group : "(ungrouped)";
