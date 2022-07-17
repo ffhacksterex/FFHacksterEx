@@ -43,65 +43,112 @@ void CDlgEditIniValue::LoadTypes()
 	m_typecombo.SetCurSel(0);
 }
 
+namespace {
+	pair_result<CString> ValidateBoolEntry(CString text)
+	{
+		if (text.IsEmpty())
+			text = "false";
+		if (text.CompareNoCase("true") == 0) text = "true";
+		else if (text.CompareNoCase("false") == 0) text = "false";
+		else throw std::runtime_error("Can't convert value '" + std::string((LPCSTR)text) + "' to boolean.");
+
+		return { true, text };
+	}
+
+	pair_result<CString> ValidateIntEntry(CString type, CString text)
+	{
+		if (text.IsEmpty())
+			text = "0";
+		int bytewidth = GetTypeByteWidth(type);
+		auto retval = ValidateDecInt(type, bytewidth, text, [](long long value) { return dec((int)value); });
+		return retval;
+	}
+
+	pair_result<CString> ValidateHexEntry(CString type, bool isupper, CString text)
+	{
+		if (text.IsEmpty())
+			text = "0x0";
+		int bytewidth = GetTypeByteWidth(type);
+		auto retval = Types::ValidateHexInt(type, bytewidth, text, [isupper, bytewidth](long long value) { return hex_upper(hex((int)value, bytewidth * 2), isupper); });
+		return retval;
+	}
+
+	pair_result<CString> ValidateAddrEntry(CString type, bool isupper, CString text)
+	{
+		if (text.IsEmpty())
+			text = "$0";
+		int bytewidth = GetTypeByteWidth(type);
+		auto retval = Types::ValidateAddrInt(type, bytewidth, text, [isupper, bytewidth](long long value) { return addr_upper(addr((int)value, bytewidth * 2), isupper); });
+		return retval;
+	}
+
+	pair_result<CString> ValidateRgbEntry(CString type, bool isupper, CString text)
+	{
+		if (text.IsEmpty()) text = "0xFF00FF";
+		return ValidateHexEntry(type, isupper, text);
+	}
+
+	pair_result<CString> ValidateArrayEntry(CString type, CString text)
+	{
+		if (text.IsEmpty()) text = type + "{ }";
+		return Types::ValidateArray(type, text);
+	}
+	
+
+	using prcstr = pair_result<CString>;
+	using editortypemappingfunc = std::function<pair_result<CString>(CString type, bool isupper, CString text)>;
+	using editortypemap = std::map<CString, editortypemappingfunc>;
+
+	const editortypemap l_editortypemap{
+		{ "bool", [](CString type, bool, CString text) -> prcstr { return ValidateBoolEntry(text); } },
+		{ "str", [](CString type, bool, CString text) -> prcstr { return {true,text}; } },
+		{ "rgb", [](CString type, bool isupper, CString text) -> prcstr { return ValidateRgbEntry(type, isupper, text); } },
+
+		{ "int8", [](CString type, bool, CString text) -> prcstr { return ValidateIntEntry(type, text); } },
+		{ "int16", [](CString type, bool, CString text) -> prcstr { return ValidateIntEntry(type, text); } },
+		{ "int24", [](CString type, bool, CString text) -> prcstr { return ValidateIntEntry(type, text); } },
+		{ "int32", [](CString type, bool, CString text) -> prcstr { return ValidateIntEntry(type, text); } },
+
+		{ "uint8", [](CString type, bool, CString text) -> prcstr { return ValidateIntEntry(type, text); } },
+		{ "uint16", [](CString type, bool, CString text) -> prcstr { return ValidateIntEntry(type, text); } },
+		{ "uint24", [](CString type, bool, CString text) -> prcstr { return ValidateIntEntry(type, text); } },
+		{ "uint32", [](CString type, bool, CString text) -> prcstr { return ValidateIntEntry(type, text); } },
+
+		{ "hex8", [](CString type, bool isupper, CString text) -> prcstr { return ValidateHexEntry(type, isupper, text); } },
+		{ "hex16", [](CString type, bool isupper, CString text) -> prcstr { return ValidateHexEntry(type, isupper, text); } },
+		{ "hex24", [](CString type, bool isupper, CString text) -> prcstr { return ValidateHexEntry(type, isupper, text); } },
+		{ "hex32", [](CString type, bool isupper, CString text) -> prcstr { return ValidateHexEntry(type, isupper, text); } },
+
+		{ "byte", [](CString type, bool isupper, CString text) -> prcstr { return ValidateHexEntry(type, isupper, text); } },
+		{ "word", [](CString type, bool isupper, CString text) -> prcstr { return ValidateHexEntry(type, isupper, text); } },
+		{ "bword", [](CString type, bool isupper, CString text) -> prcstr { return ValidateHexEntry(type, isupper, text); } },
+		{ "dword", [](CString type, bool isupper, CString text) -> prcstr { return ValidateHexEntry(type, isupper, text); } },
+
+		{ "addr", [](CString type, bool isupper, CString text) -> prcstr { return ValidateAddrEntry(type, isupper, text); } },
+		{ "opcode", [](CString type, bool isupper, CString text) -> prcstr { return ValidateAddrEntry(type, isupper, text); } },
+
+		{ "str[]", [](CString type, bool, CString text) -> prcstr { return ValidateArrayEntry(type, text); }},
+		{ "bool[]", [](CString type, bool, CString text) -> prcstr { return ValidateArrayEntry(type, text); }},
+		{ "byte[]", [](CString type, bool, CString text) -> prcstr { return ValidateArrayEntry(type, text); }}
+	};
+}
+
 bool CDlgEditIniValue::ValidateEntry()
 {
 	auto text = GetControlText(m_valueedit);
 	auto type = GetControlText(m_typecombo);
-	CString failmsg;
-
-	//FUTURE - translate the value text box instead of inserting a default/zero value
-	auto ints = Types::GetDecConvertibleTypes();
-	auto hexs = Types::GetHexConvertibleTypes();
-	auto addrs = Types::GetAddrConvertibleTypes();
-	if (type == "rgb") {
-		text = "0xFF00FF"; // defaults to hot pink
-	}
-	else if (type == "str[]") {
-		text = "str[]{ }";
-	}
-	else if (type == "byte[]") {
-		text = "byte[]{ }";
-	}
-	else if (type == "bool[]") {
-		text = "bool[]{ }";
-	}
-	else if (has(ints, type)) {
-		text = "0";
-		int bytewidth = GetTypeByteWidth(type);
-		auto retval = ValidateDecInt(type, bytewidth, text, [](long long value) { return dec((int)value); });
-		if (!retval.result)
-			failmsg = retval.value;
-		else
-			text = retval.value;
-	}
-	else if (has(hexs, type)) {
-		text = "0x0";
-		int bytewidth = GetTypeByteWidth(type);
-		auto retval = Types::ValidateHexInt(type, bytewidth, text, [this, bytewidth](long long value) { return hex_upper(hex((int)value, bytewidth * 2), HexUppercase); });
-		if (!retval.result)
-			failmsg = retval.value;
-		else
-			text = retval.value;
-	}
-	else if (has(addrs, type)) {
-		text = "$0";
-		int bytewidth = GetTypeByteWidth(type);
-		auto retval = Types::ValidateAddrInt(type, bytewidth, text, [this, bytewidth](long long value) { return addr_upper(addr((int)value, bytewidth * 2), HexUppercase); });
-		if (!retval.result)
-			failmsg = retval.value;
-		else
-			text = retval.value;
-	}
-	else {
-		failmsg.Format("Type '%s' is unrecognized.", (LPCSTR)type);
-	}
-
-	if (!failmsg.IsEmpty())
+	auto iter = l_editortypemap.find(type);
+	auto result = (iter != cend(l_editortypemap))
+		? iter->second(type, HexUppercase, text)
+		: pair_result<CString>{false, "Type '" + type + "' not mapped and cannot be validated by the editor."};
+	if (!result) {
+		CString failmsg;
+		failmsg.Format("Type '%s' is unrecognized.\n%s", (LPCSTR)type, (LPCSTR)result.value);
 		AfxMessageBox(failmsg, MB_ICONERROR);
-	else
-		m_valueedit.SetWindowText(text); // set the default value
-
-	return failmsg.IsEmpty();
+	} else {
+		m_valueedit.SetWindowText(result.value);
+	}
+	return result;
 }
 
 void CDlgEditIniValue::DoDataExchange(CDataExchange* pDX)
