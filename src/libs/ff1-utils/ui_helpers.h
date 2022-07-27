@@ -58,6 +58,7 @@ namespace Ui
 	void SetEditValue(CEdit & edit, LPCSTR newvalue);
 	void SetEditValue(CEdit & edit, std::string newvalue);
 	CString GetEditValue(CEdit & edit);
+	void SetEditTextAndFocus(CEdit& wnd, CString text, bool selectall = false);
 
 	CString GetStaticText(CStatic & stat);
 	void SetStaticText(CStatic & stat, CString text);

@@ -249,7 +249,7 @@ void CDlgProjectSettings::OnBnClickedProjsetButtonRevertpath()
 	// The file must exist, so use OpenFilePrompt
 	auto result = OpenFilePrompt(this, filter, title);
 	if (result)
-		m_editRevertPath.SetWindowText(result.value);
+		Ui::SetEditTextAndFocus(m_editRevertPath, result.value);
 }
 
 void CDlgProjectSettings::OnBnClickedProjsetButtonRevertclear()
@@ -262,7 +262,7 @@ void CDlgProjectSettings::OnBnClickedProjsetButtonPublishpath()
 	auto prevfile = iif(Ui::GetControlText(m_editPublishPath), m_proj->PublishRomPath);
 	auto result = SaveFilePrompt(this, "FF1 ROM (*.nes)|*.nes||", "Select Destination ROM location", prevfile);
 	if (result)
-		m_editPublishPath.SetWindowText(result.value);
+		Ui::SetEditTextAndFocus(m_editPublishPath, result.value);
 }
 
 void CDlgProjectSettings::OnBnClickedAppsettingsBtnAddlmodfolder()
@@ -270,7 +270,7 @@ void CDlgProjectSettings::OnBnClickedAppsettingsBtnAddlmodfolder()
 	auto prevfolder = iif(Ui::GetControlText(m_addlmodfolderedit), m_proj->AdditionalModulesFolder);
 	auto folder = PromptForFolder(this, "Select Additional Modules Folder", prevfolder);
 	if (Paths::DirExists(folder))
-		m_addlmodfolderedit.SetWindowText(folder.value);
+		Ui::SetEditTextAndFocus(m_addlmodfolderedit, folder.value);
 }
 
 void CDlgProjectSettings::OnBnClickedProjectAssemblyDllPath()
@@ -281,9 +281,9 @@ void CDlgProjectSettings::OnBnClickedProjectAssemblyDllPath()
 	if (result) {
 		bool isvalid = is_ff1_asmdll(result.value);
 		if (isvalid)
-			m_asmdlledit.SetWindowText(result.value);
+			Ui::SetEditTextAndFocus(m_asmdlledit, result.value);
 		else
-			AfxMessageBox("The selected DLL is not suported.");
+			AfxMessageBox("The selected DLL is not supported.");
 	}
 }
 

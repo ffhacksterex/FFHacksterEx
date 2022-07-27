@@ -147,6 +147,13 @@ namespace Ui
 		return value;
 	}
 
+	void SetEditTextAndFocus(CEdit& wnd, CString text, bool selectall)
+	{
+		wnd.SetWindowText(text);
+		wnd.SetFocus();
+		if (selectall) wnd.SetSel(0, -1);
+	}
+
 	CString GetStaticText(CStatic & stat)
 	{
 		CString value;

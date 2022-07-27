@@ -275,7 +275,7 @@ void CDlgCreateNewProject::OnBnClickedNewasmButtonParentfolder()
 	//FUTURE - implement favorite or frequent ROM/ASM project parent folders
 	auto result = Ui::PromptForFolder(this, "Select parent folder for the new project.");
 	if (result)
-		m_parentfolderedit.SetWindowText(result.value);
+		Ui::SetEditTextAndFocus(m_parentfolderedit, result.value);
 }
 
 void CDlgCreateNewProject::OnBnClickedNewasmButtonRevert()
@@ -297,21 +297,21 @@ void CDlgCreateNewProject::OnBnClickedNewasmButtonRevert()
 
 	auto result = OpenFilePrompt(this, filter, title);
 	if (result)
-		m_revertfileedit.SetWindowText(result.value);
+		Ui::SetEditTextAndFocus(m_revertfileedit, result.value);
 }
 
 void CDlgCreateNewProject::OnBnClickedNewasmButtonPublish()
 {
 	auto result = SaveFilePrompt(this, "FF1 ROM (*.nes)|*.nes||", "Select Destination ROM location");
 	if (result)
-		m_publishedit.SetWindowText(result.value);
+		Ui::SetEditTextAndFocus(m_publishedit, result.value);
 }
 
 void CDlgCreateNewProject::OnBnClickedNewasmButtonImportdat()
 {
 	auto result = OpenFilePrompt(this, "FFHackster DAT files (FFHackster*.dat)|FFHackster*.dat||", "Import a FFHackster DAT file");
 	if (result)
-		m_datfileedit.SetWindowText(result.value);
+		Ui::SetEditTextAndFocus(m_datfileedit, result.value);
 }
 
 void CDlgCreateNewProject::OnBnClickedAsmDllLookInAppFolder()
@@ -325,14 +325,14 @@ void CDlgCreateNewProject::OnBnClickedAdditionalModulesFolder()
 {
 	auto result = Ui::PromptForFolder(this, "Select additonal modules folder for the new project.");
 	if (result)
-		m_addlmodulesedit.SetWindowText(result.value);
+		Ui::SetEditTextAndFocus(m_addlmodulesedit, result.value);
 }
 
 void CDlgCreateNewProject::OnBnClickedButton1BrowseAsmDll()
 {
 	auto result = PromptForAsmDll(this);
 	if (result)
-		m_asmdlledit.SetWindowTextA(result.value);
+		Ui::SetEditTextAndFocus(m_asmdlledit, result.value);
 	else
 		AfxMessageBox(result.value);
 }
