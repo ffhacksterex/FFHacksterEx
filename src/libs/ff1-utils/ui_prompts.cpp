@@ -94,6 +94,7 @@ namespace Ui
 		return "";
 	}
 
+	//TODO - rename PromptToSaveProjectByFilter, it's not tied to saving only projects
 	CString PromptToSaveProjectByFilter(CWnd * parent, CString defext, CString filter, CString defaultfilename)
 	{
 		LPCSTR pszfilename = !defaultfilename.IsEmpty() ? (LPCSTR)defaultfilename : nullptr;

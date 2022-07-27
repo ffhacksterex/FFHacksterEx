@@ -126,6 +126,8 @@ namespace Ui
 	void MoveWindowBy(CWnd* pwnd, int cx, int cy);
 	void MoveWindowTo(CWnd* pwnd, int x, int y);
 
+	void ResizeBlurb(CDialogEx* me, CWnd* label, CString text);
+
 	int AlignToTopLeft(CWnd * pwnd, std::initializer_list<CWnd*> windows);
 
 	int ConvertStyleToAlignment(int align);

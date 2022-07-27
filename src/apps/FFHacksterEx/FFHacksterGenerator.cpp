@@ -13,6 +13,7 @@
 
 #include <DirPathRemover.h>
 #include <FFHacksterProject.h>
+#include <DlgPickNamedDestination.h>
 
 #include "sProjectGeneratorValues.h"
 #include "FFHackster.h"
@@ -357,7 +358,15 @@ pair_result<CString> CFFHacksterGenerator::UnzipProject()
 		switch (index) {
 		case 0:
 		case 1:
-			return UnzipAndOpenProject(pathname, ziptypes[index]);
+		{
+			// Attempt to extract the project archive.
+			// On success, returns a command that will open the extracted project.
+			auto ret = UnzipAndOpenProject(pathname, ziptypes[index]);
+			if (ret) return ret;
+
+			if (!ret.value.IsEmpty()) AfxMessageBox(ret.value);
+			break;
+		}
 		}
 		return{ false, "prompt" };
 	}
@@ -520,6 +529,7 @@ CString CFFHacksterGenerator::ExecuteActionResult(CString curaction, CString res
 		nextaction = dlg.ExitAction;
 	}
 	else if (curaction == "unzip") {
+		// This block actually opens the extracted project.
 		CFFHacksterDlg dlg;
 		//dlg.AppIni = AppIni;
 		dlg.AppStgs = this->AppStgs;
@@ -538,82 +548,47 @@ CString CFFHacksterGenerator::ExecuteActionResult(CString curaction, CString res
 
 pair_result<CString> CFFHacksterGenerator::UnzipAndOpenProject(CString pathname, CString dotextension)
 {
-	using namespace Paths;
-
-	const auto FindProjectFile = [dotextension](CString filepath) -> bool {
+	CString ext = dotextension;
+	ext.MakeLower();
+	const auto FindProjectFile = [ext](CString filepath) -> bool {
 		filepath.MakeLower(); // this is a copy, CString uses copy-on-write semantics
-		return filepath.Find(dotextension) != -1;
+		return filepath.Find(ext) != -1;
 	};
 
-	CString createdfolder;
-	try {
-		//REFACTOR - //NOUNZIPOVERWRITE
-		//		Removed directory overwrites from the function for the moment after some private feedback.
-		//		Overwrite-related code has been commented out below.
-		//		See Io::Unzip() in io_functions.cpp for more details.
-		auto rootfolder = Paths::GetDirectoryPath(pathname);
+	// Prompt for destination folder
+	CDlgPickNamedDestination pick(AfxGetMainWnd());
+	pick.Title = "Extract Project Archive";
+	pick.Blurb = "Specify a parent folder and a name for the new project.\n"
+		"The project will be created as a subdirectory with that name inside the parent folder.";
+	pick.StartInFolder = Paths::GetDirectoryPath(pathname);
 
-		//NOUNZIPOVERWRITE
-		//auto destfolder = PromptForFolder(AfxGetMainWnd(), "Browse for a destination folder.\r\nWARNING: this will overwrite the folder!", rootfolder);
-		auto destfolder = PromptForFolder(AfxGetMainWnd(), "Browse for an empty destination folder.", rootfolder);
-		if (DirExists(destfolder)) {
-			// Guard against accidental folder deletion by warning on non-empty folders
-			bool proceed = true;
-			if (!Paths::DirEmpty(destfolder)) {
+	const auto& destfolder = pick.DestFolderPath;
+	if (pick.DoModal() != IDOK)
+		return { false, "" }; // cancelled
+	if (Paths::DirExists(destfolder) && !Paths::DirEmpty(destfolder))
+		return { false, "Pleaase specify a new or empty folder as the destination." };
 
-				//NOUNZIPOVERWRITE
-				//auto result = AfxMessageBox("Unzipping will destroy the contents of the directory.\nAre you ure you want to continue?", MB_OKCANCEL | MB_ICONQUESTION);
-				//proceed = (result != IDCANCEL);
-				AfxMessageBox("Please select an empty folder.");
-				return { false, "" };
-			}
-			if (proceed) {
-				createdfolder = destfolder; // mark the folder, in case it needed to be removed due to an exception
+	// Unzip to a destination folder, attach a dir remover to it
+	Io::DirPathRemover remover(destfolder);
+	if (!Io::Unzip(pathname, destfolder))
+		return { false, "Can't extract archive to '" + destfolder + "'." };
 
-				//NOUNZIPOVERWRITE
-				//if (Io::Unzip(pathname, destfolder, true))
-				if (Io::Unzip(pathname, destfolder)) {
-					CString dotlower(dotextension);
-					dotlower.MakeLower();
-					auto files = GetFiles(destfolder, GetFilesScope::NotRecursive, FindProjectFile);
-					if (!files.empty()) {
-						//N.B. - assumes that users are not renaming copies of project files manually, so it takes the first and
-						//       makes no attempt to resolve if multiple project files are found.
-						//FUTURE - show a dialog to allow the user to select a project file if more than one is found
-						// Change the base name of the files to match the destination
-						auto srctitle = Paths::GetFileStem(files[0]);
-						auto desttitle = Paths::GetFileStem(destfolder);
-						CFFHacksterProject::RenameProjectFiles(destfolder, files[0], srctitle, desttitle);
+	// Find the project file by dotextension
+	auto files = Paths::GetFiles(destfolder, Paths::GetFilesScope::NotRecursive, FindProjectFile);
+	if (files.empty()) return { false, "No project file was found in the archive." };
 
-						// Now find the project file (which has a transformed name)
-						auto newfiles = GetFiles(destfolder, GetFilesScope::NotRecursive, FindProjectFile);
-						if (!newfiles.empty())
-							return{ true, newfiles[0] };
-					}
-					else {
-						AfxMessageBox("Failed to find a project in the unzipped directory.", MB_ICONERROR);
-					}
-				}
-				else {
-					AfxMessageBox("Failed to extract the zipped project. Ensure that 7za is in the program folder.", MB_ICONERROR);
-				}
-			}
-		}
-	}
-	catch (std::exception & ex) {
-		CString cs;
-		cs.Format("An exception prevented the project from unzipping correctly:\n%s", ex.what());
-		AfxMessageBox(cs, MB_ICONERROR);
-	}
-	catch (...) {
-		AfxMessageBox("An unexpected exception prevented the project from being unzipped.", MB_ICONERROR);
+	// Rename the project's files.
+	// Then find the project file (which will have a transformed name) and return it.
+	auto srctitle = Paths::GetFileStem(files[0]);
+	auto desttitle = Paths::GetFileStem(destfolder);
+	CFFHacksterProject::RenameProjectFiles(destfolder, files[0], srctitle, desttitle);
+	auto newfiles = Paths::GetFiles(destfolder, Paths::GetFilesScope::NotRecursive, FindProjectFile);
+	if (!newfiles.empty()) {
+		remover.Revoke();
+		return{ true, newfiles[0] };
 	}
 
-	// If we get here, the process has failed. Remove the folder if possible.
-	if (Paths::DirExists(createdfolder))
-		Paths::DirDelete(createdfolder);
-
-	return{ false, "prompt" };
+	return { false, "Failed to rename the extracted project files; archive extraction attempt abandoned." };
 }
 
 CString CFFHacksterGenerator::BuildEditRomProjectPath(CString rompath)

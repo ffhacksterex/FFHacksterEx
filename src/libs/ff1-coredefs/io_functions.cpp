@@ -292,35 +292,10 @@ namespace Io
 		}
 	}
 
-	//REFACTOR - Unzip directory overwrite is under review. (//NOUNZIPOVERWRITE)
-	//bool Unzip(CString archivepath, CString containerfolder, bool overwrite)
-	//		Removed directory overwrites from the function for the moment after some private feedback.
-	//		While I don't mind this operation personally, I got feedback that overwrites allowed easy
-	//		accidental destruction of project folders.
-	//		For now, I'm taking out the directory overwrite, but I'm not ready to remove this code from active source yet.
-	//		The overwrite-releated code below has been commented out.
-
 	bool Unzip(CString archivepath, CString containerfolder)
 	{
-		if (Paths::DirExists(containerfolder)) {
-			if (!Paths::DirEmpty(containerfolder)) {
-				return ErrorReturnFalse("Can't unzip into a non-empty directory.");
-				//REFACTOR - clean this up with a better message after deciding the overwrite issue.
-				//ErrorHere << "Can't unzip into a non-empty directory." << std::endl;
-				//return false;
-			}
-
-			//NOUNZIPOVERWRITE - under review, overwrite param removed for now
-			//if (!overwrite) {
-			//	ErrorHere << "Can't unzip to the existing folder if the overwrite flag is set to false." << nl
-			//			<< "    folder: " << (LPCSTR)containerfolder << std::endl;
-			//	return false;
-			//}
-			//else {
-			//	auto delpath = Paths::BuildTempFilePath("dir");
-			//	Paths::DirMove(containerfolder, delpath);
-			//	VERIFY(Paths::DirDelete(delpath)); // this still compiles in Release builds
-			//}
+		if (Paths::DirExists(containerfolder) && !Paths::DirEmpty(containerfolder)) {
+			return ErrorReturnFalse("Can't unzip into a non-empty directory.");
 		}
 
 		CString zipcmd;
@@ -329,12 +304,6 @@ namespace Io
 
 		Sleep(500); //HACK - allows 7za a little more time to work.
 		return Paths::DirExists(containerfolder);
-		//REFACTOR - for now, if overwrite == true, a return value of true is ambiguous.
-		//		if the folder already existed, then the extraction could fail without throwing an exception,
-		//		but the folder and its contents would still exist... how to cleanly detect if everything changed?
-		//		should unzip simply fail if the foler exists already?
-		//		or attempt to delete an existing folder and fail if it can't?
-		//		For now, as stated above, folder overwrites are disabled.
 	}
 
 	// Zips the contents at the root of sourcefolder (not including the sourcefolder).

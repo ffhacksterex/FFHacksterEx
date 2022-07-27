@@ -24,6 +24,8 @@
 
 #include <DlgEditScalars.h>
 #include <DlgEditStrings.h>
+#include <DlgPickNamedDestination.h>
+#include <DlgPickDestinationFile.h>
 #include <Minimap.h>
 #include <IProgress.h>
 #include <Loading.h>
@@ -1239,22 +1241,28 @@ void CFFHacksterDlg::EditProjectEditorsList()
 
 void CFFHacksterDlg::OnCloneProject()
 {
-	using namespace Paths;
-	auto newprojectfile = PromptToSaveProject(this, m_proj.IsRom(), "Clone Project As");
-	if (!newprojectfile.IsEmpty()) {
-		auto folder = Paths::GetDirectoryPath(newprojectfile);
-		if (FileExists(newprojectfile)) {
-			AfxMessageBox("Please select a new project: cloning is not allowed to overwrite existing projects.", MB_ICONSTOP);
-		}
-		else if (IsDir(folder) && !DirEmpty(folder)) {
-			AfxMessageBox("Please select an empty folder: cloning is not allowed to overwrite existing folders.", MB_ICONSTOP);
+	CDlgPickNamedDestination pick(this);
+	pick.Title = "Clone Project";
+	pick.Blurb = "Select a parent folder to host the cloned project folder.\n"
+		"The project will be created inside a subfolder with the name specified "
+		"in the Name edit field.";
+	pick.SourceFolderName = m_proj.ProjectName;
+	pick.StartInFolder = Paths::GetDirectoryPath(m_proj.ProjectFolder);
+	if (pick.DoModal() == IDOK) {
+		const auto & newdir = pick.DestFolderPath;
+		if (Paths::DirExists(newdir) && !Paths::DirEmpty(newdir)) {
+			CString msg;
+			msg.Format("The folder\n%s\nis not empty.\nPlease select an empty folder to proceed.", newdir);
+			AfxMessageBox(msg);
 		}
 		else {
+			auto ext = Paths::GetFileExtension(m_proj.ProjectPath);
+			auto newprojectfile = Paths::Combine({ newdir, pick.DestFolderName + ext});
 			if (m_proj.Clone(newprojectfile)) {
-				AfxMessageBox("Cloned the project to " + Paths::GetDirectoryPath(newprojectfile) + ".");
+				AfxMessageBox("Cloned the project to folder\n" + Paths::GetDirectoryPath(newprojectfile) + ".");
 			}
 			else {
-				AfxMessageBox("Failed to clone the project to " + Paths::GetDirectoryPath(newprojectfile) + ".", MB_ICONERROR);
+				AfxMessageBox("Failed to clone the project to folder\n" + Paths::GetDirectoryPath(newprojectfile) + ".", MB_ICONERROR);
 			}
 		}
 	}
@@ -1272,13 +1280,19 @@ void CFFHacksterDlg::OnArchiveProject()
 		if (result != IDOK) return;
 	}
 
-	CString filter = "FF1 ROM zipped Projects (*.ff1zip)|*.ff1zip||";
-	CString defext = "ff1zip";
-	CString deffile;
-	deffile.Format("%s.ff1zip", (LPCSTR)Paths::GetFileStem(m_proj.ProjectPath));
-	auto savefile = Ui::PromptToSaveProjectByFilter(this, defext, filter, deffile);
-	if (!savefile.IsEmpty()) {
-		Io::Zip(savefile, m_proj.ProjectFolder, true);
+	CDlgPickDestinationFile pick(this);
+	pick.Title = "Archive Project";
+	pick.Blurb = "Select a destination filename.\nThe project will be zipped into an "
+		"archive file that can be imported on the Welcome screen.";
+	pick.Filter = "Project archives (*.ff1zip)|*.ff1zip||";
+	pick.StartInFolder = Paths::GetDirectoryPath(m_proj.ProjectFolder);
+	if (pick.DoModal() == IDOK) {
+		if (Io::Zip(pick.DestFile, m_proj.ProjectFolder, true)) {
+			AfxMessageBox("Archive the project to " + pick.DestFile + ".");
+		}
+		else {
+			AfxMessageBox("Unable to archive the file.");
+		}
 	}
 }
 

@@ -176,9 +176,11 @@
     <ClInclude Include="BorderedListCtrl.h" />
     <ClInclude Include="BorderedListBox.h" />
     <ClInclude Include="BrowseForFolderDialog.h" />
+    <ClInclude Include="DlgPickDestinationFile.h" />
     <ClInclude Include="CloseButton.h" />
     <ClInclude Include="DataListDialog.h" />
     <ClInclude Include="DialogWithBackground.h" />
+    <ClInclude Include="DlgPickNamedDestination.h" />
     <ClInclude Include="EditorWithBackground.h" />
     <ClInclude Include="FFBaseApp.h" />
     <ClInclude Include="FFBaseDlg.h" />
@@ -227,9 +229,11 @@
     <ClCompile Include="BorderedListCtrl.cpp" />
     <ClCompile Include="BorderedListBox.cpp" />
     <ClCompile Include="BrowseForFolderDialog.cpp" />
+    <ClCompile Include="DlgPickDestinationFile.cpp" />
     <ClCompile Include="CloseButton.cpp" />
     <ClCompile Include="DataListDialog.cpp" />
     <ClCompile Include="DialogWithBackground.cpp" />
+    <ClCompile Include="DlgPickNamedDestination.cpp" />
     <ClCompile Include="EditorWithBackground.cpp" />
     <ClCompile Include="FFBaseApp.cpp" />
     <ClCompile Include="FFBaseDlg.cpp" />
