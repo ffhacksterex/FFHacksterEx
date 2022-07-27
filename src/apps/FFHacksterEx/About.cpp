@@ -70,6 +70,13 @@ BOOL CAbout::OnInitDialog()
 	CString progname = LoadStringResource(IDS_PROGRAMCAPTION, DEF_PROGRAMCAPTION);
 	CString subtext = GetStaticText(m_progtitlestatic);
 	subtext.Replace("FFHacksterEx", progname);
+#if defined(_WIN64)
+	subtext.AppendFormat(" (x64 build)");
+#elif defined(_WIN32)
+	subtext.AppendFormat(" (x86 build)");
+#else
+	subtext.AppendFormat(" (unknown architecture)");
+#endif
 	SetStaticText(m_progtitlestatic, subtext);
 
 	CString reltext = LoadStringResource(IDS_RELEASETEXT, "");
