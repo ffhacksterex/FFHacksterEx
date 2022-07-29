@@ -94,7 +94,7 @@ protected:
 
 	CBorderedListBox m_mainlist;
 	CBorderedListCtrl m_elementlist;
-	CClearComboBox m_comboRoutineType;
+	CComboBox m_comboRoutineType;
 	CStatic m_unknownfuncaddrstatic;
 	CClearButton m_settingsbutton = { IDPNG_GEARSM, "PNG" };
 	CCloseButton m_closebutton;

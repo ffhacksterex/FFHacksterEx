@@ -50,7 +50,8 @@ protected:
 	CMFCLinkCtrl m_importlink;
 	CInplaceEdit m_inplaceedit;
 	CInplaceCheck m_inplacecheck;
-	//CFont m_italicfont; //REMOVE - display bug makes this unusable
+	CButton m_showhiddencheck;
+	CFont m_italicfont;
 	CFont m_font;
 
 	CString m_inibackup;
@@ -107,4 +108,5 @@ protected:
 	afx_msg void OnClickDelete();
 	afx_msg void OnClickRevert();
 	afx_msg void OnCustomdrawScalarsListelements(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnBnClickedCheckShowhidden();
 };

@@ -1,11 +1,5 @@
-#if !defined(AFX_CLASSES_H__68A0D875_C04E_42BF_A551_B6D07283E5FC__INCLUDED_)
-#define AFX_CLASSES_H__68A0D875_C04E_42BF_A551_B6D07283E5FC__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Classes.h : header file
-//
 
 #include <EditorWithBackground.h>
 #include "vector_types.h"
@@ -105,6 +99,14 @@ protected:
 	int BANK02_OFFSET = -1;
 	int BINLEVELUPDATA_OFFSET = -1;
 
+	size_t WEAPON_COUNT = (size_t)-1;
+	size_t WEAPONPERMISSIONS_OFFSET = (size_t)-1;
+	size_t ARMOR_COUNT = (size_t)-1;
+	size_t ARMORPERMISSIONS_OFFSET = (size_t)-1;
+	size_t MAGIC_COUNT = (size_t)-1;
+	size_t MAGICPERMISSIONS_OFFSET = (size_t)-1;
+	size_t SPELLLEVEL_COUNT = (size_t)-1;
+
 	// Battle sprite offsets
 	unsigned int CHARBATTLEPALETTE_ASSIGNMENT1 = (unsigned int)-1; // bank 0C
 	unsigned int CHARBATTLEPIC_OFFSET = (unsigned int)-1;          // bank 09
@@ -132,38 +134,46 @@ protected:
 	mfcstrintmap m_constantmap;
 	CMenu m_classesmenu;
 	int m_copiedclass = -1;
+	bool m_pastewarned = false;
+
 	void InitButtons();
 
-	void LoadRom();
+	virtual void ReadOffsets();
+	virtual void LoadRom();
 	virtual void SaveRom();
-	void LoadValues();
+	virtual void LoadValues();
 	virtual void StoreValues();
-	void LoadClassEngineData(GameSerializer & ser);
-	void SaveClassEngineData(GameSerializer & ser);
+	virtual void LoadClassEngineData(GameSerializer & ser);
+	virtual void SaveClassEngineData(GameSerializer & ser);
+	virtual int GetLevelOffset(int classid) const;
+
 	virtual void PaintClient(CDC & dc);
 
 	void DisplayRunningTotals();
 	void ScrollXPViewBy(int offset);
-	int GetLevelOffset();
 
 	stdstringvector GetClassIdVector(unsigned char classid);
 
+	void CopySwapBytes(bool swapping, size_t srcoffset, size_t destoffset, size_t start, size_t count);
+	void CopySwapBits16(bool swapping, size_t baseoffset, size_t srcindex, size_t destindex, size_t bits, size_t start, size_t count);
 	void CopyClass(int classindex);
-	void PasteStartInfo(int srcindex, int destindex);
-	void PasteLevelInfo(int srcindex, int destindex, int flags);
-	void PasteSpriteAndPaletteInfo(int srcindex, int destindex, int flags);
-	void HandleClassListContextMenu(CWnd* pWnd, CPoint point);
-	void HandleSpellCheckContextMenu(CWnd* pWnd, CPoint point);
-	void HandleSaivlCheckContextMenu(CWnd* pWnd, CPoint point);
-	bool IsSpellChargeCheck(CWnd* pWnd);
-	bool IsSaivlChargeCheck(CWnd * pWnd);
-	void ChangeSpellCheckGroup(int group, bool checked);
-	void ChangeSaivlCheckGroup(int group, bool checked);
+	bool WarnCancelPaste();
+	virtual void PasteStartInfo(int srcindex, int destindex, int flags);
+	virtual void PasteLevelInfo(int srcindex, int destindex, int flags);
+	virtual void PasteSpriteAndPaletteInfo(int srcindex, int destindex, int flags);
+	virtual void PasteUsables(int srcindex, int destindex, int flags);
+	virtual void HandleClassListContextMenu(CWnd* pWnd, CPoint point);
+	virtual void HandleSpellCheckContextMenu(CWnd* pWnd, CPoint point);
+	virtual void HandleSaivlCheckContextMenu(CWnd* pWnd, CPoint point);
+	virtual bool IsSpellChargeCheck(CWnd* pWnd);
+	virtual bool IsSaivlChargeCheck(CWnd * pWnd);
+	virtual void ChangeSpellCheckGroup(int group, bool checked);
+	virtual void ChangeSaivlCheckGroup(int group, bool checked);
 
-	bool UsingHoldMP(int slot);
-	bool UsingCapMP(int slot);
-	bool UsingMPRange();
-	bool UsingBBMA(int slot);
+	virtual bool UsingHoldMP(int slot);
+	virtual bool UsingCapMP(int slot);
+	virtual bool UsingMPRange();
+	virtual bool UsingBBMA(int slot);
 
 // Dialog Data
 	enum { IDD = IDD_CLASSES };
@@ -283,16 +293,16 @@ protected:
 	CClearEdit	m_agility;
 	CClearEdit m_editMpMaxAllChars;
 	CClearEdit m_editMagDefUp;
-	CClearComboBox m_comboclass2;
-	CClearComboBox m_comboclass1;
-	CClearComboBox m_combopost2;
-	CClearComboBox m_combopost1;
-	CClearComboBox m_mpmincombo;
-	CClearComboBox m_mpmaxcombo;
-	CClearComboBox m_bbmacombo1;
-	CClearComboBox m_bbmacombo2;
-	CClearComboBox m_2xhitscombo1;
-	CClearComboBox m_2xhitscombo2;
+	CComboBox m_comboclass2;
+	CComboBox m_comboclass1;
+	CComboBox m_combopost2;
+	CComboBox m_combopost1;
+	CComboBox m_mpmincombo;
+	CComboBox m_mpmaxcombo;
+	CComboBox m_bbmacombo1;
+	CComboBox m_bbmacombo2;
+	CComboBox m_2xhitscombo1;
+	CComboBox m_2xhitscombo2;
 	CClearEdit m_maxhpedit;
 	CInfoButton m_infobutton;
 	CClearButton m_settingsbutton = { IDPNG_GEARSM, "PNG" };
@@ -334,5 +344,3 @@ protected:
 	afx_msg void OnCbnSelchangePostcombo2();
 	afx_msg void OnBnClickedClassesSettings();
 };
-
-#endif // !defined(AFX_CLASSES_H__68A0D875_C04E_42BF_A551_B6D07283E5FC__INCLUDED_)

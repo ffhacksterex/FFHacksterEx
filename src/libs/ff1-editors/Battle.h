@@ -1,11 +1,5 @@
-#if !defined(AFX_BATTLE_H__615683D6_6786_461F_B5D7_5FCA48BA06E1__INCLUDED_)
-#define AFX_BATTLE_H__615683D6_6786_461F_B5D7_5FCA48BA06E1__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Battle.h : header file
-//
 
 #include <EditorWithBackground.h>
 #include <DataListDialog.h>
@@ -131,7 +125,7 @@ protected:
 	CButton	m_pica_3;
 	CButton	m_pica_2;
 	CButton	m_pica_1;
-	CClearComboBox	m_patterntables;
+	CComboBox	m_patterntables;
 	CStatic	m_palette2;
 	CStatic	m_palette1;
 	CButton	m_palb_4;
@@ -143,10 +137,10 @@ protected:
 	CButton	m_pala_2;
 	CButton	m_pala_1;
 	CButton	m_norun;
-	CClearComboBox	m_enemy4;
-	CClearComboBox	m_enemy3;
-	CClearComboBox	m_enemy2;
-	CClearComboBox	m_enemy1;
+	CComboBox	m_enemy4;
+	CComboBox	m_enemy3;
+	CComboBox	m_enemy2;
+	CComboBox	m_enemy1;
 	CClearListBox	m_battlelist;
 	CStatic m_previewstatic;
 	CClearButton m_viewuse;
@@ -217,5 +211,3 @@ protected:
 	afx_msg void OnBnClickedBattleSettings();
 	afx_msg void OnBnClickedViewUsage();
 };
-
-#endif // !defined(AFX_BATTLE_H__615683D6_6786_461F_B5D7_5FCA48BA06E1__INCLUDED_)

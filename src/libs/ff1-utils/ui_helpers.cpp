@@ -147,6 +147,13 @@ namespace Ui
 		return value;
 	}
 
+	void SetEditTextAndFocus(CEdit& wnd, CString text, bool selectall)
+	{
+		wnd.SetWindowText(text);
+		wnd.SetFocus();
+		if (selectall) wnd.SetSel(0, -1);
+	}
+
 	CString GetStaticText(CStatic & stat)
 	{
 		CString value;
@@ -638,6 +645,38 @@ namespace Ui
 	void MoveWindowTo(CWnd* pwnd, int x, int y)
 	{
 		pwnd->SetWindowPos(nullptr, x, y, -1, -1, SWP_NOZORDER | SWP_NOSIZE);
+	}
+
+	void ResizeBlurb(CDialogEx* me, CWnd* label, CString text)
+	{
+		// Yeah, Windows API isn't so great for UI stuff...
+		// the raw API does none of this automatically, and MFC
+		// only handles dynamic layout for the simplest scenarios.
+		// I've defintely got to get FFHEx off of MFC for sure.
+
+		// Use the dialog's PaintDC to calculate a rect
+		// for the text at the top of teh dialog with some
+		// padding on the left, top, and right.
+		constexpr int pad = 16;
+		CRect client = Ui::GetClientRect(me);
+		client.InflateRect(0, 0, -pad * 2, 0);
+		CPaintDC dc(me);
+		dc.DrawText(text, client, DT_CALCRECT);
+
+		// Now move the label into the calculated rect.
+		client.OffsetRect(pad, pad);
+		label->MoveWindow(client);
+
+		// Move all of the controls down except the blurb label.
+		auto diff = (client.bottom + 4);
+		auto pwnd = me->GetWindow(GW_CHILD);
+		while (pwnd != nullptr) {
+			if (pwnd != label) Ui::MoveControlBy(pwnd, 0, diff);
+			pwnd = pwnd->GetNextWindow();
+		}
+
+		// Grow the dialog (by passing a negative shrink value).
+		Ui::ShrinkWindow(me, 0, -diff);
 	}
 
 	int AlignToTopLeft(CWnd * pwnd, std::initializer_list<CWnd*> windows)

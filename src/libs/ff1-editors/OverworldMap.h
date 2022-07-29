@@ -1,11 +1,5 @@
-#if !defined(AFX_OVERWORLDMAP_H__D4F4EFA3_060E_443F_94F9_797904E48555__INCLUDED_)
-#define AFX_OVERWORLDMAP_H__D4F4EFA3_060E_443F_94F9_797904E48555__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // OverworldMap.h : header file
-//
 
 #include <EditorWithBackground.h>
 #include "ICoordMap.h"
@@ -97,10 +91,10 @@ protected:
 	CButton	m_minimap;
 	CClearEdit	m_miscy;
 	CClearEdit	m_miscx;
-	CClearComboBox	m_misccoords;
+	CComboBox	m_misccoords;
 	CButton	m_customizetool;
 	CStatic	m_kab;
-	CClearComboBox	m_backdroplist;
+	CComboBox	m_backdroplist;
 	CButton	m_showlastclick;
 	CButton	m_randomencounter;
 	CClearEdit	m_probability8;
@@ -123,19 +117,19 @@ protected:
 	CButton	m_form1;
 	CButton	m_drawgrid;
 	CStatic	m_domain;
-	CClearComboBox	m_battle8;
-	CClearComboBox	m_battle7;
-	CClearComboBox	m_battle6;
-	CClearComboBox	m_battle5;
-	CClearComboBox	m_battle4;
-	CClearComboBox	m_battle3;
-	CClearComboBox	m_battle2;
-	CClearComboBox	m_battle1;
+	CComboBox	m_battle8;
+	CComboBox	m_battle7;
+	CComboBox	m_battle6;
+	CComboBox	m_battle5;
+	CComboBox	m_battle4;
+	CComboBox	m_battle3;
+	CComboBox	m_battle2;
+	CComboBox	m_battle1;
 	CButton	m_fight_river;
 	CButton	m_fight_ocean;
 	CButton	m_fight_normal;
 	CButton	m_fight_none;
-	CClearComboBox	m_teleportbox;
+	CComboBox	m_teleportbox;
 	CButton	m_teleport;
 	CButton	m_raiseairship;
 	CButton	m_move_walk;
@@ -235,5 +229,3 @@ protected:
 	afx_msg void OnBnClickedButtonImportMap();
 	afx_msg void OnBnClickedButtonExportMap();
 };
-
-#endif // !defined(AFX_OVERWORLDMAP_H__D4F4EFA3_060E_443F_94F9_797904E48555__INCLUDED_)

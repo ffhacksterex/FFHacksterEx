@@ -35,7 +35,7 @@ protected:
 	std::vector<int> m_comsumeids;
 	std::vector<int> m_consumelabelids;
 
-	CClearComboBox m_comboBridge;
+	CComboBox m_comboBridge;
 	CButton m_checkHasCanoe;
 	CButton m_checkHasShip;
 	CButton m_checkHasAirship;

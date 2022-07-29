@@ -1,11 +1,5 @@
-#if !defined(AFX_MAGIC_H__BB8727D6_3487_4729_B7B0_B61820B509EF__INCLUDED_)
-#define AFX_MAGIC_H__BB8727D6_3487_4729_B7B0_B61820B509EF__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Magic.h : header file
-//
 
 #include <EditorWithBackground.h>
 #include <vector>
@@ -114,11 +108,11 @@ protected:
 
 // Dialog Data
 	enum { IDD = IDD_MAGIC };
-	CClearComboBox	m_outminbox;
-	CClearComboBox	m_outmaxbox;
+	CComboBox	m_outminbox;
+	CComboBox	m_outmaxbox;
 	CClearEdit	m_outmin;
 	CClearEdit	m_outmax;
-	CClearComboBox	m_outbattlelist;
+	CComboBox	m_outbattlelist;
 	CClearButton	m_editgfx;
 	CStrikeCheck	m_use9;
 	CStrikeCheck	m_use8;
@@ -132,7 +126,7 @@ protected:
 	CStrikeCheck	m_use11;
 	CStrikeCheck	m_use10;
 	CStrikeCheck	m_use1;
-	CClearComboBox	m_battlemessage;
+	CComboBox	m_battlemessage;
 	CClearEdit	m_price;
 	CClearEdit	m_accuracy;
 	CButton	m_target5;
@@ -141,7 +135,7 @@ protected:
 	CButton	m_target2;
 	CButton	m_target1;
 	CClearListBox	m_magiclist;
-	CClearComboBox	m_gfx;
+	CComboBox	m_gfx;
 	CStrikeCheck	m_elem8;
 	CStrikeCheck	m_elem7;
 	CStrikeCheck	m_elem6;
@@ -234,5 +228,3 @@ protected:
 	afx_msg void OnBnClickedClassesSettings();
 	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 };
-
-#endif // !defined(AFX_MAGIC_H__BB8727D6_3487_4729_B7B0_B61820B509EF__INCLUDED_)

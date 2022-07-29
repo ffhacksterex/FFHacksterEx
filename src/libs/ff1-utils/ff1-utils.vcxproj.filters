@@ -165,6 +165,12 @@
     <ClInclude Include="DataListDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DlgPickNamedDestination.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgPickDestinationFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -297,6 +303,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DataListDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgPickNamedDestination.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgPickDestinationFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

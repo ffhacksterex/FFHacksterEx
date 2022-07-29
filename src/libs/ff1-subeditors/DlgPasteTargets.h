@@ -49,4 +49,8 @@ protected:
 	virtual void OnOK();
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnDestroy();
+public:
+	afx_msg void OnBnClickedCheckAll();
+protected:
+	CButton m_checkall;
 };

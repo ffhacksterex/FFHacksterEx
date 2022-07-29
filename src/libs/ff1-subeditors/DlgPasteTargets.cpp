@@ -57,11 +57,13 @@ void CDlgPasteTargets::DoDataExchange(CDataExchange* pDX)
 {
 	CFFBaseDlg::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_CHECK1, m_pastetarget1);
+	DDX_Control(pDX, IDC_CHECK_ALL, m_checkall);
 }
 
 
 BEGIN_MESSAGE_MAP(CDlgPasteTargets, CFFBaseDlg)
 	ON_WM_DESTROY()
+	ON_BN_CLICKED(IDC_CHECK_ALL, &CDlgPasteTargets::OnBnClickedCheckAll)
 END_MESSAGE_MAP()
 
 
@@ -141,6 +143,7 @@ BOOL CDlgPasteTargets::OnInitDialog()
 	auto rccheck = GetControlRect(m_pastechecks.back());
 	auto rcbase = GetControlRect(&m_pastetarget1);
 	auto distance = rccheck.bottom - rcbase.bottom;
+	MoveControlBy(&m_checkall, 0, distance);
 	MoveControlBy(GetDlgItem(IDOK), 0, distance);
 	MoveControlBy(GetDlgItem(IDCANCEL), 0, distance);
 	ShrinkWindow(this, -horzdistance, -distance);
@@ -184,4 +187,11 @@ BOOL CDlgPasteTargets::PreTranslateMessage(MSG* pMsg)
 	if (IsWindow(m_tooltips.GetSafeHwnd()))
 		m_tooltips.RelayEvent(pMsg);
 	return CFFBaseDlg::PreTranslateMessage(pMsg);
+}
+
+void CDlgPasteTargets::OnBnClickedCheckAll()
+{
+	auto checked = Ui::GetCheckValue(m_checkall);
+	auto checks = GetChecks();
+	for (auto& c : checks) Ui::SetCheckValue(*c, checked);
 }

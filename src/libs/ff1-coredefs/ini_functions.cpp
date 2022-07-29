@@ -36,70 +36,45 @@ namespace Ini
 			throw std::invalid_argument(fmt);
 		}
 
-		int read_dec(CString inipath, CString section, int * defvalue)
-		{
-			auto alltypes = Types::GetDecConvertibleTypes();
+		using IniTypeFunc = int(*)(CString);
 
+		int do_read_ini_type(const mfcstringset& alltypes, IniTypeFunc func,
+			CString inipath, CString section, int* defvalue)
+		{
 			auto type = ReadIni(inipath, section, "type", CString());
+			auto inival = ReadIni(inipath, section, "value", CString());
+			if (type.IsEmpty() && inival.IsEmpty() && defvalue != nullptr)
+				return *defvalue;
+
 			if (!has(alltypes, type))
 				throw_no_ini_type_exception(__FUNCTION__, section, type);
 
-			auto inival = ReadIni(inipath, section, "value", CString());
 			if (inival.IsEmpty()) {
 				if (defvalue != nullptr) return *defvalue;
 				throw_no_ini_default_exception(__FUNCTION__, section, type);
 			}
 
-			return dec(inival);
+			return func(inival);
+		}
+
+		int read_dec(CString inipath, CString section, int * defvalue)
+		{
+			return do_read_ini_type(Types::GetDecConvertibleTypes(), dec, inipath, section, defvalue);
 		}
 
 		int read_addr(CString inipath, CString section, int * defvalue)
 		{
-			auto alltypes = Types::GetAddrConvertibleTypes();
-
-			auto type = ReadIni(inipath, section, "type", CString());
-			if (!has(alltypes, type))
-				throw_no_ini_type_exception(__FUNCTION__, section, type);
-
-			auto inival = ReadIni(inipath, section, "value", CString());
-			if (inival.IsEmpty()) {
-				if (defvalue != nullptr) return *defvalue;
-				throw_no_ini_default_exception(__FUNCTION__, section, type);
-			}
-
-			return addr(inival);
+			return do_read_ini_type(Types::GetAddrConvertibleTypes(), addr, inipath, section, defvalue);
 		}
 
 		int read_hex(CString inipath, CString section, int * defvalue)
 		{
-			auto alltypes = Types::GetHexConvertibleTypes();
-
-			auto type = ReadIni(inipath, section, "type", CString());
-			if (!has(alltypes, type))
-				throw_no_ini_type_exception(__FUNCTION__, section, type);
-
-			auto inival = ReadIni(inipath, section, "value", CString());
-			if (inival.IsEmpty()) {
-				if (defvalue != nullptr) return *defvalue;
-				throw_no_ini_default_exception(__FUNCTION__, section, type);
-			}
-
-			return hex(inival);
+			return do_read_ini_type(Types::GetHexConvertibleTypes(), hex, inipath, section, defvalue);
 		}
 
 		int read_rgb(CString inipath, CString section, int * defvalue)
 		{
-			auto type = ReadIni(inipath, section, "type", CString());
-			if (type != "rgb")
-				throw_no_ini_type_exception(__FUNCTION__, section, type);
-
-			auto inival = ReadIni(inipath, section, "value", CString());
-			if (inival.IsEmpty()) {
-				if (defvalue != nullptr) return *defvalue;
-				throw_no_ini_default_exception(__FUNCTION__, section, type);
-			}
-
-			return hex(inival);
+			return do_read_ini_type(Types::GetRgbConvertibleTypes(), hex, inipath, section, defvalue);
 		}
 
 	} // end namespace unnamed (local helpers)

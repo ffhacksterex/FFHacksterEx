@@ -58,6 +58,7 @@ namespace Ui
 	void SetEditValue(CEdit & edit, LPCSTR newvalue);
 	void SetEditValue(CEdit & edit, std::string newvalue);
 	CString GetEditValue(CEdit & edit);
+	void SetEditTextAndFocus(CEdit& wnd, CString text, bool selectall = false);
 
 	CString GetStaticText(CStatic & stat);
 	void SetStaticText(CStatic & stat, CString text);
@@ -125,6 +126,8 @@ namespace Ui
 	void ShrinkWindow(CWnd * pwnd, int cx, int cy);
 	void MoveWindowBy(CWnd* pwnd, int cx, int cy);
 	void MoveWindowTo(CWnd* pwnd, int x, int y);
+
+	void ResizeBlurb(CDialogEx* me, CWnd* label, CString text);
 
 	int AlignToTopLeft(CWnd * pwnd, std::initializer_list<CWnd*> windows);
 

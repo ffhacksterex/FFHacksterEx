@@ -1,11 +1,5 @@
-#if !defined(AFX_WEAPON_H__934F677B_38CF_427D_ABFE_2789BD1D545D__INCLUDED_)
-#define AFX_WEAPON_H__934F677B_38CF_427D_ABFE_2789BD1D545D__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Weapon.h : header file
-//
 
 #include "EditorWithBackground.h"
 class CFFHacksterProject;
@@ -41,10 +35,10 @@ protected:
 	CClearButton	m_editgfx;
 	CClearListBox	m_weaponlist;
 	CClearEdit	m_critrate;
-	CClearComboBox	m_spellcast;
+	CComboBox	m_spellcast;
 	CClearEdit	m_price;
 	CClearEdit	m_hit;
-	CClearComboBox	m_gfx;
+	CComboBox	m_gfx;
 	CClearEdit	m_damage;
 	CClearButton m_editlabelbutton;
 	CStrikeCheck	m_elem8;
@@ -107,5 +101,3 @@ protected:
 	afx_msg void OnSelchangeGfx();
 	afx_msg void OnEditgfx();
 };
-
-#endif // !defined(AFX_WEAPON_H__934F677B_38CF_427D_ABFE_2789BD1D545D__INCLUDED_)
