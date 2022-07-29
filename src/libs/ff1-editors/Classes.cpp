@@ -41,12 +41,17 @@ static char THIS_FILE[] = __FILE__;
 
 #define CLASS_COPY 1
 #define CLASS_PASTE 2
+#define CLASS_SWAP 4
 
-#define PASTE_SAIVLDATA 1
-#define PASTE_LEVELDATA 2
-#define PASTE_BATTLEGFX 4
-#define PASTE_MAPMANGFX 8
-#define PASTE_MAPMANPAL 16
+#define PASTE_SAIVLDATA 0x1
+#define PASTE_LEVELDATA 0x2
+#define PASTE_BATTLEGFX 0x4
+#define PASTE_MAPMANGFX 0x8
+#define PASTE_MAPMANPAL 0x10
+#define PASTE_WEAPONPERM 0x20
+#define PASTE_ARMORPERM 0x40
+#define PASTE_MAGICPERM 0x80
+#define PASTE_OP_SWAP   0x80000000
 
 #define CONTEXT_CHECKED 1
 #define CONTEXT_UNCHECKED 2
@@ -317,6 +322,7 @@ BOOL CClasses::OnInitDialog()
 
 	try {
 		InitButtons();
+		ReadOffsets();
 		LoadRom();
 
 		ar_1m[0] = &m_1m1;ar_1m[1] = &m_1m2;ar_1m[2] = &m_1m3;ar_1m[3] = &m_1m4;ar_2m[0] = &m_2m1;
@@ -372,12 +378,8 @@ void CClasses::InitButtons()
 	m_banner.Set(this, RGB(0, 0, 0), RGB(255, 32, 64), "Classes");
 }
 
-void CClasses::LoadRom()
+void CClasses::ReadOffsets()
 {
-	CWaitCursor wait;
-
-	Project->ClearROM();
-
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	CLASS_OFFSET = ReadHex(Project->ValuesPath, "CLASS_OFFSET");
 	CLASS_BYTES = ReadDec(Project->ValuesPath, "CLASS_BYTES");
@@ -433,6 +435,20 @@ void CClasses::LoadRom()
 	BATTLESPRITETILE_BYTES = ReadDec(Project->ValuesPath, "BATTLESPRITETILE_BYTES");
 	MAPMANSPRITETILE_COUNT = ReadDec(Project->ValuesPath, "MAPMANSPRITETILE_COUNT");
 	MAPMANSPRITETILE_BYTES = ReadDec(Project->ValuesPath, "MAPMANSPRITETILE_BYTES");
+
+	WEAPON_COUNT = ReadDec(Project->ValuesPath, "WEAPON_COUNT");
+	WEAPONPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "WEAPONPERMISSIONS_OFFSET");
+	ARMOR_COUNT = ReadDec(Project->ValuesPath, "ARMOR_COUNT");
+	ARMORPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "ARMORPERMISSIONS_OFFSET");
+	MAGIC_COUNT = ReadDec(Project->ValuesPath, "MAGIC_COUNT");
+	MAGICPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "MAGICPERMISSIONS_OFFSET");
+	SPELLLEVEL_COUNT = ReadHex(Project->ValuesPath, "SPELLLEVEL_COUNT", 8);
+}
+
+void CClasses::LoadRom()
+{
+	CWaitCursor wait;
+	Project->ClearROM();
 
 	// Now load the data
 	GameSerializer ser(*Project);
@@ -1056,7 +1072,7 @@ void CClasses::LoadValues()
 
 	//level up data
 	for(int co = 0; co < 4; co++){
-		offset = ((cur_class % 6) * 98) + ((level_offset + co) << 1) + GetLevelOffset();
+		offset = ((cur_class % 6) * 98) + ((level_offset + co) << 1) + GetLevelOffset(cur_class);
 
 		temp = Project->ROM[offset];
 		SetCheckFlags(temp, std::vector<CStrikeCheck*>{ ar_luc[co], ar_vit[co], ar_int[co], ar_agi[co], ar_str[co], ar_strong[co] });
@@ -1144,7 +1160,7 @@ void CClasses::StoreValues()
 
 	//level up data
 	for(int co = 0; co < 4; co++){
-		offset = ((cur_class % 6) * 98) + ((level_offset + co) << 1) + GetLevelOffset();
+		offset = ((cur_class % 6) * 98) + ((level_offset + co) << 1) + GetLevelOffset(cur_class);
 
 		for (auto & wnd : std::vector<CStrikeCheck*>{ ar_luc[co], ar_vit[co], ar_int[co], ar_agi[co], ar_str[co], ar_strong[co] })
 			wnd->Invalidate();
@@ -1286,7 +1302,7 @@ void CClasses::RecalculateRunningTotals()
 		if (offset > m_mpmaxcombo.GetCurSel()) RunningMag[0] = 0;
 	}
 
-	offset = ((cur_class % 6) * 98) + GetLevelOffset();
+	offset = ((cur_class % 6) * 98) + GetLevelOffset(cur_class);
 	for(int co = 0; co < 49; co++, offset += 2)
 	{
 		RunningHP += 1 + (RunningVit >> 3);
@@ -1340,8 +1356,9 @@ void CClasses::ScrollXPViewBy(int offset)
 	LoadValues();
 }
 
-int CClasses::GetLevelOffset()
+int CClasses::GetLevelOffset(int classid) const
 {
+	UNREFERENCED_PARAMETER(classid);
 	return LEVELUP_OFFSET;
 }
 
@@ -1358,6 +1375,29 @@ stdstringvector CClasses::GetClassIdVector(unsigned char classid)
 	return vec;
 }
 
+namespace {
+	CString FormText(int flag, CString srccls, CString destcls)
+	{
+		CString cs;
+		switch (flag) {
+		case CLASS_COPY:
+			cs.Format("&Copy %s", (LPCSTR)srccls);
+			break;
+		case CLASS_PASTE:
+			cs.Format("Paste from %s to %s", (LPCSTR)srccls, (LPCSTR)destcls);
+			break;
+		case CLASS_SWAP:
+			cs.Format("Swap %s with %s", (LPCSTR)srccls, (LPCSTR)destcls);
+			break;
+		default:
+			cs.Format("Unknown operation '%d'", flag);
+			throw std::runtime_error((LPCSTR)cs);
+			break;
+		}
+		return cs;
+	}
+}
+
 void CClasses::HandleClassListContextMenu(CWnd * pWnd, CPoint point)
 {
 	CPoint listpoint = point;
@@ -1366,49 +1406,121 @@ void CClasses::HandleClassListContextMenu(CWnd * pWnd, CPoint point)
 	auto selclass = m_classlist.ItemFromPoint(listpoint, bOutside);
 	if (selclass == LB_ERR) return;
 
-	auto BuildPasteText = [](CString op, CString srccls, CString destcls) {
-		if (!op.IsEmpty()) op += " ";
-		CString cs;
-		cs.Format("Paste %sfrom %s to %s", (LPCSTR)op, (LPCSTR)srccls, (LPCSTR)destcls);
-		return cs;
-	};
-
-	auto strselclass = LoadClassEntry(*Project, selclass).name;
+	CString strselclass = LoadClassEntry(*Project, selclass).name;
 	m_classesmenu.AppendMenu(MF_STRING, CLASS_COPY, "&Copy " + strselclass);
 	if (m_copiedclass != -1 && m_copiedclass != (int)selclass) {
 		// if pasting, the clicked index is actually the destination
-		auto strdestclass = LoadClassEntry(*Project, selclass).name.Trim();
+		CString strdestclass = LoadClassEntry(*Project, selclass).name.Trim();
 		strselclass = LoadClassEntry(*Project, m_copiedclass).name.Trim();
-		m_classesmenu.AppendMenu(MF_STRING, CLASS_PASTE, "&" + BuildPasteText("", strselclass, strdestclass) + "...");
+		m_classesmenu.AppendMenu(MF_STRING, CLASS_PASTE, "&" + FormText(CLASS_PASTE, strselclass, strdestclass) + "...");
+		m_classesmenu.AppendMenu(MF_STRING, CLASS_SWAP, "&" + FormText(CLASS_SWAP, strselclass, strdestclass) + "...");
 	}
 
 	auto selop = m_classesmenu.TrackPopupMenu(TPM_RETURNCMD | TPM_LEFTALIGN, point.x, point.y, pWnd);
 	if (selop != 0) {
 		if (selop == CLASS_COPY) CopyClass(selclass);
-		if (selop == CLASS_PASTE) {
-			auto strdestclass = LoadClassEntry(*Project, selclass).name.Trim();
+		if (selop == CLASS_PASTE || selop == CLASS_SWAP) {
+			if (!m_pastewarned && selop == CLASS_PASTE) {
+				m_pastewarned = true;
+				if (WarnCancelPaste())
+					return;
+			}
+
+			CString strdestclass = LoadClassEntry(*Project, selclass).name.Trim();
+			CString method = selop == CLASS_PASTE ? "Paste" : "Swap";
 			CDlgPasteTargets dlg(this);
-			dlg.Title = BuildPasteText("", strselclass, strdestclass);
-			dlg.SetTargets(std::vector<PasteTarget>{
-				{ "Startup data", true}, { "SAIVL/Strong level data", true }, { "Spell charge level data", true }, { "Battle graphics", false },
+			dlg.Title = FormText(selop, strselclass, strdestclass);
+			auto targets = std::vector<PasteTarget>{
+				{ "Startup data", true},
+				{ "SAIVL/Strong level data", true },
+				{ "Spell charge level data", true },
+				{ "Battle graphics", false },
 				{ "Mapman graphics", false, "Copies only the image; select the palette entry below to also copy the palette." },
 				{ "Mapman palette", false, "The overwritten mapman palette can't be restored by simply importing a saved bitmap." },
-			});
+				{ "Weapon permissions", false },
+				{ "Armor permissions", false },
+				{ "Magic permissions", false }
+			};
+			dlg.SetTargets(targets);
 			if (dlg.DoModal() == IDOK) {
+				int methodflag = selop == CLASS_PASTE ? 0 : PASTE_OP_SWAP;
 				int start = dlg.IsChecked(0);
-				if (start) PasteStartInfo(m_copiedclass, selclass);
+				if (start) PasteStartInfo(m_copiedclass, selclass, methodflag);
 				int saivl = dlg.IsChecked(1) ? PASTE_SAIVLDATA : 0;
 				int level = dlg.IsChecked(2) ? PASTE_LEVELDATA : 0;
-				PasteLevelInfo(m_copiedclass, selclass, saivl | level);
+				PasteLevelInfo(m_copiedclass, selclass, saivl | level | methodflag);
 				int battle = dlg.IsChecked(3) ? PASTE_BATTLEGFX : 0;
 				int mapman = dlg.IsChecked(4) ? PASTE_MAPMANGFX : 0;
 				int mappal = dlg.IsChecked(5) ? PASTE_MAPMANPAL : 0;
-				PasteSpriteAndPaletteInfo(m_copiedclass, selclass, battle | mapman | mappal);
+				PasteSpriteAndPaletteInfo(m_copiedclass, selclass, battle | mapman | mappal | methodflag);
+				int weapon = dlg.IsChecked(6) ? PASTE_WEAPONPERM : 0;
+				int armor = dlg.IsChecked(7) ? PASTE_ARMORPERM : 0;
+				int magic = dlg.IsChecked(8) ? PASTE_MAGICPERM : 0;
+				PasteUsables(m_copiedclass, selclass, weapon | armor | magic | methodflag);
 
-				if (start | saivl | level | battle | mapman | mappal)
+				if (start | saivl | level | battle | mapman | mappal | weapon | armor | magic)
 					LoadValues();
 			}
 		}
+	}
+}
+
+void CClasses::CopySwapBytes(bool swapping, size_t srcoffset, size_t destoffset, size_t start, size_t count)
+{
+	for (size_t i = start, end = start + count; i < end; ++i) {
+		auto src = srcoffset + i;
+		auto dst = destoffset + i;
+		if (swapping) {
+			auto temp = Project->ROM[dst];
+			Project->ROM[dst] = Project->ROM[src];
+			Project->ROM[src] = temp;
+		}
+		else {
+			Project->ROM[dst] = Project->ROM[src];
+		}
+	}
+}
+
+void CClasses::CopySwapBits16(bool swapping, size_t baseoffset, size_t srcindex, size_t destindex,
+							size_t bits, size_t start, size_t count)
+{
+	const unsigned short valuemask = (1 << bits) - 1;
+	const unsigned short srcmask = (1 << ((bits-1) - srcindex));
+	const unsigned short dstmask = (1 << ((bits-1) - destindex));
+	const size_t step = bits > 8 ? 2 : 1; // handles lists of BYTEs and WORDs
+
+	for (size_t i = start, end = start + count; i < end; ++i) {
+		size_t offset = baseoffset + (i * step);
+		unsigned short origoctet = Project->ROM[offset];
+		unsigned short octet = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+
+		// I invert the byte to make it a little more intuitive.
+		// So now, the class can use the item if the bit is SET.
+		auto invoct = (unsigned short)(~octet & valuemask);
+
+		// Set dest if source is set, clear it otherwise
+		bool srcon = (octet & srcmask) != srcmask;
+		unsigned short newdst = srcon ? dstmask : 0;
+
+		if (swapping) {
+			// We're swapping, so get the bit states,
+			// then swap them and OR the swapped states back into invoct.
+			bool dston = (octet & dstmask) != dstmask;
+			unsigned short newsrc = dston ? srcmask : 0;
+			invoct &= ~(srcmask | dstmask);
+			invoct |= (newsrc | newdst);
+		}
+		else {
+			// We're copying, so if the source bit was set,
+			// turn on the dest mask bit; otherwise turn it off.
+			invoct &= ~dstmask;
+			invoct |= newdst;
+		}
+
+		// Reverse the inversion and store the change
+		auto newoctet = (unsigned short)(~invoct & valuemask);
+		Project->ROM[offset] = newoctet & 0xFF;
+		if (bits > 8) Project->ROM[offset + 1] = (newoctet >> 8) & 0xFF;
 	}
 }
 
@@ -1417,76 +1529,122 @@ void CClasses::CopyClass(int classindex)
 	m_copiedclass = classindex;
 }
 
-void CClasses::PasteStartInfo(int srcindex, int destindex)
+bool CClasses::WarnCancelPaste()
 {
-	int srcoffset = CLASS_OFFSET + (srcindex * CLASS_BYTES);
-	int dstoffset = CLASS_OFFSET + (destindex * CLASS_BYTES);
+	auto result = AfxMessageBox(
+		"Pasting overwrites data, and once saved that data cannot be brought back.\n"
+		"Are you SURE you want to continue?", MB_OKCANCEL);
+	// If the user doesn't want to continue (i.e. not OK), then return true.
+	return (result != IDOK);
+}
 
-	auto CopyBaseStat = [srcoffset, dstoffset, this](int step) {
-		Project->ROM[dstoffset + step] = Project->ROM[srcoffset + step];
-	};
-	//CopyBaseStat(0); // class ID     // don't copy/paste the class ID
-	CopyBaseStat(1); // starting HP
-	CopyBaseStat(2); // STR
-	CopyBaseStat(3); // AGI
-	CopyBaseStat(4); // INT
-	CopyBaseStat(5); // VIT
-	CopyBaseStat(6); // LUCK
-	CopyBaseStat(7); // DMG
-	CopyBaseStat(8); // HIT
-	CopyBaseStat(9); // EVADE
-	CopyBaseStat(10); // MAGDEF
-	CopyBaseStat(11); // Starting MP (lobybble), hinybble currently unused
+void CClasses::PasteStartInfo(int srcindex, int destindex, int flags)
+{
+	bool swapping = (flags & PASTE_OP_SWAP) == PASTE_OP_SWAP;
+	size_t srcoffset = CLASS_OFFSET + (srcindex * CLASS_BYTES);
+	size_t dstoffset = CLASS_OFFSET + (destindex * CLASS_BYTES);
 
-	auto CopyExtStat = [srcindex, destindex, this](int baseoffset) {
-		Project->ROM[baseoffset + destindex] = Project->ROM[baseoffset + srcindex];
-	};
-	//CopyExtStat(MPCAP_OFFSET); //REFACTOR - this is used in BCC, not vanilla, put there, then remove from here
-	CopyExtStat(HITPCTINCREASE_OFFSET);
-	CopyExtStat(MAGDEFINCREASE_OFFSET);
+	// Copy or swap each index in order from 1 to 15 ($F):
+	// 	   0      = Class ID  (***DON'T*** copy or swap this byte!)
+	//     1      = Starting HP
+	//     2      = STR
+	//     3      = AGI
+	//     4      = INT
+	//     5      = VIT
+	//     6      = LUCK
+	//     7      = DMG
+	//     8      = HIT
+	//     9      = EVADE
+	//    10      = MAGDEF
+	//    11 - 15 = unused by the original game, but copy them anyway
+	// So, copy 15 bytes, starting at offset 1.
+	CopySwapBytes(swapping, srcoffset, dstoffset, 1, 15);
+
+	// Copy or swap the values in the class slots for each table below.
+	CopySwapBytes(swapping, HITPCTINCREASE_OFFSET + srcindex, HITPCTINCREASE_OFFSET + destindex, 0, 1);
+	CopySwapBytes(swapping, MAGDEFINCREASE_OFFSET + srcindex, MAGDEFINCREASE_OFFSET + destindex, 0, 1);
 }
 
 void CClasses::PasteLevelInfo(int srcindex, int destindex, int flags)
 {
+	// src and dest indices are class IDs
+	bool swapping = (flags & PASTE_OP_SWAP) == PASTE_OP_SWAP;
 	bool pastestart = (flags & PASTE_SAIVLDATA) == PASTE_SAIVLDATA;
 	bool pastelevel = (flags & PASTE_LEVELDATA) == PASTE_LEVELDATA;
 	for (int level = 0; level < 50; ++level) {
-		int srcoffset = ((srcindex % 6) * 98) + (level << 1) + GetLevelOffset();
-		int dstoffset = ((destindex % 6) * 98) + (level << 1) + GetLevelOffset();
-		if (pastestart) Project->ROM[dstoffset] = Project->ROM[srcoffset];
-		if (pastelevel) Project->ROM[dstoffset + 1] = Project->ROM[srcoffset + 1];
+		size_t srcoffset = ((srcindex % 6) * 98) + (level << 1) + GetLevelOffset(srcindex);
+		size_t dstoffset = ((destindex % 6) * 98) + (level << 1) + GetLevelOffset(destindex);
+		if (pastestart) CopySwapBytes(swapping, srcoffset, dstoffset, 0, 1);
+		if (pastelevel) CopySwapBytes(swapping, srcoffset + 1, dstoffset + 1, 0, 1);
 	}
 }
 
 void CClasses::PasteSpriteAndPaletteInfo(int srcindex, int destindex, int flags)
 {
+	bool swapping = (flags & PASTE_OP_SWAP) == PASTE_OP_SWAP;
 	if (HasAnyFlag(flags, PASTE_BATTLEGFX)) {
 		// This copies the palette assignments and the bitmaps, but doesn't touch the actual palettes since they're shared.
 		// The user will need to edit the palette through the UI.
-		Project->ROM[CHARBATTLEPALETTE_ASSIGNMENT1 + destindex] = Project->ROM[CHARBATTLEPALETTE_ASSIGNMENT1 + srcindex];
-		Project->ROM[CHARBATTLEPALETTE_ASSIGNMENT2 + destindex] = Project->ROM[CHARBATTLEPALETTE_ASSIGNMENT2 + srcindex];
-		const auto tileprod = BATTLESPRITETILE_COUNT * BATTLESPRITETILE_BYTES;
-		auto srcbase = CHARBATTLEPIC_OFFSET + (srcindex * tileprod);
-		auto dstbase = CHARBATTLEPIC_OFFSET + (destindex * tileprod);
-		for (size_t st = 0; st < tileprod; ++st) {
-			Project->ROM[dstbase++] = Project->ROM[srcbase++];
-		}
+		CopySwapBytes(swapping, CHARBATTLEPALETTE_ASSIGNMENT1 + srcindex,
+			CHARBATTLEPALETTE_ASSIGNMENT1 + destindex, 0, 1);
+		CopySwapBytes(swapping, CHARBATTLEPALETTE_ASSIGNMENT2 + srcindex,
+			CHARBATTLEPALETTE_ASSIGNMENT2 + destindex, 0, 1);
+
+		size_t tileprod = BATTLESPRITETILE_COUNT * BATTLESPRITETILE_BYTES;
+		size_t srcbase = CHARBATTLEPIC_OFFSET + (srcindex * tileprod);
+		size_t dstbase = CHARBATTLEPIC_OFFSET + (destindex * tileprod);
+		CopySwapBytes(swapping, srcbase, dstbase, 0, tileprod);
 	}
 	if (HasAnyFlag(flags, PASTE_MAPMANGFX)) {
 		// Copy the mapman tiles
-		const auto tileprod = MAPMANSPRITETILE_COUNT * MAPMANSPRITETILE_BYTES;
-		auto srcbase = MAPMANGRAPHIC_OFFSET + (srcindex * tileprod);
-		auto dstbase = MAPMANGRAPHIC_OFFSET + (destindex * tileprod);
-		for (size_t st = 0; st < tileprod; ++st) {
-			Project->ROM[dstbase++] = Project->ROM[srcbase++];
-		}
+		size_t tileprod = MAPMANSPRITETILE_COUNT * MAPMANSPRITETILE_BYTES;
+		size_t srcbase = MAPMANGRAPHIC_OFFSET + (srcindex * tileprod);
+		size_t dstbase = MAPMANGRAPHIC_OFFSET + (destindex * tileprod);
+		CopySwapBytes(swapping, srcbase, dstbase, 0, tileprod);
 	}
 	if (HasAnyFlag(flags, PASTE_MAPMANPAL)) {
 		// Copy the top and bottom "index 2" palette colors for this character
-		auto palsrc = MAPMANPALETTE_OFFSET + (srcindex * 2);
-		auto paldst = MAPMANPALETTE_OFFSET + (destindex * 2);
-		Project->ROM[paldst] = Project->ROM[palsrc];
-		Project->ROM[paldst + 1] = Project->ROM[palsrc + 1];
+		size_t palsrc = MAPMANPALETTE_OFFSET + (srcindex * 2);
+		size_t paldst = MAPMANPALETTE_OFFSET + (destindex * 2);
+		CopySwapBytes(swapping, palsrc, paldst, 0, 2);
+	}
+}
+
+// Ugh... this needs some explanation.
+// The game stores a WORD (i.e. a 16-bit value) for each weapon,
+// where each bit corresponds to a class, but with a caveat:
+//  -> bit order is reversed from class ID order
+// FI class ID is 0, but in this WORD it's the high bit (bit offset 11)
+// BW class ID is 11, but here it's the least significant bit (offset 0)
+//
+// e.g. change Katana from NI to MA
+// $0FEF = bit pattern 1111 1110 1111
+// that would swap the bits for NI (class 7) and MA (class 8)
+// however, the bit order is reversed, so it's actually
+// NI = bit 11 - 7 and MA = bit 11 - 8
+// so the bit can be represented as 1 << (11 - classid)
+// The result of the bit swap changes $0FEF to $0FF7
+//
+// Armor is handled identically to weapons.
+// Magic is handled differently, with per-class permission tables.
+
+void CClasses::PasteUsables(int srcindex, int destindex, int flags)
+{
+	bool swapping = (flags & PASTE_OP_SWAP) == PASTE_OP_SWAP;
+	if ((flags & PASTE_WEAPONPERM) == PASTE_WEAPONPERM) {
+		CopySwapBits16(swapping, WEAPONPERMISSIONS_OFFSET, srcindex, destindex,
+			12, 0, WEAPON_COUNT);
+	}
+	if ((flags & PASTE_ARMORPERM) == PASTE_ARMORPERM) {
+		CopySwapBits16(swapping, ARMORPERMISSIONS_OFFSET, srcindex, destindex,
+			12, 0, ARMOR_COUNT);
+	}
+	if ((flags & PASTE_MAGICPERM) == PASTE_MAGICPERM) {
+		CopySwapBits16(swapping, MAGICPERMISSIONS_OFFSET, srcindex, destindex,
+			8, 0, MAGIC_COUNT);
+		size_t srcoffset = MAGICPERMISSIONS_OFFSET + (size_t(srcindex) * 8);
+		size_t dstoffset = MAGICPERMISSIONS_OFFSET + (size_t(destindex) * 8);
+		CopySwapBytes(swapping, srcoffset, dstoffset, 0, SPELLLEVEL_COUNT);
 	}
 }
 
