@@ -1,11 +1,5 @@
-#if !defined(AFX_MAPS_H__A2ACD334_B16D_4459_9329_80F4184FD92F__INCLUDED_)
-#define AFX_MAPS_H__A2ACD334_B16D_4459_9329_80F4184FD92F__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Maps.h : header file
-//
 
 #include <EditorWithBackground.h>
 #include "ICoordMap.h"
@@ -112,30 +106,30 @@ protected:
 	CButton	m_showlastclick;
 	CStatic	m_hovering;
 	CStatic	m_lastclick;
-	CClearComboBox	m_spritegraphic;
+	CComboBox	m_spritegraphic;
 	CButton	m_still;
 	CClearEdit	m_spritecoordy;
 	CClearEdit	m_spritecoordx;
-	CClearComboBox	m_sprite;
+	CComboBox	m_sprite;
 	CButton	m_inroom;
-	CClearComboBox	m_sprite_list;
+	CComboBox	m_sprite_list;
 	CButton	m_editlabel;
 	CButton	m_warp;
-	CClearComboBox	m_text_list;
-	CClearComboBox	m_teleport_list;
+	CComboBox	m_text_list;
+	CComboBox	m_teleport_list;
 	CButton	m_teleport;
 	CClearEdit	m_tcitem_price;
-	CClearComboBox	m_tcitem_list;
-	CClearComboBox	m_tc_list;
+	CComboBox	m_tcitem_list;
+	CComboBox	m_tc_list;
 	CButton	m_tc;
-	CClearComboBox	m_special_list;
+	CComboBox	m_special_list;
 	CButton	m_special;
-	CClearComboBox	m_shop_list;
+	CComboBox	m_shop_list;
 	CButton	m_shop;
 	CButton	m_move;
-	CClearComboBox	m_fight_list;
+	CComboBox	m_fight_list;
 	CButton	m_fight;
-	CClearComboBox	m_tileset;
+	CComboBox	m_tileset;
 	CClearEdit	m_probability8;
 	CClearEdit	m_probability7;
 	CClearEdit	m_probability6;
@@ -152,14 +146,14 @@ protected:
 	CButton	m_formation3;
 	CButton	m_formation2;
 	CButton	m_formation1;
-	CClearComboBox	m_battle8;
-	CClearComboBox	m_battle7;
-	CClearComboBox	m_battle6;
-	CClearComboBox	m_battle5;
-	CClearComboBox	m_battle4;
-	CClearComboBox	m_battle3;
-	CClearComboBox	m_battle2;
-	CClearComboBox	m_battle1;
+	CComboBox	m_battle8;
+	CComboBox	m_battle7;
+	CComboBox	m_battle6;
+	CComboBox	m_battle5;
+	CComboBox	m_battle4;
+	CComboBox	m_battle3;
+	CComboBox	m_battle2;
+	CComboBox	m_battle1;
 	CScrollBar	m_vscroll;
 	CScrollBar	m_hscroll;
 	CButton	m_showrooms;
@@ -257,5 +251,3 @@ protected:
 	afx_msg void OnViewcoords();
 	afx_msg void OnSelchangeTeleportList();
 };
-
-#endif // !defined(AFX_MAPS_H__A2ACD334_B16D_4459_9329_80F4184FD92F__INCLUDED_)

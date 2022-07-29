@@ -25,10 +25,10 @@ protected:
 	unsigned int NEWPARTYCLASSINC_OFFSET = (unsigned int)-1;
 	unsigned int PTYGEN_OFFSET = (unsigned int)-1;
 
-	CClearComboBox m_classcombo1;
-	CClearComboBox m_classcombo2;
-	CClearComboBox m_classcombo3;
-	CClearComboBox m_classcombo4;
+	CComboBox m_classcombo1;
+	CComboBox m_classcombo2;
+	CComboBox m_classcombo3;
+	CComboBox m_classcombo4;
 	CClearEdit m_newgamecountedit;
 	CButton m_fixedpartycheck;
 	CCloseButton m_closebutton;

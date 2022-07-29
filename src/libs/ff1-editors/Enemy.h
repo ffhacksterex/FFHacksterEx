@@ -1,11 +1,5 @@
-#if !defined(AFX_ENEMY_H__2FB3AFEC_3AF8_4739_A37B_C71C985332CE__INCLUDED_)
-#define AFX_ENEMY_H__2FB3AFEC_3AF8_4739_A37B_C71C985332CE__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Enemy.h : header file
-//
 
 #include <EditorWithBackground.h>
 #include <DataListDialog.h>
@@ -124,20 +118,20 @@ protected:
 	CStrikeCheck	m_cat2;
 	CStrikeCheck	m_cat1;
 	CClearEdit	m_ai_magicrate;
-	CClearComboBox	m_ai_magic8;
-	CClearComboBox	m_ai_magic7;
-	CClearComboBox	m_ai_magic6;
-	CClearComboBox	m_ai_magic5;
-	CClearComboBox	m_ai_magic4;
-	CClearComboBox	m_ai_magic3;
-	CClearComboBox	m_ai_magic2;
-	CClearComboBox	m_ai_magic1;
+	CComboBox	m_ai_magic8;
+	CComboBox	m_ai_magic7;
+	CComboBox	m_ai_magic6;
+	CComboBox	m_ai_magic5;
+	CComboBox	m_ai_magic4;
+	CComboBox	m_ai_magic3;
+	CComboBox	m_ai_magic2;
+	CComboBox	m_ai_magic1;
 	CClearEdit	m_ai_abilityrate;
-	CClearComboBox	m_ai_ability4;
-	CClearComboBox	m_ai_ability3;
-	CClearComboBox	m_ai_ability2;
-	CClearComboBox	m_ai_ability1;
-	CClearComboBox	m_ai;
+	CComboBox	m_ai_ability4;
+	CComboBox	m_ai_ability3;
+	CComboBox	m_ai_ability2;
+	CComboBox	m_ai_ability1;
+	CComboBox	m_ai;
 	CClearEdit	m_agility;
 	CStatic m_groupByte15;
 	CStatic m_groupWeak;
@@ -167,5 +161,3 @@ protected:
 	afx_msg void OnBnClickedSettings();
 	afx_msg void OnBnClickedEnemyBtnViewuse();
 };
-
-#endif // !defined(AFX_ENEMY_H__2FB3AFEC_3AF8_4739_A37B_C71C985332CE__INCLUDED_)

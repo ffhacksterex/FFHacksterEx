@@ -21,7 +21,9 @@ using namespace Ini;
 using namespace Ui;
 using namespace Types;
 
-#define ITEM_RESERVED 1  // Identifies a reserved item
+// Custom draw item data flags
+#define ITEM_RESERVED 0x1
+#define ITEM_HIDDEN   0x2
 
 // CDlgEditScalars dialog
 
@@ -48,6 +50,7 @@ BEGIN_MESSAGE_MAP(CDlgEditScalars, CFFBaseDlg)
 	ON_BN_CLICKED(IDC_SCALARS_BUTTON_DEL, &CDlgEditScalars::OnClickDelete)
 	ON_BN_CLICKED(IDC_SCALARS_BUTTON_REVERT, &CDlgEditScalars::OnClickRevert)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SCALARS_LISTELEMENTS, &CDlgEditScalars::OnCustomdrawScalarsListelements)
+	ON_BN_CLICKED(IDC_CHECK_SHOWHIDDEN, &CDlgEditScalars::OnBnClickedCheckShowhidden)
 END_MESSAGE_MAP()
 
 void CDlgEditScalars::DoDataExchange(CDataExchange* pDX)
@@ -56,6 +59,7 @@ void CDlgEditScalars::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SCALARS_LIST_GROUPS, m_listgroups);
 	DDX_Control(pDX, IDC_SCALARS_LISTELEMENTS, m_elementlist);
 	DDX_Control(pDX, IDC_SCALARS_BUTTON_LINKIMPORT, m_importlink);
+	DDX_Control(pDX, IDC_CHECK_SHOWHIDDEN, m_showhiddencheck);
 }
 
 BOOL CDlgEditScalars::OnInitDialog()
@@ -80,33 +84,13 @@ BOOL CDlgEditScalars::OnInitDialog()
 		m_importlink.ShowWindow(SW_HIDE);
 	}
 	
-	//REMOVE - CCM_SETVERSION isn't working, text is still clipped in the list view
-	//auto oldccm  = m_elementlist.SendMessage(CCM_SETVERSION, 5, 0);
-
-	//REMOVE - font changes still suffer from the CCM_SETVERSION issue for Custom Draw.
-	//// Create an italicized version of the font for use in the list view.
-	//{
-	//	LOGFONT lf = { 0 };
-	//	GetFont()->GetLogFont(&lf);
-	//	lf.lfItalic = TRUE;
-	//	//lf.lfUnderline = TRUE; //N.B. - italic increases the font height slightly which clips the underline
-	//	VERIFY(m_italicfont.CreateFontIndirect(&lf));
-	//}
-
-	//REMOVE - don't bother resizing the grid font.
-	//N.B. - setting the font via the dialog editor resizes the window as well,
-	//		so just resize it here with a relative font size.
-	//{
-	//	LOGFONT lf = { 0 };
-	//	GetFont()->GetLogFont(&lf);
-	//	//lf.lfHeight = lf.lfHeight * 105 / 100;
-	//	auto points = 10;
-	//	lf.lfHeight = Ui::PointsToHeight(points);
-	//	if (m_font.CreateFontIndirectA(&lf)) {
-	//		m_listgroups.SetFont(&m_font);
-	//		m_elementlist.SetFont(&m_font);
-	//	}
-	//}
+	// Create an italicized version of the font for use in the list view.
+	{
+		LOGFONT lf = { 0 };
+		GetFont()->GetLogFont(&lf);
+		lf.lfItalic = TRUE;
+		VERIFY(m_italicfont.CreateFontIndirect(&lf));
+	}
 
 	SetWindowPos(nullptr, -1, -1, 960, 480, SWP_NOMOVE | SWP_NOZORDER);
 	CenterToParent(this);
@@ -223,6 +207,14 @@ void CDlgEditScalars::ShowSingleGroup(CString groupname)
 	rcelem.left = rcgroup.left;
 	ScreenToClient(&rcelem);
 	m_elementlist.MoveWindow(&rcelem);
+
+	// Slide controls left as well
+	auto rcadd = Ui::GetControlRect(GetDlgItem(IDC_SCALARS_BUTTON_ADD));
+	int diff = rcelem.left - rcadd.left;
+	Ui::MoveControlBy(GetDlgItem(IDC_SCALARS_BUTTON_ADD), diff, 0);
+	Ui::MoveControlBy(GetDlgItem(IDC_SCALARS_BUTTON_DEL), diff, 0);
+	Ui::MoveControlBy(GetDlgItem(IDC_SCALARS_BUTTON_REVERT), diff, 0);
+	Ui::MoveControlBy(&m_showhiddencheck, diff, 0);
 
 	CString title;
 	GetWindowText(title);
@@ -341,10 +333,15 @@ void CDlgEditScalars::LoadValues()
 	CString inipath = m_proj->ValuesPath;
 	int linenumber = 0;
 	bool showall = groupname == "All";
+	auto showhidden = Ui::GetCheckValue(m_showhiddencheck);
 
 	m_elementlist.SetRedraw(FALSE);
 	m_elementlist.DeleteAllItems();
 	for (const auto & node : m_scalarnodes) {
+		auto hidden = ReadIniBool(inipath, node.name, "ishidden", false);
+		if (hidden && !showhidden)
+			continue;
+
 		if (node.group == groupname || showall) {
 			CString value = ReadIni(inipath, node.name, "value", "");
 			CString type = ReadIni(inipath, node.name, "type", "");
@@ -354,6 +351,7 @@ void CDlgEditScalars::LoadValues()
 
 			int index = m_elementlist.InsertItem(linenumber, number);
 			int itemdata = node.reserved ? ITEM_RESERVED : 0;
+			itemdata = ReadIniBool(inipath, node.name, "ishidden", false) ? ITEM_HIDDEN : 0;
 			m_elementlist.SetItemData(index, itemdata);
 			m_elementlist.SetItemText(index, COL_NAME, node.name);
 			m_elementlist.SetItemText(index, COL_VALUE, value);
@@ -816,9 +814,15 @@ void CDlgEditScalars::OnCustomdrawScalarsListelements(NMHDR* pNMHDR, LRESULT* pR
 		break;
 	case CDDS_ITEMPREPAINT:
 	{
-		//*pResult = (nmcd.lItemlParam & ITEM_RESERVED) ? CDRF_NOTIFYSUBITEMDRAW : CDRF_DODEFAULT;
 		if (nmcd.lItemlParam & ITEM_RESERVED) {
 			pnm->clrText = GetSysColor(COLOR_HOTLIGHT);
+			pnm->clrTextBk = GetSysColor(COLOR_HIGHLIGHTTEXT);
+			*pResult = CDRF_NEWFONT;
+		}
+		else if (nmcd.lItemlParam & ITEM_HIDDEN) {
+//			auto font = &m_italicfont;
+			SelectObject(nmcd.hdc, m_italicfont.GetSafeHandle());
+			pnm->clrText = RGB(0xFF, 0x40, 0);
 			pnm->clrTextBk = GetSysColor(COLOR_HIGHLIGHTTEXT);
 			*pResult = CDRF_NEWFONT;
 		}
@@ -827,54 +831,11 @@ void CDlgEditScalars::OnCustomdrawScalarsListelements(NMHDR* pNMHDR, LRESULT* pR
 		}
 		break;
 	}
-	//case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
-	//{
-	//	// For reserved values, draw the name in italics with the hotlight color.
-	//	auto isres1 = (nmcd.lItemlParam & ITEM_RESERVED) && (pnm->iSubItem == 1);
-	//	auto color = isres1 ? GetSysColor(COLOR_HOTLIGHT) : GetSysColor(COLOR_WINDOWTEXT);
-	//	auto back = isres1 ? GetSysColor(COLOR_HIGHLIGHTTEXT) : GetSysColor(COLOR_WINDOW);
-	//	pnm->clrText = color;
-	//	pnm->clrTextBk = back;
-	//	*pResult = CDRF_NEWFONT;
-	//	break;
-	//}
 	}
+}
 
-	//switch (nmcd.dwDrawStage)
-	//{
-	//case CDDS_PREPAINT:
-	//	*pResult = CDRF_NOTIFYITEMDRAW;
-	//	break;
-	//case CDDS_ITEMPREPAINT:
-	//	*pResult = (nmcd.lItemlParam & ITEM_RESERVED) ? CDRF_NOTIFYSUBITEMDRAW : CDRF_DODEFAULT;
-	//	break;
-	//case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
-	//{
-	//	// For reserved values, draw the name in italics with the hotlight color.
-	//	auto isres1 = (nmcd.lItemlParam & ITEM_RESERVED) && (pnm->iSubItem == 1);
-	//	auto font = isres1 ? &m_italicfont : GetFont();
-	//	auto color = isres1 ? GetSysColor(COLOR_HOTLIGHT) : GetSysColor(COLOR_WINDOWTEXT);
-	//	pnm->clrText = color;
-	//	SelectObject(nmcd.hdc, font->GetSafeHandle());
-	//	*pResult = CDRF_NEWFONT;
-	//	break;
-	//}
-	//}
-
-	//if (nmcd.dwDrawStage == CDDS_PREPAINT) {
-	//	*pResult = CDRF_NOTIFYITEMDRAW;
-	//}
-	//else if (nmcd.dwDrawStage == CDDS_ITEMPREPAINT) {
-	//	*pResult = CDRF_NOTIFYSUBITEMDRAW;
-	//}
-	//else if (nmcd.dwDrawStage == (CDDS_SUBITEM | CDDS_ITEMPREPAINT)) {
-	//	// For reserved values, draw the name in italics with the hotlight color.
-	//	auto isres1 = (nmcd.lItemlParam & ITEM_RESERVED) && (pnm->iSubItem == 1);
-	//	auto font = isres1 ? &m_italicfont : GetFont();
-	//	font = GetFont();
-	//	auto color = isres1 ? GetSysColor(COLOR_HOTLIGHT) : GetSysColor(COLOR_WINDOWTEXT);
-	//	pnm->clrText = color;
-	//	SelectObject(nmcd.hdc, font->GetSafeHandle());
-	//	*pResult = CDRF_NEWFONT;
-	//}
+void CDlgEditScalars::OnBnClickedCheckShowhidden()
+{
+	StoreValues();
+	LoadValues();
 }

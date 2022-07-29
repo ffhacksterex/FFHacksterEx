@@ -1,11 +1,5 @@
-#if !defined(AFX_CLASSES_H__68A0D875_C04E_42BF_A551_B6D07283E5FC__INCLUDED_)
-#define AFX_CLASSES_H__68A0D875_C04E_42BF_A551_B6D07283E5FC__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Classes.h : header file
-//
 
 #include <EditorWithBackground.h>
 #include "vector_types.h"
@@ -299,16 +293,16 @@ protected:
 	CClearEdit	m_agility;
 	CClearEdit m_editMpMaxAllChars;
 	CClearEdit m_editMagDefUp;
-	CClearComboBox m_comboclass2;
-	CClearComboBox m_comboclass1;
-	CClearComboBox m_combopost2;
-	CClearComboBox m_combopost1;
-	CClearComboBox m_mpmincombo;
-	CClearComboBox m_mpmaxcombo;
-	CClearComboBox m_bbmacombo1;
-	CClearComboBox m_bbmacombo2;
-	CClearComboBox m_2xhitscombo1;
-	CClearComboBox m_2xhitscombo2;
+	CComboBox m_comboclass2;
+	CComboBox m_comboclass1;
+	CComboBox m_combopost2;
+	CComboBox m_combopost1;
+	CComboBox m_mpmincombo;
+	CComboBox m_mpmaxcombo;
+	CComboBox m_bbmacombo1;
+	CComboBox m_bbmacombo2;
+	CComboBox m_2xhitscombo1;
+	CComboBox m_2xhitscombo2;
 	CClearEdit m_maxhpedit;
 	CInfoButton m_infobutton;
 	CClearButton m_settingsbutton = { IDPNG_GEARSM, "PNG" };
@@ -350,5 +344,3 @@ protected:
 	afx_msg void OnCbnSelchangePostcombo2();
 	afx_msg void OnBnClickedClassesSettings();
 };
-
-#endif // !defined(AFX_CLASSES_H__68A0D875_C04E_42BF_A551_B6D07283E5FC__INCLUDED_)

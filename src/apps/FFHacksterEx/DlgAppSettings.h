@@ -53,7 +53,7 @@ protected:
 	CClearButton m_cancelbutton;
 	CClearButton m_localhelpbutton;
 	CClearEdit m_editlocalhelp;
-	CClearComboBox m_helptypes;
+	CComboBox m_helptypes;
 
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();

@@ -1,11 +1,5 @@
-#if !defined(AFX_ARMOR_H__7A92585B_823D_4EA7_A12F_EA5E0EF2156E__INCLUDED_)
-#define AFX_ARMOR_H__7A92585B_823D_4EA7_A12F_EA5E0EF2156E__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Armor.h : header file
-//
 
 #include <EditorWithBackground.h>
 class CFFHacksterProject;
@@ -52,7 +46,7 @@ protected:
 	CStrikeCheck	m_def2;
 	CStrikeCheck	m_def1;
 	CClearEdit	m_def;
-	CClearComboBox	m_spellcast;
+	CComboBox	m_spellcast;
 	CClearListBox	m_armorlist;
 	CClearStatic m_static1;
 	CClearStatic m_static2;
@@ -93,5 +87,3 @@ protected:
 
 	afx_msg void OnSelchangeArmorlist();
 };
-
-#endif // !defined(AFX_ARMOR_H__7A92585B_823D_4EA7_A12F_EA5E0EF2156E__INCLUDED_)

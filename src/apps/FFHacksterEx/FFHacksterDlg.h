@@ -1,12 +1,5 @@
 // FFHacksterDlg.h : header file
-//
-
-#if !defined(AFX_FFHACKSTERDLG_H__F7D4DB2E_0108_41BA_9452_37BA3390472D__INCLUDED_)
-#define AFX_FFHACKSTERDLG_H__F7D4DB2E_0108_41BA_9452_37BA3390472D__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <ClearEdit.h>
 #include <EntriesLoader.h>
@@ -158,5 +151,3 @@ protected:
 	//afx_msg BOOL OnTtnNeedText(UINT id, NMHDR *pNMHDR, LRESULT *pResult); //DEVNOTE - REVISIT
 	//afx_msg LRESULT OnFFHacksterExShowWaitMessage(WPARAM wParam, LPARAM lParam);
 };
-
-#endif // !defined(AFX_FFHACKSTERDLG_H__F7D4DB2E_0108_41BA_9452_37BA3390472D__INCLUDED_)

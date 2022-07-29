@@ -1,11 +1,5 @@
-#if !defined(AFX_SHOP_H__5A98EF79_B54B_4344_94AD_CC5725AA9099__INCLUDED_)
-#define AFX_SHOP_H__5A98EF79_B54B_4344_94AD_CC5725AA9099__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Shop.h : header file
-//
 
 #include <EditorWithBackground.h>
 class CFFHacksterProject;
@@ -46,7 +40,7 @@ protected:
 	void SelChangeItem(int);
 
 	CSubBanner m_banner;
-	CClearComboBox* m_item[5];
+	CComboBox* m_item[5];
 	CButton* m_remove[5];
 	CEdit* m_itprice[5];
 	int m_curitem[5];
@@ -86,11 +80,11 @@ protected:
 	CClearEdit	m_price;
 	CClearEdit	m_pointer;
 	CStatic	m_kab;
-	CClearComboBox	m_item5;
-	CClearComboBox	m_item4;
-	CClearComboBox	m_item3;
-	CClearComboBox	m_item2;
-	CClearComboBox	m_item1;
+	CComboBox	m_item5;
+	CComboBox	m_item4;
+	CComboBox	m_item3;
+	CComboBox	m_item2;
+	CComboBox	m_item1;
 	CButton	m_changeptr;
 	CCloseButton m_closebutton;
 	CHelpbookButton m_helpbookbutton;
@@ -122,5 +116,3 @@ protected:
 	afx_msg void OnEditlabel();
 	afx_msg void OnPaint();
 };
-
-#endif // !defined(AFX_SHOP_H__5A98EF79_B54B_4344_94AD_CC5725AA9099__INCLUDED_)

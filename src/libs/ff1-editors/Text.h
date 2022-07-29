@@ -1,12 +1,5 @@
-
-#if !defined(AFX_TEXT_H__972BE22A_6892_41BD_B0E5_5269E6E56DC6__INCLUDED_)
-#define AFX_TEXT_H__972BE22A_6892_41BD_B0E5_5269E6E56DC6__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 // Text.h : header file
-//
 
 #include <EditorWithBackground.h>
 #include <vector>
@@ -186,5 +179,3 @@ protected:
 	afx_msg void OnBnClickedInfo2();
 	afx_msg void OnBnClickedTextBtnFind();
 };
-
-#endif // !defined(AFX_TEXT_H__972BE22A_6892_41BD_B0E5_5269E6E56DC6__INCLUDED_)
