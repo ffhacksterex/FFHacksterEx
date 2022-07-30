@@ -124,6 +124,11 @@
 #define IDC_APPSTGS_STATIC_HELPTYPE     1901
 #define IDC_APPSTGS_STATIC_EXECTORUN    1902
 #define IDC_APPSETTINGS_EDIT_PARAMS     1903
+#define IDC_SYSLINK_PAULYGON            1904
+#define IDC_SYSLINK_DISCH               1905
+#define IDC_SYSLINK3                    1906
+#define IDC_SYSLINK4                    1907
+#define IDC_SYSLINK5                    1908
 
 // Next default values for new objects
 // 
@@ -131,7 +136,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        232
 #define _APS_NEXT_COMMAND_VALUE         32796
-#define _APS_NEXT_CONTROL_VALUE         1904
+#define _APS_NEXT_CONTROL_VALUE         1909
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

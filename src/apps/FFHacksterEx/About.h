@@ -26,6 +26,8 @@ public:
 	const CString STRIDD = "IDD_ABOUT";
 
 protected:
+	void HandleLink(LPNMHDR phdr);
+
 	CClearStatic m_releasestatic;
 	CClearStatic m_label1static;
 	CClearStatic m_label2static;
@@ -38,9 +40,11 @@ protected:
 	CClearStatic m_cleardetail3;
 	CClearStatic m_disassemblystatic;
 	CClearStatic m_progtitlestatic;
-	CMFCLinkCtrl m_linkffh;
-	CMFCLinkCtrl m_link7zip;
-	CMFCLinkCtrl m_linkiconmonstr;
+	CLinkCtrl m_linkdisch;
+	CLinkCtrl m_linkpaulygon;
+	CLinkCtrl m_linkgamefaqs;
+	CLinkCtrl m_7ziplicense;
+	CLinkCtrl m_linkiconmonstr;
 
 	HICON m_hIcon;
 
@@ -52,6 +56,8 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnDestroy();
+	afx_msg void OnNMClickSyslinkDisch(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnNMReturnSyslinkDisch(NMHDR* pNMHDR, LRESULT* pResult);
 };
 
 #endif // !defined(AFX_ABOUT_H__1D008DC7_8F53_448E_A939_2191DC29646B__INCLUDED_)
