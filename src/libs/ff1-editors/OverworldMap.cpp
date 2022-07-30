@@ -13,10 +13,12 @@
 #include "io_functions.h"
 #include "editor_label_functions.h"
 #include "draw_functions.h"
+#include <path_functions.h>
 #include "AsmFiles.h"
 #include "GameSerializer.h"
 #include "DRAW_STRUCT.h"
 #include "ui_helpers.h"
+#include <ui_prompts.h>
 #include "imaging_helpers.h"
 #include "NESPalette.h"
 #include "Loading.h"
@@ -40,9 +42,13 @@ using namespace Ui;
 static char THIS_FILE[] = __FILE__;
 #endif
 
+namespace {
+	constexpr auto FFH_MAP_FILTER = "FFHackster Overworld Map (*.ffm;*.ffomap)|*.ffm;*.ffomap|All Files (*.*)|*.*||";
+	constexpr auto FFH_MAP_EXT = "ffomap";
 
-CMiniMap minimap;
-CCoords coord_dlg;
+	CMiniMap minimap;
+	CCoords coord_dlg;
+}
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1496,11 +1502,12 @@ void COverworldMap::OnRButtonUp(UINT nFlags, CPoint point)
 
 void COverworldMap::OnMapExport() 
 {
-	CFileDialog dlg(0,"ffm","Overworld Map.ffm",OFN_OVERWRITEPROMPT | UiTemp::COMMON_OFN,
-		"FFHackster Overworld Map (*.ffm)|*ffm|All Files (*.*)|*.*||");
-	if(dlg.DoModal() != IDOK) return;
+	CString text = "Overworld Map." + CString(FFH_MAP_EXT);
+	CString filename = Paths::Combine({ Project->AppSettings->PrefMapImportExportFolder , text });
+	auto result = Ui::SaveFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Export Overworld Map", filename);
+	if (!result) return;
 
-	FILE* file = fopen(dlg.GetPathName(),"w+b");
+	FILE* file = fopen(result.value, "w+b");
 	if(file == nullptr){
 		AfxMessageBox("Error saving map", MB_ICONERROR);
 		return;}
@@ -1510,11 +1517,11 @@ void COverworldMap::OnMapExport()
 
 void COverworldMap::OnMapImport() 
 {
-	CFileDialog dlg(1,"ffm","Overworld Map.ffm",OFN_HIDEREADONLY | UiTemp::COMMON_OFN,
-		"FFHackster Overworld Map (*.ffm)|*ffm|All Files (*.*)|*.*||");
-	if(dlg.DoModal() != IDOK) return;
+	auto result = OpenFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Import Overworld Map",
+		Project->AppSettings->PrefMapImportExportFolder);
+	if (!result) return;
 
-	FILE* file = fopen(dlg.GetPathName(),"r+b");
+	FILE* file = fopen(result.value, "r+b");
 	if(file == nullptr){
 		AfxMessageBox("Error loading map", MB_ICONERROR);
 		return;}
