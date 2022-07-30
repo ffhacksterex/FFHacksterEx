@@ -43,6 +43,15 @@ public:
 	std::vector<CString> MruPaths;
 	size_t MruMaxCount;
 
+	CString PrefProjectParentFolder;
+	CString PrefCleanFolder;
+	CString PrefAdditionalModulesFolder;
+	CString PrefPublishFolder;
+	CString PrefArchiveFolder;
+	CString PrefMapImportExportFolder;
+	CString PrefImageImportExportFolder;
+	CString PrefAsmDllFolder;
+
 	// "Unpublished" settings with no UI.
 	// These options are loaded and saved, but there's no UI to edit them.
 	bool EnableHelpChoice;
