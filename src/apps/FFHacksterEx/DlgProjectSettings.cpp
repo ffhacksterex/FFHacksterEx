@@ -211,7 +211,7 @@ void CDlgProjectSettings::OnOK()
 	m_proj->PublishRomPath = publishpath;
 	m_proj->AdditionalModulesFolder = addlfolder;
 	m_proj->AsmDLLPath = asmdllpath;
-	m_proj->SaveEditorSettings();
+	m_proj->SaveSharedSettings();
 	VERIFY(m_proj->SaveRefPaths());
 
 	CDialogWithBackground::OnOK();

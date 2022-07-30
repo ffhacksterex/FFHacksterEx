@@ -42,8 +42,8 @@ public:
 	pair_result<CString> LoadFileRefs(CString projectini);
 
 	bool SaveRefPaths();
-	void LoadEditorSettings();
-	void SaveEditorSettings();
+	void LoadSharedSettings();
+	void SaveSharedSettings();
 	bool Clone(CString newprojectfile);
 
 	bool IsRom() const;
