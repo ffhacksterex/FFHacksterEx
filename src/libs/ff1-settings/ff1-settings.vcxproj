@@ -175,6 +175,8 @@
     <ClInclude Include="BattleEditorSettings.h" />
     <ClInclude Include="ClassesEditorSettings.h" />
     <ClInclude Include="ClassesEditorSettingsDlg.h" />
+    <ClInclude Include="SettingsBase.h" />
+    <ClInclude Include="SettingsBaseSymbols.h" />
     <ClInclude Include="TextEditorSettingsDlg.h" />
     <ClInclude Include="EnemyEditorSettings.h" />
     <ClInclude Include="EnemyEditorSettingsDlg.h" />
@@ -192,6 +194,7 @@
     <ClCompile Include="BattleEditorSettings.cpp" />
     <ClCompile Include="ClassesEditorSettings.cpp" />
     <ClCompile Include="ClassesEditorSettingsDlg.cpp" />
+    <ClCompile Include="SettingsBase.cpp" />
     <ClCompile Include="TextEditorSettingsDlg.cpp" />
     <ClCompile Include="EnemyEditorSettings.cpp" />
     <ClCompile Include="EnemyEditorSettingsDlg.cpp" />

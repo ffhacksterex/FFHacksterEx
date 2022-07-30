@@ -5,25 +5,24 @@
 
 using namespace Ini;
 
-#define SECT_CLASSES "Classes"
-#define IGNOREHOLDMP1 "IgnoreHoldMP1"
-#define IGNOREHOLDMP1_DEFAULT false
-#define IGNOREHOLDMP2 "IgnoreHoldMP2"
-#define IGNOREHOLDMP2_DEFAULT false
-#define IGNORECAPMP1 "IgnoreCapMP1"
-#define IGNORECAPMP1_DEFAULT false
-#define IGNORECAPMP2 "IgnoreCapMP2"
-#define IGNORECAPMP2_DEFAULT false
-#define IGNOREMPRANGE "IgnoreMPRange"
-#define IGNOREMPRANGE_DEFAULT false
-#define IGNOREBBMA1 "IgnoreBBMA1"
-#define IGNOREBBMA1_DEFAULT false
-#define IGNOREBBMA2 "IgnoreBBMA2"
-#define IGNOREBBMA2_DEFAULT false
+#define SECT_NAME "Classes"
+
+#define IgnoreHoldMP1_default false
+#define IgnoreHoldMP2_default false
+#define IgnoreCapMP1_default false
+#define IgnoreCapMP2_default false
+#define IgnoreMPRange_default false
+#define IgnoreBBMA1_default false
+#define IgnoreBBMA2_default false
 
 
-CClassesEditorSettings::CClassesEditorSettings(CFFHacksterProject & proj, initflag flag)
-	: m_proj(&proj)
+CClassesEditorSettings::CClassesEditorSettings(CFFHacksterProject& proj, initflag flag)
+	: CClassesEditorSettings(proj, SECT_NAME, flag)
+{
+}
+
+CClassesEditorSettings::CClassesEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag)
+	: SettingsBase(proj, sectionname)
 {
 	if (flag == initflag::read)
 		Read();
@@ -33,35 +32,35 @@ CClassesEditorSettings::CClassesEditorSettings(CFFHacksterProject & proj, initfl
 
 void CClassesEditorSettings::SetDefaults()
 {
-	IgnoreHoldMP1 = IGNOREHOLDMP1_DEFAULT;
-	IgnoreHoldMP2 = IGNOREHOLDMP2_DEFAULT;
-	IgnoreCapMP1 = IGNORECAPMP1_DEFAULT;
-	IgnoreCapMP2 = IGNORECAPMP2_DEFAULT;
-	IgnoreMPRange = IGNOREMPRANGE_DEFAULT;
-	IgnoreBBMA1 = IGNOREBBMA1_DEFAULT;
-	IgnoreBBMA2 = IGNOREBBMA2_DEFAULT;
+	IgnoreHoldMP1 = IgnoreHoldMP1_default;
+	IgnoreHoldMP2 = IgnoreHoldMP2_default;
+	IgnoreCapMP1 = IgnoreCapMP1_default;
+	IgnoreCapMP2 = IgnoreCapMP2_default;
+	IgnoreMPRange = IgnoreMPRange_default;
+	IgnoreBBMA1 = IgnoreBBMA1_default;
+	IgnoreBBMA2 = IgnoreBBMA2_default;
 }
 
 bool CClassesEditorSettings::Read()
 {
-	IgnoreHoldMP1 = ReadIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREHOLDMP1, IGNOREHOLDMP1_DEFAULT);
-	IgnoreHoldMP2 = ReadIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREHOLDMP2, IGNOREHOLDMP2_DEFAULT);
-	IgnoreCapMP1 = ReadIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNORECAPMP1, IGNORECAPMP1_DEFAULT);
-	IgnoreCapMP2 = ReadIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNORECAPMP2, IGNORECAPMP2_DEFAULT);
-	IgnoreMPRange = ReadIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREMPRANGE, IGNOREMPRANGE_DEFAULT);
-	IgnoreBBMA1 = ReadIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREBBMA1, IGNOREBBMA1_DEFAULT);
-	IgnoreBBMA2 = ReadIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREBBMA2, IGNOREBBMA2_DEFAULT);
+	READ_SETTING_BOOL(IgnoreHoldMP1);
+	READ_SETTING_BOOL(IgnoreHoldMP2);
+	READ_SETTING_BOOL(IgnoreCapMP1);
+	READ_SETTING_BOOL(IgnoreCapMP2);
+	READ_SETTING_BOOL(IgnoreMPRange);
+	READ_SETTING_BOOL(IgnoreBBMA1);
+	READ_SETTING_BOOL(IgnoreBBMA2);
 	return true;
 }
 
 bool CClassesEditorSettings::Write()
 {
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREHOLDMP1, IgnoreHoldMP1);
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREHOLDMP2, IgnoreHoldMP2);
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNORECAPMP1, IgnoreCapMP1);
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNORECAPMP2, IgnoreCapMP2);
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREMPRANGE, IgnoreMPRange);
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREBBMA1, IgnoreBBMA1);
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_CLASSES, IGNOREBBMA2, IgnoreBBMA2);
+	WRITE_SETTING_BOOL(IgnoreHoldMP1);
+	WRITE_SETTING_BOOL(IgnoreHoldMP2);
+	WRITE_SETTING_BOOL(IgnoreCapMP1);
+	WRITE_SETTING_BOOL(IgnoreCapMP2);
+	WRITE_SETTING_BOOL(IgnoreMPRange);
+	WRITE_SETTING_BOOL(IgnoreBBMA1);
+	WRITE_SETTING_BOOL(IgnoreBBMA2);
 	return true;
 }

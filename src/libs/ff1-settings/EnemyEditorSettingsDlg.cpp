@@ -52,7 +52,7 @@ BOOL CEnemyEditorSettingsDlg::OnInitDialog()
 	CEnemyEditorSettings stgs(*Project);
 	SetCheckValue(m_checkEnemyByte15hex, stgs.Byte15AsFlags);
 	m_editByte15name.SetWindowText(stgs.Byte15Name);
-	SetCheckValue(m_viewusage, stgs.ViewUsageData);
+	SetCheckValue(m_viewusage, stgs.ViewUsage);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // EXCEPTION: OCX Property Pages should return FALSE
@@ -72,7 +72,7 @@ void CEnemyEditorSettingsDlg::OnOK()
 	CEnemyEditorSettings stgs(*Project);
 	stgs.Byte15AsFlags = GetCheckValue(m_checkEnemyByte15hex);
 	stgs.Byte15Name = enemiesByte15Name;
-	stgs.ViewUsageData = GetCheckValue(m_viewusage);
+	stgs.ViewUsage = GetCheckValue(m_viewusage);
 	if (stgs.Write())
 		CFFBaseDlg::OnOK();
 	else

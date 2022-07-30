@@ -1,12 +1,13 @@
 #pragma once
 
+#include "SettingsBase.h"
 #include "common_symbols.h"
-class CFFHacksterProject;
 
-class CSpriteDialogueSettings
+class CSpriteDialogueSettings : public SettingsBase
 {
 public:
-	CSpriteDialogueSettings(CFFHacksterProject & proj, initflag flag = initflag::read);
+	CSpriteDialogueSettings(CFFHacksterProject& proj, initflag flag = initflag::read);
+	CSpriteDialogueSettings(CFFHacksterProject & proj, CString sectionname, initflag flag = initflag::read);
 	~CSpriteDialogueSettings();
 
 	void SetDefaults();
@@ -16,7 +17,4 @@ public:
 	bool ShowActualText;
 	int ShortTextLength;
 	bool ThrowOnBadSpriteAddr;
-
-private:
-	CFFHacksterProject * m_proj;
 };

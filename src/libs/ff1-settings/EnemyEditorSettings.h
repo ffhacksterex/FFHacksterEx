@@ -1,12 +1,13 @@
 #pragma once
 
 #include "common_symbols.h"
-class CFFHacksterProject;
+#include "SettingsBase.h"
 
-class CEnemyEditorSettings
+class CEnemyEditorSettings : public SettingsBase
 {
 public:
 	CEnemyEditorSettings(CFFHacksterProject & proj, initflag flag = initflag::read);
+	CEnemyEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag = initflag::read);
 	~CEnemyEditorSettings();
 
 	void SetDefaults();
@@ -15,8 +16,5 @@ public:
 
 	bool Byte15AsFlags;
 	CString Byte15Name;
-	bool ViewUsageData;
-
-private:
-	CFFHacksterProject * Project;
+	bool ViewUsage;
 };

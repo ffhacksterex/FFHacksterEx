@@ -48,7 +48,7 @@ BOOL CBattleEditorSettingsDlg::OnInitDialog()
 	}
 
 	CBattleEditorSettings stgs(*Project);
-	SetCheckValue(m_viewusage, stgs.ViewUsageData);
+	SetCheckValue(m_viewusage, stgs.ViewUsage);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // EXCEPTION: OCX Property Pages should return FALSE
@@ -58,7 +58,7 @@ BOOL CBattleEditorSettingsDlg::OnInitDialog()
 void CBattleEditorSettingsDlg::OnOK()
 {
 	CBattleEditorSettings stgs(*Project);
-	stgs.ViewUsageData = GetCheckValue(m_viewusage);
+	stgs.ViewUsage = GetCheckValue(m_viewusage);
 	if (stgs.Write())
 		CFFBaseDlg::OnOK();
 	else

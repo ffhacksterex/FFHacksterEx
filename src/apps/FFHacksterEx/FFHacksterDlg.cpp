@@ -846,7 +846,7 @@ void CFFHacksterDlg::GoToMapScreen(bool OV)
 LBL_overworld:
 	dlg.BootToTeleportFollowup = teleport;
 	if (dlg.DoModal() == IDOK) {
-		m_proj.SaveEditorSettings();
+		m_proj.SaveSharedSettings();
 		teleport = dlg.BootToTeleportFollowup;
 		if (teleport) goto LBL_standard;
 	}
@@ -855,7 +855,7 @@ LBL_overworld:
 LBL_standard:
 	ndlg.BootToTeleportFollowup = teleport;
 	if (ndlg.DoModal() == IDOK) {
-		m_proj.SaveEditorSettings();
+		m_proj.SaveSharedSettings();
 		teleport = ndlg.BootToTeleportFollowup;
 		if (teleport) goto LBL_overworld;
 	}
@@ -914,7 +914,7 @@ void CFFHacksterDlg::OnText()
 	CText dlg;
 	dlg.Project = &m_proj;
 	if (dlg.DoModal() == IDOK) {
-		m_proj.SaveEditorSettings();
+		m_proj.SaveSharedSettings();
 	}
 }
 

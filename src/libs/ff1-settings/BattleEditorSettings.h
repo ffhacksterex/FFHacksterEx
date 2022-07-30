@@ -1,21 +1,18 @@
 #pragma once
 
 #include "common_symbols.h"
-class CFFHacksterProject;
+#include "SettingsBase.h"
 
-class CBattleEditorSettings
+class CBattleEditorSettings : public SettingsBase
 {
 public:
 	CBattleEditorSettings(CFFHacksterProject& proj, initflag flag = initflag::read);
+	CBattleEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag = initflag::read);
 	~CBattleEditorSettings();
 
 	void SetDefaults();
 	bool Read();
 	bool Write();
 
-	bool ViewUsageData;
-
-private:
-	CFFHacksterProject* Project;
+	bool ViewUsage;
 };
-

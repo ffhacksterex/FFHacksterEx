@@ -87,7 +87,7 @@ pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress * progre
 			return result;
 	}
 
-	Project.LoadEditorSettings();
+	Project.LoadSharedSettings();
 
 	CString msg;
 	if (Project.IsAsm()) {
@@ -192,7 +192,7 @@ bool ProjectLoader::Save()
 		msg.AppendFormat("Failed to save ref paths.\n");
 
 	if (saved) {
-		Project.SaveEditorSettings();
+		Project.SaveSharedSettings();
 	}
 
 	if (!msg.IsEmpty())
@@ -209,9 +209,9 @@ pair_result<CString> ProjectLoader::InjectHacksterDAT(CString projectfile, CStri
 	if (!refresult)
 		return refresult;
 
-	proj.LoadEditorSettings();
+	proj.LoadSharedSettings();
 	proj.ImportHacksterDAT(hacksterfile);
-	proj.SaveEditorSettings();
+	proj.SaveSharedSettings();
 	return { true, "" };
 }
 

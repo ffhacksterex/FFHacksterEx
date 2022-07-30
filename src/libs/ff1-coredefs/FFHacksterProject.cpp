@@ -192,7 +192,7 @@ bool CFFHacksterProject::SaveRefPaths()
 	return false;
 }
 
-void CFFHacksterProject::LoadEditorSettings()
+void CFFHacksterProject::LoadSharedSettings()
 {
 	SuppressWarnOnAssemblyMismatch = ReadIniBool(ProjectPath, SETTINGS, "SuppressWarnOnAssemblyMismatch", SuppressWarnOnAssemblyMismatch);
 
@@ -206,7 +206,7 @@ void CFFHacksterProject::LoadEditorSettings()
 	DoReadArray<19, 9>(SmartTools, ProjectPath, SETTINGS, "SmartTools");
 }
 
-void CFFHacksterProject::SaveEditorSettings()
+void CFFHacksterProject::SaveSharedSettings()
 {
 	// edited in Project Settings dialog
 	WriteIniBool(ProjectPath, SETTINGS, "SuppressWarnOnAssemblyMismatch", SuppressWarnOnAssemblyMismatch);

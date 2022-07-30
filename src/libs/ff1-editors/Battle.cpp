@@ -222,7 +222,7 @@ BOOL CBattle::OnInitDialog()
 		}
 
 		CBattleEditorSettings stgs(*Project);
-		m_usagedataon = stgs.ViewUsageData;
+		m_usagedataon = stgs.ViewUsage;
 		if (m_usagedataon) {
 			try {
 				CWaitCursor wait;
@@ -1082,16 +1082,16 @@ void CBattle::OnBnClickedBattleSettings()
 {
 	// Don't change the View Usage setting now, let the user know that it will change on reload.
 	CBattleEditorSettings stgs(*Project);
-	bool wasViewUsage = stgs.ViewUsageData;
+	bool wasViewUsage = stgs.ViewUsage;
 
 	CBattleEditorSettingsDlg dlg(this);
 	dlg.Project = Project;
 	if (dlg.DoModal() == IDOK) {
 		stgs.Read();
-		if (!wasViewUsage && stgs.ViewUsageData) {
+		if (!wasViewUsage && stgs.ViewUsage) {
 			AfxMessageBox("View Usage will be available when you restart the editor.");
 		}
-		else if (wasViewUsage && !stgs.ViewUsageData) {
+		else if (wasViewUsage && !stgs.ViewUsage) {
 			AfxMessageBox("View Usage will be hidden when you restart the editor.");
 		}
 	}

@@ -5,16 +5,18 @@
 
 using namespace Ini;
 
-constexpr auto SECT_ENEMIES					= "ENEMIES";
-constexpr auto ENEMIES_BYTE15ASFLAGS		= "Byte15AsFlags";
-constexpr auto ENEMIES_BYTE15ASFLAGS_DEFAULT = false;
-constexpr auto ENEMIES_BYTE15NAME			= "Byte $0E Name";      // byte $0# (14) is the 15th byte in the enemy record
-constexpr auto ENEMIES_BYTE15NAME_DEFAULT	= "Attack Elm";
-constexpr auto ENEMIES_VIEWUSAGE			= "ViewUsage";
-constexpr auto ENEMIES_VIEWUSAGE_DEFAULT	= true;
+constexpr auto SECT_NAME = "ENEMIES";
+#define Byte15AsFlags_default false
+#define Byte15Name_default "Attack Elm"
+#define ViewUsage_default true
 
-CEnemyEditorSettings::CEnemyEditorSettings(CFFHacksterProject & proj, initflag flag)
-	: Project(&proj)
+CEnemyEditorSettings::CEnemyEditorSettings(CFFHacksterProject& proj, initflag flag)
+	: CEnemyEditorSettings(proj, SECT_NAME, flag)
+{
+}
+
+CEnemyEditorSettings::CEnemyEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag)
+	: SettingsBase(proj, sectionname)
 {
 	if (flag == initflag::read)
 		Read();
@@ -28,23 +30,23 @@ CEnemyEditorSettings::~CEnemyEditorSettings()
 
 void CEnemyEditorSettings::SetDefaults()
 {
-	Byte15AsFlags = ENEMIES_BYTE15ASFLAGS_DEFAULT;
-	Byte15Name = ENEMIES_BYTE15NAME_DEFAULT;
-	ViewUsageData = ENEMIES_VIEWUSAGE_DEFAULT;
+	Byte15AsFlags = Byte15AsFlags_default;
+	Byte15Name = Byte15Name_default;
+	ViewUsage = ViewUsage_default;
 }
 
 bool CEnemyEditorSettings::Read()
 {
-	Byte15AsFlags = ReadIniBool(Project->EditorSettingsPath, SECT_ENEMIES, ENEMIES_BYTE15ASFLAGS, ENEMIES_BYTE15ASFLAGS_DEFAULT);
-	Byte15Name = ReadIni(Project->EditorSettingsPath, SECT_ENEMIES, ENEMIES_BYTE15NAME, ENEMIES_BYTE15NAME_DEFAULT);
-	ViewUsageData = ReadIniBool(Project->EditorSettingsPath, SECT_ENEMIES, ENEMIES_VIEWUSAGE, ENEMIES_VIEWUSAGE_DEFAULT);
+	READ_SETTING_BOOL(Byte15AsFlags);
+	READ_SETTING_STR(Byte15Name);
+	READ_SETTING_BOOL(ViewUsage);
 	return true;
 }
 
 bool CEnemyEditorSettings::Write()
 {
-	WriteIniBool(Project->EditorSettingsPath, SECT_ENEMIES, ENEMIES_BYTE15ASFLAGS, Byte15AsFlags);
-	WriteIni(Project->EditorSettingsPath, SECT_ENEMIES, ENEMIES_BYTE15NAME, Byte15Name);
-	WriteIniBool(Project->EditorSettingsPath, SECT_ENEMIES, ENEMIES_VIEWUSAGE, ViewUsageData);
+	WRITE_SETTING_BOOL(Byte15AsFlags);
+	WRITE_SETTING_STR(Byte15Name);
+	WRITE_SETTING_BOOL(ViewUsage);
 	return true;
 }
