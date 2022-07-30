@@ -5,12 +5,16 @@
 
 using namespace Ini;
 
-#define SECT_MAGIC "MAGIC"
-#define MAGIC_BYTE7NAME "Byte7Name"
-#define MAGIC_BYTE7NAME_DEFAULT "Byte 7"
+#define SECT_NAME "MAGIC"
+#define Byte7Name_default "Byte 7"
 
-CMagicEditorSettings::CMagicEditorSettings(CFFHacksterProject & proj, initflag flag)
-	: m_proj(&proj)
+CMagicEditorSettings::CMagicEditorSettings(CFFHacksterProject& proj, initflag flag)
+	: CMagicEditorSettings(proj, SECT_NAME, flag)
+{
+}
+
+CMagicEditorSettings::CMagicEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag)
+	: SettingsBase(proj, sectionname)
 {
 	if (flag == initflag::read)
 		Read();
@@ -20,17 +24,17 @@ CMagicEditorSettings::CMagicEditorSettings(CFFHacksterProject & proj, initflag f
 
 void CMagicEditorSettings::SetDefaults()
 {
-	Byte7Name = MAGIC_BYTE7NAME_DEFAULT;
+	Byte7Name = Byte7Name_default;
 }
 
 bool CMagicEditorSettings::Read()
 {
-	Byte7Name = ReadIni(m_proj->EditorSettingsPath, SECT_MAGIC, MAGIC_BYTE7NAME, MAGIC_BYTE7NAME_DEFAULT);
+	READ_SETTING_STR(Byte7Name);
 	return true;
 }
 
 bool CMagicEditorSettings::Write()
 {
-	WriteIni(m_proj->EditorSettingsPath, SECT_MAGIC, MAGIC_BYTE7NAME, Byte7Name);
+	WRITE_SETTING_STR(Byte7Name);
 	return true;
 }

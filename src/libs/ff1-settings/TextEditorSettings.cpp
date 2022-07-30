@@ -7,12 +7,16 @@
 using namespace Ini;
 using namespace Types;
 
-#define SECT_TEXT "TEXT"
-#define TEXT_SHOWACTUALTEXT "ShowActualText"
-#define TEXT_SHOWACTUALTEXT_DEFAULT true
+constexpr auto SECT_NAME = "TEXT";
+#define ShowActualText_default true
 
 TextEditorSettings::TextEditorSettings(CFFHacksterProject & proj, initflag flag)
-	: m_proj(&proj)
+	: TextEditorSettings(proj, SECT_NAME, flag)
+{
+}
+
+TextEditorSettings::TextEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag)
+	: SettingsBase(proj, sectionname)
 {
 	if (flag == initflag::read)
 		Read();
@@ -26,30 +30,27 @@ TextEditorSettings::~TextEditorSettings()
 
 void TextEditorSettings::SetDefaults()
 {
-	ShowActualText = TEXT_SHOWACTUALTEXT_DEFAULT;
-	//ShortTextLength = TEXT_SHORTTEXTLENGTH_DEFAULT; //REFACTOR - not sure about adding a length yet...
+	ShowActualText = ShowActualText_default;
 }
 
 bool TextEditorSettings::Read()
 {
-	ShowActualText = ReadIniBool(m_proj->EditorSettingsPath, SECT_TEXT, TEXT_SHOWACTUALTEXT, TEXT_SHOWACTUALTEXT_DEFAULT);
-	//ShortTextLength = dec(ReadIni(m_proj->EditorSettingsPath, SECT_TEXT, TEXT_SHORTTEXTLENGTH, dec(TEXT_SHORTTEXTLENGTH_DEFAULT)));
+	READ_SETTING_BOOL(ShowActualText);
 	return true;
 }
 
 bool TextEditorSettings::Write()
 {
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_TEXT, TEXT_SHOWACTUALTEXT, ShowActualText);
-	//WriteIni(m_proj->EditorSettingsPath, SECT_TEXT, TEXT_SHORTTEXTLENGTH, dec(ShortTextLength));
+	WRITE_SETTING_BOOL(ShowActualText);
 	return true;
 }
 
 bool TextEditorSettings::ReadDteSetting(CString key, bool defaultvalue)
 {
-	return ReadIniBool(m_proj->EditorSettingsPath, SECT_TEXT, "DTE" + key, defaultvalue);
+	return ReadIniBool(m_proj.EditorSettingsPath, m_sectionname, "DTE" + key, defaultvalue);
 }
 
 void TextEditorSettings::WriteDteSetting(CString key, bool value)
 {
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_TEXT, "DTE" + key, value);
+	WriteIniBool(m_proj.EditorSettingsPath, m_sectionname, "DTE" + key, value);
 }

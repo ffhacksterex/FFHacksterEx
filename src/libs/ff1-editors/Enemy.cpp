@@ -180,7 +180,7 @@ BOOL CEnemy::OnInitDialog()
 		m_ai_ability3.InsertString(0, "--none--");
 		m_ai_ability4.InsertString(0, "--none--");
 
-		m_usagedataon = stgs.ViewUsageData;
+		m_usagedataon = stgs.ViewUsage;
 		if (m_usagedataon) {
 			try {
 				CWaitCursor wait;
@@ -822,7 +822,7 @@ void CEnemy::OnBnClickedSettings()
 	// Hang on to the current setting, which will become the previous setting if the dialog is OK'd.
 	CEnemyEditorSettings stgs(*Project);
 	bool useflags = stgs.Byte15AsFlags;
-	bool wasViewUsage = stgs.ViewUsageData;
+	bool wasViewUsage = stgs.ViewUsage;
 
 	CEnemyEditorSettingsDlg dlg(this);
 	dlg.Project = Project;
@@ -833,10 +833,10 @@ void CEnemy::OnBnClickedSettings()
 
 		// Don't change the View Usage setting now, let the user know that it will change on reload.
 		stgs.Read();
-		if (!wasViewUsage && stgs.ViewUsageData) {
+		if (!wasViewUsage && stgs.ViewUsage) {
 			AfxMessageBox("View Usage will be available when you restart the editor.");
 		}
-		else if (wasViewUsage && !stgs.ViewUsageData) {
+		else if (wasViewUsage && !stgs.ViewUsage) {
 			AfxMessageBox("View Usage will be hidden when you restart the editor.");
 		}
 	}

@@ -4,19 +4,18 @@
 #include "ini_functions.h"
 #include "type_support.h"
 
-using namespace Ini;
-using namespace Types;
+#define SECT_NAME "DIALOGUE"
+#define ShowActualText_default true
+#define ShortTextLength_default 50
+#define ThrowOnBadSpriteAddr_default false
 
-#define SECT_DIALOGUE "DIALOGUE"
-#define DIALOGUE_SHOWACTUALTEXT "ShowActualText"
-#define DIALOGUE_SHOWACTUALTEXT_DEFAULT true
-#define DIALOGUE_SHORTTEXTLENGTH "ShortTextLength"
-#define DIALOGUE_SHORTTEXTLENGTH_DEFAULT 50
-#define DIALOGUE_THROWONBADSPRITEADDR "ThrowOnBadSpriteAddr"
-#define DIALOGUE_THROWONBADSPRITEADDR_DEFAULT false
+CSpriteDialogueSettings::CSpriteDialogueSettings(CFFHacksterProject& proj, initflag flag)
+	: CSpriteDialogueSettings(proj, SECT_NAME, flag)
+{
+}
 
-CSpriteDialogueSettings::CSpriteDialogueSettings(CFFHacksterProject & proj, initflag flag)
-	: m_proj(&proj)
+CSpriteDialogueSettings::CSpriteDialogueSettings(CFFHacksterProject& proj, CString sectionname, initflag flag)
+	: SettingsBase(proj, sectionname)
 {
 	if (flag == initflag::read)
 		Read();
@@ -30,23 +29,23 @@ CSpriteDialogueSettings::~CSpriteDialogueSettings()
 
 void CSpriteDialogueSettings::SetDefaults()
 {
-	ShowActualText = DIALOGUE_SHOWACTUALTEXT_DEFAULT;
-	ShortTextLength = DIALOGUE_SHORTTEXTLENGTH_DEFAULT;
-	ThrowOnBadSpriteAddr = DIALOGUE_THROWONBADSPRITEADDR_DEFAULT;
+	ShowActualText = ShowActualText_default;
+	ShortTextLength = ShortTextLength_default;
+	ThrowOnBadSpriteAddr = ThrowOnBadSpriteAddr_default;
 }
 
 bool CSpriteDialogueSettings::Read()
 {
-	ShowActualText = ReadIniBool(m_proj->EditorSettingsPath, SECT_DIALOGUE, DIALOGUE_SHOWACTUALTEXT, DIALOGUE_SHOWACTUALTEXT_DEFAULT);
-	ShortTextLength = dec(ReadIni(m_proj->EditorSettingsPath, SECT_DIALOGUE, DIALOGUE_SHORTTEXTLENGTH, dec(DIALOGUE_SHORTTEXTLENGTH_DEFAULT)));
-	ThrowOnBadSpriteAddr = dec(ReadIni(m_proj->EditorSettingsPath, SECT_DIALOGUE, DIALOGUE_THROWONBADSPRITEADDR, dec(DIALOGUE_THROWONBADSPRITEADDR_DEFAULT)));
+	READ_SETTING_BOOL(ShowActualText);
+	READ_SETTING_DEC(ShortTextLength);
+	READ_SETTING_BOOL(ThrowOnBadSpriteAddr);
 	return true;
 }
 
 bool CSpriteDialogueSettings::Write()
 {
-	WriteIniBool(m_proj->EditorSettingsPath, SECT_DIALOGUE, DIALOGUE_SHOWACTUALTEXT, ShowActualText);
-	WriteIni(m_proj->EditorSettingsPath, SECT_DIALOGUE, DIALOGUE_SHORTTEXTLENGTH, dec(ShortTextLength));
-	WriteIni(m_proj->EditorSettingsPath, SECT_DIALOGUE, DIALOGUE_THROWONBADSPRITEADDR, dec(ThrowOnBadSpriteAddr));
+	WRITE_SETTING_BOOL(ShowActualText);
+	WRITE_SETTING_DEC(ShortTextLength);
+	WRITE_SETTING_BOOL(ThrowOnBadSpriteAddr);
 	return true;
 }

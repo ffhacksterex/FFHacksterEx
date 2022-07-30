@@ -1,16 +1,17 @@
 #pragma once
 
 #include "common_symbols.h"
-class CFFHacksterProject;
+#include "SettingsBase.h"
 
-class CClassesEditorSettings
+class CClassesEditorSettings : public SettingsBase
 {
 public:
 	CClassesEditorSettings(CFFHacksterProject & proj, initflag flag = initflag::read);
+	CClassesEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag = initflag::read);
 
-	void SetDefaults();
-	bool Read();
-	bool Write();
+	virtual void SetDefaults();
+	virtual bool Read();
+	virtual bool Write();
 
 	bool IgnoreHoldMP1 = false;
 	bool IgnoreHoldMP2 = false;
@@ -19,7 +20,4 @@ public:
 	bool IgnoreMPRange = false;
 	bool IgnoreBBMA1 = false;
 	bool IgnoreBBMA2 = false;
-
-private:
-	CFFHacksterProject * m_proj;
 };

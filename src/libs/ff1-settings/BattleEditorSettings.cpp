@@ -3,12 +3,16 @@
 #include "FFHacksterProject.h"
 #include "ini_functions.h"
 
-constexpr auto SECT_BATTLE = "BATTLE";
-constexpr auto VIEWUSAGE = "ViewUsage";
-constexpr auto VIEWUSAGE_DEFAULT = true;
+constexpr auto SECT_NAME = "BATTLE";
+#define ViewUsage_default true
 
 CBattleEditorSettings::CBattleEditorSettings(CFFHacksterProject& proj, initflag flag)
-	: Project(&proj)
+	: CBattleEditorSettings(proj, SECT_NAME, flag)
+{
+}
+
+CBattleEditorSettings::CBattleEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag)
+	: SettingsBase(proj, sectionname)
 {
 	if (flag == initflag::read)
 		Read();
@@ -22,17 +26,17 @@ CBattleEditorSettings::~CBattleEditorSettings()
 
 void CBattleEditorSettings::SetDefaults()
 {
-	ViewUsageData = VIEWUSAGE_DEFAULT;
+	ViewUsage = ViewUsage_default;
 }
 
 bool CBattleEditorSettings::Read()
 {
-	ViewUsageData = Ini::ReadIniBool(Project->EditorSettingsPath, SECT_BATTLE, VIEWUSAGE, VIEWUSAGE_DEFAULT);
+	READ_SETTING_BOOL(ViewUsage);
 	return true;
 }
 
 bool CBattleEditorSettings::Write()
 {
-	Ini::WriteIniBool(Project->EditorSettingsPath, SECT_BATTLE, VIEWUSAGE, ViewUsageData);
+	WRITE_SETTING_BOOL(ViewUsage);
 	return true;
 }

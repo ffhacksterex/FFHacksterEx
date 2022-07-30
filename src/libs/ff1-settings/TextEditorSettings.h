@@ -1,24 +1,23 @@
 #pragma once
 
+#include "SettingsBase.h"
 #include "common_symbols.h"
 class CFFHacksterProject;
 
-class TextEditorSettings
+class TextEditorSettings : public SettingsBase
 {
 public:
 	TextEditorSettings(CFFHacksterProject & proj, initflag flag = initflag::read);
-	~TextEditorSettings();
+	TextEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag = initflag::read);
+	virtual ~TextEditorSettings();
 
-	void SetDefaults();
-	bool Read();
-	bool Write();
+	virtual void SetDefaults();
+	virtual bool Read();
+	virtual bool Write();
 
 	bool ReadDteSetting(CString key, bool defaultvalue);
 	void WriteDteSetting(CString key, bool value);
 
 	bool ShowActualText;
 	//int ShortTextLength;
-
-private:
-	CFFHacksterProject * m_proj;
 };
