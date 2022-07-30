@@ -15,8 +15,13 @@ namespace Ui
 
 	pair_result<CString> OpenFilePrompt(CWnd * parent, CString filter, CString title, CString initialfile)
 	{
+		return OpenFilePromptExt(parent, filter, nullptr, title, initialfile);
+	}
+
+	pair_result<CString> OpenFilePromptExt(CWnd* parent, CString filter, CString defext, CString title, CString initialfile)
+	{
 		TCHAR initpath[_MAX_PATH] = { 0 };
-		CFileDialog dlg(TRUE, nullptr, nullptr, OFN_FILEMUSTEXIST | OFN_HIDEREADONLY | COMMON_OFN, filter, parent);
+		CFileDialog dlg(TRUE, defext, nullptr, OFN_FILEMUSTEXIST | OFN_HIDEREADONLY | COMMON_OFN, filter, parent);
 		dlg.m_pOFN->lpstrTitle = title;
 		if (Paths::FileExists(initialfile)) {
 			strncpy(initpath, initialfile, _MAX_PATH);
@@ -26,7 +31,7 @@ namespace Ui
 			strncpy(initpath, initialfile, _MAX_PATH);
 			dlg.m_pOFN->lpstrInitialDir = initpath;
 		}
-	
+
 		auto modalresult = dlg.DoModal();
 		if (modalresult == IDOK)
 			return pair_result<CString>(true, dlg.GetPathName());
@@ -36,10 +41,16 @@ namespace Ui
 
 	pair_result<CString> SaveFilePrompt(CWnd * parent, CString filter, CString title, CString initialfile) //REFACTOR
 	{
+		return SaveFilePromptExt(parent, filter, nullptr, title, initialfile);
+	}
+
+	pair_result<CString> SaveFilePromptExt(CWnd* parent, CString filter, CString defext, CString title, CString initialfile)
+	{
 		char initpath[_MAX_PATH + 1] = { 0 };
-		CFileDialog dlg(FALSE, nullptr, nullptr, OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST, filter, parent);
+		CFileDialog dlg(FALSE, defext, nullptr, OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST, filter, parent);
 		dlg.m_pOFN->lpstrTitle = title;
 		dlg.m_pOFN->lpstrFile = initpath;
+		if (Paths::IsDir(initialfile)) initialfile += "\\"; // this sets it as initial dir instead
 		strncpy(initpath, initialfile, _MAX_PATH);
 
 		auto modalresult = dlg.DoModal();
