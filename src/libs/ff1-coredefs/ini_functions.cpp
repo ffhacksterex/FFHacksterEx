@@ -258,6 +258,11 @@ namespace Ini
 		auto strvalue = ReadIni(ainifile, ainisection, ainikey, CString());
 		if (strvalue.IsEmpty()) return defval;
 
+		//N.B. - some older inputs use 1/0 instead of true/false.
+		//		Let's not break those, we'll convert them on input here.
+		if (strvalue == "1") return true;
+		if (strvalue == "0") return false;
+
 		return boole(strvalue);
 	}
 
