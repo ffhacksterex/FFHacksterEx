@@ -25,6 +25,12 @@ using namespace Types;
 #define ITEM_RESERVED 0x1
 #define ITEM_HIDDEN   0x2
 
+// Canned group symbols
+// N.B. GROUP_NONE is an alias for member variable UNGROUPED
+#define GROUP_ALL "All"
+#define GROUP_SYS "system"
+#define GROUP_NONE UNGROUPED
+
 // CDlgEditScalars dialog
 
 IMPLEMENT_DYNAMIC(CDlgEditScalars, CFFBaseDlg)
@@ -259,12 +265,28 @@ void CDlgEditScalars::LoadGroups(const mfcstringvector & groupnames)
 {
 	m_listgroups.SetRedraw(FALSE);
 	m_listgroups.ResetContent();
+
+	// This function assumes the caller culled duplicates if it desired.
+	// The system, All, and (ungrouped) groups are special cases.
+	size_t allcount = 0, syscount = 0, ungroupcount = 0;
+	mfcstringvector rest;
 	for (auto group : groupnames) {
-		//REFACTOR - not sure if VERSION group is used anymore
-		if (group.CompareNoCase("VERSION") == 0) continue; // always exclude anything in the Version group
-		if (group.IsEmpty()) group = UNGROUPED;
-		m_listgroups.AddString(group);
+		//N.B. - VERSION group is optional, internal, and informational (i.e. not for users)
+		if (group.CompareNoCase("VERSION") == 0) continue; // always exclude this group
+		if (group.IsEmpty()) ++ungroupcount;
+		else if (group == GROUP_ALL) ++allcount;
+		else if (group == GROUP_SYS) ++syscount;
+		else rest.push_back(group);
 	}
+
+	// Put the special case groups at the front of the list.
+	// Then sort the rest alphabetically.
+	m_listgroups.AddString(GROUP_SYS);
+	m_listgroups.AddString(GROUP_ALL);
+	if (ungroupcount > 0) m_listgroups.AddString(GROUP_NONE);
+
+	std::sort(begin(rest), end(rest));
+	for (const auto & group : rest) m_listgroups.AddString(group);
 
 	if (m_listgroups.GetCount() > 0) {
 		m_listgroups.SetCurSel(0);
@@ -280,6 +302,14 @@ void CDlgEditScalars::LoadGroups(const mfcstringvector & groupnames)
 
 	m_listgroups.SetRedraw(TRUE);
 	m_listgroups.Invalidate();
+
+	CString errmsg;
+	if (syscount > 1) errmsg.Format("%d '%s' groups.\n", syscount, GROUP_SYS);
+	if (allcount > 1) errmsg.Format("%d '%s' groups.\n", allcount, GROUP_ALL);
+	if (!errmsg.IsEmpty()) {
+		errmsg.Insert(0, "Some duplicate groups were found:\n");
+		AfxMessageBox(errmsg);
+	}
 }
 
 void CDlgEditScalars::RemoveScalarNode(CString nodename)
