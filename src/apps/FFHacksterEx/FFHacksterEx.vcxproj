@@ -23,6 +23,7 @@
     <ClInclude Include="AsmFiles.h" />
     <ClInclude Include="DlgAppSettings.h" />
     <ClInclude Include="DlgCreateNewProject.h" />
+    <ClInclude Include="DlgFolderPrefs.h" />
     <ClInclude Include="DlgImport.h" />
     <ClInclude Include="DlgWelcome.h" />
     <ClInclude Include="DlgProjectSettings.h" />
@@ -40,6 +41,7 @@
     <ClCompile Include="About.cpp" />
     <ClCompile Include="DlgAppSettings.cpp" />
     <ClCompile Include="DlgCreateNewProject.cpp" />
+    <ClCompile Include="DlgFolderPrefs.cpp" />
     <ClCompile Include="DlgImport.cpp" />
     <ClCompile Include="DlgWelcome.cpp" />
     <ClCompile Include="DlgProjectSettings.cpp" />

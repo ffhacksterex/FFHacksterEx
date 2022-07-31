@@ -10,6 +10,7 @@
 #include <ui_prompts.h>
 #include <window_messages.h>
 #include <algorithm>
+#include "DlgFolderPrefs.h"
 
 using namespace Imaging;
 using namespace Ui;
@@ -87,6 +88,8 @@ BOOL CDlgAppSettings::OnInitDialog()
 	m_editRunExe.SetWindowText(AppStgs->RunExe);
 	m_cmdparamsedit.SetWindowText(AppStgs->RunParams);
 
+	m_folderprefs = *((sAppFolderPrefs*)this->AppStgs); // slicing ...
+
 	if (AppStgs->EnableHelpChoice) {
 		if (HelpSettings == nullptr) {
 			AfxMessageBox("App Settings editor can't modify help settings:\nno settings were specified to edit.");
@@ -143,6 +146,7 @@ void CDlgAppSettings::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_LOCALHELP, m_editlocalhelp);
 	DDX_Control(pDX, IDC_COMBO_HELP_TYPES, m_helptypes);
 	DDX_Control(pDX, IDC_APPSETTINGS_EDIT_PARAMS, m_cmdparamsedit);
+	DDX_Control(pDX, IDC_APPSETTINGS_BUTTON3_DIRECTORIES, m_foldersbutton);
 }
 
 void CDlgAppSettings::OnOK()
@@ -188,6 +192,8 @@ void CDlgAppSettings::OnOK()
 	AppStgs->RunExe = runexe;
 	AppStgs->RunParams = Ui::GetControlText(m_cmdparamsedit);
 
+	(sAppFolderPrefs&)*this->AppStgs = m_folderprefs; // slicing the other way ...
+
 	if (AppStgs->EnableHelpChoice) {
 		if (HelpSettings != nullptr) {
 			AppStgs->HelpTypeId = helptype;
@@ -208,10 +214,8 @@ BEGIN_MESSAGE_MAP(CDlgAppSettings, BaseClass)
 	ON_STN_CLICKED(IDC_STATIC2, &CDlgAppSettings::OnBnClickedColorStrikeCheck)
 	ON_BN_CLICKED(IDC_CHECK4, &CDlgAppSettings::OnBnClickedStrikeCheck)
 	ON_BN_CLICKED(IDC_CHECK7, &CDlgAppSettings::OnBnClickedEnforceAsmCompatibility)
-	//ON_BN_CLICKED(IDC_RADIO_LOCALHELP, &CDlgAppSettings::OnBnClickedRadioLocalhelp)
-	//ON_BN_CLICKED(IDC_RADIO_WEBHELP, &CDlgAppSettings::OnBnClickedRadioWebhelp)
-	//ON_BN_CLICKED(IDC_RADIO_HELP_IN_APPDIR, &CDlgAppSettings::OnBnClickedRadioHelpInAppdir)
 	ON_CBN_SELCHANGE(IDC_COMBO_HELP_TYPES, &CDlgAppSettings::OnCbnSelchangeComboHelpTypes)
+	ON_BN_CLICKED(IDC_APPSETTINGS_BUTTON3_DIRECTORIES, &CDlgAppSettings::OnBnClickedFolderPrefs)
 END_MESSAGE_MAP()
 
 
@@ -305,28 +309,6 @@ void CDlgAppSettings::OnBnClickedEnforceAsmCompatibility()
 	m_warnasmcompatcheck.EnableWindow(!GetCheckValue(m_enforceasmcompatcheck));
 }
 
-void CDlgAppSettings::OnBnClickedRadioLocalhelp()
-{
-	m_localhelpbutton.EnableWindow(TRUE);
-	m_editlocalhelp.EnableWindow(TRUE);
-}
-
-void CDlgAppSettings::OnBnClickedRadioWebhelp()
-{
-	m_localhelpbutton.EnableWindow(FALSE);
-	m_editlocalhelp.EnableWindow(TRUE);
-}
-
-void CDlgAppSettings::OnBnClickedRadioHelpInAppdir()
-{
-	//m_localhelpbutton.ShowWindow(SW_HIDE);
-	//m_editlocalhelp.ShowWindow(SW_HIDE);
-	m_localhelpbutton.EnableWindow(FALSE);
-	m_editlocalhelp.EnableWindow(FALSE);
-	//m_bHelpInAppDir = true;
-	//m_type = "file";
-}
-
 void CDlgAppSettings::OnCbnSelchangeComboHelpTypes()
 {
 	auto showedit = FALSE;
@@ -346,4 +328,13 @@ void CDlgAppSettings::OnCbnSelchangeComboHelpTypes()
 	}
 	m_editlocalhelp.EnableWindow(showedit);
 	m_localhelpbutton.EnableWindow(showbtn);
+}
+
+void CDlgAppSettings::OnBnClickedFolderPrefs()
+{
+	CDlgFolderPrefs dlg(this);
+	dlg.Prefs = m_folderprefs;
+	if (dlg.DoModal() == IDOK) {
+		m_folderprefs = dlg.Prefs;
+	}
 }

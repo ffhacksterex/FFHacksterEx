@@ -6,7 +6,20 @@
 #define MRULOWLIMIT 4
 #define MRUMAXLIMIT 25
 
-class AppSettings
+struct sAppFolderPrefs
+{
+public:
+	CString PrefProjectParentFolder;
+	CString PrefCleanFolder;
+	CString PrefAdditionalModulesFolder;
+	CString PrefPublishFolder;
+	CString PrefArchiveFolder;
+	CString PrefMapImportExportFolder;
+	CString PrefImageImportExportFolder;
+	CString PrefAsmDllFolder;
+};
+
+class AppSettings : public sAppFolderPrefs
 {
 public:
 	//TODO - move to the base app
@@ -42,15 +55,6 @@ public:
 
 	std::vector<CString> MruPaths;
 	size_t MruMaxCount;
-
-	CString PrefProjectParentFolder;
-	CString PrefCleanFolder;
-	CString PrefAdditionalModulesFolder;
-	CString PrefPublishFolder;
-	CString PrefArchiveFolder;
-	CString PrefMapImportExportFolder;
-	CString PrefImageImportExportFolder;
-	CString PrefAsmDllFolder;
 
 	// "Unpublished" settings with no UI.
 	// These options are loaded and saved, but there's no UI to edit them.

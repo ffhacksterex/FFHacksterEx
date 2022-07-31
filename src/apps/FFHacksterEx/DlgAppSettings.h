@@ -30,6 +30,7 @@ protected:
 #endif
 
 	bool m_bUpdateMru;
+	sAppFolderPrefs m_folderprefs;
 	CButton m_checkPromptOnClose;
 	CButton m_purgelogcheckbox;
 	CButton m_savehexuppercheck;
@@ -54,6 +55,7 @@ protected:
 	CClearButton m_localhelpbutton;
 	CClearEdit m_editlocalhelp;
 	CComboBox m_helptypes;
+	CClearButton m_foldersbutton;
 
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();
@@ -67,9 +69,7 @@ protected:
 	afx_msg void OnBnClickedColorStrikeCheck();
 	afx_msg void OnBnClickedStrikeCheck();
 	afx_msg void OnBnClickedEnforceAsmCompatibility();
-	afx_msg void OnBnClickedRadioLocalhelp();
-	afx_msg void OnBnClickedRadioWebhelp();
-	afx_msg void OnBnClickedRadioHelpInAppdir();
 	afx_msg void OnBnClickedButtonLocalhelp();
 	afx_msg void OnCbnSelchangeComboHelpTypes();
+	afx_msg void OnBnClickedFolderPrefs();
 };

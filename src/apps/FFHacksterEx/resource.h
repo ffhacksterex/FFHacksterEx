@@ -43,6 +43,7 @@
 #define IDS_RELEASETEXT                 229
 #define IDD_EDITORDIGEST2               230
 #define IDD_DLG_NEWROM                  231
+#define IDD_FOLDER_PREFS                232
 #define IDC_PROJECTS_BTN_NEWROM         1663
 #define IDC_PROJECTS_BTN_NEWASM         1664
 #define IDC_PROJECTS_BTN_OPENROM        1665
@@ -129,14 +130,17 @@
 #define IDC_SYSLINK3                    1906
 #define IDC_SYSLINK4                    1907
 #define IDC_SYSLINK5                    1908
+#define IDC_APPSETTINGS_BUTTON3_DIRECTORIES 1909
+#define IDC_MFCPROPERTYGRID1            1915
+#define IDC_MFCPROPGRID_FOLDERS         1915
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        232
+#define _APS_NEXT_RESOURCE_VALUE        235
 #define _APS_NEXT_COMMAND_VALUE         32796
-#define _APS_NEXT_CONTROL_VALUE         1909
+#define _APS_NEXT_CONTROL_VALUE         1916
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
