@@ -4,8 +4,8 @@
 #include "DialogWithBackground.h"
 #include <ColorStatic.h>
 #include <Help.h>
+#include <AppSettings.h>
 
-class AppSettings;
 struct EditorRef;
 
 // CDlgAppSettings dialog

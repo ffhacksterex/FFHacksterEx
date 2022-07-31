@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "OverworldMap.h"
 #include "Maps.h"
+#include <AppSettings.h>
 #include <collection_helpers.h>
 #include <editor_label_functions.h>
 #include <general_functions.h>

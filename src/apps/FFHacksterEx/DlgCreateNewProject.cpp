@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "DlgCreateNewProject.h"
+#include <AppSettings.h>
 #include <asmdll_impl.h>
 #include <general_functions.h>
 #include <io_functions.h>
