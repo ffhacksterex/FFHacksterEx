@@ -19,6 +19,23 @@ using Types::dec;
 #define WRITEINT(ini,name) WriteIni(ini, #name, "value", dec((int)name))
 #define WRITEHELPTYPE WRITEINT
 
+//TODO - eventually move the existing properties to use these new macros
+#define READ_SETTING_STR(name) name = Ini::ReadIni(m_inifile, #name, "value", name)
+#define WRITE_SETTING_STR(name) Ini::WriteIni(m_inifile, #name, "value", name)
+
+#define READ_SETTING_DEC(name) name = Types::dec(Ini::ReadIni(m_inifile, #name, "value", Types::dec(name)))
+#define WRITE_SETTING_DEC(name) Ini::WriteIni(m_inifile, #name, "value", Types::dec(name))
+
+#define READ_SETTING_HEX(name) name = Types::hex(Ini::ReadIni(m_inifile, #name, "value", Types::hex(name)))
+#define WRITE_SETTING_HEX(name) Ini::WriteIni(m_inifile, #name, "value", Types::hex(name))
+
+#define READ_SETTING_BOOL(name) name = Ini::ReadIniBool(m_inifile, #name, "value", name)
+#define WRITE_SETTING_BOOL(name) Ini::WriteIniBool(m_inifile, #name, "value", name)
+
+#define READ_SETTING_HELP(name) name = (HelpType)Types::dec(Ini::ReadIni(m_inifile, #name, "value", Types::dec(name)))
+#define WRITE_SETTING_HELP WRITE_SETTING_DEC
+
+
 
 AppSettings::AppSettings(CString inifile)
 	: m_inifile(inifile)
@@ -86,6 +103,15 @@ void AppSettings::Read()
 		READSTR(inifile, HelpPath);
 		READBOOL(inifile, EnableHelpChoice);
 		ReadMru();
+
+		READ_SETTING_STR(PrefProjectParentFolder);
+		READ_SETTING_STR(PrefCleanFolder);
+		READ_SETTING_STR(PrefAdditionalModulesFolder);
+		READ_SETTING_STR(PrefPublishFolder);
+		READ_SETTING_STR(PrefArchiveFolder);
+		READ_SETTING_STR(PrefMapImportExportFolder);
+		READ_SETTING_STR(PrefImageImportExportFolder);
+		READ_SETTING_STR(PrefAsmDllFolder);
 	}
 	catch (std::exception & ex) {
 		AfxMessageBox(CString("Unable to read app settings:\n") + ex.what());
@@ -116,6 +142,15 @@ void AppSettings::Write()
 		WRITESTR(inifile, HelpPath);
 		WRITEBOOL(inifile, EnableHelpChoice);
 		WriteMru();
+
+		WRITE_SETTING_STR(PrefProjectParentFolder);
+		WRITE_SETTING_STR(PrefCleanFolder);
+		WRITE_SETTING_STR(PrefAdditionalModulesFolder);
+		WRITE_SETTING_STR(PrefPublishFolder);
+		WRITE_SETTING_STR(PrefArchiveFolder);
+		WRITE_SETTING_STR(PrefMapImportExportFolder);
+		WRITE_SETTING_STR(PrefImageImportExportFolder);
+		WRITE_SETTING_STR(PrefAsmDllFolder);
 	}
 	catch (std::exception & ex) {
 		AfxMessageBox(CString("Unable to write app settings:\n") + ex.what());

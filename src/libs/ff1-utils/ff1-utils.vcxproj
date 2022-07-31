@@ -184,6 +184,7 @@
     <ClInclude Include="EditorWithBackground.h" />
     <ClInclude Include="FFBaseApp.h" />
     <ClInclude Include="FFBaseDlg.h" />
+    <ClInclude Include="FFHPropertyGridFolderProperty.h" />
     <ClInclude Include="FontSet.h" />
     <ClInclude Include="Help.h" />
     <ClInclude Include="InfoButton.h" />
@@ -237,6 +238,7 @@
     <ClCompile Include="EditorWithBackground.cpp" />
     <ClCompile Include="FFBaseApp.cpp" />
     <ClCompile Include="FFBaseDlg.cpp" />
+    <ClCompile Include="FFHPropertyGridFolderProperty.cpp" />
     <ClCompile Include="FontSet.cpp" />
     <ClCompile Include="Help.cpp" />
     <ClCompile Include="InfoButton.cpp" />

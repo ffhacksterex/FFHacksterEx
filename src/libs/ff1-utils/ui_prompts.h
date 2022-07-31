@@ -15,7 +15,9 @@ namespace Ui
 	pair_result<CString> PromptForAsmDll(CWnd* parent, LPCSTR initialdir = nullptr);
 	pair_result<CString> BrowseForProject(CWnd* parent, CString title = "Open Project");
 	pair_result<CString> OpenFilePrompt(CWnd* parent, CString filter, CString title = "Open", CString initialfile = "");
+	pair_result<CString> OpenFilePromptExt(CWnd* parent, CString filter, CString defext, CString title, CString initialfile = "");
 	pair_result<CString> SaveFilePrompt(CWnd* parent, CString filter, CString title = "Save", CString initialfile = "");
+	pair_result<CString> SaveFilePromptExt(CWnd* parent, CString filter, CString defext, CString title = "Save", CString initialfile = "");
 
 	pair_result<CString> PromptForFolder(CWnd * parent, CString title = "", CString initialdir = "");
 }

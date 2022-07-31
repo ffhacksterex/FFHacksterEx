@@ -6,7 +6,20 @@
 #define MRULOWLIMIT 4
 #define MRUMAXLIMIT 25
 
-class AppSettings
+struct sAppFolderPrefs
+{
+public:
+	CString PrefProjectParentFolder;
+	CString PrefCleanFolder;
+	CString PrefAdditionalModulesFolder;
+	CString PrefPublishFolder;
+	CString PrefArchiveFolder;
+	CString PrefMapImportExportFolder;
+	CString PrefImageImportExportFolder;
+	CString PrefAsmDllFolder;
+};
+
+class AppSettings : public sAppFolderPrefs
 {
 public:
 	//TODO - move to the base app

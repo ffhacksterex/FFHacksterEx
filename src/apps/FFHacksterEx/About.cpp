@@ -30,6 +30,18 @@ CAbout::CAbout(CWnd* pParent /*= nullptr */)
 	m_hIcon = (HICON)LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT);
 }
 
+void CAbout::HandleLink(LPNMHDR phdr)
+{
+	//DEVNOTE - another example of how moving to Common Controls 6 causes problems
+	//			because it's Unicode-only.
+	//			It's time to either move the app to Unicode or write a new one
+	//			using Unicode from scratch.
+	auto plink = (PNMLINK)phdr;
+	LITEM item = plink->item;
+	CStringA url(item.szUrl);
+	ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOW);
+}
+
 void CAbout::PaintClient(CDC & dc)
 {
 	//DEVNOTE - not sure why, but the icon will no longer display when set in the resource editor.
@@ -49,14 +61,26 @@ void CAbout::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_ABOUT_STATIC_PROGNAME, m_progtitlestatic);
 	DDX_Control(pDX, IDOK, m_okbutton);
 	DDX_Control(pDX, IDCANCEL, m_cancelbutton);
-	DDX_Control(pDX, IDC_MFCLINK_FFH, m_linkffh);
-	DDX_Control(pDX, IDC_MFCLINK_7ZIP, m_link7zip);
-	DDX_Control(pDX, IDC_MFCLINK_ICONMONSTR, m_linkiconmonstr);
+	DDX_Control(pDX, IDC_SYSLINK_DISCH, m_linkdisch);
+	DDX_Control(pDX, IDC_SYSLINK_PAULYGON, m_linkpaulygon);
+	DDX_Control(pDX, IDC_SYSLINK3, m_linkgamefaqs);
+	DDX_Control(pDX, IDC_SYSLINK4, m_7ziplicense);
+	DDX_Control(pDX, IDC_SYSLINK5, m_linkiconmonstr);
 }
 
 
 BEGIN_MESSAGE_MAP(CAbout, BaseClass)
 	ON_WM_DESTROY()
+	ON_NOTIFY(NM_CLICK, IDC_SYSLINK_DISCH, &CAbout::OnNMClickSyslinkDisch)
+	ON_NOTIFY(NM_RETURN, IDC_SYSLINK_DISCH, &CAbout::OnNMReturnSyslinkDisch)
+	ON_NOTIFY(NM_CLICK, IDC_SYSLINK_PAULYGON, &CAbout::OnNMClickSyslinkDisch)
+	ON_NOTIFY(NM_RETURN, IDC_SYSLINK_PAULYGON, &CAbout::OnNMReturnSyslinkDisch)
+	ON_NOTIFY(NM_CLICK, IDC_SYSLINK3, &CAbout::OnNMClickSyslinkDisch)
+	ON_NOTIFY(NM_RETURN, IDC_SYSLINK3, &CAbout::OnNMReturnSyslinkDisch)
+	ON_NOTIFY(NM_CLICK, IDC_SYSLINK4, &CAbout::OnNMClickSyslinkDisch)
+	ON_NOTIFY(NM_RETURN, IDC_SYSLINK4, &CAbout::OnNMReturnSyslinkDisch)
+	ON_NOTIFY(NM_CLICK, IDC_SYSLINK5, &CAbout::OnNMClickSyslinkDisch)
+	ON_NOTIFY(NM_RETURN, IDC_SYSLINK5, &CAbout::OnNMReturnSyslinkDisch)
 END_MESSAGE_MAP()
 
 
@@ -86,9 +110,7 @@ BOOL CAbout::OnInitDialog()
 	m_releasestatic.SetWindowText(version);
 
 	auto font = GetFont();
-	m_linkffh.SetFont(font);
-	m_link7zip.SetFont(font);
-	m_linkiconmonstr.SetFont(font);
+	m_linkdisch.SetFont(font);
 
 	m_banner.Set(this, COLOR_BLACK, RGB(255, 32, 64), "About");
 	m_okbutton.SetFocus();
@@ -104,4 +126,16 @@ void CAbout::OnDestroy()
 		m_hIcon = NULL;
 	}
 	BaseClass::OnDestroy();
+}
+
+void CAbout::OnNMClickSyslinkDisch(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	HandleLink(pNMHDR);
+	*pResult = 0;
+}
+
+void CAbout::OnNMReturnSyslinkDisch(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	HandleLink(pNMHDR);
+	*pResult = 0;
 }

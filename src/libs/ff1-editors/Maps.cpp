@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "OverworldMap.h"
 #include "Maps.h"
+#include <AppSettings.h>
 #include <collection_helpers.h>
 #include <editor_label_functions.h>
 #include <general_functions.h>
@@ -12,8 +13,10 @@
 #include <ingame_text_functions.h>
 #include <ini_functions.h>
 #include <io_functions.h>
+#include <path_functions.h>
 #include <string_functions.h>
 #include <ui_helpers.h>
+#include <ui_prompts.h>
 #include <AsmFiles.h>
 #include <DRAW_STRUCT.h>
 #include <EntriesLoader.h>
@@ -47,8 +50,10 @@ using namespace Strings;
 static char THIS_FILE[] = __FILE__;
 #endif
 
-
 namespace {
+	constexpr auto FFH_MAP_FILTER = "FFHackster Standard Map (*.ffh;*.ffsmap)|*.ffh;*.ffsmap|All Files (*.*)|*.*||";
+	constexpr auto FFH_MAP_EXT = "ffsmap";
+
 	CCoords coords_dlg;
 }
 
@@ -173,6 +178,8 @@ BEGIN_MESSAGE_MAP(CMaps, CEditorWithBackground)
 	ON_WM_LBUTTONDBLCLK()
 	ON_BN_CLICKED(IDC_VIEWCOORDS, OnViewcoords)
 	ON_CBN_SELCHANGE(IDC_TELEPORT_LIST, OnSelchangeTeleportList)
+	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, OnMapImport)
+	ON_BN_CLICKED(IDC_BUTTON_EXPORT_MAP, OnMapExport)
 END_MESSAGE_MAP()
 
 
@@ -1626,13 +1633,12 @@ void CMaps::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 void CMaps::OnMapExport() 
 {
-	CString text = LoadMapLabel(*cart, cur_map);
-	text += " Map.ffh";
-	CFileDialog dlg(0,"ffh",text,OFN_OVERWRITEPROMPT | UiTemp::COMMON_OFN,
-		"FFHackster Standard Map (*.ffh)|*ffh|All Files (*.*)|*.*||");
-	if(dlg.DoModal() != IDOK) return;
+	CString text = LoadMapLabel(*cart, cur_map).name + " Map." + CString(FFH_MAP_EXT);
+	CString filename = Paths::Combine({ Project->AppSettings->PrefMapImportExportFolder , text });
+	auto result = Ui::SaveFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Export Standard Map", filename);
+	if (!result) return;
 
-	FILE* file = fopen(dlg.GetPathName(),"w+b");
+	FILE* file = fopen(result.value, "w+b");
 	if(file == nullptr){
 		AfxMessageBox("Error saving map", MB_ICONERROR);
 		return;}
@@ -1642,13 +1648,11 @@ void CMaps::OnMapExport()
 
 void CMaps::OnMapImport() 
 {
-	CString text = LoadMapLabel(*cart, cur_map);
-	text += " Map.ffh";
-	CFileDialog dlg(1,"ffh",text,OFN_HIDEREADONLY | UiTemp::COMMON_OFN,
-		"FFHackster Standard Map (*.ffh)|*ffh|All Files (*.*)|*.*||");
-	if(dlg.DoModal() != IDOK) return;
+	auto result = OpenFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Import Standard Map",
+		Project->AppSettings->PrefMapImportExportFolder);
+	if (!result) return;
 
-	FILE* file = fopen(dlg.GetPathName(),"r+b");
+	FILE* file = fopen(result.value, "r+b");
 	if(file == nullptr){
 		AfxMessageBox("Error loading map", MB_ICONERROR);
 		return;}

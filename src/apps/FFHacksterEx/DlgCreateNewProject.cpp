@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "DlgCreateNewProject.h"
+#include <AppSettings.h>
 #include <asmdll_impl.h>
 #include <general_functions.h>
 #include <io_functions.h>
@@ -273,7 +274,7 @@ void CDlgCreateNewProject::OnBnClickedNewasmCheckImportdat()
 void CDlgCreateNewProject::OnBnClickedNewasmButtonParentfolder()
 {
 	//FUTURE - implement favorite or frequent ROM/ASM project parent folders
-	auto result = Ui::PromptForFolder(this, "Select parent folder for the new project.");
+	auto result = Ui::PromptForFolder(this, "Select parent folder for the new project.", AppStgs->PrefProjectParentFolder);
 	if (result)
 		Ui::SetEditTextAndFocus(m_parentfolderedit, result.value);
 }
@@ -295,21 +296,24 @@ void CDlgCreateNewProject::OnBnClickedNewasmButtonRevert()
 		return;
 	}
 
-	auto result = OpenFilePrompt(this, filter, title);
+	auto result = OpenFilePrompt(this, filter, title, AppStgs->PrefCleanFolder);
 	if (result)
 		Ui::SetEditTextAndFocus(m_revertfileedit, result.value);
 }
 
 void CDlgCreateNewProject::OnBnClickedNewasmButtonPublish()
 {
-	auto result = SaveFilePrompt(this, "FF1 ROM (*.nes)|*.nes||", "Select Destination ROM location");
+	auto curfile = Ui::GetControlText(m_publishedit);
+	auto result = SaveFilePrompt(this, "FF1 ROM (*.nes)|*.nes||", "Select Destination ROM location",
+		Paths::DirExists(Paths::GetDirectoryPath(curfile)) ? curfile : AppStgs->PrefPublishFolder);
 	if (result)
 		Ui::SetEditTextAndFocus(m_publishedit, result.value);
 }
 
 void CDlgCreateNewProject::OnBnClickedNewasmButtonImportdat()
 {
-	auto result = OpenFilePrompt(this, "FFHackster DAT files (FFHackster*.dat)|FFHackster*.dat||", "Import a FFHackster DAT file");
+	auto result = OpenFilePrompt(this, "FFHackster DAT files (FFHackster*.dat)|FFHackster*.dat||",
+		"Import a FFHackster DAT file", AppStgs->PrefCleanFolder);
 	if (result)
 		Ui::SetEditTextAndFocus(m_datfileedit, result.value);
 }
@@ -323,16 +327,17 @@ void CDlgCreateNewProject::OnBnClickedAsmDllLookInAppFolder()
 
 void CDlgCreateNewProject::OnBnClickedAdditionalModulesFolder()
 {
-	auto result = Ui::PromptForFolder(this, "Select additonal modules folder for the new project.");
+	auto result = Ui::PromptForFolder(this, "Select additonal modules folder for the new project.",
+		AppStgs->PrefAdditionalModulesFolder);
 	if (result)
 		Ui::SetEditTextAndFocus(m_addlmodulesedit, result.value);
 }
 
 void CDlgCreateNewProject::OnBnClickedButton1BrowseAsmDll()
 {
-	auto result = PromptForAsmDll(this);
+	auto result = PromptForAsmDll(this, AppStgs->PrefAsmDllFolder);
 	if (result)
 		Ui::SetEditTextAndFocus(m_asmdlledit, result.value);
-	else
+	else if (!result.value.IsEmpty())
 		AfxMessageBox(result.value);
 }
