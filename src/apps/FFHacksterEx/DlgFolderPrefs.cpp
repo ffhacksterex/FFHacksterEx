@@ -7,8 +7,18 @@
 #include "afxdialogex.h"
 #include <FFHPropertyGridFolderProperty.h>
 #include <ui_helpers.h>
+#include <regex>
 
-#define ADD_PROP(name) m_propgridfolders.AddProperty(new CFFHPropertyGridFolderProperty(#name,Prefs.Pref##name), FALSE)
+namespace {
+	const std::regex rx("([a-z])([A-Z])");
+
+	CString SplitPascalCase(CString str)
+	{
+		return CString(std::regex_replace((LPCSTR)str, rx, "$1 $2").c_str());
+	}
+}
+
+#define ADD_PROP(name) m_propgridfolders.AddProperty(new CFFHPropertyGridFolderProperty(SplitPascalCase(#name),Prefs.Pref##name), FALSE)
 #define SAVE_PROP(name,index) Prefs.Pref##name = m_propgridfolders.GetProperty((index))->GetValue()
 
 // CDlgFolderPrefs dialog
