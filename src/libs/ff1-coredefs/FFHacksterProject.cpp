@@ -15,6 +15,7 @@
 #include "AsmFiles.h"
 #include "assembly_types.h"
 #include "DATA.h"
+#include "FilePathRemover.h"
 #include "GameSerializer.h"
 #include "IProgress.h"
 #include <fstream>
@@ -618,9 +619,12 @@ pair_result<CString> CFFHacksterProject::Compile()
 			ROM_SIZE = 262160;
 		}
 
-		// Remove the file, so a failure to recreate it won't leave the old file intact.
+		// Remove the file immediately if it exists
 		CString ff1(ProjectFolder + "\\asm\\ff1.nes");
 		Paths::FileDelete(ff1);
+
+		// We'll also ensure it's removed when done so failures won't leave it on disk
+		Io::FilePathRemover remover(ff1);
 
 		// Before performing the batch, move the STD and DTE tables into the asm folder
 		//N.B. - while these aren't included in the compilation process, if someone zips the asm folder
