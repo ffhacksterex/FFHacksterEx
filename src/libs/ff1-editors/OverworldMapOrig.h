@@ -1,27 +1,24 @@
 #pragma once
-// OverworldMap.h : header file
+// OverworldMapOrig.h : header file
 
 #include <EditorWithBackground.h>
 #include "ICoordMap.h"
 #include <vector>
 #include "afxwin.h"
-#include <DrawingToolButton.h>
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
-// COverworldMap dialog
+// COverworldMapOrig dialog
 
-class COverworldMap : public CEditorWithBackground, public ICoordMap
+class COverworldMapOrig : public CEditorWithBackground, public ICoordMap
 {
-	// Construction
+// Construction
 public:
-	COverworldMap(CWnd* pParent = nullptr);   // standard constructor
+	COverworldMapOrig(CWnd* pParent = nullptr);   // standard constructor
 
 	enum CancelContext { Coords, Minimap };
 
 	bool BootToTeleportFollowup;
-
-	LRESULT OnDrawToolBnClick(WPARAM wparam, LPARAM lparam);
 
 	// Inherited via ICoordMap
 	virtual void UpdateTeleportLabel(int areaid, int type) override;
@@ -37,11 +34,13 @@ protected:
 	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
 	CImageList m_sprites;
 	CImageList m_backdrop;
+	CImageList m_tools;
 	CPen redpen;
 	CPen bluepen;
 	CRect rcTiles;
 	CRect rcMap;
 	CRect rcBackdrop;
+	CRect rcTools;
 	CRect rcToolRect;
 	CRect rcPalette;
 
@@ -84,8 +83,8 @@ protected:
 
 	virtual bool DoSave();
 
-	// Dialog Data
-	enum { IDD = IDD_OVERWORLDMAP_NEW };
+// Dialog Data
+	enum { IDD = IDD_OVERWORLDMAP };
 	CClearEdit m_landencrateedit;
 	CClearEdit m_seaencrateedit;
 	CButton	m_viewcoords;
@@ -146,12 +145,8 @@ protected:
 	CStatic m_mapstatic;
 	CStatic m_tilestatic;
 	CStatic m_palettestatic;
+	CStatic m_toolstatic;
 	CStatic m_backdropstatic;
-	CDrawingToolButton m_penbutton{ IDB_PNG_DRAWTOOL_PEN, 0 };
-	CDrawingToolButton m_blockbutton{ IDB_PNG_DRAWTOOL_BLOCK, 1 };
-	CDrawingToolButton m_custom1button{ IDB_PNG_DRAWTOOL_CUSTOM1, 2 };
-	CDrawingToolButton m_custom2button{ IDB_PNG_DRAWTOOL_CUSTOM2, 3 };
-	CDrawingToolButton m_custom3button{ IDB_PNG_DRAWTOOL_CUSTOM3, 4 };
 	CCloseButton m_closebutton;
 	CHelpbookButton m_helpbookbutton;
 
@@ -189,13 +184,13 @@ protected:
 	int BANK08_OFFSET = -1;
 	int BINBANK01DATA_OFFSET = -1;
 
-	// Overrides
-		// ClassWizard generated virtual function overrides
+// Overrides
+	// ClassWizard generated virtual function overrides
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();
 
-	// Implementation
-		// Generated message map functions
+// Implementation
+	// Generated message map functions
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnPaint();
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);

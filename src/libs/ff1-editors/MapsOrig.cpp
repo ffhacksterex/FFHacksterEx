@@ -1,8 +1,8 @@
-// Maps.cpp : implementation file
-// New implementation
+// MapsOrig.cpp : implementation file
+//
 
 #include "stdafx.h"
-#include "Maps.h"
+#include "MapsOrig.h"
 #include <AppSettings.h>
 #include <collection_helpers.h>
 #include <editor_label_functions.h>
@@ -58,14 +58,14 @@ namespace {
 
 
 /////////////////////////////////////////////////////////////////////////////
-// CMaps dialog
+// CMapsOrig dialog
 
-CMaps::CMaps(CWnd* pParent /*= nullptr */)
-	: CEditorWithBackground(CMaps::IDD, pParent)
+CMapsOrig::CMapsOrig(CWnd* pParent /*= nullptr */)
+	: CEditorWithBackground(CMapsOrig::IDD, pParent)
 {
 }
 
-void CMaps::DoDataExchange(CDataExchange* pDX)
+void CMapsOrig::DoDataExchange(CDataExchange* pDX)
 {
 	CEditorWithBackground::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_VIEWCOORDS, m_viewcoords);
@@ -132,14 +132,10 @@ void CMaps::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_MAPPALETTES, m_palettestatic);
 	DDX_Control(pDX, IDHELPBOOK, m_helpbookbutton);
 	DDX_Control(pDX, IDC_MAPS_ENCOUNTERRATE, m_encounterrateedit);
-	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_PEN, m_penbutton);
-	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_BLOCK, m_blockbutton);
-	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM1, m_custom1button);
-	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM2, m_custom2button);
 }
 
 
-BEGIN_MESSAGE_MAP(CMaps, CEditorWithBackground)
+BEGIN_MESSAGE_MAP(CMapsOrig, CEditorWithBackground)
 	ON_WM_PAINT()
 	ON_LBN_SELCHANGE(IDC_MAPLIST, OnSelchangeMaplist)
 	ON_BN_CLICKED(IDC_SHOWROOMS, OnShowrooms)
@@ -183,14 +179,13 @@ BEGIN_MESSAGE_MAP(CMaps, CEditorWithBackground)
 	ON_CBN_SELCHANGE(IDC_TELEPORT_LIST, OnSelchangeTeleportList)
 	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, OnMapImport)
 	ON_BN_CLICKED(IDC_BUTTON_EXPORT_MAP, OnMapExport)
-	ON_MESSAGE(WMA_DRAWTOOLBNCLICK, OnDrawToolBnClick)
 END_MESSAGE_MAP()
 
 
 /////////////////////////////////////////////////////////////////////////////
-// CMaps message handlers
+// CMapsOrig message handlers
 
-void CMaps::LoadRom()
+void CMapsOrig::LoadRom()
 {
 	cart->ClearROM();
 
@@ -256,7 +251,7 @@ void CMaps::LoadRom()
 	}
 }
 
-void CMaps::SaveRom()
+void CMapsOrig::SaveRom()
 {
 	if (cart->IsRom()) {
 		save_binary(cart->WorkRomPath, cart->ROM);
@@ -284,7 +279,7 @@ void CMaps::SaveRom()
 	}
 }
 
-BOOL CMaps::OnInitDialog()
+BOOL CMapsOrig::OnInitDialog() 
 {
 	cart = Project;
 	CEditorWithBackground::OnInitDialog();
@@ -310,11 +305,15 @@ BOOL CMaps::OnInitDialog()
 		OnViewcoords();
 
 		mousedown = 0;
+		IF_NOHANDLE(m_tools).Create(25, 25, ILC_COLOR4, 8, 0);
 		IF_NOHANDLE(redpen).CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
 		IF_NOHANDLE(m_sprites).Create(16, 16, ILC_COLOR16 + ILC_MASK, 16, 0);
 
-		m_penbutton.SetCheck(BST_CHECKED);
-		cur_tool = m_penbutton.GetToolIndex();
+		cur_tool = 0;
+
+		CBitmap bmp;
+		bmp.LoadBitmap(IDB_DRAWINGTOOLS);
+		m_tools.Add(&bmp, RGB(0, 0, 0)); bmp.DeleteObject();
 
 		ScrollOffset.x = 0;
 		ScrollOffset.y = 0;
@@ -322,6 +321,10 @@ BOOL CMaps::OnInitDialog()
 		m_vscroll.SetScrollRange(0, 48);
 
 		CRect rcpos;
+		GetControlRect(&m_showlastclick, &rcpos);
+		rcTools.SetRect(0, 0, 100, 25);
+		rcTools.OffsetRect(rcpos.left, rcpos.bottom + 3);
+
 		GetControlRect(&m_tilestatic, &rcpos);
 		rcTiles.SetRect(0, 0, 256, 128);
 		rcTiles.OffsetRect(rcpos.left + 8, rcpos.top + 16);
@@ -391,7 +394,7 @@ BOOL CMaps::OnInitDialog()
 	return TRUE;
 }
 
-void CMaps::ReloadSprites(CProgressCtrl* m_prog)
+void CMapsOrig::ReloadSprites(CProgressCtrl* m_prog)
 {
 	while(m_sprites.GetImageCount()) m_sprites.Remove(0);
 	CPaintDC dc(this);
@@ -420,7 +423,7 @@ void CMaps::ReloadSprites(CProgressCtrl* m_prog)
 	bmp.DeleteObject();
 }
 
-void CMaps::ReloadImages(CProgressCtrl* m_prog)
+void CMapsOrig::ReloadImages(CProgressCtrl* m_prog)
 {
 	if(!cart->OK_tiles[cur_map]){
 		cart->GetStandardTiles(cur_map,false).Create(16, 16, ILC_COLOR16, 64, 0);
@@ -438,19 +441,19 @@ void CMaps::ReloadImages(CProgressCtrl* m_prog)
 
 		for(int showrm = 0; showrm < 2; showrm++){
 		for(co = 0; co < 128; co++){
-				pal = cart->ROM[TILESETPALETTE_ASSIGNMENT + co + (cur_tileset << 7)] & 3;
-				offset = TILESETPATTERNTABLE_ASSIGNMENT + co + (cur_tileset << 9);
+			pal = cart->ROM[TILESETPALETTE_ASSIGNMENT + co + (cur_tileset << 7)] & 3;
+			offset = TILESETPATTERNTABLE_ASSIGNMENT + co + (cur_tileset << 9);
 
-				DrawTile(&mDC,0,0,cart,temp + (cart->ROM[offset] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
-				DrawTile(&mDC,8,0,cart,temp + (cart->ROM[offset + 128] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
-				DrawTile(&mDC,0,8,cart,temp + (cart->ROM[offset + 256] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
-				DrawTile(&mDC,8,8,cart,temp + (cart->ROM[offset + 384] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
+			DrawTile(&mDC,0,0,cart,temp + (cart->ROM[offset] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
+			DrawTile(&mDC,8,0,cart,temp + (cart->ROM[offset + 128] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
+			DrawTile(&mDC,0,8,cart,temp + (cart->ROM[offset + 256] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
+			DrawTile(&mDC,8,8,cart,temp + (cart->ROM[offset + 384] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
 
-				mDC.SelectObject(&dummy);
-				cart->GetStandardTiles(cur_map,showrm).Add(&bmp,RGB(255,1,255));
-				mDC.SelectObject(&bmp);
-				m_prog->OffsetPos(1);
-			}}
+			mDC.SelectObject(&dummy);
+			cart->GetStandardTiles(cur_map,showrm).Add(&bmp,RGB(255,1,255));
+			mDC.SelectObject(&bmp);
+			m_prog->OffsetPos(1);
+		}}
 
 		mDC.DeleteDC();
 		bmp.DeleteObject();
@@ -460,7 +463,7 @@ void CMaps::ReloadImages(CProgressCtrl* m_prog)
 	else m_prog->OffsetPos(256);
 }
 
-void CMaps::LoadValues()
+void CMapsOrig::LoadValues()
 {
 	//load the tileset
 	cur_tileset = cart->ROM[MAPTILESET_ASSIGNMENT + cur_map];
@@ -537,13 +540,13 @@ void CMaps::LoadValues()
 	OnFindkab();
 }
 
-void CMaps::LoadTileData()
+void CMapsOrig::LoadTileData()
 {
 	int offset = TILESET_TILEDATA + (cur_tileset << 8) + (cur_tile << 1);
 	BYTE temp = cart->ROM[offset];
 	BYTE byte2 = cart->ROM[offset + 1];
 
-	m_teleport_list.SetCurSel(byte2);
+	m_teleport_list.SetCurSel(byte2); 
 	m_text_list.SetCurSel(byte2);
 	m_fight_list.SetCurSel((byte2 + 1) % 0x81);
 	m_shop_list.SetCurSel(byte2 - 1);
@@ -597,7 +600,7 @@ void CMaps::LoadTileData()
 	UpdateTileData();
 }
 
-void CMaps::StoreValues()
+void CMapsOrig::StoreValues()
 {
 	StoreTileData();
 
@@ -673,10 +676,10 @@ void CMaps::StoreValues()
 	CompressMap();
 }
 
-void CMaps::StoreTileData()
+void CMapsOrig::StoreTileData()
 {
 	StoreTC();
-
+	
 	int offset = TILESET_TILEDATA + (cur_tileset << 8) + (cur_tile << 1);
 	BYTE temp = 0;
 	int byte2 = m_text_list.GetCurSel();
@@ -716,7 +719,7 @@ void CMaps::StoreTileData()
 	cart->ROM[offset + 1] = (BYTE)byte2;
 }
 
-void CMaps::OnPaint()
+void CMapsOrig::OnPaint() 
 {
 	CPaintDC dc(this);
 	CPen* origpen = dc.SelectObject(&redpen);
@@ -727,7 +730,7 @@ void CMaps::OnPaint()
 	//Draw the Tiles on the screen
 	for(coY = 0, tile = 0, pt.y = rcTiles.top; coY < 0x08; coY++, pt.y += 16){
 	for(coX = 0, pt.x = rcTiles.left; coX < 0x10; coX++, pt.x += 16, tile++)
-			cart->GetStandardTiles(cur_map,room).Draw(&dc,tile,pt,ILD_NORMAL);}
+		cart->GetStandardTiles(cur_map,room).Draw(&dc,tile,pt,ILD_NORMAL);}
 	pt.x = ((cur_tile & 0x0F) << 4) + rcTiles.left;
 	pt.y = (cur_tile & 0xF0) + rcTiles.top;
 	dc.MoveTo(pt); pt.x += 15;
@@ -739,7 +742,7 @@ void CMaps::OnPaint()
 	//Draw the map
 	for(coY = 0, pt.y = rcMap.top, coy = ScrollOffset.y; coY < 0x10; coY++, pt.y += 16, coy++){
 	for(coX = 0, pt.x = rcMap.left, cox = ScrollOffset.x; coX < 0x10; coX++, pt.x += 16, cox++)
-			cart->GetStandardTiles(cur_map,room).Draw(&dc,DecompressedMap[coy][cox],pt,ILD_NORMAL);}
+		cart->GetStandardTiles(cur_map,room).Draw(&dc,DecompressedMap[coy][cox],pt,ILD_NORMAL);}
 	CRect rcTemp = rcToolRect; rcTemp.NormalizeRect(); rcTemp.bottom += 1; rcTemp.right += 1;
 	CPoint copt;
 	if(mousedown == 1){
@@ -751,9 +754,9 @@ void CMaps::OnPaint()
 			tile = coX;
 			for(; coY < copt.y; coY++){
 			for(coX = tile; coX < copt.x; coX++){
-					pt.x = rcMap.left + (coX << 4); pt.y = rcMap.top + (coY << 4);
-					cart->GetStandardTiles(cur_map,room).Draw(&dc,cur_tile,pt,ILD_NORMAL);}}
-		}break;
+				pt.x = rcMap.left + (coX << 4); pt.y = rcMap.top + (coY << 4);
+				cart->GetStandardTiles(cur_map,room).Draw(&dc,cur_tile,pt,ILD_NORMAL);}}
+			   }break;
 		default:{
 			CBrush br; br.CreateSolidBrush(RGB(128,64,255));
 			rcTemp.left = ((rcTemp.left - ScrollOffset.x) << 4) + rcMap.left;
@@ -762,7 +765,7 @@ void CMaps::OnPaint()
 			rcTemp.bottom = ((rcTemp.bottom - ScrollOffset.y) << 4) + rcMap.top;
 			dc.FillRect(rcTemp,&br);
 			br.DeleteObject();
-		}break;
+				}break;
 		}
 	}
 	if(cart->ShowLastClick){
@@ -811,12 +814,19 @@ void CMaps::OnPaint()
 		dc.FillRect(rc,&br);
 		br.DeleteObject();}
 
+	//Draw the tools
+	pt.x = rcTools.left; pt.y = rcTools.top;
+	m_tools.Draw(&dc,0 + ((cur_tool == 0) * 4),pt,ILD_NORMAL); pt.x += 25;
+	m_tools.Draw(&dc,1 + ((cur_tool == 1) * 4),pt,ILD_NORMAL); pt.x += 25;
+	m_tools.Draw(&dc,2 + ((cur_tool == 5) * 4),pt,ILD_NORMAL); pt.x += 25;
+	m_tools.Draw(&dc,3 + ((cur_tool == 6) * 4),pt,ILD_NORMAL);
+
 	dc.SelectObject(origpen);
 
 	m_banner.Render(dc, 8, 8);
 }
 
-void CMaps::OnSelchangeMaplist()
+void CMapsOrig::OnSelchangeMaplist() 
 {
 	if (cur_map != -1) {
 		try {
@@ -841,10 +851,10 @@ void CMaps::OnSelchangeMaplist()
 	InvalidateRect(rcPalettes2,0);
 }
 
-void CMaps::OnShowrooms()
+void CMapsOrig::OnShowrooms() 
 {InvalidateRect(rcTiles,0); InvalidateRect(rcMap,0);}
 
-void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
+void CMapsOrig::OnLButtonDown(UINT nFlags, CPoint pt)
 {
 	mousedown = 0;
 	int tile;
@@ -861,13 +871,13 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 			UpdateClick(fixedpt);
 			DecompressedMap[fixedpt.y][fixedpt.x] = (BYTE)cur_tile;
 			InvalidateRect(rcMap,0);
-		}break;
+			   }break;
 		default:{		//fill/smarttools
 			mousedown = 1;
 			UpdateClick(fixedpt);
 			rcToolRect.SetRect(fixedpt.x,fixedpt.y,fixedpt.x,fixedpt.y);
 			InvalidateRect(rcMap,0);
-		}break;
+			   }break;
 
 		}
 	}
@@ -927,12 +937,17 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 			InvalidateRect(rcPalettes2,0);
 		}
 	}
+	else if(PtInRect(rcTools,pt)){
+		cur_tool = (pt.x - rcTools.left) / 25;
+		if(cur_tool > 1) cur_tool += 3;
+		InvalidateRect(rcTools,0);
+		m_customtool.EnableWindow(cur_tool > 1);}
 	else {
 		HandleLbuttonDrag(this);
 	}
 }
 
-void CMaps::OnMouseMove(UINT nFlags, CPoint pt)
+void CMapsOrig::OnMouseMove(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
@@ -950,12 +965,12 @@ void CMaps::OnMouseMove(UINT nFlags, CPoint pt)
 				case 0:{		//pencil
 					DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
 					InvalidateRect(rcMap,0);
-				}break;
+					   }break;
 				default:{		//fill / Smarttools
 					rcToolRect.right = ptHover.x;
 					rcToolRect.bottom = ptHover.y;
 					InvalidateRect(rcMap,0);
-				}break;
+					   }break;
 				}
 				UpdateClick(ptHover);
 			}
@@ -974,7 +989,7 @@ void CMaps::OnMouseMove(UINT nFlags, CPoint pt)
 	}
 }
 
-void CMaps::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+void CMapsOrig::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
 	UNREFERENCED_PARAMETER(pScrollBar);
 
@@ -992,7 +1007,7 @@ void CMaps::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	InvalidateRect(rcMap,FALSE);
 }
 
-void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+void CMapsOrig::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
 	UNREFERENCED_PARAMETER(pScrollBar);
 
@@ -1010,7 +1025,7 @@ void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	InvalidateRect(rcMap,FALSE);
 }
 
-void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
+void CMapsOrig::OnRButtonDblClk(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
@@ -1029,7 +1044,7 @@ void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
 		dlg.tintvalue = old;
 		dlg.m_tintvariant = cart->TintVariant;
 		if(dlg.DoModal() == IDOK){
-
+			
 			cart->OK_tiles[cur_map] = 0;
 			cart->GetStandardTiles(cur_map,0).DeleteImageList();
 			cart->GetStandardTiles(cur_map,1).DeleteImageList();
@@ -1053,7 +1068,7 @@ void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
 	}
 }
 
-void CMaps::OnRButtonDown(UINT nFlags, CPoint pt)
+void CMapsOrig::OnRButtonDown(UINT nFlags, CPoint pt)
 {
 	mousedown = 0;
 	if(PtInRect(rcTiles,pt)) OnLButtonDown(nFlags,pt);
@@ -1072,11 +1087,9 @@ void CMaps::OnRButtonDown(UINT nFlags, CPoint pt)
 		cur_tile = DecompressedMap[pt.y][pt.x];
 		LoadTileData();
 		if(cur_tool > 1){
-			CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
-				m_blockbutton.GetDlgCtrlID());
-			cur_tool = m_blockbutton.GetToolIndex();
-			m_customtool.EnableWindow(FALSE);
-		}
+			cur_tool = 1;
+			m_customtool.EnableWindow(0);
+			InvalidateRect(rcTools,0);}
 
 		//if they clicked on a sprite... adjust the Sprite Editor accordingly
 		for(int co = 0; co < MAPSPRITE_COUNT; co++){
@@ -1089,13 +1102,13 @@ void CMaps::OnRButtonDown(UINT nFlags, CPoint pt)
 	}
 }
 
-void CMaps::UpdatePics()
+void CMapsOrig::UpdatePics()
 {
 	CLoading dlg; dlg.Create(IDD_LOADING,this);
 	dlg.m_progress.SetRange(0,286);
 	dlg.m_progress.SetPos(0);
 	dlg.ShowWindow(1);
-
+	
 	cart->OK_tiles[cur_map] = 0;
 	cart->GetStandardTiles(cur_map,0).DeleteImageList();
 	cart->GetStandardTiles(cur_map,1).DeleteImageList();
@@ -1108,7 +1121,7 @@ void CMaps::UpdatePics()
 	InvalidateRect(rcMap,0);
 }
 
-void CMaps::UpdateTileData()
+void CMapsOrig::UpdateTileData()
 {
 	if(cur_tiledata & 0x77) cur_tiledata |= 0x01;
 
@@ -1141,56 +1154,56 @@ void CMaps::UpdateTileData()
 	m_editlabel.ShowWindow((cur_tiledata & 0x08) != 0);
 }
 
-void CMaps::OnMove()
+void CMapsOrig::OnMove() 
 {cur_tiledata ^= 0x01;
 UpdateTileData();}
-void CMaps::OnFight()
+void CMapsOrig::OnFight() 
 {cur_tiledata ^= 0x02;
 UpdateTileData();}
-void CMaps::OnShop()
+void CMapsOrig::OnShop() 
 {cur_tiledata ^= 0x04;
 UpdateTileData();}
-void CMaps::OnTc()
+void CMapsOrig::OnTc() 
 {cur_tiledata ^= 0x08;
 UpdateTileData();}
-void CMaps::OnSpecial()
+void CMapsOrig::OnSpecial() 
 {cur_tiledata ^= 0x10;
 UpdateTileData();}
-void CMaps::OnWarp()
+void CMapsOrig::OnWarp() 
 {cur_tiledata ^= 0x20;
 UpdateTileData();}
-void CMaps::OnTeleport()
+void CMapsOrig::OnTeleport() 
 {cur_tiledata ^= 0x40;
 UpdateTileData();}
 
-void CMaps::OnSelchangeTcList()
+void CMapsOrig::OnSelchangeTcList() 
 {
 	if(cur_tc != -1) StoreTC();
 	cur_tc = m_tc_list.GetCurSel();
 	LoadTC();
 }
 
-void CMaps::OnSelchangeTcitemList()
+void CMapsOrig::OnSelchangeTcitemList() 
 {
 	if(cur_tcitem != -1) StoreTCItem();
 	cur_tcitem = m_tcitem_list.GetCurSel();
 	LoadTCItem();
 }
 
-void CMaps::StoreTC()
+void CMapsOrig::StoreTC()
 {
 	StoreTCItem();
 	cart->ROM[TREASURE_OFFSET + cur_tc] = (BYTE)(cur_tcitem + 1);
 }
 
-void CMaps::LoadTC()
+void CMapsOrig::LoadTC()
 {
 	cur_tcitem = cart->ROM[TREASURE_OFFSET + cur_tc] - 1;
 	m_tcitem_list.SetCurSel(cur_tcitem);
 	LoadTCItem();
 }
 
-void CMaps::StoreTCItem()
+void CMapsOrig::StoreTCItem()
 {
 	int offset = ITEMPRICE_OFFSET + (cur_tcitem << 1);
 	int temp;
@@ -1200,14 +1213,14 @@ void CMaps::StoreTCItem()
 	cart->ROM[offset + 1] = (BYTE)(temp >> 8);
 }
 
-void CMaps::LoadTCItem()
+void CMapsOrig::LoadTCItem()
 {
 	int offset = ITEMPRICE_OFFSET + (cur_tcitem << 1);
 	CString text; text.Format("%d",cart->ROM[offset] + (cart->ROM[offset + 1] << 8));
 	m_tcitem_price.SetWindowText(text);
 }
 
-void CMaps::OnSelchangeTileset()
+void CMapsOrig::OnSelchangeTileset()
 {
 	StoreTileData();
 	cur_tileset = m_tileset.GetCurSel();
@@ -1215,7 +1228,7 @@ void CMaps::OnSelchangeTileset()
 	dlg.m_progress.SetRange(0,286);
 	dlg.m_progress.SetPos(0);
 	dlg.ShowWindow(1);
-
+	
 	cart->OK_tiles[cur_map] = 0;
 	cart->GetStandardTiles(cur_map,0).DeleteImageList();
 	cart->GetStandardTiles(cur_map,1).DeleteImageList();
@@ -1229,7 +1242,7 @@ void CMaps::OnSelchangeTileset()
 	LoadTileData();
 }
 
-void CMaps::OnSelchangeSpriteList()
+void CMapsOrig::OnSelchangeSpriteList()
 {
 	int temp = m_sprite_list.GetCurSel();
 	m_inroom.SetCheck(Sprite_InRoom[temp]);
@@ -1242,7 +1255,7 @@ void CMaps::OnSelchangeSpriteList()
 	m_spritegraphic.SetCurSel(cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[temp]]);
 }
 
-void CMaps::OnEditspritegfx()
+void CMapsOrig::OnEditspritegfx()
 {
 	OnSave();
 	CMapman dlg;
@@ -1252,16 +1265,16 @@ void CMaps::OnEditspritegfx()
 	dlg.DoModal();
 }
 
-void CMaps::OnStill()
+void CMapsOrig::OnStill() 
 {Sprite_StandStill[m_sprite_list.GetCurSel()] = m_still.GetCheck() != 0;}
 
-void CMaps::OnInroom()
+void CMapsOrig::OnInroom() 
 {
 	Sprite_InRoom[m_sprite_list.GetCurSel()] = m_inroom.GetCheck() != 0;
 	InvalidateRect(rcMap,0);
 }
 
-void CMaps::OnChangeSpritecoordx()
+void CMapsOrig::OnChangeSpritecoordx() 
 {
 	CString text; int number;
 	m_spritecoordx.GetWindowText(text); number = StringToInt_HEX(text);
@@ -1270,7 +1283,7 @@ void CMaps::OnChangeSpritecoordx()
 	InvalidateRect(rcMap,0);
 }
 
-void CMaps::OnChangeSpritecoordy()
+void CMapsOrig::OnChangeSpritecoordy() 
 {
 	CString text; int number;
 	m_spritecoordy.GetWindowText(text); number = StringToInt_HEX(text);
@@ -1279,27 +1292,27 @@ void CMaps::OnChangeSpritecoordy()
 	InvalidateRect(rcMap,0);
 }
 
-void CMaps::OnSelchangeSprite()
+void CMapsOrig::OnSelchangeSprite() 
 {
 	Sprite_Value[m_sprite_list.GetCurSel()] = (short)m_sprite.GetCurSel();
 	m_spritegraphic.SetCurSel(cart->ROM[MAPSPRITE_PICASSIGNMENT + m_sprite.GetCurSel()]);
 	InvalidateRect(rcMap,0);
 }
 
-void CMaps::OnSelchangeSpritegraphic()
+void CMapsOrig::OnSelchangeSpritegraphic()
 {
 	cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[m_sprite_list.GetCurSel()]] = (BYTE)m_spritegraphic.GetCurSel();
 	InvalidateRect(rcMap, 0);
 }
 
-void CMaps::UpdateClick(CPoint pt)
+void CMapsOrig::UpdateClick(CPoint pt)
 {
 	ptLastClick = pt;
 	CString text; text.Format("%X,%X",pt.x,pt.y);
 	m_lastclick.SetWindowText(text);
 }
 
-void CMaps::OnRButtonUp(UINT nFlags, CPoint point)
+void CMapsOrig::OnRButtonUp(UINT nFlags, CPoint point)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 	UNREFERENCED_PARAMETER(point);
@@ -1307,7 +1320,7 @@ void CMaps::OnRButtonUp(UINT nFlags, CPoint point)
 	mousedown = 0;
 }
 
-void CMaps::OnLButtonUp(UINT nFlags, CPoint pt)
+void CMapsOrig::OnLButtonUp(UINT nFlags, CPoint pt) 
 {
 	UNREFERENCED_PARAMETER(nFlags);
 	UNREFERENCED_PARAMETER(pt);
@@ -1321,44 +1334,44 @@ void CMaps::OnLButtonUp(UINT nFlags, CPoint pt)
 		case 1:{			//fill
 			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
 			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
-					DecompressedMap[coY][coX] = (BYTE)cur_tile;}
+				DecompressedMap[coY][coX] = (BYTE)cur_tile;}
 			InvalidateRect(rcMap,0);
-		}break;
+			   }break;
 		default:{			//smarttools
 			temp = cur_tool - 2 + (cur_tileset << 1);
 			//flood fill
 			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
-				for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
-					DecompressedMap[coY][coX] = cart->SmartTools[temp][4];}
+			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
+				DecompressedMap[coY][coX] = cart->SmartTools[temp][4];}
 			//"smart" top edge
 			coY = rcToolRect.top;
 			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++){
 				draw = 1;
 				if(coY){ for(co = 0; co < 6 && draw; co++){
-						if(DecompressedMap[coY - 1][coX] == cart->SmartTools[temp][co]) draw = 0;}}
+					if(DecompressedMap[coY - 1][coX] == cart->SmartTools[temp][co]) draw = 0;}}
 				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][1];}
 			//"smart" bottom edge
 			coY = rcToolRect.bottom;
 			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++){
 				draw = 1;
 				if(coY < 255){ for(co = 3; co < 9 && draw; co++){
-						if(DecompressedMap[coY + 1][coX] == cart->SmartTools[temp][co]) draw = 0;}}
+					if(DecompressedMap[coY + 1][coX] == cart->SmartTools[temp][co]) draw = 0;}}
 				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][7];}
 			//"smart" left edge
 			coX = rcToolRect.left;
 			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
 				draw = 1;
 				if(coX){ for(co = 0; co < 8 && draw; co++){
-						if(co % 3 == 2) co++;
-						if(DecompressedMap[coY][coX - 1] == cart->SmartTools[temp][co]) draw = 0;}}
+					if(co % 3 == 2) co++;
+					if(DecompressedMap[coY][coX - 1] == cart->SmartTools[temp][co]) draw = 0;}}
 				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][3];}
 			//"smart" right edge
 			coX = rcToolRect.right;
 			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
 				draw = 1;
 				if(coX < 255){ for(co = 1; co < 9 && draw; co++){
-						if(co % 3 == 0) co++;
-						if(DecompressedMap[coY][coX + 1] == cart->SmartTools[temp][co]) draw = 0;}}
+					if(co % 3 == 0) co++;
+					if(DecompressedMap[coY][coX + 1] == cart->SmartTools[temp][co]) draw = 0;}}
 				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][5];}
 			//"smart" NW corner
 			co = 0;
@@ -1434,16 +1447,16 @@ void CMaps::OnLButtonUp(UINT nFlags, CPoint pt)
 			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
 
 			InvalidateRect(rcMap,0);
-		}break;
+				}break;
 
 		}
 	}
 	mousedown = 0;
 }
-void CMaps::OnShowlastclick()
+void CMapsOrig::OnShowlastclick() 
 {cart->ShowLastClick = (m_showlastclick.GetCheck() != 0); InvalidateRect(rcMap,0);}
 
-void CMaps::OnCustomtool()
+void CMapsOrig::OnCustomtool()
 {
 	CCustomTool dlg;
 	dlg.dat = cart;
@@ -1452,7 +1465,7 @@ void CMaps::OnCustomtool()
 	dlg.DoModal();
 }
 
-void CMaps::OnFindkab()
+void CMapsOrig::OnFindkab() 
 {
 	kab = MAP_END - MAP_START;
 	int co;
@@ -1463,7 +1476,7 @@ void CMaps::OnFindkab()
 	text.Format("%d",kab); m_kab.SetWindowText(text);
 }
 
-int CMaps::GetByteCount(int map,bool compressed)
+int CMapsOrig::GetByteCount(int map,bool compressed)
 {
 	int count = 0;
 	int co, temp;
@@ -1491,7 +1504,7 @@ int CMaps::GetByteCount(int map,bool compressed)
 	return count + 1;
 }
 
-void CMaps::CompressMap()
+void CMapsOrig::CompressMap()
 {
 	/************************************************
 	WARNING!!!!
@@ -1551,19 +1564,19 @@ void CMaps::CompressMap()
 	cart->ROM[mapstart] = 0xFF;
 }
 
-void CMaps::OnEditSpriteLabel()
+void CMapsOrig::OnEditSpriteLabel() 
 {
 	int temp = m_sprite.GetCurSel();
 	ChangeLabel(*cart, -1, LoadSpriteLabel(*cart, temp), WriteSpriteLabel, temp, nullptr, &m_sprite);
 }
 
-void CMaps::OnEditgfxlabel()
+void CMapsOrig::OnEditgfxlabel() 
 {
 	int temp = m_spritegraphic.GetCurSel();
 	ChangeLabel(*cart, -1, LoadSpriteGraphicLabel(*cart, temp), WriteSpriteGraphicLabel, temp, nullptr, &m_spritegraphic);
 }
 
-void CMaps::OnMaplabel()
+void CMapsOrig::OnMaplabel()
 {
 	int themap = m_maplist.GetCurSel();
 	ChangeLabel(*cart, -1, LoadMapLabel(*cart, themap), WriteMapLabel, themap, &m_maplist, nullptr);
@@ -1574,19 +1587,19 @@ void CMaps::OnMaplabel()
 	coords_dlg.m_coord_l.SetCurSel(temp);
 }
 
-void CMaps::OnEditlabel()
+void CMapsOrig::OnEditlabel() 
 {
 	int temp = m_tc_list.GetCurSel();
 	ChangeLabel(*cart, -1, LoadTreasureLabel(*cart, temp), WriteTreasureLabel, temp, nullptr, &m_tc_list);
 }
 
-void CMaps::OnTilesetlabel()
+void CMapsOrig::OnTilesetlabel() 
 {
 	int temp = m_tileset.GetCurSel();
 	ChangeLabel(*cart, -1, LoadTilesetLabel(*cart, temp), WriteTilesetLabel, temp, nullptr, &m_tileset);
 }
 
-void CMaps::OnLButtonDblClk(UINT nFlags, CPoint pt)
+void CMapsOrig::OnLButtonDblClk(UINT nFlags, CPoint pt) 
 {
 	UNREFERENCED_PARAMETER(nFlags);
 	UNREFERENCED_PARAMETER(pt);
@@ -1617,7 +1630,7 @@ void CMaps::OnLButtonDblClk(UINT nFlags, CPoint pt)
 	}
 }
 
-void CMaps::OnMapExport()
+void CMapsOrig::OnMapExport() 
 {
 	CString text = LoadMapLabel(*cart, cur_map).name + " Map." + CString(FFH_MAP_EXT);
 	CString filename = Paths::Combine({ Project->AppSettings->PrefMapImportExportFolder , text });
@@ -1632,7 +1645,7 @@ void CMaps::OnMapExport()
 	fclose(file);
 }
 
-void CMaps::OnMapImport()
+void CMapsOrig::OnMapImport() 
 {
 	auto result = OpenFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Import Standard Map",
 		Project->AppSettings->PrefMapImportExportFolder);
@@ -1647,12 +1660,12 @@ void CMaps::OnMapImport()
 	InvalidateRect(rcMap,0);
 }
 
-void CMaps::OnViewcoords()
+void CMapsOrig::OnViewcoords()
 {
 	coords_dlg.ShowWindow(m_viewcoords.GetCheck());
 }
 
-void CMaps::UpdateTeleportLabel(int arid, bool NNTele)
+void CMapsOrig::UpdateTeleportLabel(int arid, bool NNTele)
 {
 	int temp = m_teleport_list.GetCurSel();
 	if (NNTele) {
@@ -1666,51 +1679,44 @@ void CMaps::UpdateTeleportLabel(int arid, bool NNTele)
 	m_teleport_list.SetCurSel(temp);
 }
 
-void CMaps::DoHScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
+void CMapsOrig::DoHScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 {
 	OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
-void CMaps::DoVScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
+void CMapsOrig::DoVScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 {
 	OnVScroll(nSBCode, nPos, pScrollBar);
 }
 
-void CMaps::DoViewcoords()
+void CMapsOrig::DoViewcoords()
 {
 	OnViewcoords();
 }
 
-void CMaps::DoOK()
+void CMapsOrig::DoOK()
 {
 	OnOK();
 }
 
-void CMaps::DoSelchangeMaplist()
+void CMapsOrig::DoSelchangeMaplist()
 {
 	OnSelchangeMaplist();
 }
 
-void CMaps::OnSelchangeTeleportList()
+void CMapsOrig::OnSelchangeTeleportList()
 {
 	if(!coords_dlg.m_mouseclick.GetCheck()){
 		coords_dlg.m_teleportlist.SetCurSel(m_teleport_list.GetCurSel() + ONTELEPORT_COUNT);
 		coords_dlg.OnSelchangeTeleportlist();}
 }
 
-LRESULT CMaps::OnDrawToolBnClick(WPARAM wparam, LPARAM lparam)
-{
-	cur_tool = (int)lparam;
-	m_customtool.EnableWindow(cur_tool > 1);
-	return 0;
-}
-
-void CMaps::UpdateTeleportLabel(int areaid, int type)
+void CMapsOrig::UpdateTeleportLabel(int areaid, int type)
 {
 	this->UpdateTeleportLabel(areaid, type == 1);
 }
 
-void CMaps::Cancel(int context)
+void CMapsOrig::Cancel(int context)
 {
 	if (context == Coords) {
 		m_viewcoords.SetCheck(0);
@@ -1718,17 +1724,17 @@ void CMaps::Cancel(int context)
 	}
 }
 
-POINT CMaps::GetLastClick()
+POINT CMapsOrig::GetLastClick()
 {
 	return ptLastClick;
 }
 
-int CMaps::GetCurMap()
+int CMapsOrig::GetCurMap()
 {
 	return cur_map;
 }
 
-void CMaps::TeleportHere(int mapindex, int x, int y)
+void CMapsOrig::TeleportHere(int mapindex, int x, int y)
 {
 	if (mapindex == 0xFF) {
 		BootToTeleportFollowup = 1;

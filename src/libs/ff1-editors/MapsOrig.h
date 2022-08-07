@@ -1,22 +1,21 @@
 #pragma once
-// Maps.h : header file
+// MapsOrig.h : header file
 
 #include <EditorWithBackground.h>
 #include "ICoordMap.h"
 #include <vector>
 #include "afxwin.h"
-#include <DrawingToolButton.h>
 class CFFHacksterProject;
 class CEntriesLoader;
 
 /////////////////////////////////////////////////////////////////////////////
-// CMaps dialog
+// CMapsOrig dialog
 
-class CMaps : public CEditorWithBackground, public ICoordMap
+class CMapsOrig : public CEditorWithBackground, public ICoordMap
 {
-	// Construction
+// Construction
 public:
-	CMaps(CWnd* pParent = nullptr);   // standard constructor
+	CMapsOrig(CWnd* pParent = nullptr);   // standard constructor
 
 	enum CancelContext { Coords };
 
@@ -55,11 +54,13 @@ protected:
 
 	BYTE DecompressedMap[0x40][0x40];
 	CImageList m_sprites;
+	CImageList m_tools;
 	CPen redpen;
 	CRect rcTiles;
 	CRect rcMap;
 	CRect rcPalettes;
 	CRect rcPalettes2;
+	CRect rcTools;
 	CRect rcToolRect;
 	CPoint ScrollOffset;
 	std::vector<CPoint> Sprite_Coords; // MAPSPRITE_COUNT;
@@ -96,8 +97,8 @@ protected:
 	BYTE SpritePalette[2][4];
 	BYTE ControlPalette[8];
 
-	// Dialog Data
-	enum { IDD = IDD_MAPS_NEW };
+// Dialog Data
+	enum { IDD = IDD_MAPS };
 	CBorderedListBox	m_maplist;
 	CClearEdit m_encounterrateedit;
 	CStatic	m_kab;
@@ -159,10 +160,6 @@ protected:
 	CStatic m_mapstatic;
 	CStatic m_tilestatic;
 	CStatic m_palettestatic;
-	CDrawingToolButton m_penbutton{ IDB_PNG_DRAWTOOL_PEN, 0 };
-	CDrawingToolButton m_blockbutton{ IDB_PNG_DRAWTOOL_BLOCK, 1 };
-	CDrawingToolButton m_custom1button{ IDB_PNG_DRAWTOOL_CUSTOM1, 5 };
-	CDrawingToolButton m_custom2button{ IDB_PNG_DRAWTOOL_CUSTOM2, 6 };
 	CCloseButton m_closebutton;
 	CHelpbookButton m_helpbookbutton;
 
@@ -190,7 +187,7 @@ protected:
 	int BATTLEDOMAIN_OFFSET = -1;
 	unsigned int BATTLEPROBABILITY_OFFSET = (unsigned int)-1;
 	int TREASURE_OFFSET = -1;
-	unsigned int MAPBATTLERATE_OFFSET = (unsigned int)-1;
+	unsigned int MAPBATTLERATE_OFFSET = (unsigned int )-1;
 
 	int BANK0A_OFFSET = -1;
 	int BANK00_OFFSET = -1;
@@ -203,13 +200,13 @@ protected:
 	int BINBANK01DATA_OFFSET = -1;
 	int BINPRICEDATA_OFFSET = -1;
 
-	// Overrides
-		// ClassWizard generated virtual function overrides
+// Overrides
+	// ClassWizard generated virtual function overrides
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();
 
-	// Implementation
-		// Generated message map functions
+// Implementation
+	// Generated message map functions
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnPaint();
 	afx_msg void OnSelchangeMaplist();
@@ -253,5 +250,4 @@ protected:
 	afx_msg void OnMapImport();
 	afx_msg void OnViewcoords();
 	afx_msg void OnSelchangeTeleportList();
-	afx_msg LRESULT OnDrawToolBnClick(WPARAM wparam, LPARAM lparam);
 };

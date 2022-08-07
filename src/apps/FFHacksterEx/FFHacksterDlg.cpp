@@ -60,6 +60,9 @@
 #include <SpriteDialogueSettingsDlg.h>
 #include <TextEditorSettingsDlg.h>
 
+#include <MapsOrig.h>
+#include <OverworldMapOrig.h>
+
 
 using namespace Imaging;
 using namespace Io;

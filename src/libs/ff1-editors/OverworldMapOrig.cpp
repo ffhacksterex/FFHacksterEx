@@ -1,8 +1,8 @@
-// OverworldMap.cpp : implementation file
-// new implementation
+// OverworldMapOrig.cpp : implementation file
+//
 
 #include "stdafx.h"
-#include "OverworldMap.h"
+#include "OverworldMapOrig.h"
 #include <AppSettings.h>
 #include "FFHacksterProject.h"
 #include "collection_helpers.h"
@@ -52,14 +52,14 @@ namespace {
 
 
 /////////////////////////////////////////////////////////////////////////////
-// COverworldMap dialog
+// COverworldMapOrig dialog
 
-COverworldMap::COverworldMap(CWnd* pParent /*= nullptr */)
-	: CEditorWithBackground(COverworldMap::IDD, pParent)
+COverworldMapOrig::COverworldMapOrig(CWnd* pParent /*= nullptr */)
+	: CEditorWithBackground(COverworldMapOrig::IDD, pParent)
 {
 }
 
-void COverworldMap::DoDataExchange(CDataExchange* pDX)
+void COverworldMapOrig::DoDataExchange(CDataExchange* pDX)
 {
 	CEditorWithBackground::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_VIEWCOORDS, m_viewcoords);
@@ -121,19 +121,15 @@ void COverworldMap::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_MAPS, m_mapstatic);
 	DDX_Control(pDX, IDC_STATIC_TILES, m_tilestatic);
 	DDX_Control(pDX, IDC_STATIC_MAPPALETTES, m_palettestatic);
+	DDX_Control(pDX, IDC_STATIC_TOOLS, m_toolstatic);
 	DDX_Control(pDX, IDC_STATIC_BACKDROP, m_backdropstatic);
 	DDX_Control(pDX, IDHELPBOOK, m_helpbookbutton);
 	DDX_Control(pDX, IDC_OW_LAND_ENCOUNTERRATE, m_landencrateedit);
 	DDX_Control(pDX, IDC_OW_SEA_ENCOUNTERRATE2, m_seaencrateedit);
-	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_PEN, m_penbutton);
-	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_BLOCK, m_blockbutton);
-	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM1, m_custom1button);
-	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM2, m_custom2button);
-	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM3, m_custom3button);
 }
 
 
-BEGIN_MESSAGE_MAP(COverworldMap, CEditorWithBackground)
+BEGIN_MESSAGE_MAP(COverworldMapOrig, CEditorWithBackground)
 	ON_WM_PAINT()
 	ON_WM_HSCROLL()
 	ON_WM_VSCROLL()
@@ -174,37 +170,36 @@ BEGIN_MESSAGE_MAP(COverworldMap, CEditorWithBackground)
 	ON_EN_CHANGE(IDC_PROBABILITY7, OnChangeProbability)
 	ON_EN_CHANGE(IDC_PROBABILITY8, OnChangeProbability)
 	ON_CBN_SELCHANGE(IDC_TELEPORTBOX, OnSelchangeTeleportbox)
-	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, &COverworldMap::OnBnClickedButtonImportMap)
-	ON_BN_CLICKED(IDC_BUTTON_EXPORT_MAP, &COverworldMap::OnBnClickedButtonExportMap)
-	ON_MESSAGE(WMA_DRAWTOOLBNCLICK, OnDrawToolBnClick)
+	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, &COverworldMapOrig::OnBnClickedButtonImportMap)
+	ON_BN_CLICKED(IDC_BUTTON_EXPORT_MAP, &COverworldMapOrig::OnBnClickedButtonExportMap)
 END_MESSAGE_MAP()
 
 
 /////////////////////////////////////////////////////////////////////////////
-// COverworldMap message handlers
+// COverworldMapOrig message handlers
 
 
-void COverworldMap::DoHScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
+void COverworldMapOrig::DoHScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 {
 	OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
-void COverworldMap::DoVScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
+void COverworldMapOrig::DoVScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 {
 	OnVScroll(nSBCode, nPos, pScrollBar);
 }
 
-void COverworldMap::DoMinimap()
+void COverworldMapOrig::DoMinimap()
 {
 	OnMinimap();
 }
 
-void COverworldMap::DoViewcoords()
+void COverworldMapOrig::DoViewcoords()
 {
 	OnViewcoords();
 }
 
-void COverworldMap::LoadRom()
+void COverworldMapOrig::LoadRom()
 {
 	cart->ClearROM();
 
@@ -266,7 +261,7 @@ void COverworldMap::LoadRom()
 	}
 }
 
-void COverworldMap::SaveRom()
+void COverworldMapOrig::SaveRom()
 {
 	if (cart->IsRom()) {
 		save_binary(cart->WorkRomPath, cart->ROM);
@@ -292,7 +287,7 @@ void COverworldMap::SaveRom()
 	}
 }
 
-BOOL COverworldMap::OnInitDialog()
+BOOL COverworldMapOrig::OnInitDialog()
 {
 	cart = Project;
 	CEditorWithBackground::OnInitDialog();
@@ -370,12 +365,13 @@ BOOL COverworldMap::OnInitDialog()
 		rcMap.SetRect(0, 0, 256, 256);
 		rcMap.OffsetRect(rcpos.left + 8, rcpos.top + 16);
 
+		GetControlRect(&m_toolstatic, &rcpos);
+		rcTools.SetRect(0, 0, 125, 25);
+		rcTools.OffsetRect(rcpos.left, rcpos.top);
+
 		GetControlRect(&m_palettestatic, &rcpos);
 		rcPalette.SetRect(0, 0, 256, 32);
 		rcPalette.OffsetRect(rcpos.left + 4, rcpos.top + 4);
-
-		m_penbutton.SetCheck(BST_CHECKED);
-		cur_tool = m_penbutton.GetToolIndex();
 
 		m_hscroll.SetScrollRange(0, 240);
 		m_vscroll.SetScrollRange(0, 240);
@@ -403,6 +399,13 @@ BOOL COverworldMap::OnInitDialog()
 		IF_NOHANDLE(m_sprites).Create(16, 16, ILC_COLOR16 + ILC_MASK, 5, 0);
 
 		ReloadGraphics();
+
+		IF_NOHANDLE(m_tools).Create(25, 25, ILC_COLOR4, 10, 0);
+
+		CBitmap bmp;
+		bmp.LoadBitmap(IDB_ADVDRAWINGTOOLS);
+		m_tools.Add(&bmp, RGB(0, 0, 0)); bmp.DeleteObject();
+
 		DecompressMap();
 
 		m_showlastclick.SetCheck(cart->ShowLastClick);
@@ -433,7 +436,7 @@ BOOL COverworldMap::OnInitDialog()
 	return TRUE;
 }
 
-void COverworldMap::LoadTileData()
+void COverworldMapOrig::LoadTileData()
 {
 	int temp = OVERWORLD_TILEDATA + (cur_tile << 1);
 	BYTE data[2];
@@ -477,7 +480,7 @@ void COverworldMap::LoadTileData()
 	InvalidateRect(rcBackdrop,0);
 }
 
-void COverworldMap::StoreTileData()
+void COverworldMapOrig::StoreTileData()
 {
 	int temp = OVERWORLD_TILEDATA + (cur_tile << 1);
 	BYTE data[2] = {0,0};
@@ -507,7 +510,7 @@ void COverworldMap::StoreTileData()
 	cart->ROM[BATTLEBACKDROPASSIGNMENT_OFFSET + cur_tile] = (BYTE)m_backdroplist.GetCurSel();
 }
 
-void COverworldMap::DecompressMap()
+void COverworldMapOrig::DecompressMap()
 {
 	// This takes the compressed map from the ROM and loads it into DecompressedMap[][]
 	int offset, ptr;
@@ -539,7 +542,7 @@ void COverworldMap::DecompressMap()
 	OnFindKAB();
 }
 
-void COverworldMap::ReloadGraphics()
+void COverworldMapOrig::ReloadGraphics()
 {
 	CLoading dlg; dlg.Create(IDD_LOADING,this);
 	dlg.m_progress.SetRange(0,133);
@@ -590,7 +593,7 @@ void COverworldMap::ReloadGraphics()
 	dlg.DestroyWindow();
 }
 
-void COverworldMap::ReloadSpriteGraphics(CProgressCtrl* m_prog)
+void COverworldMapOrig::ReloadSpriteGraphics(CProgressCtrl* m_prog)
 {
 	while(m_sprites.GetImageCount()) m_sprites.Remove(0);
 	BYTE FixedPals[4][4] = { 0 };
@@ -629,7 +632,7 @@ void COverworldMap::ReloadSpriteGraphics(CProgressCtrl* m_prog)
 	dummy.DeleteObject();
 }
 
-void COverworldMap::InitBackdrops()
+void COverworldMapOrig::InitBackdrops()
 {
 	IF_NOHANDLE(m_backdrop).Create(64,32,ILC_COLOR16,16,0);
 	CBitmap bmp;
@@ -663,7 +666,7 @@ void COverworldMap::InitBackdrops()
 	dummy.DeleteObject();
 }
 
-void COverworldMap::OnPaint() 
+void COverworldMapOrig::OnPaint() 
 {
 	CPaintDC dc(this);
 	CPen* origpen = dc.SelectObject(&redpen);
@@ -765,6 +768,14 @@ void COverworldMap::OnPaint()
 	m_backdrop.Draw(&dc,tile,pt,ILD_NORMAL); pt.x += 64;
 	m_backdrop.Draw(&dc,tile,pt,ILD_NORMAL);
 
+	//Draw the tools
+	pt.x = rcTools.left; pt.y = rcTools.top;
+	m_tools.Draw(&dc,0 + ((cur_tool == 0) * 5),pt,ILD_NORMAL); pt.x += 25;
+	m_tools.Draw(&dc,1 + ((cur_tool == 1) * 5),pt,ILD_NORMAL); pt.x += 25;
+	m_tools.Draw(&dc,2 + ((cur_tool == 2) * 5),pt,ILD_NORMAL); pt.x += 25;
+	m_tools.Draw(&dc,3 + ((cur_tool == 3) * 5),pt,ILD_NORMAL); pt.x += 25;
+	m_tools.Draw(&dc,4 + ((cur_tool == 4) * 5),pt,ILD_NORMAL);
+
 	//Draw the palette!
 	CBrush br;
 	rc = rcPalette;
@@ -780,7 +791,7 @@ void COverworldMap::OnPaint()
 	m_banner.Render(dc, 8, 8);
 }
 
-void COverworldMap::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
+void COverworldMapOrig::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
 	UNREFERENCED_PARAMETER(pScrollBar);
 
@@ -799,7 +810,7 @@ void COverworldMap::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	InvalidateRect(rcMap,FALSE);
 }
 
-void COverworldMap::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
+void COverworldMapOrig::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
 	UNREFERENCED_PARAMETER(pScrollBar);
 
@@ -818,7 +829,7 @@ void COverworldMap::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	InvalidateRect(rcMap,FALSE);
 }
 
-void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
+void COverworldMapOrig::OnLButtonDown(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
@@ -848,8 +859,11 @@ void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
 		pt.y = (pt.y - rcTiles.top) & 0xF0;
 		cur_tile = pt.y + pt.x;
 		InvalidateRect(rcTiles,0);
-		LoadTileData();
-	}
+		LoadTileData();}
+	else if(PtInRect(rcTools,pt)){
+		cur_tool = (short)((pt.x - rcTools.left) / 25);
+		InvalidateRect(rcTools,0);
+		m_customizetool.EnableWindow(cur_tool > 1);}
 	else if(PtInRect(rcPalette,pt)){
 		pt.y = (pt.y - rcPalette.top) >> 4;
 		pt.x = (pt.x - rcPalette.left) >> 4;
@@ -876,7 +890,7 @@ void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
 	}
 }
 
-void COverworldMap::OnRButtonDown(UINT nFlags, CPoint pt)
+void COverworldMapOrig::OnRButtonDown(UINT nFlags, CPoint pt)
 {
 	mousedown = 0;
 	if(PtInRect(rcTiles,pt)) OnLButtonDown(nFlags,pt);
@@ -888,12 +902,9 @@ void COverworldMap::OnRButtonDown(UINT nFlags, CPoint pt)
 		UpdateClick(pt);
 		InvalidateRect(rcTiles,0);
 		LoadTileData();
-		if (cur_tool > 1) {
-			CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
-				m_blockbutton.GetDlgCtrlID());
-			cur_tool = m_blockbutton.GetToolIndex();
-			m_customizetool.EnableWindow(FALSE);
-		}
+		if(cur_tool > 1){
+			cur_tool = 1;
+			InvalidateRect(rcTools,0);}
 		if(m_showlastclick.GetCheck()) InvalidateRect(rcMap,0);
 
 		
@@ -907,16 +918,16 @@ void COverworldMap::OnRButtonDown(UINT nFlags, CPoint pt)
 	}
 }
 
-void COverworldMap::OnEditlabel()
+void COverworldMapOrig::OnEditlabel()
 {
 	int temp = m_backdroplist.GetCurSel();
 	ChangeLabel(*cart, -1, LoadBackdropLabel(*cart, temp), WriteBackdropLabel, temp, nullptr, &m_backdroplist);
 }
 
-void COverworldMap::OnSelchangeBackdrop() 
+void COverworldMapOrig::OnSelchangeBackdrop() 
 {InvalidateRect(rcBackdrop);}
 
-void COverworldMap::OnMouseMove(UINT nFlags, CPoint pt) 
+void COverworldMapOrig::OnMouseMove(UINT nFlags, CPoint pt) 
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
@@ -958,7 +969,7 @@ void COverworldMap::OnMouseMove(UINT nFlags, CPoint pt)
 	}
 }
 
-void COverworldMap::UpdateClick(CPoint pt)
+void COverworldMapOrig::UpdateClick(CPoint pt)
 {
 	CString text;
 	if(ptLastClick == pt) return;
@@ -982,7 +993,7 @@ void COverworldMap::UpdateClick(CPoint pt)
 	m_lastclick.SetWindowText(text);
 }
 
-void COverworldMap::LoadDomain()
+void COverworldMapOrig::LoadDomain()
 {
 	int ref = (ptDomain.y << 3) + ptDomain.x;
 	ref = BATTLEDOMAIN_OFFSET + (ref << 3);
@@ -1020,7 +1031,7 @@ void COverworldMap::LoadDomain()
 	}
 }
 
-void COverworldMap::StoreDomain()
+void COverworldMapOrig::StoreDomain()
 {
 	int ref = (ptDomain.y << 3) + ptDomain.x;
 	ref = BATTLEDOMAIN_OFFSET + (ref << 3);
@@ -1062,41 +1073,41 @@ void COverworldMap::StoreDomain()
 	}
 }
 
-void COverworldMap::OnChangeProbability() 
+void COverworldMapOrig::OnChangeProbability() 
 {probabilitychanged = 1;}
 
-void COverworldMap::OnFightNone() 
+void COverworldMapOrig::OnFightNone() 
 {UpdateFight(0);}
-void COverworldMap::OnFightNormal() 
+void COverworldMapOrig::OnFightNormal() 
 {UpdateFight(1);}
-void COverworldMap::OnFightOcean() 
+void COverworldMapOrig::OnFightOcean() 
 {UpdateFight(2);}
-void COverworldMap::OnFightRiver() 
+void COverworldMapOrig::OnFightRiver() 
 {UpdateFight(3);}
-void COverworldMap::UpdateFight(int update)
+void COverworldMapOrig::UpdateFight(int update)
 {
 	m_fight_none.SetCheck(update == 0);
 	m_fight_normal.SetCheck(update == 1);
 	m_fight_ocean.SetCheck(update == 2);
 	m_fight_river.SetCheck(update == 3);
 }
-void COverworldMap::OnCaravan() 
+void COverworldMapOrig::OnCaravan() 
 {UpdateMisc(m_caravan.GetCheck());}
-void COverworldMap::OnChime() 
+void COverworldMapOrig::OnChime() 
 {UpdateMisc(m_chime.GetCheck() << 1);}
-void COverworldMap::OnRaiseairship() 
+void COverworldMapOrig::OnRaiseairship() 
 {UpdateMisc(m_raiseairship.GetCheck() << 2);}
-void COverworldMap::UpdateMisc(int update)
+void COverworldMapOrig::UpdateMisc(int update)
 {
 	m_caravan.SetCheck(update == 1);
 	m_chime.SetCheck(update == 2);
 	m_raiseairship.SetCheck(update == 4);
 }
-void COverworldMap::OnShowlastclick() 
+void COverworldMapOrig::OnShowlastclick() 
 {cart->ShowLastClick = (m_showlastclick.GetCheck() != 0); InvalidateRect(rcMap,0);}
-void COverworldMap::OnDrawgrid() 
+void COverworldMapOrig::OnDrawgrid() 
 {cart->DrawDomainGrid = (m_drawgrid.GetCheck() != 0); InvalidateRect(rcMap,0);}
-void COverworldMap::OnTeleport() 
+void COverworldMapOrig::OnTeleport() 
 {
 	bool teleport = m_teleport.GetCheck() != 0;
 	m_fight_none.EnableWindow(!teleport);
@@ -1106,7 +1117,7 @@ void COverworldMap::OnTeleport()
 	m_teleportbox.ShowWindow(teleport);
 }
 
-void COverworldMap::OnLButtonUp(UINT nFlags, CPoint point) 
+void COverworldMapOrig::OnLButtonUp(UINT nFlags, CPoint point) 
 {
 	UNREFERENCED_PARAMETER(nFlags);
 	UNREFERENCED_PARAMETER(point);
@@ -1239,7 +1250,7 @@ void COverworldMap::OnLButtonUp(UINT nFlags, CPoint point)
 	mousedown = 0;
 }
 
-void COverworldMap::OnFindKAB() 
+void COverworldMapOrig::OnFindKAB() 
 {
 	kab = 0;
 	int coX, coY, coRecycle;
@@ -1274,7 +1285,7 @@ void COverworldMap::OnFindKAB()
 
 }
 
-void COverworldMap::OnCustomizetool()
+void COverworldMapOrig::OnCustomizetool()
 {
 	CCustomTool dlg;
 	dlg.dat = cart;
@@ -1283,7 +1294,7 @@ void COverworldMap::OnCustomizetool()
 	dlg.DoModal();
 }
 
-void COverworldMap::CompressMap()
+void COverworldMapOrig::CompressMap()
 {
 	int ThisRun, RunLength;
 	int coY, coX, co, coR;
@@ -1341,7 +1352,7 @@ void COverworldMap::CompressMap()
 		cart->ROM[co + OVERWORLDPALETTE_OFFSET] = palette[0][co];
 }
 
-void COverworldMap::OnRButtonDblClk(UINT nFlags, CPoint pt)
+void COverworldMapOrig::OnRButtonDblClk(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
@@ -1375,7 +1386,7 @@ void COverworldMap::OnRButtonDblClk(UINT nFlags, CPoint pt)
 	}
 }
 
-void COverworldMap::OnEditgraphics()
+void COverworldMapOrig::OnEditgraphics()
 {
 	CBackdrop dlg;
 	dlg.Project = cart;
@@ -1390,7 +1401,7 @@ void COverworldMap::OnEditgraphics()
 	}
 }
 
-void COverworldMap::OnLButtonDblClk(UINT nFlags, CPoint pt)
+void COverworldMapOrig::OnLButtonDblClk(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
@@ -1415,7 +1426,7 @@ void COverworldMap::OnLButtonDblClk(UINT nFlags, CPoint pt)
 	}
 }
 
-void COverworldMap::OnSelchangeMisccoords() 
+void COverworldMapOrig::OnSelchangeMisccoords() 
 {
 	CString text;
 	text.Format("%X",misccoords[m_misccoords.GetCurSel()].x);
@@ -1424,7 +1435,7 @@ void COverworldMap::OnSelchangeMisccoords()
 	m_miscy.SetWindowText(text);
 }
 
-void COverworldMap::StoreMiscCoords()
+void COverworldMapOrig::StoreMiscCoords()
 {
 	misccoords[0].x -= 7;
 	misccoords[0].y -= 7;
@@ -1437,7 +1448,7 @@ void COverworldMap::StoreMiscCoords()
 	misccoords[0].y += 7;
 }
 
-bool COverworldMap::DoSave()
+bool COverworldMapOrig::DoSave()
 {
 	try {
 		CWaitCursor wait;
@@ -1464,7 +1475,7 @@ bool COverworldMap::DoSave()
 	return false;
 }
 
-void COverworldMap::OnChangeMiscx() 
+void COverworldMapOrig::OnChangeMiscx() 
 {
 	CString text; int number;
 	m_miscx.GetWindowText(text); number = StringToInt_HEX(text);
@@ -1473,7 +1484,7 @@ void COverworldMap::OnChangeMiscx()
 	InvalidateRect(rcMap,0);
 }
 
-void COverworldMap::OnChangeMiscy() 
+void COverworldMapOrig::OnChangeMiscy() 
 {
 	CString text; int number;
 	m_miscy.GetWindowText(text); number = StringToInt_HEX(text);
@@ -1482,14 +1493,14 @@ void COverworldMap::OnChangeMiscy()
 	InvalidateRect(rcMap,0);
 }
 
-void COverworldMap::OnRButtonUp(UINT nFlags, CPoint point)
+void COverworldMapOrig::OnRButtonUp(UINT nFlags, CPoint point)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 	UNREFERENCED_PARAMETER(point);
 	mousedown = (BYTE)0;
 }
 
-void COverworldMap::OnMapExport() 
+void COverworldMapOrig::OnMapExport() 
 {
 	CString text = "Overworld Map." + CString(FFH_MAP_EXT);
 	CString filename = Paths::Combine({ Project->AppSettings->PrefMapImportExportFolder , text });
@@ -1504,7 +1515,7 @@ void COverworldMap::OnMapExport()
 	fclose(file);
 }
 
-void COverworldMap::OnMapImport() 
+void COverworldMapOrig::OnMapImport() 
 {
 	auto result = OpenFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Import Overworld Map",
 		Project->AppSettings->PrefMapImportExportFolder);
@@ -1519,7 +1530,7 @@ void COverworldMap::OnMapImport()
 	InvalidateRect(rcMap,0);
 }
 
-void COverworldMap::OnMinimap()
+void COverworldMapOrig::OnMinimap()
 {
 	if(m_minimap.GetCheck()){
 		minimap.rcNew.SetRect(ScrollOffset.x,ScrollOffset.y,ScrollOffset.x + 16,ScrollOffset.y + 16);
@@ -1527,12 +1538,12 @@ void COverworldMap::OnMinimap()
 	minimap.ShowWindow(m_minimap.GetCheck());
 }
 
-void COverworldMap::OnViewcoords()
+void COverworldMapOrig::OnViewcoords()
 {
 	coord_dlg.ShowWindow(m_viewcoords.GetCheck());
 }
 
-void COverworldMap::UpdateTeleportLabel(int arid)
+void COverworldMapOrig::UpdateTeleportLabel(int arid)
 {
 	int temp = m_teleportbox.GetCurSel();
 	m_teleportbox.DeleteString(arid);
@@ -1540,38 +1551,31 @@ void COverworldMap::UpdateTeleportLabel(int arid)
 	m_teleportbox.SetCurSel(temp);
 }
 
-void COverworldMap::OnSelchangeTeleportbox()
+void COverworldMapOrig::OnSelchangeTeleportbox()
 {
 	if(!coord_dlg.m_mouseclick.GetCheck()){
 		coord_dlg.m_teleportlist.SetCurSel(m_teleportbox.GetCurSel());
 		coord_dlg.OnSelchangeTeleportlist();}
 }
 
-void COverworldMap::OnBnClickedButtonImportMap()
+void COverworldMapOrig::OnBnClickedButtonImportMap()
 {
 	OnMapImport();
 }
 
-void COverworldMap::OnBnClickedButtonExportMap()
+void COverworldMapOrig::OnBnClickedButtonExportMap()
 {
 	OnMapExport();
 }
 
-LRESULT COverworldMap::OnDrawToolBnClick(WPARAM wparam, LPARAM lparam)
-{
-	cur_tool = (int)lparam;
-	m_customizetool.EnableWindow(cur_tool > 1);
-	return 0;
-}
-
-void COverworldMap::UpdateTeleportLabel(int areaid, int type)
+void COverworldMapOrig::UpdateTeleportLabel(int areaid, int type)
 {
 	UNREFERENCED_PARAMETER(type);
 
 	this->UpdateTeleportLabel(areaid);
 }
 
-void COverworldMap::Cancel(int context)
+void COverworldMapOrig::Cancel(int context)
 {
 	if (context == Coords) {
 		m_viewcoords.SetCheck(0);
@@ -1583,17 +1587,17 @@ void COverworldMap::Cancel(int context)
 	}
 }
 
-POINT COverworldMap::GetLastClick()
+POINT COverworldMapOrig::GetLastClick()
 {
 	return ptLastClick;
 }
 
-int COverworldMap::GetCurMap()
+int COverworldMapOrig::GetCurMap()
 {
 	return -1;
 }
 
-void COverworldMap::TeleportHere(int mapindex, int x, int y)
+void COverworldMapOrig::TeleportHere(int mapindex, int x, int y)
 {
 	if (mapindex == 0xFF) {
 		ptLastClick = CPoint(x, y);

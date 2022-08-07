@@ -42,10 +42,10 @@
     <ClInclude Include="Magic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Maps.h">
+    <ClInclude Include="MapsOrig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OverworldMap.h">
+    <ClInclude Include="OverworldMapOrig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Shop.h">
@@ -78,6 +78,12 @@
     <ClInclude Include="EnemyBattleUsageData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Maps.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OverworldMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -101,10 +107,10 @@
     <ClCompile Include="Magic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Maps.cpp">
+    <ClCompile Include="MapsOrig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OverworldMap.cpp">
+    <ClCompile Include="OverworldMapOrig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Shop.cpp">
@@ -132,6 +138,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EnemyBattleUsageData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Maps.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OverworldMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
