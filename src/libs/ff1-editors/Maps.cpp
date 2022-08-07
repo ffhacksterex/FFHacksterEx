@@ -373,7 +373,16 @@ BOOL CMaps::OnInitDialog()
 		m_sprite_list.SetCurSel(0);
 		m_tileset.SetCurSel(0);
 		m_maplist.SetCurSel(0);
+
+		m_maplink.m_showrooms = &m_showrooms;
+		m_maplink.cur_map = &cur_map;
+		m_maplink.cur_tile = &cur_tile;
+		m_maplink.cur_tool = &cur_tool;
+		m_maplink.ptLastClick = &ptLastClick;
+		m_maplink.DecompressedMap = &DecompressedMap;
+		m_maplink.rcToolRect = &rcToolRect;
 		m_mapdlg.Create(IDD_FLOATING_MAP, this);
+		m_mapdlg.Init(Project, &m_maplink);
 
 		if (BootToTeleportFollowup) {
 			m_maplist.SetCurSel(cart->TeleportFollowup[cart->curFollowup][0]);

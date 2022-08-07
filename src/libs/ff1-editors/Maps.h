@@ -99,6 +99,7 @@ protected:
 	BYTE MapPalette[2][4][4];
 	BYTE SpritePalette[2][4];
 	BYTE ControlPalette[8];
+	sFloatingMapStateLink m_maplink;
 
 	// Dialog Data
 	enum { IDD = IDD_MAPS_NEW };
