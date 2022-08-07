@@ -103,6 +103,8 @@ namespace Ui
 	CRect GetClientRect(CWnd * pcontrol);
 	CRect GetNonClientRect(CWnd& wnd);
 	CRect GetWindowRect(CWnd * pwnd);
+	CPoint GetCursorPos();
+	CPoint GetControlCursorPos(CWnd* pwnd);
 
 	CRect GetSubitemRect(CListCtrl & list, int item, int subitem);
 	void RenumberList(CListCtrl & list, int subitem, int base, int startat);

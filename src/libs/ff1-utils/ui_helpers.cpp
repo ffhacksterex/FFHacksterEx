@@ -450,6 +450,21 @@ namespace Ui
 		return rc;
 	}
 
+	CPoint GetCursorPos()
+	{
+		CPoint pt{ 0,0 };
+		::GetCursorPos(&pt);
+		return pt;
+	}
+
+	CPoint GetControlCursorPos(CWnd* pwnd)
+	{
+		CPoint pt{ 0,0 };
+		::GetCursorPos(&pt);
+		pwnd->ScreenToClient(&pt);
+		return pt;
+	}
+
 	CRect GetSubitemRect(CListCtrl & list, int item, int subitem)
 	{
 		CRect rcitem(0, 0, 0, 0);
