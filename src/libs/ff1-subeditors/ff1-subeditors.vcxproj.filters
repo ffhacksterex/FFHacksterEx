@@ -90,6 +90,9 @@
     <ClInclude Include="DrawingToolButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FloatingMapDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -153,6 +156,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DrawingToolButton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FloatingMapDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

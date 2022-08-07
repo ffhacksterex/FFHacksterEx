@@ -2,7 +2,7 @@
 
 #include <ClearButton.h>
 
-#define WMA_DRAWTOOLBNCLICK (WM_APP + 1)
+#define WMA_DRAWTOOLBNCLICK ((WM_APP) + 1)
 
 // CDrawingToolButton
 

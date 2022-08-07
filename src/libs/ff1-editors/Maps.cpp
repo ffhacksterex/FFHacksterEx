@@ -2,6 +2,7 @@
 // New implementation
 
 #include "stdafx.h"
+#include "resource_editors.h"
 #include "Maps.h"
 #include <AppSettings.h>
 #include <collection_helpers.h>
@@ -136,6 +137,8 @@ void CMaps::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_BLOCK, m_blockbutton);
 	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM1, m_custom1button);
 	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM2, m_custom2button);
+	DDX_Control(pDX, IDC_STATIC_INFRA_MAPPANEL, m_mappanel);
+	DDX_Control(pDX, IDC_BUTTON_POPOUT, m_popoutbutton);
 }
 
 
@@ -184,6 +187,8 @@ BEGIN_MESSAGE_MAP(CMaps, CEditorWithBackground)
 	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, OnMapImport)
 	ON_BN_CLICKED(IDC_BUTTON_EXPORT_MAP, OnMapExport)
 	ON_MESSAGE(WMA_DRAWTOOLBNCLICK, OnDrawToolBnClick)
+	ON_BN_CLICKED(IDC_BUTTON_POPOUT, &CMaps::OnBnClickedButtonPopout)
+	ON_MESSAGE(WMA_SHOWFLOATINGMAP, &CMaps::OnShowFloatMap)
 END_MESSAGE_MAP()
 
 
@@ -368,6 +373,7 @@ BOOL CMaps::OnInitDialog()
 		m_sprite_list.SetCurSel(0);
 		m_tileset.SetCurSel(0);
 		m_maplist.SetCurSel(0);
+		m_mapdlg.Create(IDD_FLOATING_MAP, this);
 
 		if (BootToTeleportFollowup) {
 			m_maplist.SetCurSel(cart->TeleportFollowup[cart->curFollowup][0]);
@@ -1742,4 +1748,43 @@ void CMaps::TeleportHere(int mapindex, int x, int y)
 		BootToTeleportFollowup = 1;
 		DoSelchangeMaplist();
 	}
+}
+
+void CMaps::OnBnClickedButtonPopout()
+{
+	PopMapDialog(false);
+}
+
+void CMaps::PopMapDialog(bool in)
+{
+	// If shrinking, hide the shrink button to ensure we can't invoke
+	//   it while hidden using the keyboard.
+	// Show/Hide the map dialog
+	// Shrink/Grow the main dialog to hide/show the map panel
+	// Slide the relevant controls left/right
+
+	m_popoutbutton.EnableWindow(in ? 1 : 0);
+	if (in)
+		m_popoutbutton.SetFocus();
+	else
+		m_mapdlg.PostMessage(WM_SETFOCUS); //DEVNOTE - can't use SetFocus here
+
+	auto rc = Ui::GetControlRect(&m_mappanel);
+	int diff = rc.Width() * (in ? -1 : 1);
+	m_mapdlg.ShowWindow(in ? SW_HIDE : SW_SHOW);
+	Ui::ShrinkWindow(this, diff, 0);
+
+	std::vector<UINT> ids{ IDHELPBOOK, IDCANCEL2, IDC_SAVE, IDOK, IDCANCEL };
+	int slide = -diff;
+	for (const auto& id : ids) {
+		auto pwnd = GetDlgItem(id);
+		Ui::MoveControlBy(pwnd, slide, 0);
+	}
+}
+
+LRESULT CMaps::OnShowFloatMap(WPARAM wparam, LPARAM lparam)
+{
+	UNREFERENCED_PARAMETER(wparam);
+	PopMapDialog(lparam == 1);
+	return 0;
 }

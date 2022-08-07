@@ -6,6 +6,7 @@
 #include <vector>
 #include "afxwin.h"
 #include <DrawingToolButton.h>
+#include <FloatingMapDlg.h>
 class CFFHacksterProject;
 class CEntriesLoader;
 
@@ -92,6 +93,9 @@ protected:
 	void UpdateTileData();
 	void UpdatePics();
 
+	void PopMapDialog(bool in);
+	//void HandleRightButtonUp() //TODO
+
 	BYTE MapPalette[2][4][4];
 	BYTE SpritePalette[2][4];
 	BYTE ControlPalette[8];
@@ -163,10 +167,13 @@ protected:
 	CDrawingToolButton m_blockbutton{ IDB_PNG_DRAWTOOL_BLOCK, 1 };
 	CDrawingToolButton m_custom1button{ IDB_PNG_DRAWTOOL_CUSTOM1, 5 };
 	CDrawingToolButton m_custom2button{ IDB_PNG_DRAWTOOL_CUSTOM2, 6 };
+	CStatic m_mappanel;
+	CButton m_popoutbutton;
 	CCloseButton m_closebutton;
 	CHelpbookButton m_helpbookbutton;
 
 	CSubBanner m_banner;
+	CFloatingMapDlg m_mapdlg;
 
 	int ITEMPRICE_OFFSET = -1;
 	int MAPSPRITEPATTERNTABLE_COUNT = -1;
@@ -254,4 +261,6 @@ protected:
 	afx_msg void OnViewcoords();
 	afx_msg void OnSelchangeTeleportList();
 	afx_msg LRESULT OnDrawToolBnClick(WPARAM wparam, LPARAM lparam);
+	afx_msg void OnBnClickedButtonPopout();
+	afx_msg LRESULT OnShowFloatMap(WPARAM wparam, LPARAM lparam);
 };
