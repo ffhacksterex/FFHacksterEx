@@ -175,6 +175,7 @@
     <ClInclude Include="BattlePalettes.h" />
     <ClInclude Include="BattlePatternTables.h" />
     <ClInclude Include="BattlePic.h" />
+    <ClInclude Include="DrawingToolButton.h" />
     <ClInclude Include="Coords.h" />
     <ClInclude Include="CustomTool.h" />
     <ClInclude Include="DlgEditIniValue.h" />
@@ -200,6 +201,7 @@
     <ClCompile Include="BattlePalettes.cpp" />
     <ClCompile Include="BattlePatternTables.cpp" />
     <ClCompile Include="BattlePic.cpp" />
+    <ClCompile Include="DrawingToolButton.cpp" />
     <ClCompile Include="Coords.cpp" />
     <ClCompile Include="CustomTool.cpp" />
     <ClCompile Include="DlgEditIniValue.cpp" />
@@ -235,6 +237,13 @@
     <ProjectReference Include="..\ff1-utils\ff1-utils.vcxproj">
       <Project>{2f35299a-d285-4526-bc40-d1d5d8f0894a}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\iconmonstr-large-thumbnail-filled-16.png" />
+    <Image Include="res\iconmonstr-pencil-7-16.png" />
+    <Image Include="res\iconmonstr-shape-1-16.png" />
+    <Image Include="res\iconmonstr-small-thumbnail-lined-16.png" />
+    <Image Include="res\iconmonstr-weather-94-16.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
