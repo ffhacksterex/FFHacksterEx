@@ -33,8 +33,7 @@ void CLoading::Init(int min, int max, int step, CWnd* parent)
 			throw Ui::ui_exception(EXCEPTIONPOINT, "Unable to initialize the loading progress dialog.");
 	}
 
-	SetIcon(AfxGetFFBaseApp()->GetLargeIcon(), TRUE);
-	SetIcon(AfxGetFFBaseApp()->GetSmallIcon(), FALSE);
+	SetIcon(AfxGetFFBaseApp()->GetLargeIcon(), TRUE); //ELJNOTE - small icon taks precendence here
 
 	Ui::CenterToParent(this);
 	m_progress.SetRange32(min, max);
