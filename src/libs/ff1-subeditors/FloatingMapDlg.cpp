@@ -7,12 +7,8 @@
 #include "afxdialogex.h"
 #include <ui_helpers.h>
 #include <FFHacksterProject.h>
+#include <FFBaseApp.h>
 
-
-bool sFloatingMapStateLink::IsValid() const
-{
-	return this->m_showrooms != nullptr;
-}
 
 // CFloatingMapDlg dialog
 
@@ -27,32 +23,70 @@ CFloatingMapDlg::~CFloatingMapDlg()
 {
 }
 
-void CFloatingMapDlg::Init(CFFHacksterProject* project, sFloatingMapStateLink* state)
-{
-	Project = project;
-	State = state;
-	auto rcpos = Ui::GetControlRect(&m_mapstatic);
-	rcMap.SetRect(0, 0, 256, 256);
-	rcMap.OffsetRect(rcpos.left + 8, rcpos.top + 16);
+BEGIN_MESSAGE_MAP(CFloatingMapDlg, CDialogEx)
+	ON_WM_CLOSE()
+	ON_WM_CREATE()
+	ON_WM_SIZE()
+END_MESSAGE_MAP()
 
-	cart = project; //TODO - remove during refactor
+
+// Public implementation
+
+void CFloatingMapDlg::SetRenderState(const sRenderMapState& state)
+{
+	m_subdlg.SetRenderState(state);
+}
+
+// Specifies button images for either 4 or 5 buttons.
+bool CFloatingMapDlg::SetButtons(const std::vector<sMapDlgButton> & buttons)
+{
+	bool set = false;
+	for (auto & pbtn : m_buttons) pbtn->DestroyWindow();
+	m_buttons.clear();
+
+	const UINT style = WS_CHILD | WS_VISIBLE | WS_TABSTOP |
+		BS_FLAT | BS_AUTORADIOBUTTON | BS_PUSHLIKE;
+	auto rc = Ui::GetControlRect(&m_buttonanchor);
+	CWnd* prev = &m_buttonanchor;
+	UINT ctlid = 1;
+	for (const auto& b : buttons) {
+		auto btn = std::make_shared<CDrawingToolButton>(b.resid, b.param);
+		if (btn && btn->Create(nullptr, style, rc, this, ctlid++)) {
+			btn->SetWindowPos(prev, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			m_buttons.push_back(btn);
+			rc.OffsetRect(rc.Width() + 8, 0);
+			prev = btn.get();
+		}
+	}
+
+	ASSERT(m_buttons.size() == buttons.size());
+	if (m_buttons.size() == buttons.size()) {
+		//m_buttons[*State->cur_tool]->SetCheck(BST_CHECKED);
+		m_buttons[0]->ModifyStyle(0, WS_GROUP);
+		set = true;
+	}
+	else {
+		AfxMessageBox("Not all of the drawing tool buttons were initialized.");
+	}
+	return set;
+}
+
+void CFloatingMapDlg::InvalidateMap()
+{
+	m_subdlg.Invalidate();
 }
 
 void CFloatingMapDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_STATIC_MAP, m_mapstatic);
+	DDX_Control(pDX, IDC_STATIC_RENDERMAP, m_subdlgover);
+	DDX_Control(pDX, IDC_STATIC_BUTTONANCHOR, m_buttonanchor);
 }
 
 
-BEGIN_MESSAGE_MAP(CFloatingMapDlg, CDialogEx)
-	ON_WM_PAINT()
-	ON_WM_CLOSE()
-	ON_WM_CREATE()
-END_MESSAGE_MAP()
+// Internal Implementation
 
-
-void CFloatingMapDlg::HandleClose()
+void CFloatingMapDlg::handle_close()
 {
 	// Send the message to the owner (which defaults to the parent).
 	CWnd* owner = GetOwner();
@@ -61,28 +95,38 @@ void CFloatingMapDlg::HandleClose()
 	wnd->SendMessage(WMA_SHOWFLOATINGMAP, 0, (LPARAM)1);
 }
 
-bool CFloatingMapDlg::IsValid() const
+void CFloatingMapDlg::handle_sizing(int clientx, int clienty)
 {
-	auto valid = (Project != nullptr && State != nullptr && State->IsValid());
-	return valid;
+	if (IsWindow(m_subdlgover.GetSafeHwnd())) {
+		auto rc = Ui::GetControlRect(&m_subdlgover);
+		m_subdlg.SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_SHOWWINDOW);
+	}
 }
 
 
-// CFloatingMapDlg message handlers
+// CFloatingMapDlg overrides and message handlers
+
+BOOL CFloatingMapDlg::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+	m_subdlg.CreateOverControl(this, &m_subdlgover);
+	return TRUE;  // return TRUE unless you set the focus to a control
+				  // EXCEPTION: OCX Property Pages should return FALSE
+}
 
 void CFloatingMapDlg::OnCancel()
 {
-	HandleClose();
+	handle_close();
 }
 
 void CFloatingMapDlg::OnOK()
 {
-	HandleClose();
+	handle_close();
 }
 
 void CFloatingMapDlg::OnClose()
 {
-	HandleClose();
+	handle_close();
 }
 
 int CFloatingMapDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -90,80 +134,35 @@ int CFloatingMapDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CDialogEx::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	SetIcon(NULL, TRUE);
-	SetIcon(NULL, FALSE);
+	//ELJNOTE - I give up, another reason why Win32 Desktop UI is so terrible.
+	// 		this is waaaaaaay too much work to get just have an X close button
+	//		without a system menu.
+	// 		Removing system menu items also removes corresponding SC_XXXX commands,
+	// 		e.g. removing the SC_MOVE menu item ("Move") disables the ability
+	//			to move the dialog using the caption bar.
+	// 		I'll just specify the app icon here and call it a day.
+	SetIcon(AfxGetFFBaseApp()->GetLargeIcon(), TRUE);
 	return 0;
 }
 
-void CFloatingMapDlg::OnPaint()
+void CFloatingMapDlg::OnSize(UINT nType, int cx, int cy)
 {
-	if (!IsValid()) {
-		CDialogEx::OnPaint();
-		return;
-	}
+	CDialogEx::OnSize(nType, cx, cy);
+	handle_sizing(cx, cy);
+}
 
-	CPaintDC dc(this); // device context for painting
-					   // TODO: Add your message handler code here
-					   // Do not call CDialogEx::OnPaint() for painting message
-
-	//ELJNOTE - this is largely a straight port from the CMaps editor.
-	//		the only change introduced here is the ability to
-	//		resize the dialog and drawing area.
-	//		This could be developed into a control that can be
-	//		dropped onto any dialog.
-	//		Not sure how long that'll take, but that feels like
-	//		a better approach than coding it directly into the dialog.
-
-	int coX = 0, coY = 0, tile = 0, coy = 0, cox = 0;
-	CPoint pt;
-	bool room = State->m_showrooms->GetCheck() == 1;
-	auto& cur_map = *State->cur_map;
-	auto& cur_tile = *State->cur_tile;
-	auto& cur_tool = *State->cur_tool;
-	auto& ptLastClick = *State->ptLastClick;
-	auto& DecompressedMap = *State->DecompressedMap;
-	auto& rcToolRect = *State->rcToolRect;
-
-	for (coY = 0, pt.y = rcMap.top, coy = ScrollOffset.y; coY < 0x10; coY++, pt.y += 16, coy++) {
-		for (coX = 0, pt.x = rcMap.left, cox = ScrollOffset.x; coX < 0x10; coX++, pt.x += 16, cox++)
-			cart->GetStandardTiles(cur_map, room).Draw(&dc, DecompressedMap[coy][cox], pt, ILD_NORMAL);
-	}
-	CRect rcTemp = rcToolRect; rcTemp.NormalizeRect(); rcTemp.bottom += 1; rcTemp.right += 1;
-	CPoint copt;
-	if (mousedown == 1) {
-		switch (cur_tool) {
-		case 0: break;
-		case 1: {			//fill
-			coY = rcTemp.top - ScrollOffset.y; coX = rcTemp.left - ScrollOffset.x;
-			copt.y = rcTemp.bottom - ScrollOffset.y; copt.x = rcTemp.right - ScrollOffset.x;
-			tile = coX;
-			for (; coY < copt.y; coY++) {
-				for (coX = tile; coX < copt.x; coX++) {
-					pt.x = rcMap.left + (coX << 4); pt.y = rcMap.top + (coY << 4);
-					cart->GetStandardTiles(cur_map, room).Draw(&dc, cur_tile, pt, ILD_NORMAL);
-				}
-			}
-		}break;
-		default: {
-			CBrush br; br.CreateSolidBrush(RGB(128, 64, 255));
-			rcTemp.left = ((rcTemp.left - ScrollOffset.x) << 4) + rcMap.left;
-			rcTemp.right = ((rcTemp.right - ScrollOffset.x) << 4) + rcMap.left;
-			rcTemp.top = ((rcTemp.top - ScrollOffset.y) << 4) + rcMap.top;
-			rcTemp.bottom = ((rcTemp.bottom - ScrollOffset.y) << 4) + rcMap.top;
-			dc.FillRect(rcTemp, &br);
-			br.DeleteObject();
-		}break;
+BOOL CFloatingMapDlg::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN) {
+		switch(pMsg->wParam) {
+		case VK_ESCAPE:
+			handle_close();
+			return TRUE;
+		case VK_F6:
+			GetParent()->SetActiveWindow();
+			return TRUE;
 		}
 	}
-	if (cart->ShowLastClick) {
-		pt.x = ((ptLastClick.x - ScrollOffset.x) << 4) + rcMap.left;
-		pt.y = ((ptLastClick.y - ScrollOffset.y) << 4) + rcMap.top;
-		if (PtInRect(rcMap, pt)) {
-			dc.MoveTo(pt); pt.x += 15;
-			dc.LineTo(pt); pt.y += 15;
-			dc.LineTo(pt); pt.x -= 15;
-			dc.LineTo(pt); pt.y -= 15;
-			dc.LineTo(pt);
-		}
-	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
 }

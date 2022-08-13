@@ -1,22 +1,18 @@
 #pragma once
 
+#include <afxpanedialog.h>
+#include <DrawingToolButton.h>
+#include "CSubDlgRenderMap.h"
+#include <memory>
+
 #define WMA_SHOWFLOATINGMAP ((WM_APP) + 3)
 
-class CFFHacksterProject;
-
-using dcommap64 = BYTE[64][64];
-
-struct sFloatingMapStateLink {
-	CButton* m_showrooms = nullptr;
-	const int* cur_map = nullptr;
-	const int* cur_tile = nullptr;
-	const int* cur_tool = nullptr;
-	const CPoint* ptLastClick = nullptr;
-	const dcommap64* DecompressedMap = nullptr;
-	const CRect* rcToolRect = nullptr;
-
-	bool IsValid() const;
+struct sMapDlgButton {
+	UINT resid;
+	CString restype;
+	int param;
 };
+
 
 // CFloatingMapDlg dialog
 
@@ -28,7 +24,9 @@ public:
 	CFloatingMapDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~CFloatingMapDlg();
 
-	void Init(CFFHacksterProject* project, sFloatingMapStateLink* state); // call after calling Create
+	void SetRenderState(const sRenderMapState& state);
+	bool SetButtons(const std::vector<sMapDlgButton> & buttons);
+	void InvalidateMap();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -39,23 +37,31 @@ protected:
 	CFFHacksterProject* cart; //TODO - remove and replace with Project
 
 	CFFHacksterProject* Project = nullptr;
-	sFloatingMapStateLink* State = nullptr;
+	CPoint m_rmbasept;
 	CRect rcMap;
 	CPoint ScrollOffset;
 	BYTE mousedown = 0;
 
-	void HandleClose();
-	bool IsValid() const;
+	// Implementation
+	void handle_sizing(int clientx, int clienty);
+	void handle_close();
 
-	// Controls and handlers
-	CButton m_mapstatic;
+	// Controls
+	CSubDlgRenderMap m_subdlg;
+	std::vector<std::shared_ptr<CDrawingToolButton>> m_buttons;
 
+	CStatic m_subdlgover;
+	CStatic m_buttonanchor;
+
+	// Overrides and handlers
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual void OnCancel();
 	virtual void OnOK();
+	virtual BOOL OnInitDialog();
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnClose();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	afx_msg void OnPaint();
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 };

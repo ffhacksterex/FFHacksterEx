@@ -175,6 +175,8 @@
     <ClInclude Include="BattlePalettes.h" />
     <ClInclude Include="BattlePatternTables.h" />
     <ClInclude Include="BattlePic.h" />
+    <ClInclude Include="CSubDlgRenderMap.h" />
+    <ClInclude Include="CSubDlgRenderMapStatic.h" />
     <ClInclude Include="FloatingMapDlg.h" />
     <ClInclude Include="DrawingToolButton.h" />
     <ClInclude Include="Coords.h" />
@@ -202,6 +204,8 @@
     <ClCompile Include="BattlePalettes.cpp" />
     <ClCompile Include="BattlePatternTables.cpp" />
     <ClCompile Include="BattlePic.cpp" />
+    <ClCompile Include="CSubDlgRenderMap.cpp" />
+    <ClCompile Include="CSubDlgRenderMapStatic.cpp" />
     <ClCompile Include="FloatingMapDlg.cpp" />
     <ClCompile Include="DrawingToolButton.cpp" />
     <ClCompile Include="Coords.cpp" />

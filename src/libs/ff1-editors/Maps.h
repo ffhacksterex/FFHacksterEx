@@ -50,6 +50,8 @@ protected:
 	int cur_tiledata;
 	int cur_tool;
 	BYTE mousedown;
+	bool m_showingrooms = false;
+	bool m_firstpopoutdone = false;
 
 	CPoint ptLastClick;
 	CButton	m_viewcoords;
@@ -93,13 +95,12 @@ protected:
 	void UpdateTileData();
 	void UpdatePics();
 
+	void init_popout_map_window();
 	void PopMapDialog(bool in);
-	//void HandleRightButtonUp() //TODO
 
 	BYTE MapPalette[2][4][4];
 	BYTE SpritePalette[2][4];
 	BYTE ControlPalette[8];
-	sFloatingMapStateLink m_maplink;
 
 	// Dialog Data
 	enum { IDD = IDD_MAPS_NEW };
@@ -215,6 +216,7 @@ protected:
 		// ClassWizard generated virtual function overrides
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
 	// Implementation
 		// Generated message map functions

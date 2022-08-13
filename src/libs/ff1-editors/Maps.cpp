@@ -374,15 +374,9 @@ BOOL CMaps::OnInitDialog()
 		m_tileset.SetCurSel(0);
 		m_maplist.SetCurSel(0);
 
-		m_maplink.m_showrooms = &m_showrooms;
-		m_maplink.cur_map = &cur_map;
-		m_maplink.cur_tile = &cur_tile;
-		m_maplink.cur_tool = &cur_tool;
-		m_maplink.ptLastClick = &ptLastClick;
-		m_maplink.DecompressedMap = &DecompressedMap;
-		m_maplink.rcToolRect = &rcToolRect;
-		m_mapdlg.Create(IDD_FLOATING_MAP, this);
-		m_mapdlg.Init(Project, &m_maplink);
+		if (m_mapdlg.Create(IDD_FLOATING_MAP, this)) {
+			init_popout_map_window();
+		}
 
 		if (BootToTeleportFollowup) {
 			m_maplist.SetCurSel(cart->TeleportFollowup[cart->curFollowup][0]);
@@ -404,6 +398,19 @@ BOOL CMaps::OnInitDialog()
 	}
 
 	return TRUE;
+}
+
+BOOL CMaps::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN) {
+		if (pMsg->wParam == VK_F6) {
+			if (m_mapdlg.IsWindowVisible()) {
+				m_mapdlg.SetActiveWindow();
+				return TRUE;
+			}
+		}
+	}
+	return __super::PreTranslateMessage(pMsg);
 }
 
 void CMaps::ReloadSprites(CProgressCtrl* m_prog)
@@ -852,12 +859,18 @@ void CMaps::OnSelchangeMaplist()
 
 	InvalidateRect(rcTiles,0);
 	InvalidateRect(rcMap,0);
+	m_mapdlg.InvalidateMap();
 	InvalidateRect(rcPalettes,0);
 	InvalidateRect(rcPalettes2,0);
 }
 
 void CMaps::OnShowrooms()
-{InvalidateRect(rcTiles,0); InvalidateRect(rcMap,0);}
+{
+	m_showingrooms = Ui::GetCheckValue(m_showrooms);
+	InvalidateRect(rcTiles, 0);
+	InvalidateRect(rcMap, 0);
+	m_mapdlg.InvalidateMap();
+}
 
 void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 {
@@ -876,12 +889,14 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 			UpdateClick(fixedpt);
 			DecompressedMap[fixedpt.y][fixedpt.x] = (BYTE)cur_tile;
 			InvalidateRect(rcMap,0);
+			m_mapdlg.InvalidateMap();
 		}break;
 		default:{		//fill/smarttools
 			mousedown = 1;
 			UpdateClick(fixedpt);
 			rcToolRect.SetRect(fixedpt.x,fixedpt.y,fixedpt.x,fixedpt.y);
 			InvalidateRect(rcMap,0);
+			m_mapdlg.InvalidateMap();
 		}break;
 
 		}
@@ -965,11 +980,13 @@ void CMaps::OnMouseMove(UINT nFlags, CPoint pt)
 				case 0:{		//pencil
 					DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
 					InvalidateRect(rcMap,0);
+					m_mapdlg.InvalidateMap();
 				}break;
 				default:{		//fill / Smarttools
 					rcToolRect.right = ptHover.x;
 					rcToolRect.bottom = ptHover.y;
 					InvalidateRect(rcMap,0);
+					m_mapdlg.InvalidateMap();
 				}break;
 				}
 				UpdateClick(ptHover);
@@ -979,7 +996,9 @@ void CMaps::OnMouseMove(UINT nFlags, CPoint pt)
 				Sprite_Coords[mousedown - 2] = ptHover;
 				text.Format("%X",ptHover.x); m_spritecoordx.SetWindowText(text);
 				text.Format("%X",ptHover.y); m_spritecoordy.SetWindowText(text);
-				InvalidateRect(rcMap,0);}
+				InvalidateRect(rcMap,0);
+				m_mapdlg.InvalidateMap();
+			}
 		}
 	}
 	else{
@@ -1005,6 +1024,7 @@ void CMaps::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
 	m_hscroll.SetScrollPos(ScrollOffset.x);
 	InvalidateRect(rcMap,FALSE);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -1023,6 +1043,7 @@ void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
 	m_vscroll.SetScrollPos(ScrollOffset.y);
 	InvalidateRect(rcMap,FALSE);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
@@ -1078,7 +1099,10 @@ void CMaps::OnRButtonDown(UINT nFlags, CPoint pt)
 		pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
 		UpdateClick(pt);
 		InvalidateRect(rcTiles,0);
-		if(m_showlastclick.GetCheck()) InvalidateRect(rcMap,0);
+		if (m_showlastclick.GetCheck()) {
+			InvalidateRect(rcMap, 0);
+			m_mapdlg.InvalidateMap();
+		}
 		if(coords_dlg.m_mouseclick.GetCheck()){
 			coords_dlg.m_coord_l.SetCurSel(m_maplist.GetCurSel());
 			coords_dlg.OnSelchangeCoordL();
@@ -1121,6 +1145,7 @@ void CMaps::UpdatePics()
 	dlg.ShowWindow(0);
 	InvalidateRect(rcTiles,0);
 	InvalidateRect(rcMap,0);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::UpdateTileData()
@@ -1241,6 +1266,7 @@ void CMaps::OnSelchangeTileset()
 	dlg.ShowWindow(0);
 	InvalidateRect(rcTiles,0);
 	InvalidateRect(rcMap,0);
+	m_mapdlg.InvalidateMap();
 	LoadTileData();
 }
 
@@ -1274,6 +1300,7 @@ void CMaps::OnInroom()
 {
 	Sprite_InRoom[m_sprite_list.GetCurSel()] = m_inroom.GetCheck() != 0;
 	InvalidateRect(rcMap,0);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::OnChangeSpritecoordx()
@@ -1283,6 +1310,7 @@ void CMaps::OnChangeSpritecoordx()
 	if(number > 0x3F) number = 0x3F;
 	Sprite_Coords[m_sprite_list.GetCurSel()].x = number;
 	InvalidateRect(rcMap,0);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::OnChangeSpritecoordy()
@@ -1292,6 +1320,7 @@ void CMaps::OnChangeSpritecoordy()
 	if(number > 0x3F) number = 0x3F;
 	Sprite_Coords[m_sprite_list.GetCurSel()].y = number;
 	InvalidateRect(rcMap,0);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::OnSelchangeSprite()
@@ -1299,12 +1328,14 @@ void CMaps::OnSelchangeSprite()
 	Sprite_Value[m_sprite_list.GetCurSel()] = (short)m_sprite.GetCurSel();
 	m_spritegraphic.SetCurSel(cart->ROM[MAPSPRITE_PICASSIGNMENT + m_sprite.GetCurSel()]);
 	InvalidateRect(rcMap,0);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::OnSelchangeSpritegraphic()
 {
 	cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[m_sprite_list.GetCurSel()]] = (BYTE)m_spritegraphic.GetCurSel();
 	InvalidateRect(rcMap, 0);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::UpdateClick(CPoint pt)
@@ -1338,6 +1369,7 @@ void CMaps::OnLButtonUp(UINT nFlags, CPoint pt)
 			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
 					DecompressedMap[coY][coX] = (BYTE)cur_tile;}
 			InvalidateRect(rcMap,0);
+			m_mapdlg.InvalidateMap();
 		}break;
 		default:{			//smarttools
 			temp = cur_tool - 2 + (cur_tileset << 1);
@@ -1449,6 +1481,7 @@ void CMaps::OnLButtonUp(UINT nFlags, CPoint pt)
 			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
 
 			InvalidateRect(rcMap,0);
+			m_mapdlg.InvalidateMap();
 		}break;
 
 		}
@@ -1456,7 +1489,11 @@ void CMaps::OnLButtonUp(UINT nFlags, CPoint pt)
 	mousedown = 0;
 }
 void CMaps::OnShowlastclick()
-{cart->ShowLastClick = (m_showlastclick.GetCheck() != 0); InvalidateRect(rcMap,0);}
+{
+	cart->ShowLastClick = (m_showlastclick.GetCheck() != 0);
+	InvalidateRect(rcMap, 0);
+	m_mapdlg.InvalidateMap();
+}
 
 void CMaps::OnCustomtool()
 {
@@ -1628,7 +1665,9 @@ void CMaps::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 			InvalidateRect(rcPalettes,0);
 			InvalidateRect(rcTiles,0);
-			InvalidateRect(rcMap,0);}
+			InvalidateRect(rcMap,0);
+			m_mapdlg.InvalidateMap();
+		}
 	}
 }
 
@@ -1660,6 +1699,7 @@ void CMaps::OnMapImport()
 	fread(DecompressedMap,1,0x1000,file);
 	fclose(file);
 	InvalidateRect(rcMap,0);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::OnViewcoords()
@@ -1764,6 +1804,32 @@ void CMaps::OnBnClickedButtonPopout()
 	PopMapDialog(false);
 }
 
+void CMaps::init_popout_map_window()
+{
+	sRenderMapState state;
+	state.project = Project;
+	state.owner = this;
+	state.showrooms = &m_showingrooms;
+	state.ptLastClick = &ptLastClick;
+	state.rcToolRect = &rcToolRect;
+	state.cur_map = &cur_map;
+	state.cur_tile = &cur_tile;
+	state.cur_tool = &cur_tool;
+	state.DecompressedMap = &(DecompressedMap[0][0]);
+	state.mapdims = { 64,64 };
+	state.tiledims = { 16,16 };
+	if (m_mapdlg.SetButtons(std::vector<sMapDlgButton>{
+		{IDB_PNG_DRAWTOOL_PEN, "PNG", 1}, { IDB_PNG_DRAWTOOL_BLOCK,"PNG",2 },
+		{ IDB_PNG_DRAWTOOL_CUSTOM1, "PNG",5 }, { IDB_PNG_DRAWTOOL_CUSTOM2, "PNG",6 }
+	}))
+	{
+		m_mapdlg.SetRenderState(state);
+	}
+	else {
+		m_popoutbutton.EnableWindow(FALSE);
+	}
+}
+
 void CMaps::PopMapDialog(bool in)
 {
 	// If shrinking, hide the shrink button to ensure we can't invoke
@@ -1773,15 +1839,31 @@ void CMaps::PopMapDialog(bool in)
 	// Slide the relevant controls left/right
 
 	m_popoutbutton.EnableWindow(in ? 1 : 0);
-	if (in)
+	if (in) {
 		m_popoutbutton.SetFocus();
-	else
-		m_mapdlg.PostMessage(WM_SETFOCUS); //DEVNOTE - can't use SetFocus here
+	}
+	else {
+		m_mapdlg.PostMessage(WM_SETFOCUS); //DEVNOTE - can't use SetFocus() here
+	}
 
+	auto olddlgrc = Ui::GetWindowRect(this);
 	auto rc = Ui::GetControlRect(&m_mappanel);
 	int diff = rc.Width() * (in ? -1 : 1);
-	m_mapdlg.ShowWindow(in ? SW_HIDE : SW_SHOW);
 	Ui::ShrinkWindow(this, diff, 0);
+
+	if (!in && !m_firstpopoutdone) {
+		// on initial popout, size the dialog over the portion of the
+		// dialog that was hidden.
+		m_firstpopoutdone = true;
+		auto dlgrc = Ui::GetWindowRect(this);
+		CRect rcdiff;
+		rcdiff.SubtractRect(olddlgrc, dlgrc);
+		CRect poprc{ dlgrc.right, dlgrc.top, rc.Width(), dlgrc.Height() };
+		poprc = rcdiff;
+		//MapDialogRect(poprc);
+		m_mapdlg.MoveWindow(poprc);
+	}
+	m_mapdlg.ShowWindow(in ? SW_HIDE : SW_SHOW);
 
 	std::vector<UINT> ids{ IDHELPBOOK, IDCANCEL2, IDC_SAVE, IDOK, IDCANCEL };
 	int slide = -diff;
