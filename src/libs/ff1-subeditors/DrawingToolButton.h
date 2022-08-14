@@ -2,7 +2,13 @@
 
 #include <ClearButton.h>
 
-#define WMA_DRAWTOOLBNCLICK ((WM_APP) + 1)
+#define WMA_DRAWTOOLBNCLICK ((WM_APP) + 1)		// LPARAM = tool index
+
+typedef struct sToolButtonData {
+	UINT resid;
+	CString restype;
+	int param;
+} sMapDlgButton;
 
 // CDrawingToolButton
 
@@ -16,13 +22,17 @@ public:
 
 	int GetToolIndex() const;
 	COLORREF SelColor;
+	sToolButtonData GetSpec() const;
+	void SuppressClickHandler(bool suppress);
 
 protected:
+	bool m_suppressclick = false;
+	UINT m_idimage;
+	CString m_restype;
 	int m_index = -1;
 	CBitmap m_image;
 	int m_hw = 0;
 	int m_hh = 0;
-	int m_idimage;
 	Gdiplus::Bitmap * m_pgbm;
 
 	void do_paint(CDC& dc);

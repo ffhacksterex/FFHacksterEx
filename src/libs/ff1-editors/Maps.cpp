@@ -186,9 +186,9 @@ BEGIN_MESSAGE_MAP(CMaps, CEditorWithBackground)
 	ON_CBN_SELCHANGE(IDC_TELEPORT_LIST, OnSelchangeTeleportList)
 	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, OnMapImport)
 	ON_BN_CLICKED(IDC_BUTTON_EXPORT_MAP, OnMapExport)
-	ON_MESSAGE(WMA_DRAWTOOLBNCLICK, OnDrawToolBnClick)
 	ON_BN_CLICKED(IDC_BUTTON_POPOUT, &CMaps::OnBnClickedButtonPopout)
 	ON_MESSAGE(WMA_SHOWFLOATINGMAP, &CMaps::OnShowFloatMap)
+	ON_MESSAGE(WMA_DRAWTOOLBNCLICK, &CMaps::OnDrawToolBnClick)
 END_MESSAGE_MAP()
 
 
@@ -374,6 +374,7 @@ BOOL CMaps::OnInitDialog()
 		m_tileset.SetCurSel(0);
 		m_maplist.SetCurSel(0);
 
+		m_toolbuttons = {&m_penbutton, &m_blockbutton, &m_custom1button, &m_custom2button};
 		if (m_mapdlg.Create(IDD_FLOATING_MAP, this)) {
 			init_popout_map_window();
 		}
@@ -403,9 +404,17 @@ BOOL CMaps::OnInitDialog()
 BOOL CMaps::PreTranslateMessage(MSG* pMsg)
 {
 	if (pMsg->message == WM_KEYDOWN) {
-		if (pMsg->wParam == VK_F6) {
-			if (m_mapdlg.IsWindowVisible()) {
+		switch(pMsg->wParam) {
+		case VK_F6:
+			if (m_popoutcreated && m_mapdlg.IsWindowVisible()) {
 				m_mapdlg.SetActiveWindow();
+				return TRUE;
+			}
+			break;
+		case VK_F7:
+			if (m_popoutcreated) {
+				bool in = m_mapdlg.IsWindowVisible() == TRUE;
+				PopMapDialog(in);
 				return TRUE;
 			}
 		}
@@ -1753,13 +1762,6 @@ void CMaps::OnSelchangeTeleportList()
 		coords_dlg.OnSelchangeTeleportlist();}
 }
 
-LRESULT CMaps::OnDrawToolBnClick(WPARAM wparam, LPARAM lparam)
-{
-	cur_tool = (int)lparam;
-	m_customtool.EnableWindow(cur_tool > 1);
-	return 0;
-}
-
 void CMaps::UpdateTeleportLabel(int areaid, int type)
 {
 	this->UpdateTeleportLabel(areaid, type == 1);
@@ -1799,13 +1801,12 @@ void CMaps::TeleportHere(int mapindex, int x, int y)
 	}
 }
 
-void CMaps::OnBnClickedButtonPopout()
-{
-	PopMapDialog(false);
-}
-
 void CMaps::init_popout_map_window()
 {
+	std::vector<sMapDlgButton> buttons(m_toolbuttons.size());
+	std::transform(cbegin(m_toolbuttons), cend(m_toolbuttons), begin(buttons),
+		[](const CDrawingToolButton* srcbtn) { return srcbtn->GetSpec(); });
+
 	sRenderMapState state;
 	state.project = Project;
 	state.owner = this;
@@ -1818,14 +1819,11 @@ void CMaps::init_popout_map_window()
 	state.DecompressedMap = &(DecompressedMap[0][0]);
 	state.mapdims = { 64,64 };
 	state.tiledims = { 16,16 };
-	if (m_mapdlg.SetButtons(std::vector<sMapDlgButton>{
-		{IDB_PNG_DRAWTOOL_PEN, "PNG", 1}, { IDB_PNG_DRAWTOOL_BLOCK,"PNG",2 },
-		{ IDB_PNG_DRAWTOOL_CUSTOM1, "PNG",5 }, { IDB_PNG_DRAWTOOL_CUSTOM2, "PNG",6 }
-	}))
-	{
-		m_mapdlg.SetRenderState(state);
-	}
-	else {
+
+	if (m_mapdlg.Init(state, buttons)) {
+		m_popoutcreated = true;
+	} else {
+		AfxMessageBox(_T("Unable to initialize the popout map window."));
 		m_popoutbutton.EnableWindow(FALSE);
 	}
 }
@@ -1851,17 +1849,19 @@ void CMaps::PopMapDialog(bool in)
 	int diff = rc.Width() * (in ? -1 : 1);
 	Ui::ShrinkWindow(this, diff, 0);
 
-	if (!in && !m_firstpopoutdone) {
-		// on initial popout, size the dialog over the portion of the
-		// dialog that was hidden.
-		m_firstpopoutdone = true;
-		auto dlgrc = Ui::GetWindowRect(this);
-		CRect rcdiff;
-		rcdiff.SubtractRect(olddlgrc, dlgrc);
-		CRect poprc{ dlgrc.right, dlgrc.top, rc.Width(), dlgrc.Height() };
-		poprc = rcdiff;
-		//MapDialogRect(poprc);
-		m_mapdlg.MoveWindow(poprc);
+	if (!in) {
+		if (!m_firstpopoutdone) {
+			// on initial popout, size the dialog over the portion of the
+			// dialog that was hidden.
+			m_firstpopoutdone = true;
+			auto dlgrc = Ui::GetWindowRect(this);
+			CRect rcdiff;
+			rcdiff.SubtractRect(olddlgrc, dlgrc);
+			CRect poprc{ dlgrc.right, dlgrc.top, rc.Width(), dlgrc.Height() };
+			poprc = rcdiff;
+			m_mapdlg.MoveWindow(poprc);
+		}
+		m_mapdlg.UpdateControls();
 	}
 	m_mapdlg.ShowWindow(in ? SW_HIDE : SW_SHOW);
 
@@ -1873,9 +1873,34 @@ void CMaps::PopMapDialog(bool in)
 	}
 }
 
-LRESULT CMaps::OnShowFloatMap(WPARAM wparam, LPARAM lparam)
+void CMaps::OnBnClickedButtonPopout()
+{
+	PopMapDialog(false);
+}
+
+LRESULT CMaps::OnDrawToolBnClick(WPARAM wparam, LPARAM lparam)
 {
 	UNREFERENCED_PARAMETER(wparam);
-	PopMapDialog(lparam == 1);
+	cur_tool = (int)lparam;
+	m_customtool.EnableWindow(cur_tool > 1);
+	return 0;
+}
+
+LRESULT CMaps::OnShowFloatMap(WPARAM wparam, LPARAM lparam)
+{
+	UNREFERENCED_PARAMETER(lparam);
+	bool in = (wparam == 0);
+
+	if (in) {
+		// We know the tool index, just need to check the corresponding button.
+		auto iter = std::find_if(cbegin(m_toolbuttons), cend(m_toolbuttons),
+			[this](const CDrawingToolButton* btn) { return btn->GetToolIndex() == cur_tool; });
+		if (iter != cend(m_toolbuttons)) {
+			CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
+				(*iter)->GetDlgCtrlID());
+		}
+	}
+
+	PopMapDialog(in);
 	return 0;
 }

@@ -60,6 +60,10 @@ void CSubDlgRenderMap::SetRenderState(const sRenderMapState& state)
 	handle_sizing();
 }
 
+const sRenderMapState& CSubDlgRenderMap::GetRenderState() const
+{
+	return m_frame.GetRenderState();
+}
 
 // Internal implementation
 

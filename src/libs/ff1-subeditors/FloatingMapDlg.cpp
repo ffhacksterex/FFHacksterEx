@@ -1,5 +1,4 @@
 // FloatingMapDlg.cpp : implementation file
-//
 
 #include "stdafx.h"
 #include "resource_subeditors.h"
@@ -9,6 +8,7 @@
 #include <FFHacksterProject.h>
 #include <FFBaseApp.h>
 
+#define IDCR_TOOLBTN 1
 
 // CFloatingMapDlg dialog
 
@@ -23,52 +23,31 @@ CFloatingMapDlg::~CFloatingMapDlg()
 {
 }
 
+void CFloatingMapDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_STATIC_RENDERMAP, m_subdlgover);
+	DDX_Control(pDX, IDC_STATIC_BUTTONANCHOR, m_buttonanchor);
+	DDX_Control(pDX, IDC_CUSTOMTOOL, m_customizebutton);
+}
+
 BEGIN_MESSAGE_MAP(CFloatingMapDlg, CDialogEx)
 	ON_WM_CLOSE()
 	ON_WM_CREATE()
 	ON_WM_SIZE()
+	ON_MESSAGE(WMA_DRAWTOOLBNCLICK, &CFloatingMapDlg::OnDrawToolBnClick)
 END_MESSAGE_MAP()
 
 
 // Public implementation
 
-void CFloatingMapDlg::SetRenderState(const sRenderMapState& state)
+BOOL CFloatingMapDlg::Init(const sRenderMapState& state, const std::vector<sMapDlgButton>& buttons)
 {
-	m_subdlg.SetRenderState(state);
-}
-
-// Specifies button images for either 4 or 5 buttons.
-bool CFloatingMapDlg::SetButtons(const std::vector<sMapDlgButton> & buttons)
-{
-	bool set = false;
-	for (auto & pbtn : m_buttons) pbtn->DestroyWindow();
-	m_buttons.clear();
-
-	const UINT style = WS_CHILD | WS_VISIBLE | WS_TABSTOP |
-		BS_FLAT | BS_AUTORADIOBUTTON | BS_PUSHLIKE;
-	auto rc = Ui::GetControlRect(&m_buttonanchor);
-	CWnd* prev = &m_buttonanchor;
-	UINT ctlid = 1;
-	for (const auto& b : buttons) {
-		auto btn = std::make_shared<CDrawingToolButton>(b.resid, b.param);
-		if (btn && btn->Create(nullptr, style, rc, this, ctlid++)) {
-			btn->SetWindowPos(prev, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-			m_buttons.push_back(btn);
-			rc.OffsetRect(rc.Width() + 8, 0);
-			prev = btn.get();
-		}
+	if (set_render_state(state)) {
+		if (set_buttons(buttons))
+			return TRUE;
 	}
-
-	ASSERT(m_buttons.size() == buttons.size());
-	if (m_buttons.size() == buttons.size()) {
-		//m_buttons[*State->cur_tool]->SetCheck(BST_CHECKED);
-		m_buttons[0]->ModifyStyle(0, WS_GROUP);
-		set = true;
-	}
-	else {
-		AfxMessageBox("Not all of the drawing tool buttons were initialized.");
-	}
-	return set;
+	return FALSE;
 }
 
 void CFloatingMapDlg::InvalidateMap()
@@ -76,15 +55,71 @@ void CFloatingMapDlg::InvalidateMap()
 	m_subdlg.Invalidate();
 }
 
-void CFloatingMapDlg::DoDataExchange(CDataExchange* pDX)
+void CFloatingMapDlg::UpdateControls()
 {
-	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_STATIC_RENDERMAP, m_subdlgover);
-	DDX_Control(pDX, IDC_STATIC_BUTTONANCHOR, m_buttonanchor);
+	UpdateToolIndex();
+}
+
+void CFloatingMapDlg::UpdateToolIndex()
+{
+	auto index = *m_subdlg.GetRenderState().cur_tool;
+	auto iter = std::find_if(cbegin(m_buttons), cend(m_buttons),
+		[index](const std::shared_ptr<CDrawingToolButton>& btn) {
+			return btn->GetToolIndex() == index;
+		});
+	if (iter != cend(m_buttons)) {
+		auto idcheck = (*iter)->GetDlgCtrlID();
+		CheckRadioButton(IDCR_TOOLBTN, IDCR_TOOLBTN + (UINT)m_buttons.size(), idcheck);
+		m_customizebutton.EnableWindow(index > 1);
+	}
 }
 
 
 // Internal Implementation
+
+bool CFloatingMapDlg::set_render_state(const sRenderMapState& state)
+{
+	m_subdlg.SetRenderState(state);
+	return m_subdlg.GetRenderState().IsValid();
+}
+
+// Specifies button images for either 4 or 5 buttons.
+bool CFloatingMapDlg::set_buttons(const std::vector<sMapDlgButton>& buttons)
+{
+	bool set = false;
+	for (auto& pbtn : m_buttons) pbtn->DestroyWindow();
+	m_buttons.clear();
+
+	const UINT style = WS_CHILD | WS_VISIBLE | WS_TABSTOP |
+		BS_FLAT | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_NOTIFY;
+	auto rc = Ui::GetControlRect(&m_buttonanchor);
+	CWnd* prev = &m_buttonanchor;
+	UINT ctlid = IDCR_TOOLBTN;
+	for (const auto& b : buttons) {
+		auto btn = std::make_shared<CDrawingToolButton>(b.resid, b.param);
+		if (btn && btn->Create(nullptr, style, rc, this, ctlid++)) {
+			btn->SetWindowPos(prev, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			m_buttons.push_back(btn);
+			rc.OffsetRect(rc.Width() + 4, 0);
+			prev = btn.get();
+		}
+	}
+
+	// Place the Customize button 4 px right of the last button
+	m_customizebutton.SetWindowPos(nullptr, rc.left, rc.top, 0, 0,
+		SWP_NOZORDER | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+	ASSERT(m_buttons.size() == buttons.size());
+	if (m_buttons.size() == buttons.size()) {
+		m_buttons[0]->ModifyStyle(0, WS_GROUP);
+		UpdateToolIndex();
+		set = true;
+	}
+	else {
+		AfxMessageBox(_T("Not all of the drawing tool buttons were initialized."));
+	}
+	return set;
+}
 
 void CFloatingMapDlg::handle_close()
 {
@@ -92,7 +127,7 @@ void CFloatingMapDlg::handle_close()
 	CWnd* owner = GetOwner();
 	CWnd* parent = GetParent();
 	CWnd* wnd = owner != nullptr ? owner : parent;
-	wnd->SendMessage(WMA_SHOWFLOATINGMAP, 0, (LPARAM)1);
+	wnd->SendMessage(WMA_SHOWFLOATINGMAP, (WPARAM)0);
 }
 
 void CFloatingMapDlg::handle_sizing(int clientx, int clienty)
@@ -163,6 +198,15 @@ BOOL CFloatingMapDlg::PreTranslateMessage(MSG* pMsg)
 			return TRUE;
 		}
 	}
-
 	return CDialogEx::PreTranslateMessage(pMsg);
+}
+
+LRESULT CFloatingMapDlg::OnDrawToolBnClick(WPARAM wparam, LPARAM lparam)
+{
+	// The button sends it to this control (its parent), forward it
+	// to the map editor (the parent of this dialog).
+	UNREFERENCED_PARAMETER(wparam);
+	GetParent()->SendMessage(WMA_DRAWTOOLBNCLICK, wparam, lparam);
+	m_customizebutton.EnableWindow(lparam > 1);
+	return 0;
 }

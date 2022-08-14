@@ -52,6 +52,8 @@ protected:
 	BYTE mousedown;
 	bool m_showingrooms = false;
 	bool m_firstpopoutdone = false;
+	bool m_popoutcreated = false;
+	std::vector<CDrawingToolButton*> m_toolbuttons;
 
 	CPoint ptLastClick;
 	CButton	m_viewcoords;

@@ -5,13 +5,7 @@
 #include "CSubDlgRenderMap.h"
 #include <memory>
 
-#define WMA_SHOWFLOATINGMAP ((WM_APP) + 3)
-
-struct sMapDlgButton {
-	UINT resid;
-	CString restype;
-	int param;
-};
+#define WMA_SHOWFLOATINGMAP ((WM_APP) + 3)		// WPARAM: 1 = show, 0 = hide
 
 
 // CFloatingMapDlg dialog
@@ -24,9 +18,9 @@ public:
 	CFloatingMapDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~CFloatingMapDlg();
 
-	void SetRenderState(const sRenderMapState& state);
-	bool SetButtons(const std::vector<sMapDlgButton> & buttons);
+	BOOL Init(const sRenderMapState& state, const std::vector<sMapDlgButton>& buttons);
 	void InvalidateMap();
+	void UpdateControls();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -43,6 +37,9 @@ protected:
 	BYTE mousedown = 0;
 
 	// Implementation
+	void UpdateToolIndex();
+	bool set_render_state(const sRenderMapState& state);
+	bool set_buttons(const std::vector<sMapDlgButton>& buttons);
 	void handle_sizing(int clientx, int clienty);
 	void handle_close();
 
@@ -52,6 +49,7 @@ protected:
 
 	CStatic m_subdlgover;
 	CStatic m_buttonanchor;
+	CButton m_customizebutton;
 
 	// Overrides and handlers
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -64,4 +62,5 @@ protected:
 	afx_msg void OnClose();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg LRESULT OnDrawToolBnClick(WPARAM wparam, LPARAM lparam);
 };

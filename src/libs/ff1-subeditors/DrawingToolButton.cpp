@@ -15,8 +15,9 @@ CDrawingToolButton::CDrawingToolButton(UINT idimage, int index, COLORREF selcolo
 	: m_index(index)
 	, SelColor((selcolor & 0x80000000) ? GetSysColor(COLOR_HIGHLIGHT) : selcolor)
 {
+	m_restype = "PNG"; //TODO - for now, just PNG, add support for other types as needed.
 	m_idimage = idimage;
-	m_pgbm = Imaging::ImageLoad(AfxGetResourceHandle(), m_idimage, "PNG");
+	m_pgbm = Imaging::ImageLoad(AfxGetResourceHandle(), m_idimage, m_restype);
 	if (m_pgbm!= nullptr) {
 		m_hw = m_pgbm->GetWidth();
 		m_hh = m_pgbm->GetHeight();
@@ -30,6 +31,16 @@ CDrawingToolButton::~CDrawingToolButton()
 int CDrawingToolButton::GetToolIndex() const
 {
 	return m_index;
+}
+
+sToolButtonData CDrawingToolButton::GetSpec() const
+{
+	return sToolButtonData{ m_idimage, "PNG", m_index };
+}
+
+void CDrawingToolButton::SuppressClickHandler(bool suppress)
+{
+	m_suppressclick = suppress;
 }
 
 
@@ -75,7 +86,13 @@ void CDrawingToolButton::do_paint(CDC& dc)
 
 void CDrawingToolButton::OnBnClicked()
 {
-	GetParent()->SendMessage(WMA_DRAWTOOLBNCLICK, 0, m_index);
+	if (!m_suppressclick) {
+		auto checked = Ui::GetCheckValue(*this);
+		if (checked) {
+			auto parent = GetParent();
+			parent->SendMessage(WMA_DRAWTOOLBNCLICK, 0, m_index);
+		}
+	}
 }
 
 void CDrawingToolButton::OnPaint()
