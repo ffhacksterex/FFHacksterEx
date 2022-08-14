@@ -1820,6 +1820,14 @@ void CMaps::init_popout_map_window()
 	state.mapdims = { 64,64 };
 	state.tiledims = { 16,16 };
 
+	state.m_sprites = &m_sprites;
+	state.Sprite_Coords = &Sprite_Coords;
+	state.Sprite_InRoom = &Sprite_InRoom;
+	state.Sprite_StandStill = &Sprite_StandStill;
+	state.Sprite_Value = &Sprite_Value;
+	state.SPRITE_COUNT = MAPSPRITE_COUNT;
+	state.SPRITE_PICASSIGNMENT = MAPSPRITE_PICASSIGNMENT;
+
 	if (m_mapdlg.Init(state, buttons)) {
 		m_popoutcreated = true;
 	} else {

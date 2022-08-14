@@ -16,5 +16,14 @@ struct sRenderMapState
 	CSize mapdims;
 	CSize tiledims;
 
+	CImageList* m_sprites = nullptr;
+	const std::vector<CPoint>* Sprite_Coords = nullptr;  // MAPSPRITE_COUNT;
+	const std::vector<bool>* Sprite_InRoom = nullptr;    // MAPSPRITE_COUNT;
+	const std::vector<bool>* Sprite_StandStill = nullptr;// MAPSPRITE_COUNT;
+	const std::vector<short>* Sprite_Value = nullptr;    // MAPSPRITE_COUNT;
+
+	size_t SPRITE_COUNT = (size_t)-1;
+	size_t SPRITE_PICASSIGNMENT = (size_t)-1;
+
 	bool IsValid() const;
 };

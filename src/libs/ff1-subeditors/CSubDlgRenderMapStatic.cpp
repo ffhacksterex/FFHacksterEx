@@ -7,26 +7,6 @@
 #include <FFHacksterProject.h>
 #include <ui_helpers.h>
 
-
-bool sRenderMapState::IsValid() const
-{
-	return
-		(project != nullptr) &&
-		(owner != nullptr) &&
-		(showrooms != nullptr) &&
-		(ptLastClick != nullptr) &&
-		(rcToolRect != nullptr) &&
-		(cur_map != nullptr) &&
-		(cur_tile != nullptr) &&
-		(cur_tool != nullptr) &&
-		(DecompressedMap != nullptr) &&
-		mapdims.cx > 0 && mapdims.cy > 0 &&
-		tiledims.cx > 0 && tiledims.cy > 0;
-	//DEVNOTE - if the mapdims and/or tiledims must be square, 
-	//	then enforce that in the client class's is_valid() instead.
-}
-
-
 // CSubDlgRenderMapStatic
 
 IMPLEMENT_DYNAMIC(CSubDlgRenderMapStatic, CStatic)
@@ -67,7 +47,7 @@ BOOL CSubDlgRenderMapStatic::init()
 {
 	CRect rc(0, 0, 16, 16);
 	rc = Ui::GetClientRect(this);
-	m_pen.CreatePen(PS_SOLID, 2, RGB(0, 127, 255));
+	m_pen.CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
 	return TRUE;
 }
 
@@ -125,6 +105,7 @@ void CSubDlgRenderMapStatic::handle_paint()
 	auto& rcToolRect = *State.rcToolRect;
 	auto& cart = State.project;
 
+	//Draw the map
 	auto rcMap = Ui::GetClientRect(this);
 	CPoint ScrollOffset{ 0,0 };
 
@@ -161,16 +142,40 @@ void CSubDlgRenderMapStatic::handle_paint()
 		}break;
 		}
 	}
+
+	// Draw last click rect if option is active
 	if (cart->ShowLastClick) {
 		pt.x = ((ptLastClick.x - ScrollOffset.x) << 4) + rcMap.left;
 		pt.y = ((ptLastClick.y - ScrollOffset.y) << 4) + rcMap.top;
 		if (PtInRect(rcMap, pt)) {
+			auto oldpen = dc.SelectObject(&m_pen);
 			dc.MoveTo(pt); pt.x += 15;
 			dc.LineTo(pt); pt.y += 15;
 			dc.LineTo(pt); pt.x -= 15;
 			dc.LineTo(pt); pt.y -= 15;
 			dc.LineTo(pt);
+			dc.SelectObject(oldpen);
 		}
+	}
+
+	//Draw the sprites
+	auto& Sprite_Coords = *State.Sprite_Coords;
+	auto& Sprite_InRoom = *State.Sprite_InRoom;
+	auto& Sprite_StandStill = *State.Sprite_StandStill;
+	auto& Sprite_Value = *State.Sprite_Value;
+	auto& m_sprites = *State.m_sprites;
+	auto SPRITE_COUNT = State.SPRITE_COUNT;
+	auto SPRITE_PICASSIGNMENT = State.SPRITE_PICASSIGNMENT;
+	CRect rc(0, 0, 16, 16);
+	for (coX = 0; coX < SPRITE_COUNT; coX++) {
+		if (!Sprite_Value[coX]) continue;
+		if (room != Sprite_InRoom[coX]) continue;
+		pt.x = Sprite_Coords[coX].x - ScrollOffset.x;
+		pt.y = Sprite_Coords[coX].y - ScrollOffset.y;
+		if (!PtInRect(rc, pt)) continue;
+		pt.x = (pt.x << 4) + rcMap.left;
+		pt.y = (pt.y << 4) + rcMap.top;
+		m_sprites.Draw(&dc, cart->ROM[SPRITE_PICASSIGNMENT + Sprite_Value[coX]], pt, ILD_TRANSPARENT);
 	}
 
 	CPaintDC mydc(this); // device context for painting

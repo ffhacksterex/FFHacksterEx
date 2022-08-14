@@ -176,6 +176,9 @@
     <ClCompile Include="CSubDlgRenderMapStatic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sRenderMapState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ff1-subeditors.rc">

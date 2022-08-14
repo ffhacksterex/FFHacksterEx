@@ -221,6 +221,7 @@
     <ClCompile Include="MiniMap.cpp" />
     <ClCompile Include="NESPalette.cpp" />
     <ClCompile Include="NewLabel.cpp" />
+    <ClCompile Include="sRenderMapState.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
