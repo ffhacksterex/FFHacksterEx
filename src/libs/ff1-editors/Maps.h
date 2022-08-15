@@ -3,6 +3,7 @@
 
 #include <EditorWithBackground.h>
 #include "ICoordMap.h"
+#include "IMapEditor.h"
 #include <vector>
 #include "afxwin.h"
 #include <DrawingToolButton.h>
@@ -13,7 +14,9 @@ class CEntriesLoader;
 /////////////////////////////////////////////////////////////////////////////
 // CMaps dialog
 
-class CMaps : public CEditorWithBackground, public ICoordMap
+class CMaps : public CEditorWithBackground,
+			public ICoordMap,
+			public IMapEditor
 {
 	// Construction
 public:
@@ -30,9 +33,17 @@ public:
 	virtual POINT GetLastClick() override;
 	virtual int GetCurMap() override;
 	virtual void TeleportHere(int mapindex, int x, int y) override;
+	virtual void DoHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	virtual void DoVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 
-	void DoHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-	void DoVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	// Inherited from IMapEditor
+	virtual void HandleLButtonDown(UINT nFlags, CPoint point);
+	virtual void HandleLButtonUp(UINT nFlags, CPoint point);
+	virtual void HandleLButtonDblClk(UINT nFlags, CPoint point);
+	virtual void HandleRButtonDown(UINT nFlags, CPoint pt);
+	virtual void HandleRButtonUp(UINT nFlags, CPoint pt);
+	virtual void HandleRButtonDblClk(UINT nFlags, CPoint point);
+	virtual void HandleMouseMove(UINT nFlags, CPoint newhover);
 
 protected:
 	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
@@ -41,6 +52,7 @@ protected:
 	void DoViewcoords();
 	void DoOK();
 	void DoSelchangeMaplist();
+	void ApplyTileTint(int ref);
 
 	int cur_map;
 	int cur_tileset;

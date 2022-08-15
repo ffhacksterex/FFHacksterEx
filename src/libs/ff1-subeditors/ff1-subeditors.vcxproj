@@ -186,6 +186,7 @@
     <ClInclude Include="DlgEditStrings.h" />
     <ClInclude Include="DlgPasteTargets.h" />
     <ClInclude Include="ICoordMap.h" />
+    <ClInclude Include="IMapEditor.h" />
     <ClInclude Include="InplaceArrayEdit.h" />
     <ClInclude Include="Loading.h" />
     <ClInclude Include="Mapman.h" />

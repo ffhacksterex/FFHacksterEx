@@ -144,13 +144,17 @@ void CMaps::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CMaps, CEditorWithBackground)
 	ON_WM_PAINT()
-	ON_LBN_SELCHANGE(IDC_MAPLIST, OnSelchangeMaplist)
-	ON_BN_CLICKED(IDC_SHOWROOMS, OnShowrooms)
 	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
+	ON_WM_LBUTTONDBLCLK()
+	ON_WM_RBUTTONDOWN()
+	ON_WM_RBUTTONUP()
+	ON_WM_RBUTTONDBLCLK()
+	ON_WM_MOUSEMOVE()
 	ON_WM_HSCROLL()
 	ON_WM_VSCROLL()
-	ON_WM_RBUTTONDBLCLK()
-	ON_WM_RBUTTONDOWN()
+	ON_LBN_SELCHANGE(IDC_MAPLIST, OnSelchangeMaplist)
+	ON_BN_CLICKED(IDC_SHOWROOMS, OnShowrooms)
 	ON_BN_CLICKED(IDC_FIGHT, OnFight)
 	ON_BN_CLICKED(IDC_SHOP, OnShop)
 	ON_BN_CLICKED(IDC_SPECIAL, OnSpecial)
@@ -169,9 +173,6 @@ BEGIN_MESSAGE_MAP(CMaps, CEditorWithBackground)
 	ON_EN_CHANGE(IDC_SPRITECOORDY, OnChangeSpritecoordy)
 	ON_CBN_SELCHANGE(IDC_SPRITE, OnSelchangeSprite)
 	ON_CBN_SELCHANGE(IDC_SPRITEGRAPHIC, OnSelchangeSpritegraphic)
-	ON_WM_MOUSEMOVE()
-	ON_WM_RBUTTONUP()
-	ON_WM_LBUTTONUP()
 	ON_BN_CLICKED(IDC_SHOWLASTCLICK, OnShowlastclick)
 	ON_BN_CLICKED(IDC_CUSTOMTOOL, OnCustomtool)
 	ON_BN_CLICKED(IDC_FINDKAB, OnFindkab)
@@ -181,7 +182,6 @@ BEGIN_MESSAGE_MAP(CMaps, CEditorWithBackground)
 	ON_BN_CLICKED(IDC_EDITLABEL, OnEditlabel)
 	ON_BN_CLICKED(IDC_TILESETLABEL, OnTilesetlabel)
 	ON_BN_CLICKED(IDC_SAVE, OnSave)
-	ON_WM_LBUTTONDBLCLK()
 	ON_BN_CLICKED(IDC_VIEWCOORDS, OnViewcoords)
 	ON_CBN_SELCHANGE(IDC_TELEPORT_LIST, OnSelchangeTeleportList)
 	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, OnMapImport)
@@ -808,13 +808,18 @@ void CMaps::OnPaint()
 	}
 
 	//Draw the sprites
-	CRect rc(0,0,16,16);
+	CRect rcscreen(0,0,16,16); // tile coords, not pixels
 	for(coX = 0; coX < MAPSPRITE_COUNT; coX++){
 		if(!Sprite_Value[coX]) continue;
 		if(room != Sprite_InRoom[coX]) continue;
+
+		// The map only shows a 16 tile x 16 tile area,
+		// so if the sprite's tile coords aren't within
+		// that area, don't display it.
 		pt.x = Sprite_Coords[coX].x - ScrollOffset.x;
 		pt.y = Sprite_Coords[coX].y - ScrollOffset.y;
-		if(!PtInRect(rc,pt)) continue;
+		if(!PtInRect(rcscreen,pt)) continue;
+
 		pt.x = (pt.x << 4) + rcMap.left;
 		pt.y = (pt.y << 4) + rcMap.top;
 		m_sprites.Draw(&dc,cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[coX]],pt,ILD_TRANSPARENT);
@@ -822,6 +827,7 @@ void CMaps::OnPaint()
 
 	//Draw the palettes
 	CBrush br;
+	CRect rc(0, 0, 16, 16);
 	rc.top = rcPalettes.top; rc.bottom = rc.top + 16;
 	for(coY = 0; coY < 2; coY++,rc.top += 16, rc.bottom += 16){
 		rc.left = rcPalettes.left; rc.right = rc.left + 16;
@@ -885,29 +891,29 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 {
 	mousedown = 0;
 	int tile;
-	if(PtInRect(rcMap,pt)){
-		if(coords_dlg.m_mouseclick.GetCheck()){
-			OnRButtonDown(nFlags,pt);
-			return;}
+	if (PtInRect(rcMap, pt)) {
+		if (coords_dlg.m_mouseclick.GetCheck()) {
+			OnRButtonDown(nFlags, pt);
+			return;
+		}
 		CPoint fixedpt;
 		fixedpt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
 		fixedpt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		switch(cur_tool){
-		case 0:{		//pencil
+		switch (cur_tool) {
+		case 0: {		//pencil
 			mousedown = 1;
 			UpdateClick(fixedpt);
 			DecompressedMap[fixedpt.y][fixedpt.x] = (BYTE)cur_tile;
-			InvalidateRect(rcMap,0);
+			InvalidateRect(rcMap, 0);
 			m_mapdlg.InvalidateMap();
 		}break;
-		default:{		//fill/smarttools
+		default: {		//fill/smarttools
 			mousedown = 1;
 			UpdateClick(fixedpt);
-			rcToolRect.SetRect(fixedpt.x,fixedpt.y,fixedpt.x,fixedpt.y);
-			InvalidateRect(rcMap,0);
+			rcToolRect.SetRect(fixedpt.x, fixedpt.y, fixedpt.x, fixedpt.y);
+			InvalidateRect(rcMap, 0);
 			m_mapdlg.InvalidateMap();
 		}break;
-
 		}
 	}
 	else if(PtInRect(rcTiles,pt)){
@@ -980,35 +986,36 @@ void CMaps::OnMouseMove(UINT nFlags, CPoint pt)
 		CPoint newhover;
 		newhover.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
 		newhover.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		if(ptHover != newhover){
-			ptHover = newhover;
-			text.Format("%X,%X",ptHover.x,ptHover.y);
-			m_hovering.SetWindowText(text);
-			if(mousedown == 1){
-				switch(cur_tool){
-				case 0:{		//pencil
-					DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
-					InvalidateRect(rcMap,0);
-					m_mapdlg.InvalidateMap();
-				}break;
-				default:{		//fill / Smarttools
-					rcToolRect.right = ptHover.x;
-					rcToolRect.bottom = ptHover.y;
-					InvalidateRect(rcMap,0);
-					m_mapdlg.InvalidateMap();
-				}break;
-				}
-				UpdateClick(ptHover);
-			}
-			else if(mousedown){
-				UpdateClick(ptHover);
-				Sprite_Coords[mousedown - 2] = ptHover;
-				text.Format("%X",ptHover.x); m_spritecoordx.SetWindowText(text);
-				text.Format("%X",ptHover.y); m_spritecoordy.SetWindowText(text);
-				InvalidateRect(rcMap,0);
-				m_mapdlg.InvalidateMap();
-			}
-		}
+		HandleMouseMove(nFlags, newhover);
+		//if(ptHover != newhover){
+		//	ptHover = newhover;
+		//	text.Format("%X,%X",ptHover.x,ptHover.y);
+		//	m_hovering.SetWindowText(text);
+		//	if(mousedown == 1){
+		//		switch(cur_tool){
+		//		case 0:{		//pencil
+		//			DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
+		//			InvalidateRect(rcMap,0);
+		//			m_mapdlg.InvalidateMap();
+		//		}break;
+		//		default:{		//fill / Smarttools
+		//			rcToolRect.right = ptHover.x;
+		//			rcToolRect.bottom = ptHover.y;
+		//			InvalidateRect(rcMap,0);
+		//			m_mapdlg.InvalidateMap();
+		//		}break;
+		//		}
+		//		UpdateClick(ptHover);
+		//	}
+		//	else if(mousedown){
+		//		UpdateClick(ptHover);
+		//		Sprite_Coords[mousedown - 2] = ptHover;
+		//		text.Format("%X",ptHover.x); m_spritecoordx.SetWindowText(text);
+		//		text.Format("%X",ptHover.y); m_spritecoordy.SetWindowText(text);
+		//		InvalidateRect(rcMap,0);
+		//		m_mapdlg.InvalidateMap();
+		//	}
+		//}
 	}
 	else{
 		if(ptHover.x != -1){
@@ -1060,10 +1067,12 @@ void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
 	UNREFERENCED_PARAMETER(nFlags);
 
 	int ref = -1;
-	if(PtInRect(rcMap,pt)){
+	if (PtInRect(rcMap, pt)) {
 		pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
 		pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		ref = DecompressedMap[pt.y][pt.x];}
+		HandleRButtonDblClk(nFlags, pt);
+		//ref = DecompressedMap[pt.y][pt.x];
+	}
 	else if(PtInRect(rcTiles,pt)){
 		pt.x = (pt.x - rcTiles.left) >> 4;
 		pt.y = (pt.y - rcTiles.top) & 0xF0;
@@ -1101,39 +1110,45 @@ void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
 void CMaps::OnRButtonDown(UINT nFlags, CPoint pt)
 {
 	mousedown = 0;
-	if(PtInRect(rcTiles,pt)) OnLButtonDown(nFlags,pt);
-	else if(PtInRect(rcMap,pt)){
-		StoreTileData();
+	if (PtInRect(rcTiles, pt)) {
+		OnLButtonDown(nFlags, pt);
+	}
+	else if (PtInRect(rcMap, pt)) {
 		pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
 		pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		UpdateClick(pt);
-		InvalidateRect(rcTiles,0);
-		if (m_showlastclick.GetCheck()) {
-			InvalidateRect(rcMap, 0);
-			m_mapdlg.InvalidateMap();
-		}
-		if(coords_dlg.m_mouseclick.GetCheck()){
-			coords_dlg.m_coord_l.SetCurSel(m_maplist.GetCurSel());
-			coords_dlg.OnSelchangeCoordL();
-			coords_dlg.InputCoords(pt);
-			return;}
-		cur_tile = DecompressedMap[pt.y][pt.x];
-		LoadTileData();
-		if(cur_tool > 1){
-			CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
-				m_blockbutton.GetDlgCtrlID());
-			cur_tool = m_blockbutton.GetToolIndex();
-			m_customtool.EnableWindow(FALSE);
-		}
+		HandleRButtonDown(nFlags, pt);
+		//StoreTileData();
+		//UpdateClick(pt);
+		//InvalidateRect(rcTiles, 0);
+		//if (m_showlastclick.GetCheck()) {
+		//	InvalidateRect(rcMap, 0);
+		//	m_mapdlg.InvalidateMap();
+		//}
+		//if (coords_dlg.m_mouseclick.GetCheck()) {
+		//	coords_dlg.m_coord_l.SetCurSel(m_maplist.GetCurSel());
+		//	coords_dlg.OnSelchangeCoordL();
+		//	coords_dlg.InputCoords(pt);
+		//	return;
+		//}
+		//cur_tile = DecompressedMap[pt.y][pt.x];
+		//LoadTileData();
+		//if (cur_tool > 1) {
+		//	CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
+		//		m_blockbutton.GetDlgCtrlID());
+		//	cur_tool = m_blockbutton.GetToolIndex();
+		//	m_customtool.EnableWindow(FALSE);
+		//}
 
-		//if they clicked on a sprite... adjust the Sprite Editor accordingly
-		for(int co = 0; co < MAPSPRITE_COUNT; co++){
-			if(!Sprite_Value[co]) continue;
-			if(Sprite_Coords[co] == pt){
-				mousedown = (BYTE)(co + 2);
-				m_sprite_list.SetCurSel(co);
-				OnSelchangeSpriteList();
-				break;}}
+		////if they clicked on a sprite... adjust the Sprite Editor accordingly
+		//for (int co = 0; co < MAPSPRITE_COUNT; co++) {
+		//	if (!Sprite_Value[co]) continue;
+		//	if (Sprite_Coords[co] == pt) {
+		//		mousedown = (BYTE)(co + 2);
+		//		m_sprite_list.SetCurSel(co);
+		//		OnSelchangeSpriteList();
+		//		break;
+		//	}
+		//}
 	}
 }
 
@@ -1358,7 +1373,6 @@ void CMaps::OnRButtonUp(UINT nFlags, CPoint point)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 	UNREFERENCED_PARAMETER(point);
-
 	mousedown = 0;
 }
 
@@ -1740,6 +1754,121 @@ void CMaps::DoVScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 	OnVScroll(nSBCode, nPos, pScrollBar);
 }
 
+void CMaps::HandleLButtonDown(UINT nFlags, CPoint point)
+{
+}
+
+void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
+{
+}
+
+void CMaps::HandleLButtonDblClk(UINT nFlags, CPoint point)
+{
+}
+
+// The point is in map coord, not pixels.
+// The commented out calculation below must be
+// performed by the caller.
+void CMaps::HandleRButtonDown(UINT nFlags, CPoint pt)
+{
+	UNREFERENCED_PARAMETER(nFlags);
+	StoreTileData();
+	//pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
+	//pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
+	UpdateClick(pt);
+	InvalidateRect(rcTiles, 0);
+	if (m_showlastclick.GetCheck()) {
+		InvalidateRect(rcMap, 0);
+		m_mapdlg.InvalidateMap();
+	}
+	if (coords_dlg.m_mouseclick.GetCheck()) {
+		coords_dlg.m_coord_l.SetCurSel(m_maplist.GetCurSel());
+		coords_dlg.OnSelchangeCoordL();
+		coords_dlg.InputCoords(pt);
+		return;
+	}
+	cur_tile = DecompressedMap[pt.y][pt.x];
+	LoadTileData();
+	if (cur_tool > 1) {
+		CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
+			m_blockbutton.GetDlgCtrlID());
+		cur_tool = m_blockbutton.GetToolIndex();
+		m_customtool.EnableWindow(FALSE);
+		//TODO - if invoked from the map dlg, then let
+		//	that dialog refresh its customtool buttons
+	}
+
+	//if they clicked on a sprite... adjust the Sprite Editor accordingly
+	for (int co = 0; co < MAPSPRITE_COUNT; co++) {
+		if (!Sprite_Value[co]) continue;
+		if (Sprite_Coords[co] == pt) {
+			mousedown = (BYTE)(co + 2);
+			m_sprite_list.SetCurSel(co);
+			OnSelchangeSpriteList();
+			break;
+		}
+	}
+}
+
+void CMaps::HandleRButtonUp(UINT nFlags, CPoint point)
+{
+	UNREFERENCED_PARAMETER(nFlags);
+	UNREFERENCED_PARAMETER(point);
+	mousedown = 0;
+}
+
+void CMaps::HandleRButtonDblClk(UINT nFlags, CPoint pt)
+{
+	UNREFERENCED_PARAMETER(nFlags);
+
+	//pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
+	//pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
+	int ref = DecompressedMap[pt.y][pt.x];
+	if (ref != -1)
+		ApplyTileTint(ref);
+}
+
+void CMaps::HandleMouseMove(UINT nFlags, CPoint newhover)
+{
+	//CPoint newhover;
+	//newhover.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
+	//newhover.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
+	if (ptHover != newhover) {
+		ptHover = newhover;
+		CString text;
+		text.Format("%X,%X", ptHover.x, ptHover.y);
+		m_hovering.SetWindowText(text);
+		if (mousedown == 1) {
+			switch (cur_tool) {
+			case 0: {		//pencil
+				DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
+				InvalidateRect(rcMap, 0);
+				m_mapdlg.InvalidateMap();
+				break;
+			}
+			default: {		//fill / Smarttools
+				rcToolRect.right = ptHover.x;
+				rcToolRect.bottom = ptHover.y;
+				InvalidateRect(rcMap, 0);
+				m_mapdlg.InvalidateMap();
+				break;
+			}
+			}
+			UpdateClick(ptHover);
+		}
+		else if (mousedown) {
+			UpdateClick(ptHover);
+			Sprite_Coords[mousedown - 2] = ptHover;
+			text.Format("%X", ptHover.x);
+			m_spritecoordx.SetWindowText(text);
+			text.Format("%X", ptHover.y);
+			m_spritecoordy.SetWindowText(text);
+			InvalidateRect(rcMap, 0);
+			m_mapdlg.InvalidateMap();
+		}
+	}
+}
+
 void CMaps::DoViewcoords()
 {
 	OnViewcoords();
@@ -1753,6 +1882,38 @@ void CMaps::DoOK()
 void CMaps::DoSelchangeMaplist()
 {
 	OnSelchangeMaplist();
+}
+
+void CMaps::ApplyTileTint(int ref)
+{
+	int old = cart->TintTiles[cur_tileset + 1][ref];
+	CTint dlg;
+	dlg.tintvalue = old;
+	dlg.m_tintvariant = cart->TintVariant;
+	if (dlg.DoModal() == IDOK) {
+
+		cart->OK_tiles[cur_map] = 0;
+		cart->GetStandardTiles(cur_map, 0).DeleteImageList();
+		cart->GetStandardTiles(cur_map, 1).DeleteImageList();
+
+		cart->TintTiles[cur_tileset + 1][ref] = (BYTE)dlg.tintvalue;
+		if (cart->TintVariant != dlg.m_tintvariant) {
+			cart->TintVariant = (BYTE)dlg.m_tintvariant;
+			cart->ReTintPalette();
+		}
+
+		CLoading dlgmaps;
+		dlgmaps.Create(IDD_LOADING, this);
+		dlgmaps.m_progress.SetRange(0, 128);
+		dlgmaps.m_progress.SetPos(0);
+		dlgmaps.ShowWindow(1);
+
+		ReloadImages(&dlgmaps.m_progress);
+
+		dlgmaps.ShowWindow(0);
+		InvalidateRect(rcTiles, 0);
+		InvalidateRect(rcMap, 0);
+	}
 }
 
 void CMaps::OnSelchangeTeleportList()

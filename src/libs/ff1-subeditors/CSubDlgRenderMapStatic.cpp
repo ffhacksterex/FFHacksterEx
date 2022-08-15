@@ -23,9 +23,31 @@ BEGIN_MESSAGE_MAP(CSubDlgRenderMapStatic, CStatic)
 	ON_WM_PAINT()
 	ON_WM_SIZE()
 	ON_WM_CREATE()
+	ON_WM_RBUTTONDOWN()
+	ON_WM_RBUTTONUP()
+	ON_WM_RBUTTONDBLCLK()
+	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
+	ON_WM_LBUTTONDBLCLK()
 END_MESSAGE_MAP()
 
 // Public implementation
+
+CPoint CSubDlgRenderMapStatic::get_map_point(CPoint point)
+{
+	//CPoint ScrollOffset{ 0,0 };//TODO - likely not be needed here
+	//CPoint pt{
+	//	((point.x - 0) / State.tiledims.cx) + ScrollOffset.x,
+	//	((point.y - 0) / State.tiledims.cy) + ScrollOffset.y
+	//};
+	CPoint ScrollOffset{ 0,0 };//TODO - likely not be needed here
+	CPoint pt{
+		(point.x / State.tiledims.cx) + ScrollOffset.x,
+		(point.y / State.tiledims.cy) + ScrollOffset.y
+	};
+	return pt;
+}
 
 void CSubDlgRenderMapStatic::SetRenderState(const sRenderMapState& state)
 {
@@ -166,15 +188,18 @@ void CSubDlgRenderMapStatic::handle_paint()
 	auto& m_sprites = *State.m_sprites;
 	auto SPRITE_COUNT = State.SPRITE_COUNT;
 	auto SPRITE_PICASSIGNMENT = State.SPRITE_PICASSIGNMENT;
-	CRect rc(0, 0, 16, 16);
+
+	//TODO - For now, we don't clip, that's coming in a later pass
+	//	We need the scroll rect from the parent to do this.
+	//CRect rc(0, 0, 16, 16);
 	for (coX = 0; coX < SPRITE_COUNT; coX++) {
 		if (!Sprite_Value[coX]) continue;
 		if (room != Sprite_InRoom[coX]) continue;
 		pt.x = Sprite_Coords[coX].x - ScrollOffset.x;
 		pt.y = Sprite_Coords[coX].y - ScrollOffset.y;
-		if (!PtInRect(rc, pt)) continue;
-		pt.x = (pt.x << 4) + rcMap.left;
-		pt.y = (pt.y << 4) + rcMap.top;
+
+		pt.x = (pt.x * State.tiledims.cx) + rcMap.left;
+		pt.y = (pt.y * State.tiledims.cy) + rcMap.top;
 		m_sprites.Draw(&dc, cart->ROM[SPRITE_PICASSIGNMENT + Sprite_Value[coX]], pt, ILD_TRANSPARENT);
 	}
 
@@ -221,4 +246,96 @@ void CSubDlgRenderMapStatic::OnPaint()
 void CSubDlgRenderMapStatic::OnSize(UINT nType, int cx, int cy)
 {
 	CStatic::OnSize(nType, cx, cy);
+}
+
+
+void CSubDlgRenderMapStatic::OnRButtonDown(UINT nFlags, CPoint point)
+{
+	CStatic::OnRButtonDown(nFlags, point);
+	if (!is_valid()) return;
+
+	//State.owner->HandleRButtonDown(nFlags, point);
+
+	//CPoint ScrollOffset{ 0,0 };//TODO - likely not be needed here
+	//CPoint pt{
+	//	//((pt.x - rcMap.left) / State.tiledims.cx) + ScrollOffset.x,
+	//	//((pt.y - rcMap.top) / State.tiledims.cy) + ScrollOffset.y
+	//	((point.x - 0) / State.tiledims.cx) + ScrollOffset.x,
+	//	((point.y - 0) / State.tiledims.cy) + ScrollOffset.y
+	//};
+
+	//TODO - one weakness here is that by not handling
+	//	this in the parent, it doesn't know to update
+	//	the customize button.
+	//	Either send yet another message, or
+	//	move this up to the parent.
+	//	Make this a public method and the parent can
+	//	translate the coords and call it directly
+	//	(or send WM_RBUTTONDOWN and wait for the response).
+	auto pt = get_map_point(point);
+	State.owner->HandleRButtonDown(nFlags, pt);
+	InvalidateRect(nullptr);
+}
+
+void CSubDlgRenderMapStatic::OnRButtonUp(UINT nFlags, CPoint point)
+{
+	CStatic::OnRButtonUp(nFlags, point);
+	if (!is_valid()) return;
+
+	auto pt = get_map_point(point);
+	State.owner->HandleRButtonUp(nFlags, pt);
+	InvalidateRect(nullptr);
+}
+
+void CSubDlgRenderMapStatic::OnRButtonDblClk(UINT nFlags, CPoint point)
+{
+	CStatic::OnRButtonDblClk(nFlags, point);
+	if (!is_valid()) return;
+
+	//CPoint ScrollOffset{ 0,0 };//TODO - likely not be needed here
+	//CPoint pt{
+	//	((point.x - 0) / State.tiledims.cx) + ScrollOffset.x,
+	//	((point.y - 0) / State.tiledims.cy) + ScrollOffset.y
+	//};
+	auto pt = get_map_point(point);
+	State.owner->HandleRButtonDblClk(nFlags, pt);
+	InvalidateRect(nullptr);
+}
+
+
+void CSubDlgRenderMapStatic::OnMouseMove(UINT nFlags, CPoint point)
+{
+	CStatic::OnMouseMove(nFlags, point);
+	if (!is_valid()) return;
+
+	auto pt = get_map_point(point);
+	State.owner->HandleMouseMove(nFlags, pt);
+	InvalidateRect(nullptr);
+}
+
+
+void CSubDlgRenderMapStatic::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	CStatic::OnLButtonDown(nFlags, point);
+	if (!is_valid()) return;
+
+	mousedown = 0;
+}
+
+
+void CSubDlgRenderMapStatic::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	CStatic::OnLButtonUp(nFlags, point);
+	if (!is_valid()) return;
+
+
+	mousedown = 0;
+}
+
+
+void CSubDlgRenderMapStatic::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	CStatic::OnLButtonDblClk(nFlags, point);
 }
