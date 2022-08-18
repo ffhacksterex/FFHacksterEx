@@ -2000,10 +2000,9 @@ void CMaps::PopMapDialog(bool in)
 		m_popoutbutton.SetFocus();
 	}
 	else {
-		m_mapdlg.PostMessage(WM_SETFOCUS); //DEVNOTE - can't use SetFocus() here
+		m_mapdlg.PostMessage(WM_SETFOCUS); //DEVNOTE - don't use SetFocus()/SendMessage for this
 	}
 
-	auto olddlgrc = Ui::GetWindowRect(this);
 	auto rc = Ui::GetControlRect(&m_mappanel);
 	int diff = rc.Width() * (in ? -1 : 1);
 	Ui::ShrinkWindow(this, diff, 0);
@@ -2014,10 +2013,13 @@ void CMaps::PopMapDialog(bool in)
 			// dialog that was hidden.
 			m_firstpopoutdone = true;
 			auto dlgrc = Ui::GetWindowRect(this);
-			CRect rcdiff;
-			rcdiff.SubtractRect(olddlgrc, dlgrc);
-			CRect poprc{ dlgrc.right, dlgrc.top, rc.Width(), dlgrc.Height() };
-			poprc = rcdiff;
+			auto left = dlgrc.right - GetSystemMetrics(SM_CXSIZEFRAME) + 1;
+			CRect poprc{
+				left,
+				dlgrc.top,
+				left + diff + GetSystemMetrics(SM_CXSIZEFRAME),
+				dlgrc.bottom + GetSystemMetrics(SM_CYSIZEFRAME)
+			};
 			m_mapdlg.MoveWindow(poprc);
 		}
 		m_mapdlg.UpdateControls();
