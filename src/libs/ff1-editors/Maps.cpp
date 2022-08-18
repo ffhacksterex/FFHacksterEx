@@ -1870,7 +1870,7 @@ bool CMaps::HandleCustomizeTool()
 	dlg.dat = cart;
 	dlg.m_tiles = &cart->GetStandardTiles(cur_map, m_showrooms.GetCheck());
 	dlg.tool = cur_tool - 2 + (cur_tileset << 1);
-	int result = dlg.DoModal();
+	auto result = dlg.DoModal();
 	return result == IDOK;
 }
 

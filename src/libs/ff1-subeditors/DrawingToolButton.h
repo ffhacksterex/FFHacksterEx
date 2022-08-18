@@ -1,7 +1,5 @@
 #pragma once
 
-#include <ClearButton.h>
-
 #define WMA_DRAWTOOLBNCLICK ((WM_APP) + 1)		// LPARAM = tool index
 
 typedef struct sToolButtonData {

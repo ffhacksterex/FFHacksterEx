@@ -6,6 +6,7 @@
 #include "IMapEditor.h"
 #include <vector>
 #include "afxwin.h"
+#include <SimpleImageButton.h>
 #include <DrawingToolButton.h>
 #include <FloatingMapDlg.h>
 class CFFHacksterProject;
@@ -188,7 +189,7 @@ protected:
 	CDrawingToolButton m_custom1button{ IDB_PNG_DRAWTOOL_CUSTOM1, 5 };
 	CDrawingToolButton m_custom2button{ IDB_PNG_DRAWTOOL_CUSTOM2, 6 };
 	CStatic m_mappanel;
-	CButton m_popoutbutton;
+	CSimpleImageButton m_popoutbutton{ IDB_PNG_SCREEENSIZE_INCREASE };
 	CCloseButton m_closebutton;
 	CHelpbookButton m_helpbookbutton;
 
