@@ -53,14 +53,14 @@ BOOL CFloatingMapDlg::Init(const sRenderMapState& state, const std::vector<sMapD
 	return FALSE;
 }
 
-void CFloatingMapDlg::InvalidateMap()
-{
-	m_subdlg.Invalidate();
-}
-
 void CFloatingMapDlg::UpdateControls()
 {
 	UpdateToolIndex();
+}
+
+void CFloatingMapDlg::InvalidateMap()
+{
+	m_subdlg.InvalidateFrame();
 }
 
 void CFloatingMapDlg::UpdateToolIndex()

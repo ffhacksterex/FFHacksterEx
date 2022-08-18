@@ -15,6 +15,7 @@ public:
 	BOOL CreateOverControl(CWnd* pParent, CWnd* pOver);
 	void SetRenderState(const sRenderMapState& state);
 	const sRenderMapState& GetRenderState() const;
+	void InvalidateFrame();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

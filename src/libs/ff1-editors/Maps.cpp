@@ -1595,7 +1595,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 					DecompressedMap[coY][coX] = (BYTE)cur_tile;
 			}
 			InvalidateRect(rcMap, 0);
-			m_mapdlg.InvalidateMap(); //TODO - need to handle invalidate better
+			m_mapdlg.InvalidateMap();
 		}break;
 
 		default: {			//smarttools
@@ -1745,7 +1745,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
 
 			InvalidateRect(rcMap, 0);
-			m_mapdlg.InvalidateMap(); //TODO - need to handle invalidate better
+			m_mapdlg.InvalidateMap();
 		}break;
 		}
 	}
@@ -1782,8 +1782,7 @@ void CMaps::HandleRButtonDown(UINT nFlags, CPoint pt)
 			m_blockbutton.GetDlgCtrlID());
 		cur_tool = m_blockbutton.GetToolIndex();
 		m_customtool.EnableWindow(FALSE);
-		//TODO - if invoked from the map dlg, then let
-		//	that dialog refresh its customtool buttons
+		m_mapdlg.UpdateControls();
 	}
 
 	//if they clicked on a sprite... adjust the Sprite Editor accordingly
