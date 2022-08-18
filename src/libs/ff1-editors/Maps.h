@@ -69,7 +69,7 @@ protected:
 
 	CPoint ptLastClick;
 	CButton	m_viewcoords;
-
+	
 	BYTE DecompressedMap[0x40][0x40];
 	CImageList m_sprites;
 	CPen redpen;
@@ -88,6 +88,7 @@ protected:
 
 	CPoint ptHover;
 	void UpdateClick(CPoint);
+	CPoint fix_map_point(CPoint point);
 
 	void LoadRom();
 	virtual void SaveRom();

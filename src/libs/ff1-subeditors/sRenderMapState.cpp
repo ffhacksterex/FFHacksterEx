@@ -4,6 +4,7 @@
 bool sRenderMapState::IsValid() const
 {
 	return
+		(pmousedown != nullptr) &&
 		(project != nullptr) &&
 		(owner != nullptr) &&
 		(showrooms != nullptr) &&

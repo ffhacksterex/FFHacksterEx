@@ -887,54 +887,75 @@ void CMaps::OnShowrooms()
 	m_mapdlg.InvalidateMap();
 }
 
+void CMaps::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	UNREFERENCED_PARAMETER(pScrollBar);
+
+	switch (nSBCode) {
+	case 0: ScrollOffset.x -= 1; break;
+	case 1: ScrollOffset.x += 1; break;
+	case 2: ScrollOffset.x -= 16; break;
+	case 3: ScrollOffset.x += 16; break;
+	case 5: ScrollOffset.x = nPos; break;
+	}
+	if (ScrollOffset.x < 0) ScrollOffset.x = 0;
+	if (ScrollOffset.x > 48) ScrollOffset.x = 48;
+
+	m_hscroll.SetScrollPos(ScrollOffset.x);
+	InvalidateRect(rcMap, FALSE);
+	m_mapdlg.InvalidateMap();
+}
+
+void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	UNREFERENCED_PARAMETER(pScrollBar);
+
+	switch (nSBCode) {
+	case 0: ScrollOffset.y -= 1; break;
+	case 1: ScrollOffset.y += 1; break;
+	case 2: ScrollOffset.y -= 16; break;
+	case 3: ScrollOffset.y += 16; break;
+	case 5: ScrollOffset.y = nPos; break;
+	}
+	if (ScrollOffset.y < 0) ScrollOffset.y = 0;
+	if (ScrollOffset.y > 48) ScrollOffset.y = 48;
+
+	m_vscroll.SetScrollPos(ScrollOffset.y);
+	InvalidateRect(rcMap, FALSE);
+	m_mapdlg.InvalidateMap();
+}
+
 void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 {
 	mousedown = 0;
 	int tile;
 	if (PtInRect(rcMap, pt)) {
-		if (coords_dlg.m_mouseclick.GetCheck()) {
-			OnRButtonDown(nFlags, pt);
-			return;
-		}
-		CPoint fixedpt;
-		fixedpt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		fixedpt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		switch (cur_tool) {
-		case 0: {		//pencil
-			mousedown = 1;
-			UpdateClick(fixedpt);
-			DecompressedMap[fixedpt.y][fixedpt.x] = (BYTE)cur_tile;
-			InvalidateRect(rcMap, 0);
-			m_mapdlg.InvalidateMap();
-		}break;
-		default: {		//fill/smarttools
-			mousedown = 1;
-			UpdateClick(fixedpt);
-			rcToolRect.SetRect(fixedpt.x, fixedpt.y, fixedpt.x, fixedpt.y);
-			InvalidateRect(rcMap, 0);
-			m_mapdlg.InvalidateMap();
-		}break;
-		}
+		auto fixedpt = fix_map_point(pt);
+		if (coords_dlg.m_mouseclick.GetCheck())
+			HandleRButtonDown(nFlags, fixedpt);
+		else
+			HandleLButtonDown(nFlags, fixedpt);
 	}
-	else if(PtInRect(rcTiles,pt)){
+	else if (PtInRect(rcTiles, pt)) {
 		pt.x = (pt.x - rcTiles.left) >> 4;
 		pt.y = (pt.y - rcTiles.top) & 0xF0;
 		StoreTileData();
 		cur_tile = pt.x + pt.y;
 		LoadTileData();
-		InvalidateRect(rcTiles,0);}
-	else if(PtInRect(rcPalettes,pt)){
+		InvalidateRect(rcTiles, 0);
+	}
+	else if (PtInRect(rcPalettes, pt)) {
 		pt.x = (pt.x - rcPalettes.left) >> 4;
 		pt.y = (pt.y - rcPalettes.top) & 0xF0;
 		tile = pt.x + (pt.y << 1);
-		if(!(tile & 0x03)) tile = 0;
+		if (!(tile & 0x03)) tile = 0;
 
 		CNESPalette dlg;
 		dlg.cart = cart;
 		int temp = MAPPALETTE_OFFSET + (cur_map * 0x30) + tile;
-		if(!tile) temp += 0x18;
+		if (!tile) temp += 0x18;
 		dlg.color = &cart->ROM[temp];
-		if(dlg.DoModal() == IDOK){
+		if (dlg.DoModal() == IDOK) {
 			MapPalette[pt.y >= 0x10][0][pt.x] = *dlg.color;
 			if (!tile) {
 				tile = *dlg.color;
@@ -943,23 +964,23 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 					MapPalette[0][0][co] = (BYTE)tile;
 			}
 			UpdatePics();
-			InvalidateRect(rcPalettes,0);
-			InvalidateRect(rcPalettes2,0);
+			InvalidateRect(rcPalettes, 0);
+			InvalidateRect(rcPalettes2, 0);
 		}
 	}
-	else if(PtInRect(rcPalettes2,pt)){
+	else if (PtInRect(rcPalettes2, pt)) {
 		pt.x = (pt.x - rcPalettes2.left) >> 4;
 		pt.y = ((pt.y - rcPalettes2.top) & 0xF0) >> 1;
 		tile = pt.x + pt.y;
-		if(tile == 0 || tile == 4) return;
-		if(tile >= 8) tile -= 8;
+		if (tile == 0 || tile == 4) return;
+		if (tile >= 8) tile -= 8;
 		else tile += 8;
 
 		CNESPalette dlg;
 		dlg.cart = cart;
 		dlg.color = &cart->ROM[MAPPALETTE_OFFSET + (cur_map * 0x30) + tile + 0x10];
-		if(dlg.DoModal() == IDOK){
-			if(tile < 8) ControlPalette[tile] = *dlg.color;
+		if (dlg.DoModal() == IDOK) {
+			if (tile < 8) ControlPalette[tile] = *dlg.color;
 			else SpritePalette[0][tile - 8] = *dlg.color;
 			if (!tile) {
 				tile = *dlg.color;
@@ -968,8 +989,8 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 					MapPalette[0][0][co] = (BYTE)tile;
 			}
 			UpdatePics();
-			InvalidateRect(rcPalettes,0);
-			InvalidateRect(rcPalettes2,0);
+			InvalidateRect(rcPalettes, 0);
+			InvalidateRect(rcPalettes2, 0);
 		}
 	}
 	else {
@@ -977,89 +998,61 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 	}
 }
 
-void CMaps::OnMouseMove(UINT nFlags, CPoint pt)
+void CMaps::OnLButtonUp(UINT nFlags, CPoint pt)
+{
+	HandleLButtonUp(nFlags, pt);
+	mousedown = 0;
+}
+
+void CMaps::OnLButtonDblClk(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
-	CString text = "";
-	if(PtInRect(rcMap,pt)){
-		CPoint newhover;
-		newhover.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		newhover.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		HandleMouseMove(nFlags, newhover);
-		//if(ptHover != newhover){
-		//	ptHover = newhover;
-		//	text.Format("%X,%X",ptHover.x,ptHover.y);
-		//	m_hovering.SetWindowText(text);
-		//	if(mousedown == 1){
-		//		switch(cur_tool){
-		//		case 0:{		//pencil
-		//			DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
-		//			InvalidateRect(rcMap,0);
-		//			m_mapdlg.InvalidateMap();
-		//		}break;
-		//		default:{		//fill / Smarttools
-		//			rcToolRect.right = ptHover.x;
-		//			rcToolRect.bottom = ptHover.y;
-		//			InvalidateRect(rcMap,0);
-		//			m_mapdlg.InvalidateMap();
-		//		}break;
-		//		}
-		//		UpdateClick(ptHover);
-		//	}
-		//	else if(mousedown){
-		//		UpdateClick(ptHover);
-		//		Sprite_Coords[mousedown - 2] = ptHover;
-		//		text.Format("%X",ptHover.x); m_spritecoordx.SetWindowText(text);
-		//		text.Format("%X",ptHover.y); m_spritecoordy.SetWindowText(text);
-		//		InvalidateRect(rcMap,0);
-		//		m_mapdlg.InvalidateMap();
-		//	}
-		//}
-	}
-	else{
-		if(ptHover.x != -1){
-			m_hovering.SetWindowText(text);
-			ptHover.x = -1;}
+	if (PtInRect(rcTiles, pt)) {
+		CTileEdit dlg;
+		dlg.Invoker = CTileEdit::Maps;
+		dlg.cart = cart;
+		dlg.tileset = (BYTE)(cur_tileset + 1);
+		dlg.tile = (BYTE)cur_tile;
+		dlg.pal[0] = MapPalette[0][0];
+		dlg.pal[1] = MapPalette[1][0];
+		OnSave();
+		if (dlg.DoModal() == IDOK) {
+			cart->OK_tiles[cur_map] = 0;
+			cart->GetStandardTiles(cur_map, 0).DeleteImageList();
+			cart->GetStandardTiles(cur_map, 1).DeleteImageList();
+			CLoading load; load.Create(IDD_LOADING, this);
+			load.m_progress.SetRange(0, 124);
+			load.m_progress.SetPos(0);
+			load.ShowWindow(1);
+			ReloadImages(&load.m_progress);
+			load.ShowWindow(0);
+
+			InvalidateRect(rcPalettes, 0);
+			InvalidateRect(rcTiles, 0);
+			InvalidateRect(rcMap, 0);
+			m_mapdlg.InvalidateMap();
+		}
 	}
 }
 
-void CMaps::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+void CMaps::OnRButtonDown(UINT nFlags, CPoint pt)
 {
-	UNREFERENCED_PARAMETER(pScrollBar);
-
-	switch(nSBCode){
-	case 0: ScrollOffset.x -= 1; break;
-	case 1: ScrollOffset.x += 1; break;
-	case 2: ScrollOffset.x -= 16; break;
-	case 3: ScrollOffset.x += 16; break;
-	case 5: ScrollOffset.x = nPos; break;
+	mousedown = 0;
+	if (PtInRect(rcTiles, pt)) {
+		OnLButtonDown(nFlags, pt);
 	}
-	if(ScrollOffset.x < 0) ScrollOffset.x = 0;
-	if(ScrollOffset.x > 48) ScrollOffset.x = 48;
-
-	m_hscroll.SetScrollPos(ScrollOffset.x);
-	InvalidateRect(rcMap,FALSE);
-	m_mapdlg.InvalidateMap();
+	else if (PtInRect(rcMap, pt)) {
+		pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
+		pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
+		HandleRButtonDown(nFlags, pt);
+	}
 }
 
-void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+void CMaps::OnRButtonUp(UINT nFlags, CPoint point)
 {
-	UNREFERENCED_PARAMETER(pScrollBar);
-
-	switch(nSBCode){
-	case 0: ScrollOffset.y -= 1; break;
-	case 1: ScrollOffset.y += 1; break;
-	case 2: ScrollOffset.y -= 16; break;
-	case 3: ScrollOffset.y += 16; break;
-	case 5: ScrollOffset.y = nPos; break;
-	}
-	if(ScrollOffset.y < 0) ScrollOffset.y = 0;
-	if(ScrollOffset.y > 48) ScrollOffset.y = 48;
-
-	m_vscroll.SetScrollPos(ScrollOffset.y);
-	InvalidateRect(rcMap,FALSE);
-	m_mapdlg.InvalidateMap();
+	HandleRButtonUp(nFlags, point);
+	mousedown = 0;
 }
 
 void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
@@ -1107,48 +1100,22 @@ void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
 	}
 }
 
-void CMaps::OnRButtonDown(UINT nFlags, CPoint pt)
+void CMaps::OnMouseMove(UINT nFlags, CPoint pt)
 {
-	mousedown = 0;
-	if (PtInRect(rcTiles, pt)) {
-		OnLButtonDown(nFlags, pt);
-	}
-	else if (PtInRect(rcMap, pt)) {
-		pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		HandleRButtonDown(nFlags, pt);
-		//StoreTileData();
-		//UpdateClick(pt);
-		//InvalidateRect(rcTiles, 0);
-		//if (m_showlastclick.GetCheck()) {
-		//	InvalidateRect(rcMap, 0);
-		//	m_mapdlg.InvalidateMap();
-		//}
-		//if (coords_dlg.m_mouseclick.GetCheck()) {
-		//	coords_dlg.m_coord_l.SetCurSel(m_maplist.GetCurSel());
-		//	coords_dlg.OnSelchangeCoordL();
-		//	coords_dlg.InputCoords(pt);
-		//	return;
-		//}
-		//cur_tile = DecompressedMap[pt.y][pt.x];
-		//LoadTileData();
-		//if (cur_tool > 1) {
-		//	CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
-		//		m_blockbutton.GetDlgCtrlID());
-		//	cur_tool = m_blockbutton.GetToolIndex();
-		//	m_customtool.EnableWindow(FALSE);
-		//}
+	UNREFERENCED_PARAMETER(nFlags);
 
-		////if they clicked on a sprite... adjust the Sprite Editor accordingly
-		//for (int co = 0; co < MAPSPRITE_COUNT; co++) {
-		//	if (!Sprite_Value[co]) continue;
-		//	if (Sprite_Coords[co] == pt) {
-		//		mousedown = (BYTE)(co + 2);
-		//		m_sprite_list.SetCurSel(co);
-		//		OnSelchangeSpriteList();
-		//		break;
-		//	}
-		//}
+	CString text = "";
+	if (PtInRect(rcMap, pt)) {
+		CPoint newhover;
+		newhover.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
+		newhover.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
+		HandleMouseMove(nFlags, newhover);
+	}
+	else {
+		if (ptHover.x != -1) {
+			m_hovering.SetWindowText(text);
+			ptHover.x = -1;
+		}
 	}
 }
 
@@ -1369,148 +1336,14 @@ void CMaps::UpdateClick(CPoint pt)
 	m_lastclick.SetWindowText(text);
 }
 
-void CMaps::OnRButtonUp(UINT nFlags, CPoint point)
+CPoint CMaps::fix_map_point(CPoint point)
 {
-	UNREFERENCED_PARAMETER(nFlags);
-	UNREFERENCED_PARAMETER(point);
-	mousedown = 0;
+	CPoint fixedpt;
+	fixedpt.x = ((point.x - rcMap.left) >> 4) + ScrollOffset.x;
+	fixedpt.y = ((point.y - rcMap.top) >> 4) + ScrollOffset.y;
+	return fixedpt;
 }
 
-void CMaps::OnLButtonUp(UINT nFlags, CPoint pt)
-{
-	UNREFERENCED_PARAMETER(nFlags);
-	UNREFERENCED_PARAMETER(pt);
-
-	if(mousedown){
-		rcToolRect.NormalizeRect();
-		int coY, coX, temp, co;
-		bool draw;
-		switch(cur_tool){
-		case 0: break;
-		case 1:{			//fill
-			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
-			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
-					DecompressedMap[coY][coX] = (BYTE)cur_tile;}
-			InvalidateRect(rcMap,0);
-			m_mapdlg.InvalidateMap();
-		}break;
-		default:{			//smarttools
-			temp = cur_tool - 2 + (cur_tileset << 1);
-			//flood fill
-			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
-				for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
-					DecompressedMap[coY][coX] = cart->SmartTools[temp][4];}
-			//"smart" top edge
-			coY = rcToolRect.top;
-			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++){
-				draw = 1;
-				if(coY){ for(co = 0; co < 6 && draw; co++){
-						if(DecompressedMap[coY - 1][coX] == cart->SmartTools[temp][co]) draw = 0;}}
-				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][1];}
-			//"smart" bottom edge
-			coY = rcToolRect.bottom;
-			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++){
-				draw = 1;
-				if(coY < 255){ for(co = 3; co < 9 && draw; co++){
-						if(DecompressedMap[coY + 1][coX] == cart->SmartTools[temp][co]) draw = 0;}}
-				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][7];}
-			//"smart" left edge
-			coX = rcToolRect.left;
-			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
-				draw = 1;
-				if(coX){ for(co = 0; co < 8 && draw; co++){
-						if(co % 3 == 2) co++;
-						if(DecompressedMap[coY][coX - 1] == cart->SmartTools[temp][co]) draw = 0;}}
-				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][3];}
-			//"smart" right edge
-			coX = rcToolRect.right;
-			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
-				draw = 1;
-				if(coX < 255){ for(co = 1; co < 9 && draw; co++){
-						if(co % 3 == 0) co++;
-						if(DecompressedMap[coY][coX + 1] == cart->SmartTools[temp][co]) draw = 0;}}
-				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][5];}
-			//"smart" NW corner
-			co = 0;
-			draw = 1;
-			if(rcToolRect.left){
-				coY = DecompressedMap[rcToolRect.top][rcToolRect.left - 1];
-				for(coX = 0; draw && coX < 8; coX++){
-					if(coX % 3 == 2) coX++;
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw) co = 1;
-			draw = 1;
-			if(rcToolRect.top){
-				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.left];
-				for(coX = 0; draw && coX < 6; coX++){
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw){
-				if(co == 1) co = 4;
-				else co = 3;}
-			DecompressedMap[rcToolRect.top][rcToolRect.left] = cart->SmartTools[temp][co];
-			//"smart" SW corner
-			co = 6;
-			draw = 1;
-			if(rcToolRect.left){
-				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.left - 1];
-				for(coX = 0; draw && coX < 8; coX++){
-					if(coX % 3 == 2) coX++;
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw) co = 7;
-			draw = 1;
-			if(rcToolRect.bottom < 255){
-				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.left];
-				for(coX = 3; draw && coX < 9; coX++){
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw){
-				if(co == 7) co = 4;
-				else co = 3;}
-			DecompressedMap[rcToolRect.bottom][rcToolRect.left] = cart->SmartTools[temp][co];
-			//"smart" NE corner
-			co = 2;
-			draw = 1;
-			if(rcToolRect.right < 255){
-				coY = DecompressedMap[rcToolRect.top][rcToolRect.right + 1];
-				for(coX = 1; draw && coX < 9; coX++){
-					if(coX % 3 == 0) coX++;
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw) co = 1;
-			draw = 1;
-			if(rcToolRect.top){
-				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.right];
-				for(coX = 0; draw && coX < 6; coX++){
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw){
-				if(co == 1) co = 4;
-				else co = 5;}
-			DecompressedMap[rcToolRect.top][rcToolRect.right] = cart->SmartTools[temp][co];
-			//"smart" SE corner
-			co = 8;
-			draw = 1;
-			if(rcToolRect.right < 255){
-				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.right + 1];
-				for(coX = 1; draw && coX < 9; coX++){
-					if(coX % 3 == 0) coX++;
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw) co = 7;
-			draw = 1;
-			if(rcToolRect.bottom < 255){
-				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.right];
-				for(coX = 3; draw && coX < 9; coX++){
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw){
-				if(co == 7) co = 4;
-				else co = 5;}
-			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
-
-			InvalidateRect(rcMap,0);
-			m_mapdlg.InvalidateMap();
-		}break;
-
-		}
-	}
-	mousedown = 0;
-}
 void CMaps::OnShowlastclick()
 {
 	cart->ShowLastClick = (m_showlastclick.GetCheck() != 0);
@@ -1661,39 +1494,6 @@ void CMaps::OnTilesetlabel()
 	ChangeLabel(*cart, -1, LoadTilesetLabel(*cart, temp), WriteTilesetLabel, temp, nullptr, &m_tileset);
 }
 
-void CMaps::OnLButtonDblClk(UINT nFlags, CPoint pt)
-{
-	UNREFERENCED_PARAMETER(nFlags);
-	UNREFERENCED_PARAMETER(pt);
-
-	if(PtInRect(rcTiles,pt)){
-		CTileEdit dlg;
-		dlg.Invoker = CTileEdit::Maps;
-		dlg.cart = cart;
-		dlg.tileset = (BYTE)(cur_tileset + 1);
-		dlg.tile = (BYTE)cur_tile;
-		dlg.pal[0] = MapPalette[0][0];
-		dlg.pal[1] = MapPalette[1][0];
-		OnSave();
-		if(dlg.DoModal() == IDOK){
-			cart->OK_tiles[cur_map] = 0;
-			cart->GetStandardTiles(cur_map,0).DeleteImageList();
-			cart->GetStandardTiles(cur_map,1).DeleteImageList();
-			CLoading load; load.Create(IDD_LOADING,this);
-			load.m_progress.SetRange(0,124);
-			load.m_progress.SetPos(0);
-			load.ShowWindow(1);
-			ReloadImages(&load.m_progress);
-			load.ShowWindow(0);
-
-			InvalidateRect(rcPalettes,0);
-			InvalidateRect(rcTiles,0);
-			InvalidateRect(rcMap,0);
-			m_mapdlg.InvalidateMap();
-		}
-	}
-}
-
 void CMaps::OnMapExport()
 {
 	CString text = LoadMapLabel(*cart, cur_map).name + " Map." + CString(FFH_MAP_EXT);
@@ -1754,27 +1554,219 @@ void CMaps::DoVScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 	OnVScroll(nSBCode, nPos, pScrollBar);
 }
 
+//DEVNOTE - for the HandleXXXX button methods,
+//		CPoint is a MAP position, NOT a pixel coordinate, where
+//		x = column
+//		y = row
+//		It's assumed that the caller already made this
+//		adjustment by calling fix_map_point(point) to convert
+//		from pixels to map position.
+
 void CMaps::HandleLButtonDown(UINT nFlags, CPoint point)
 {
+	switch (cur_tool) {
+	case 0: {		//pencil
+		mousedown = 1;
+		UpdateClick(point);
+		DecompressedMap[point.y][point.x] = (BYTE)cur_tile;
+		InvalidateRect(rcMap, 0);
+		m_mapdlg.InvalidateMap();
+	}break;
+	default: {		//fill/smarttools
+		mousedown = 1;
+		UpdateClick(point);
+		rcToolRect.SetRect(point.x, point.y, point.x, point.y);
+		InvalidateRect(rcMap, 0);
+		m_mapdlg.InvalidateMap();
+	}break;
+	}
 }
 
 void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 {
+	UNREFERENCED_PARAMETER(nFlags);
+	UNREFERENCED_PARAMETER(point);
+
+	if (mousedown) {
+		rcToolRect.NormalizeRect();
+		int coY, coX, temp, co;
+		bool draw;
+		switch (cur_tool) {
+		case 0: break;
+		case 1: {			//fill
+			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
+				for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
+					DecompressedMap[coY][coX] = (BYTE)cur_tile;
+			}
+			InvalidateRect(rcMap, 0);
+			m_mapdlg.InvalidateMap(); //TODO - need to handle invalidate better
+		}break;
+
+		default: {			//smarttools
+			temp = cur_tool - 2 + (cur_tileset << 1);
+			//flood fill
+			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
+				for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
+					DecompressedMap[coY][coX] = cart->SmartTools[temp][4];
+			}
+			//"smart" top edge
+			coY = rcToolRect.top;
+			for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++) {
+				draw = 1;
+				if (coY) {
+					for (co = 0; co < 6 && draw; co++) {
+						if (DecompressedMap[coY - 1][coX] == cart->SmartTools[temp][co]) draw = 0;
+					}
+				}
+				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][1];
+			}
+			//"smart" bottom edge
+			coY = rcToolRect.bottom;
+			for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++) {
+				draw = 1;
+				if (coY < 255) {
+					for (co = 3; co < 9 && draw; co++) {
+						if (DecompressedMap[coY + 1][coX] == cart->SmartTools[temp][co]) draw = 0;
+					}
+				}
+				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][7];
+			}
+			//"smart" left edge
+			coX = rcToolRect.left;
+			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
+				draw = 1;
+				if (coX) {
+					for (co = 0; co < 8 && draw; co++) {
+						if (co % 3 == 2) co++;
+						if (DecompressedMap[coY][coX - 1] == cart->SmartTools[temp][co]) draw = 0;
+					}
+				}
+				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][3];
+			}
+			//"smart" right edge
+			coX = rcToolRect.right;
+			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
+				draw = 1;
+				if (coX < 255) {
+					for (co = 1; co < 9 && draw; co++) {
+						if (co % 3 == 0) co++;
+						if (DecompressedMap[coY][coX + 1] == cart->SmartTools[temp][co]) draw = 0;
+					}
+				}
+				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][5];
+			}
+			//"smart" NW corner
+			co = 0;
+			draw = 1;
+			if (rcToolRect.left) {
+				coY = DecompressedMap[rcToolRect.top][rcToolRect.left - 1];
+				for (coX = 0; draw && coX < 8; coX++) {
+					if (coX % 3 == 2) coX++;
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) co = 1;
+			draw = 1;
+			if (rcToolRect.top) {
+				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.left];
+				for (coX = 0; draw && coX < 6; coX++) {
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) {
+				if (co == 1) co = 4;
+				else co = 3;
+			}
+			DecompressedMap[rcToolRect.top][rcToolRect.left] = cart->SmartTools[temp][co];
+			//"smart" SW corner
+			co = 6;
+			draw = 1;
+			if (rcToolRect.left) {
+				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.left - 1];
+				for (coX = 0; draw && coX < 8; coX++) {
+					if (coX % 3 == 2) coX++;
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) co = 7;
+			draw = 1;
+			if (rcToolRect.bottom < 255) {
+				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.left];
+				for (coX = 3; draw && coX < 9; coX++) {
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) {
+				if (co == 7) co = 4;
+				else co = 3;
+			}
+			DecompressedMap[rcToolRect.bottom][rcToolRect.left] = cart->SmartTools[temp][co];
+			//"smart" NE corner
+			co = 2;
+			draw = 1;
+			if (rcToolRect.right < 255) {
+				coY = DecompressedMap[rcToolRect.top][rcToolRect.right + 1];
+				for (coX = 1; draw && coX < 9; coX++) {
+					if (coX % 3 == 0) coX++;
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) co = 1;
+			draw = 1;
+			if (rcToolRect.top) {
+				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.right];
+				for (coX = 0; draw && coX < 6; coX++) {
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) {
+				if (co == 1) co = 4;
+				else co = 5;
+			}
+			DecompressedMap[rcToolRect.top][rcToolRect.right] = cart->SmartTools[temp][co];
+			//"smart" SE corner
+			co = 8;
+			draw = 1;
+			if (rcToolRect.right < 255) {
+				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.right + 1];
+				for (coX = 1; draw && coX < 9; coX++) {
+					if (coX % 3 == 0) coX++;
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) co = 7;
+			draw = 1;
+			if (rcToolRect.bottom < 255) {
+				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.right];
+				for (coX = 3; draw && coX < 9; coX++) {
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) {
+				if (co == 7) co = 4;
+				else co = 5;
+			}
+			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
+
+			InvalidateRect(rcMap, 0);
+			m_mapdlg.InvalidateMap(); //TODO - need to handle invalidate better
+		}break;
+		}
+	}
 }
 
 void CMaps::HandleLButtonDblClk(UINT nFlags, CPoint point)
 {
+	UNREFERENCED_PARAMETER(nFlags);
+	UNREFERENCED_PARAMETER(point);
+	// Currently, left dblclk does nothing on the map.
 }
 
-// The point is in map coord, not pixels.
-// The commented out calculation below must be
-// performed by the caller.
 void CMaps::HandleRButtonDown(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
+
 	StoreTileData();
-	//pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-	//pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
 	UpdateClick(pt);
 	InvalidateRect(rcTiles, 0);
 	if (m_showlastclick.GetCheck()) {
@@ -1814,15 +1806,13 @@ void CMaps::HandleRButtonUp(UINT nFlags, CPoint point)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 	UNREFERENCED_PARAMETER(point);
-	mousedown = 0;
+	// Currently, right btn up does nothing on the map.
 }
 
 void CMaps::HandleRButtonDblClk(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
-	//pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-	//pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
 	int ref = DecompressedMap[pt.y][pt.x];
 	if (ref != -1)
 		ApplyTileTint(ref);
@@ -1830,9 +1820,8 @@ void CMaps::HandleRButtonDblClk(UINT nFlags, CPoint pt)
 
 void CMaps::HandleMouseMove(UINT nFlags, CPoint newhover)
 {
-	//CPoint newhover;
-	//newhover.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-	//newhover.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
+	UNREFERENCED_PARAMETER(nFlags);
+
 	if (ptHover != newhover) {
 		ptHover = newhover;
 		CString text;
@@ -1969,6 +1958,7 @@ void CMaps::init_popout_map_window()
 		[](const CDrawingToolButton* srcbtn) { return srcbtn->GetSpec(); });
 
 	sRenderMapState state;
+	state.pmousedown = &mousedown;
 	state.project = Project;
 	state.owner = this;
 	state.showrooms = &m_showingrooms;

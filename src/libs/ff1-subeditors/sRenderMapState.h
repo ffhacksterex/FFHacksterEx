@@ -5,6 +5,9 @@ class CFFHacksterProject;
 
 struct sRenderMapState
 {
+	BYTE* pmousedown = nullptr;
+
+	// Initialize-only (treat as immutable)
 	CFFHacksterProject* project = nullptr;
 	IMapEditor* owner = nullptr;
 	const bool* showrooms = nullptr;

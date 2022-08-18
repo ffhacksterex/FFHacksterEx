@@ -34,14 +34,9 @@ END_MESSAGE_MAP()
 
 // Public implementation
 
-CPoint CSubDlgRenderMapStatic::get_map_point(CPoint point)
+CPoint CSubDlgRenderMapStatic::fix_map_point(CPoint point)
 {
-	//CPoint ScrollOffset{ 0,0 };//TODO - likely not be needed here
-	//CPoint pt{
-	//	((point.x - 0) / State.tiledims.cx) + ScrollOffset.x,
-	//	((point.y - 0) / State.tiledims.cy) + ScrollOffset.y
-	//};
-	CPoint ScrollOffset{ 0,0 };//TODO - likely not be needed here
+	CPoint ScrollOffset{ 0,0 };//TODO - for not, scrolling is handled in the parent
 	CPoint pt{
 		(point.x / State.tiledims.cx) + ScrollOffset.x,
 		(point.y / State.tiledims.cy) + ScrollOffset.y
@@ -139,7 +134,7 @@ void CSubDlgRenderMapStatic::handle_paint()
 	}
 	CRect rcTemp = rcToolRect; rcTemp.NormalizeRect(); rcTemp.bottom += 1; rcTemp.right += 1;
 	CPoint copt;
-	if (mousedown == 1) {
+	if (*State.pmousedown == 1) {
 		switch (cur_tool) {
 		case 0: break;
 		case 1: {			//fill
@@ -254,25 +249,7 @@ void CSubDlgRenderMapStatic::OnRButtonDown(UINT nFlags, CPoint point)
 	CStatic::OnRButtonDown(nFlags, point);
 	if (!is_valid()) return;
 
-	//State.owner->HandleRButtonDown(nFlags, point);
-
-	//CPoint ScrollOffset{ 0,0 };//TODO - likely not be needed here
-	//CPoint pt{
-	//	//((pt.x - rcMap.left) / State.tiledims.cx) + ScrollOffset.x,
-	//	//((pt.y - rcMap.top) / State.tiledims.cy) + ScrollOffset.y
-	//	((point.x - 0) / State.tiledims.cx) + ScrollOffset.x,
-	//	((point.y - 0) / State.tiledims.cy) + ScrollOffset.y
-	//};
-
-	//TODO - one weakness here is that by not handling
-	//	this in the parent, it doesn't know to update
-	//	the customize button.
-	//	Either send yet another message, or
-	//	move this up to the parent.
-	//	Make this a public method and the parent can
-	//	translate the coords and call it directly
-	//	(or send WM_RBUTTONDOWN and wait for the response).
-	auto pt = get_map_point(point);
+	auto pt = fix_map_point(point);
 	State.owner->HandleRButtonDown(nFlags, pt);
 	InvalidateRect(nullptr);
 }
@@ -282,7 +259,7 @@ void CSubDlgRenderMapStatic::OnRButtonUp(UINT nFlags, CPoint point)
 	CStatic::OnRButtonUp(nFlags, point);
 	if (!is_valid()) return;
 
-	auto pt = get_map_point(point);
+	auto pt = fix_map_point(point);
 	State.owner->HandleRButtonUp(nFlags, pt);
 	InvalidateRect(nullptr);
 }
@@ -292,12 +269,7 @@ void CSubDlgRenderMapStatic::OnRButtonDblClk(UINT nFlags, CPoint point)
 	CStatic::OnRButtonDblClk(nFlags, point);
 	if (!is_valid()) return;
 
-	//CPoint ScrollOffset{ 0,0 };//TODO - likely not be needed here
-	//CPoint pt{
-	//	((point.x - 0) / State.tiledims.cx) + ScrollOffset.x,
-	//	((point.y - 0) / State.tiledims.cy) + ScrollOffset.y
-	//};
-	auto pt = get_map_point(point);
+	auto pt = fix_map_point(point);
 	State.owner->HandleRButtonDblClk(nFlags, pt);
 	InvalidateRect(nullptr);
 }
@@ -308,7 +280,7 @@ void CSubDlgRenderMapStatic::OnMouseMove(UINT nFlags, CPoint point)
 	CStatic::OnMouseMove(nFlags, point);
 	if (!is_valid()) return;
 
-	auto pt = get_map_point(point);
+	auto pt = fix_map_point(point);
 	State.owner->HandleMouseMove(nFlags, pt);
 	InvalidateRect(nullptr);
 }
@@ -319,7 +291,10 @@ void CSubDlgRenderMapStatic::OnLButtonDown(UINT nFlags, CPoint point)
 	CStatic::OnLButtonDown(nFlags, point);
 	if (!is_valid()) return;
 
-	mousedown = 0;
+	*State.pmousedown = 0;
+	auto pt = fix_map_point(point);
+	State.owner->HandleLButtonDown(nFlags, pt);
+	InvalidateRect(nullptr);
 }
 
 
@@ -328,14 +303,19 @@ void CSubDlgRenderMapStatic::OnLButtonUp(UINT nFlags, CPoint point)
 	CStatic::OnLButtonUp(nFlags, point);
 	if (!is_valid()) return;
 
-
-	mousedown = 0;
+	auto pt = fix_map_point(point);
+	State.owner->HandleLButtonUp(nFlags, pt);
+	InvalidateRect(nullptr);
+	*State.pmousedown = 0;
 }
 
 
 void CSubDlgRenderMapStatic::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
-	// TODO: Add your message handler code here and/or call default
-
 	CStatic::OnLButtonDblClk(nFlags, point);
+	if (!is_valid()) return;
+
+	auto pt = fix_map_point(point);
+	State.owner->HandleLButtonDblClk(nFlags, pt);
+	InvalidateRect(nullptr);
 }

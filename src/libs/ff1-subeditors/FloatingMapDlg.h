@@ -34,7 +34,6 @@ protected:
 	CPoint m_rmbasept;
 	CRect rcMap;
 	CPoint ScrollOffset;
-	BYTE mousedown = 0;
 
 	// Implementation
 	void UpdateToolIndex();

@@ -21,13 +21,12 @@ protected:
 	CPoint m_scrollpos;
 	CBitmap m_bmp;
 	CDC m_bmpdc;
-	BYTE mousedown = 0;
 
 	// Internal Implementation
 	virtual BOOL init();
 	virtual bool is_valid() const;
 
-	CPoint get_map_point(CPoint point);
+	CPoint fix_map_point(CPoint point);
 	void handle_sizing();
 	void handle_sizing(int cx, int cy);
 	void handle_paint();
