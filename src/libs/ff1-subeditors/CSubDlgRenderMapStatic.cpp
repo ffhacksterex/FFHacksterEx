@@ -249,6 +249,7 @@ void CSubDlgRenderMapStatic::OnRButtonDown(UINT nFlags, CPoint point)
 	CStatic::OnRButtonDown(nFlags, point);
 	if (!is_valid()) return;
 
+	*State.pmousedown = 0;
 	auto pt = fix_map_point(point);
 	State.owner->HandleRButtonDown(nFlags, pt);
 	InvalidateRect(nullptr);
@@ -262,6 +263,7 @@ void CSubDlgRenderMapStatic::OnRButtonUp(UINT nFlags, CPoint point)
 	auto pt = fix_map_point(point);
 	State.owner->HandleRButtonUp(nFlags, pt);
 	InvalidateRect(nullptr);
+	*State.pmousedown = 0;
 }
 
 void CSubDlgRenderMapStatic::OnRButtonDblClk(UINT nFlags, CPoint point)
