@@ -62,4 +62,8 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg LRESULT OnDrawToolBnClick(WPARAM wparam, LPARAM lparam);
+public:
+	afx_msg void OnClickedCustomtool();
+	afx_msg void OnClickedButtonImportMap();
+	afx_msg void OnClickedButtonExportMap();
 };

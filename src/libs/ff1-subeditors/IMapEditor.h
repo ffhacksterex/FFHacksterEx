@@ -15,5 +15,9 @@ public:
 	virtual void HandleRButtonUp(UINT nFlags, CPoint point) = 0;
 	virtual void HandleRButtonDblClk(UINT nFlags, CPoint point) = 0;
 	virtual void HandleMouseMove(UINT nFlags, CPoint point) = 0;
+
+	virtual void HandleMapImport() = 0;
+	virtual void HandleMapExport() = 0;
+	virtual bool HandleCustomizeTool() = 0;
 };
 

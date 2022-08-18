@@ -1353,11 +1353,7 @@ void CMaps::OnShowlastclick()
 
 void CMaps::OnCustomtool()
 {
-	CCustomTool dlg;
-	dlg.dat = cart;
-	dlg.m_tiles = &cart->GetStandardTiles(cur_map,m_showrooms.GetCheck());
-	dlg.tool = cur_tool - 2 + (cur_tileset << 1);
-	dlg.DoModal();
+	HandleCustomizeTool();
 }
 
 void CMaps::OnFindkab()
@@ -1856,6 +1852,26 @@ void CMaps::HandleMouseMove(UINT nFlags, CPoint newhover)
 			m_mapdlg.InvalidateMap();
 		}
 	}
+}
+
+void CMaps::HandleMapImport()
+{
+	OnMapImport();
+}
+
+void CMaps::HandleMapExport()
+{
+	OnMapExport();
+}
+
+bool CMaps::HandleCustomizeTool()
+{
+	CCustomTool dlg;
+	dlg.dat = cart;
+	dlg.m_tiles = &cart->GetStandardTiles(cur_map, m_showrooms.GetCheck());
+	dlg.tool = cur_tool - 2 + (cur_tileset << 1);
+	int result = dlg.DoModal();
+	return result == IDOK;
 }
 
 void CMaps::DoViewcoords()

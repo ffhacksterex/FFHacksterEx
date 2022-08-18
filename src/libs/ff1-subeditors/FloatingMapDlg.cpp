@@ -36,6 +36,9 @@ BEGIN_MESSAGE_MAP(CFloatingMapDlg, CDialogEx)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
 	ON_MESSAGE(WMA_DRAWTOOLBNCLICK, &CFloatingMapDlg::OnDrawToolBnClick)
+	ON_BN_CLICKED(IDC_CUSTOMTOOL, &CFloatingMapDlg::OnClickedCustomtool)
+	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, &CFloatingMapDlg::OnClickedButtonImportMap)
+	ON_BN_CLICKED(IDC_BUTTON_EXPORT_MAP, &CFloatingMapDlg::OnClickedButtonExportMap)
 END_MESSAGE_MAP()
 
 
@@ -209,4 +212,21 @@ LRESULT CFloatingMapDlg::OnDrawToolBnClick(WPARAM wparam, LPARAM lparam)
 	GetParent()->SendMessage(WMA_DRAWTOOLBNCLICK, wparam, lparam);
 	m_customizebutton.EnableWindow(lparam > 1);
 	return 0;
+}
+
+void CFloatingMapDlg::OnClickedCustomtool()
+{
+	if (m_subdlg.GetRenderState().owner->HandleCustomizeTool()) {
+		UpdateToolIndex();
+	}
+}
+
+void CFloatingMapDlg::OnClickedButtonImportMap()
+{
+	m_subdlg.GetRenderState().owner->HandleMapImport();
+}
+
+void CFloatingMapDlg::OnClickedButtonExportMap()
+{
+	m_subdlg.GetRenderState().owner->HandleMapExport();
 }

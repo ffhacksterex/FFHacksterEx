@@ -44,6 +44,9 @@ public:
 	virtual void HandleRButtonUp(UINT nFlags, CPoint pt);
 	virtual void HandleRButtonDblClk(UINT nFlags, CPoint point);
 	virtual void HandleMouseMove(UINT nFlags, CPoint newhover);
+	virtual void HandleMapImport();
+	virtual void HandleMapExport();
+	virtual bool HandleCustomizeTool();
 
 protected:
 	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
