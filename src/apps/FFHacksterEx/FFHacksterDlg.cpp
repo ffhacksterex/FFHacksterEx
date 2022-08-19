@@ -157,24 +157,12 @@ bool CFFHacksterDlg::LoadEditorList(Editors2::CEditorVector & editors)
 
 void CFFHacksterDlg::ClearDynaButtons()
 {
-	for (auto btn : m_dynabuttons) {
-		if (IsWindow(m_tooltips.GetSafeHwnd())) m_tooltips.DelTool(btn);
-		delete btn;
-	}
-	m_dynabuttons.clear();
+	m_subdlgbuttons.ClearButtons();
 }
 
 void CFFHacksterDlg::CreateDynaButtons(const Editors2::CEditorVector & editors)
 {
-	CWnd * frame = &m_dynabuttonframe;
-
-	CRect rcframe;
-	frame->GetWindowRect(&rcframe);
-	ScreenToClient(&rcframe);
-
-	// get the extent of the widest string and use it as a basis for all of them
 	CPaintDC dc(this);
-	//DEVNOTE - if using a different font from the dialog's, select it in and out for this block
 	auto oldfont = dc.SelectObject(&m_actionbuttonfont);
 	CSize fixedsize = { 0,0 };
 	for (size_t i = 0; i < editors.size(); ++i) {
@@ -185,66 +173,20 @@ void CFFHacksterDlg::CreateDynaButtons(const Editors2::CEditorVector & editors)
 	}
 	dc.SelectObject(oldfont);
 
-	const CSize padding = { 4,4 };
 	const CSize buttonpadding = { 16,16 };
-	const CPoint base = rcframe.TopLeft();
-	CPoint pos = base + padding;
-	CWnd * prevz = frame;
-	CFont * buttonfont = &m_actionbuttonfont;
+	CSize subfixedsize = fixedsize;
+	subfixedsize += buttonpadding;
+	m_subdlgbuttons.UseFixedButtonSize(subfixedsize);
+	m_subdlgbuttons.SetFont(&m_actionbuttonfont);
+	m_subdlgbuttons.SetButtonFont(&m_actionbuttonfont);
 
-	const UINT styles = WS_VISIBLE | WS_BORDER | WS_TABSTOP | BS_FLAT | BS_OWNERDRAW | BS_CENTER | BS_VCENTER;
+	m_subdlgbuttons.SuppressLayout(true);
 	for (auto loop = 0u; loop < editors.size(); ++loop) {
 		const auto & editor = editors[loop];
-
-		//DEVNOTE - the IDs aren't guaranteed to be contiguous since removed editors get no button
-		ASSERT(editor.live); // dead editors have unpredictable behavior
-
-		if ((pos.x + fixedsize.cx + buttonpadding.cx) > rcframe.right) {
-			pos.x = base.x + padding.cx;
-			pos.y += fixedsize.cy + buttonpadding.cy + padding.cy;
-		}
-
-		CRect rcbutton = { pos.x,pos.y, pos.x + fixedsize.cx + buttonpadding.cx, pos.y + fixedsize.cy + buttonpadding.cy };
-
-		auto index = (unsigned int)m_dynabuttons.size();
-		auto newbutton = new CClearButton();
-		newbutton->Create(editor.displayname, styles, rcbutton, this, IDC_DYNABUTTON_EDITORS + index);
-		newbutton->SetFont(buttonfont);
-		newbutton->SetWindowPos(prevz, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		newbutton->ModifyStyleEx(0, WS_EX_TRANSPARENT);
-		SetWindowLongPtr(newbutton->GetSafeHwnd(), GWLP_USERDATA, loop); // use editors[loop] for this button
-
-		pos.x += rcbutton.Width() + padding.cx;
-
-		m_dynabuttons.push_back(newbutton);
-		m_tooltips.AddTool(newbutton, editor.description);
-		//m_tooltips.AddTool(newbutton, LPSTR_TEXTCALLBACK); //N.B. restore if dynamic tips are desired
-		prevz = newbutton;
+			ASSERT(editor.live); // dead editors have unpredictable behavior
+		m_subdlgbuttons.Add(IDC_DYNABUTTON_EDITORS + loop, loop, editor.displayname);
 	}
-
-	if (!m_dynabuttons.empty()) {
-		// Calculate the offset needed to center the controls we just generated.
-		CRect btnunion;
-		for (auto btn : m_dynabuttons) {
-			CRect rc;
-			btn->GetWindowRect(&rc);
-			ScreenToClient(&rc);
-			btnunion.UnionRect(&btnunion, &rc);
-		}
-
-		CRect dlgclient;
-		GetClientRect(&dlgclient);
-		int offset = ((dlgclient.Width() - btnunion.Width()) / 2) - (base.x + padding.cx);
-
-		// Now, center the windows by apply the offset (removing the base + padding used to start the position processing).
-		for (auto btn : m_dynabuttons) {
-			CRect rc;
-			btn->GetWindowRect(&rc);
-			ScreenToClient(&rc);
-			rc.OffsetRect(offset, 0);
-			btn->MoveWindow(&rc);
-		}
-	}
+	m_subdlgbuttons.SuppressLayout(false);
 }
 
 void CFFHacksterDlg::RepositionButtonsForROMProject()
@@ -638,6 +580,8 @@ BEGIN_MESSAGE_MAP(CFFHacksterDlg, BaseClass)
 	ON_WM_QUERYDRAGICON()
 	ON_WM_DESTROY()
 	ON_MESSAGE(FFTTM_SHOWDESC, &CFFHacksterDlg::OnFfttmShowDesc)
+	ON_MESSAGE(FFEDIT_RCLICK, &CFFHacksterDlg::OnFfeditRclick)
+	ON_MESSAGE(FFEDIT_LCLICK, &CFFHacksterDlg::OnFfeditLclick)
 	ON_BN_CLICKED(IDC_FFH_BTN_IMPORTFFHDAT, &CFFHacksterDlg::OnImportHacksterDAT)
 	ON_BN_CLICKED(IDC_FFH_BTN_REVERT, &CFFHacksterDlg::OnRevertProject)
 	ON_BN_CLICKED(IDC_FFH_BTN_PUBLISH, &CFFHacksterDlg::OnPublishProject)
@@ -749,6 +693,7 @@ BOOL CFFHacksterDlg::OnInitDialog()
 		progress.StepAndProgressText("Loading editors...");
 		InitFonts();
 		InitTooltips();
+		VERIFY(m_subdlgbuttons.CreateOverControl(&m_dynabuttonframe));
 
 		m_serializer.ProjectFolder = m_proj.ProjectFolder;
 		m_serializer.EditorSettingsPath = m_proj.EditorSettingsPath;
@@ -1104,31 +1049,52 @@ BOOL CFFHacksterDlg::PreTranslateMessage(MSG* pMsg)
 LRESULT CFFHacksterDlg::OnFfttmShowDesc(WPARAM wparam, LPARAM lparam)
 {
 	UNREFERENCED_PARAMETER(wparam);
-	CClearButton * pbtn = DYNAMIC_DOWNCAST(CClearButton, (CWnd*)lparam);
+	CString text;
+	CClearButton* pbtn = DYNAMIC_DOWNCAST(CClearButton, (CWnd*)lparam);
 	if (pbtn != nullptr) {
-		CString text;
-		m_tooltips.GetText(text, pbtn);
-
-		// If this butteon is linked to an editor, then it might have a discrete description.
-		// Don't use the index, since some buttons might be hidden
-		// If defined, this description might not always match the tooltip.
-		if (has(m_dynabuttons, (CButton*)pbtn)) {
+		// If the button is child or grandchild, show its tooltip.
+		// This prevents buttons from anywhere showing tooltips here.
+		auto btnparent = pbtn->GetParent();
+		auto btngrandp = btnparent != nullptr ? btnparent->GetParent() : nullptr;
+		if (this == btnparent || this == btngrandp) {
+			m_tooltips.GetText(text, pbtn);
 			size_t index = (size_t)GetWindowLongPtr(pbtn->GetSafeHwnd(), GWLP_USERDATA);
 			if (index < Editors.size()) {
 				CString dynatext = Editors[index].description.Trim();
 				if (!dynatext.IsEmpty()) text = dynatext;
 			}
 		}
-
-		m_hoverdescstatic.SetWindowText(text);
 	}
-	else {
-		m_hoverdescstatic.SetWindowText("");
-	}
+	m_hoverdescstatic.SetWindowText(text);
 	CRect rect;
 	ClientToParentRect(&m_hoverdescstatic, &rect);
 	InvalidateRect(&rect);
 	return (LRESULT)0;
+}
+
+LRESULT CFFHacksterDlg::OnFfeditLclick(WPARAM wparam, LPARAM lparam)
+{
+	auto index = wparam;
+	ASSERT(index < Editors.size());
+	if (index < Editors.size()) {
+		const auto& edref = Editors[index];
+		InvokeEditor(edref);
+	}
+	return 0;
+}
+
+LRESULT CFFHacksterDlg::OnFfeditRclick(WPARAM wparam, LPARAM lparam)
+{
+	auto index = wparam;
+	ASSERT(index < Editors.size());
+	if (index < Editors.size()) {
+		const auto& edref = Editors[index];
+
+		CPoint cursor;
+		GetCursorPos(&cursor);
+		edref.Rclick(m_proj.ProjectPath, AllocBytes, GetSafeHwnd(), cursor.x, cursor.y);
+	}
+	return 0;
 }
 
 void CFFHacksterDlg::EditProjectLabels()
@@ -1201,25 +1167,6 @@ void CFFHacksterDlg::EditProjectSettings()
 
 void CFFHacksterDlg::EditProjectEditorsList()
 {
-	//REMOVE
-	//CEditorDigestDlg dlged(this);
-	//dlged.Project = &m_proj;
-	//dlged.EditorInfos = EditorsToInfos(Editors);
-	////dlged.AppFolder = Paths::GetDirectoryPath(AppIni);
-	//if (dlged.DoModal() == IDOK) {
-	//	SetRedraw(FALSE);
-	//	try {
-	//		Editors = CreateEditors(dlged.EditorInfos);
-	//		m_serializer.WriteAllEditorInfos(EditorsToInfos(Editors));
-	//		LoadEditorList(Editors);
-	//	}
-	//	catch (...) {
-	//		AfxMessageBox("An error occurred while recreating the editor buttons.", MB_ICONERROR);
-	//	}
-	//	SetRedraw(TRUE);
-	//	Invalidate();
-	//}
-
 	//N.B. - if an exception is thrown here, catching it renders the CDialog unresponsive AND leaks memory
 	//		when the object is destroyed. Not sure why the derived-class destructors aren't being called
 	//		yet, but that's the apparent reason. Exceptions in these diallogs will currently terminate
@@ -1228,7 +1175,7 @@ void CFFHacksterDlg::EditProjectEditorsList()
 	CEditorDigestDlg dlged(this);
 	dlged.Project = &m_proj;
 	dlged.EditorInfos = EditorsToInfos(Editors);
-	dlged.AppFolder = Paths::GetProgramFolder(); //Paths::GetDirectoryPath(AppIni);
+	dlged.AppFolder = Paths::GetProgramFolder();
 	if (dlged.DoModal() == IDOK) {
 		try {
 			Ui::RedrawScope redraw(this);

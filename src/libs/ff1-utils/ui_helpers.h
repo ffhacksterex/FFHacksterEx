@@ -106,6 +106,10 @@ namespace Ui
 	CPoint GetCursorPos();
 	CPoint GetControlCursorPos(CWnd* pwnd);
 
+	bool SetClientScroll(CWnd* wnd, int nBar, const CRect& rcarea,
+		int clientextent, int tilespan = 0);
+	int HandleClientScroll(CWnd* pwnd, UINT nBar, UINT nSBCode, UINT nPos);
+
 	CRect GetSubitemRect(CListCtrl & list, int item, int subitem);
 	void RenumberList(CListCtrl & list, int subitem, int base, int startat);
 
@@ -121,6 +125,7 @@ namespace Ui
 	void DrawSelectionRect(CListCtrl & list, CDC * dc, int item, CRect rect, bool focused);
 
 	void CenterToParent(CWnd * pwnd);
+	BOOL SeatControl(CWnd* pcontrol, CWnd* pplaceholder);
 
 	CSize GetDistance(CWnd * pwnd, CWnd * pother);
 	void MoveControlBy(CWnd * pwnd, CSize delta);

@@ -80,48 +80,7 @@ BOOL CSubDlgRenderMap::init()
 
 int CSubDlgRenderMap::handle_scroll(UINT nBar, UINT nSBCode, UINT nPos)
 {
-	int curpos = GetScrollPos(nBar);
-	int limit = GetScrollLimit(nBar);
-	switch (nSBCode)
-	{
-	case SB_LEFT: // == SB_TOP
-		curpos = 0;
-		break;
-	case SB_RIGHT: // == SB_BOTTOM
-		curpos = limit;
-		break;
-	case SB_ENDSCROLL:
-		break;
-	case SB_LINELEFT: // == SB_LINEUP
-		if (curpos > 0) --curpos;
-		break;
-	case SB_LINERIGHT: // == SB_LINEDOWN
-		if (curpos < limit) ++curpos;
-		break;
-	case SB_PAGELEFT: // == SB_PAGEUP
-	{
-		SCROLLINFO info;
-		GetScrollInfo(nBar, &info, SIF_ALL);
-		if (curpos > 0) curpos = max(0, curpos - (int)info.nPage);
-	}
-	break;
-	case SB_PAGERIGHT: // == SB_PAGEDOWN
-	{
-		SCROLLINFO info;
-		GetScrollInfo(nBar, &info, SIF_ALL);
-		if (curpos < limit) curpos = min(limit, curpos + (int)info.nPage);
-	}
-	break;
-	case SB_THUMBPOSITION:
-		curpos = nPos;	// nPos is the absolute position at the end of the drag.
-		break;
-	case SB_THUMBTRACK:
-		curpos = nPos;  // nPos is the specified position where the scroll box is currently.
-		break;          // This occurs when dragging the scroll box with the mouse.
-	}
-
-	SetScrollPos(nBar, curpos);
-	return curpos;
+	return Ui::HandleClientScroll(this, nBar, nSBCode, nPos);
 }
 
 void CSubDlgRenderMap::handle_sizing()
@@ -132,34 +91,10 @@ void CSubDlgRenderMap::handle_sizing()
 
 void CSubDlgRenderMap::handle_sizing(int clientx, int clienty)
 {
-	//DEVNOTE - I went with a static local since other methods don't need to call this.
-	static const auto local_set_scroll = [](CWnd* wnd, int nBar, const CRect & ctlrc,
-		int extent, int tilespan)
-	{
-		// Does the control's extent exceeds the host client area's extent?
-		int ctlw = nBar == SB_HORZ ? ctlrc.Width() : ctlrc.Height();
-		if (ctlw > extent) {
-			// Yes, so show the bar and set it's range
-			int bump = nBar == SB_HORZ ? GetSystemMetrics(SM_CXVSCROLL) : GetSystemMetrics(SM_CYHSCROLL);
-			//auto scmax = (ctlw - extent) + 16; //TODO - add getter for tile dims to m_rendermap
-			auto scmax = (ctlw - extent) + bump + tilespan;
-			wnd->EnableScrollBarCtrl(nBar, TRUE);
-			SCROLLINFO si = { 0 };
-			wnd->GetScrollInfo(nBar, &si, SIF_ALL);
-			si.nPage = 16;
-			si.nMin = 0;
-			si.nMax = scmax;
-			si.nPos = (si.nPos > scmax) ? scmax : si.nPos;
-			wnd->SetScrollInfo(nBar, &si, SIF_ALL);
-		} else {
-			wnd->EnableScrollBarCtrl(nBar, FALSE);
-		}
-	};
-
-	const auto & state = m_frame.GetRenderState();
+	const auto& state = m_frame.GetRenderState();
 	auto ctlrc = Ui::GetControlRect(&m_frame);
-	local_set_scroll(this, SB_HORZ, ctlrc, clientx, state.tiledims.cx + m_rmbasept.x);
-	local_set_scroll(this, SB_VERT, ctlrc, clienty, state.tiledims.cy + m_rmbasept.y);
+	Ui::SetClientScroll(this, SB_HORZ, ctlrc, clientx, state.tiledims.cx + m_rmbasept.x);
+	Ui::SetClientScroll(this, SB_VERT, ctlrc, clienty, state.tiledims.cy + m_rmbasept.y);
 }
 
 

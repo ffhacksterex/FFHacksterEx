@@ -465,6 +465,83 @@ namespace Ui
 		return pt;
 	}
 
+	// Returns - true if scroll is shown, false if hidden.
+	// Params:
+	// pwnd - window whose scroll bar will be set or hidden
+	// nBar - SB_HORZ or SB_VERT
+	// rcarea - rect of the area that might need to scroll
+	// clientextent - the client width (if nBar == SB_HORZ) or height (SB_VERT)
+	// tilespan - if tiled, the span of a single tile
+	bool SetClientScroll(CWnd* pwnd, int nBar, const CRect& rcarea, int clientextent, int tilespan)
+	{
+		// Does the control's extent exceeds the host client area's extent?
+		int ctlw = nBar == SB_HORZ ? rcarea.Width() : rcarea.Height();
+		if (ctlw > clientextent) {
+			// Yes, so show the bar and set it's range
+			int bump = nBar == SB_HORZ ? GetSystemMetrics(SM_CXVSCROLL) : GetSystemMetrics(SM_CYHSCROLL);
+			auto scmax = (ctlw - clientextent) + bump + tilespan;
+			pwnd->EnableScrollBarCtrl(nBar, TRUE);
+			SCROLLINFO si = { 0 };
+			pwnd->GetScrollInfo(nBar, &si, SIF_ALL);
+			si.nPage = 16;
+			si.nMin = 0;
+			si.nMax = scmax;
+			si.nPos = (si.nPos > scmax) ? scmax : si.nPos;
+			pwnd->SetScrollInfo(nBar, &si, SIF_ALL);
+			return true;
+		}
+		else {
+			pwnd->EnableScrollBarCtrl(nBar, FALSE);
+			return false;
+		}
+	}
+
+	int HandleClientScroll(CWnd* pwnd, UINT nBar, UINT nSBCode, UINT nPos)
+	{
+		int curpos = pwnd->GetScrollPos(nBar);
+		int limit = pwnd->GetScrollLimit(nBar);
+		switch (nSBCode)
+		{
+		case SB_LEFT: // == SB_TOP
+			curpos = 0;
+			break;
+		case SB_RIGHT: // == SB_BOTTOM
+			curpos = limit;
+			break;
+		case SB_ENDSCROLL:
+			break;
+		case SB_LINELEFT: // == SB_LINEUP
+			if (curpos > 0) --curpos;
+			break;
+		case SB_LINERIGHT: // == SB_LINEDOWN
+			if (curpos < limit) ++curpos;
+			break;
+		case SB_PAGELEFT: // == SB_PAGEUP
+		{
+			SCROLLINFO info;
+			pwnd->GetScrollInfo(nBar, &info, SIF_ALL);
+			if (curpos > 0) curpos = max(0, curpos - (int)info.nPage);
+		}
+		break;
+		case SB_PAGERIGHT: // == SB_PAGEDOWN
+		{
+			SCROLLINFO info;
+			pwnd->GetScrollInfo(nBar, &info, SIF_ALL);
+			if (curpos < limit) curpos = min(limit, curpos + (int)info.nPage);
+		}
+		break;
+		case SB_THUMBPOSITION:
+			curpos = nPos;	// nPos is the absolute position at the end of the drag.
+			break;
+		case SB_THUMBTRACK:
+			curpos = nPos;  // nPos is the specified position where the scroll box is currently.
+			break;          // This occurs when dragging the scroll box with the mouse.
+		}
+
+		pwnd->SetScrollPos(nBar, curpos);
+		return curpos;
+	}
+
 	CRect GetSubitemRect(CListCtrl & list, int item, int subitem)
 	{
 		CRect rcitem(0, 0, 0, 0);
@@ -624,6 +701,25 @@ namespace Ui
 		CRect rcnew = { 0, 0, rcchild.Width(), rcchild.Height() };
 		rcnew.OffsetRect(rcparent.left + org.x, rcparent.top + org.y);
 		pwnd->MoveWindow(&rcnew);
+	}
+
+	// Put a control into the rectangle of a sibling, then hide the sibling.
+	BOOL SeatControl(CWnd* pcontrol, CWnd* pplaceholder)
+	{
+		ASSERT(pcontrol != nullptr);
+		ASSERT(pplaceholder != nullptr);
+		if (pcontrol == nullptr || pplaceholder == nullptr) return FALSE;
+
+		ASSERT(pcontrol->GetParent() != nullptr);
+		auto myparent = pcontrol->GetParent();
+		auto seatparent = pplaceholder->GetParent();
+		if (myparent != seatparent) return FALSE;
+		if (myparent == nullptr) return FALSE;
+
+		auto rc = Ui::GetControlRect(pplaceholder);
+		pcontrol->SetWindowPos(pplaceholder, rc.left, rc.top, rc.Width(), rc.Height(), SWP_SHOWWINDOW);
+		pplaceholder->ShowWindow(SW_HIDE);
+		return TRUE;
 	}
 
 	CSize GetDistance(CWnd * pwnd, CWnd * pother)

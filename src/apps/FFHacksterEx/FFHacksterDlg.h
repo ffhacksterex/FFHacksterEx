@@ -9,6 +9,7 @@
 #include <EditorSettingsSerializer.h>
 #include <DialogWithBackground.h>
 #include <afxlinkctrl.h>
+#include "SubDlgDynaButtons.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CFFHacksterDlg dialog
@@ -33,6 +34,7 @@ public:
 protected:
 	CMutex * m_pmutex = nullptr;      // Ensure only one instance edits the same project at a time
 	CSingleLock * m_plock = nullptr;
+	CSubDlgDynaButtons m_subdlgbuttons;
 
 // Dialog Data
 	enum { IDD = IDD_FFHACKSTER_DIALOG };
@@ -114,6 +116,8 @@ protected:
 // Implementation
 	DECLARE_MESSAGE_MAP()
 	afx_msg LRESULT OnFfttmShowDesc(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT OnFfeditLclick(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT OnFfeditRclick(WPARAM wparam, LPARAM lparam);
 	afx_msg void OnAbout();
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnNmRclickActionButton(UINT id, NMHDR * pNotify, LRESULT * result);
