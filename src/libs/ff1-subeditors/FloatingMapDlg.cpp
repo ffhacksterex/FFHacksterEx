@@ -39,6 +39,8 @@ BEGIN_MESSAGE_MAP(CFloatingMapDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CUSTOMTOOL, &CFloatingMapDlg::OnClickedCustomtool)
 	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, &CFloatingMapDlg::OnClickedButtonImportMap)
 	ON_BN_CLICKED(IDC_BUTTON_EXPORT_MAP, &CFloatingMapDlg::OnClickedButtonExportMap)
+	ON_WM_NCHITTEST()
+	ON_WM_PAINT()
 END_MESSAGE_MAP()
 
 
@@ -133,11 +135,26 @@ void CFloatingMapDlg::handle_close()
 	wnd->SendMessage(WMA_SHOWFLOATINGMAP, (WPARAM)0);
 }
 
+CRect CFloatingMapDlg::get_sizer_rect(bool client)
+{
+	auto rc = client ? Ui::GetClientRect(this) : Ui::GetWindowRect(this);
+	rc.left = rc.right - GetSystemMetrics(SM_CXVSCROLL);
+	rc.top = rc.bottom - GetSystemMetrics(SM_CYHSCROLL);
+	return rc;
+}
+
 void CFloatingMapDlg::handle_sizing(int clientx, int clienty)
 {
 	if (IsWindow(m_subdlgover.GetSafeHwnd())) {
 		auto rc = Ui::GetControlRect(&m_subdlgover);
 		m_subdlg.SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_SHOWWINDOW);
+
+		auto rcsizeh = get_sizer_rect(true);
+		auto rcsizev = rcsizeh;
+		rcsizeh.left = 0;
+		rcsizev.top = 0;
+		InvalidateRect(rcsizeh);
+		InvalidateRect(rcsizev);
 	}
 }
 
@@ -229,4 +246,23 @@ void CFloatingMapDlg::OnClickedButtonImportMap()
 void CFloatingMapDlg::OnClickedButtonExportMap()
 {
 	m_subdlg.GetRenderState().owner->HandleMapExport();
+}
+
+
+LRESULT CFloatingMapDlg::OnNcHitTest(CPoint point)
+{
+	auto rc = get_sizer_rect(false);
+	if (rc.PtInRect(point))
+		return HTBOTTOMRIGHT;
+	return CDialogEx::OnNcHitTest(point);
+}
+
+
+void CFloatingMapDlg::OnPaint()
+{
+	CPaintDC dc(this); // device context for painting
+					   // TODO: Add your message handler code here
+					   // Do not call CDialogEx::OnPaint() for painting messages
+	auto rc = get_sizer_rect(true);
+	dc.DrawFrameControl(rc, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
 }

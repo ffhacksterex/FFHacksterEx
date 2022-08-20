@@ -41,6 +41,7 @@ protected:
 	bool set_buttons(const std::vector<sMapDlgButton>& buttons);
 	void handle_sizing(int clientx, int clienty);
 	void handle_close();
+	CRect get_sizer_rect(bool client);
 
 	// Controls
 	CSubDlgRenderMap m_subdlg;
@@ -62,8 +63,9 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg LRESULT OnDrawToolBnClick(WPARAM wparam, LPARAM lparam);
-public:
 	afx_msg void OnClickedCustomtool();
 	afx_msg void OnClickedButtonImportMap();
 	afx_msg void OnClickedButtonExportMap();
+	afx_msg LRESULT OnNcHitTest(CPoint point);
+	afx_msg void OnPaint();
 };
