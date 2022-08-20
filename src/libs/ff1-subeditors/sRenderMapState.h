@@ -1,11 +1,12 @@
 #pragma once
 
-#include "IMapEditor.h"
+class IMapEditor;
 class CFFHacksterProject;
 
 struct sRenderMapState
 {
 	BYTE* pmousedown = nullptr;
+	bool overworld = false;
 
 	// Initialize-only (treat as immutable)
 	CFFHacksterProject* project = nullptr;

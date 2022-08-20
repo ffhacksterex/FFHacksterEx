@@ -4,6 +4,7 @@
 #include "resource_subeditors.h"
 #include "FloatingMapDlg.h"
 #include "afxdialogex.h"
+#include "IMapEditor.h"
 #include <ui_helpers.h>
 #include <FFHacksterProject.h>
 #include <FFBaseApp.h>

@@ -419,7 +419,7 @@ BOOL CMaps::PreTranslateMessage(MSG* pMsg)
 			}
 		}
 	}
-	return __super::PreTranslateMessage(pMsg);
+	return CEditorWithBackground::PreTranslateMessage(pMsg);
 }
 
 void CMaps::OnCancel()
