@@ -1757,6 +1757,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 			m_mapdlg.InvalidateMap();
 		}break;
 		}
+		OnFindkab();
 	}
 }
 
@@ -1772,6 +1773,7 @@ void CMaps::HandleRButtonDown(UINT nFlags, CPoint pt)
 	UNREFERENCED_PARAMETER(nFlags);
 
 	StoreTileData();
+	OnFindkab();
 	UpdateClick(pt);
 	InvalidateRect(rcTiles, 0);
 	if (m_showlastclick.GetCheck()) {
@@ -1848,9 +1850,11 @@ void CMaps::HandleMouseMove(UINT nFlags, CPoint newhover)
 			}
 			}
 			UpdateClick(ptHover);
+			OnFindkab();
 		}
 		else if (mousedown) {
 			UpdateClick(ptHover);
+			OnFindkab();
 			Sprite_Coords[mousedown - 2] = ptHover;
 			text.Format("%X", ptHover.x);
 			m_spritecoordx.SetWindowText(text);
