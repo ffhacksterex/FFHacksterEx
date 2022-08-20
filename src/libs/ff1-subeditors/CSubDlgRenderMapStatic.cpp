@@ -64,6 +64,7 @@ BOOL CSubDlgRenderMapStatic::init()
 {
 	CRect rc(0, 0, 16, 16);
 	rc = Ui::GetClientRect(this);
+	if (m_pen.GetSafeHandle()) m_pen.DeleteObject();
 	m_pen.CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
 	return TRUE;
 }

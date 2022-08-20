@@ -788,29 +788,34 @@ void CFFHacksterDlg::GoToMapScreen(bool OV)
 	ndlg.Project = &m_proj;
 	ndlg.Enloader = &m_loader;
 
-	if (OV) goto LBL_overworld;
-	else goto LBL_standard;
-
-LBL_overworld:
-	dlg.BootToTeleportFollowup = teleport;
-	if (dlg.DoModal() == IDOK) {
-		m_proj.SaveSharedSettings();
-		teleport = dlg.BootToTeleportFollowup;
-		if (teleport) goto LBL_standard;
-	}
-	goto LBL_end;
-
-LBL_standard:
-	ndlg.BootToTeleportFollowup = teleport;
-	if (ndlg.DoModal() == IDOK) {
-		m_proj.SaveSharedSettings();
-		teleport = ndlg.BootToTeleportFollowup;
-		if (teleport) goto LBL_overworld;
-	}
-	goto LBL_end;
-
-LBL_end:
-	return;
+	bool loop = true;
+	do {
+		// Don't loop unless there's a cross-editor teleport
+		loop = false;
+		if (OV) {
+			dlg.BootToTeleportFollowup = teleport;
+			if (dlg.DoModal() == IDOK) {
+				m_proj.SaveSharedSettings();
+				teleport = dlg.BootToTeleportFollowup;
+				if (teleport) {
+					OV = false;
+					loop = true;
+				}
+			}
+		}
+		else {
+			ndlg.BootToTeleportFollowup = teleport;
+			if (ndlg.DoModal() == IDOK) {
+				m_proj.SaveSharedSettings();
+				teleport = ndlg.BootToTeleportFollowup;
+				if (teleport) {
+					OV = true;
+					loop = true;
+				}
+			}
+		}
+	} while (loop);
+	this->BringWindowToTop();
 }
 
 void CFFHacksterDlg::OnArmor() 
