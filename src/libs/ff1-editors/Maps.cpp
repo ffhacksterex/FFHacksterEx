@@ -422,6 +422,15 @@ BOOL CMaps::PreTranslateMessage(MSG* pMsg)
 	return __super::PreTranslateMessage(pMsg);
 }
 
+void CMaps::OnCancel()
+{
+	if (m_popoutcreated && m_mapdlg.IsWindowVisible()) {
+		m_mapdlg.PostMessage(WM_KEYDOWN, VK_ESCAPE);
+		return;
+	}
+	CEditorWithBackground::OnCancel();
+}
+
 void CMaps::ReloadSprites(CProgressCtrl* m_prog)
 {
 	while(m_sprites.GetImageCount()) m_sprites.Remove(0);
