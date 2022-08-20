@@ -115,6 +115,11 @@ namespace Editors2
 	#define OVERWORLDEDIT   "overworld"
 	#define PARTYSETUPEDIT  "partysetup"
 
+	// Preview editors for 0.9.7.9
+
+	#define PREV_LOCALMAPEDIT "$preview-localmap"
+	#define PREV_WORLDMAPEDIT "$preview-worldmap"
+	
 
 
 	// ****************************************************************
@@ -145,11 +150,15 @@ namespace Editors2
 	#define EDITORLEVEL_CUSTOM "Custom"
 	#define EDITORLEVEL_REMOVED "Excluded"
 
-	#define EDITORPATH_REMOVED "*excluded"  // this is a placeholder that is not writtentto settings
+	#define EDITORPATH_REMOVED "*excluded"      // this is a placeholder that is not written to settings
 	#define EDITORPATH_BUILTIN "*builtin"
 	#define EDITORPATH_APPDIR "*app"
-	#define EDITORPATH_PROJECT "*project"   // modules in the project folder
-	#define EDITORPATH_PROJADD "*projadd"   // project additional modules folder
+	#define EDITORPATH_PROJECT "*project"       // modules in the project folder
+	#define EDITORPATH_PROJADD "*projadd"       // project additional modules folder
+	#define EDITORPATH_BINPREVIEW "*binpreview" // optional that can be shown or hidden at will
+
+	bool IsPathBuiltin(CString path);
+	bool IsPathBuiltinPrefixed(CString path);
 
 	CString GetLevelFromPath(CString projectini, CString testpath);
 	CString GetLevelFromPath(const CFFHacksterProject & project, CString testpath);
@@ -161,7 +170,7 @@ namespace Editors2
 
 	// ****************************************************************
 	// INTEROP SUPPORT FUNCTIONS
-	// These are part of th estatic libraries compiled into the EXE and DLL, but they aren't passed
+	// These are part of the static libraries compiled into the EXE and DLL, but they aren't passed
 	// across process bounds, so it's safe to use them in both place.
 
 	char* AllocReturnValue(EditorAllocatorFunc allocator, CString value);

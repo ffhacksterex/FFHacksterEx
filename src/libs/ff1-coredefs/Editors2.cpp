@@ -113,7 +113,7 @@ namespace Editors2
 
 	CEditor::CEditor(const sEditorInfo & info)
 	{
-		live = (info.modulepath == EDITORPATH_BUILTIN) || Paths::FileExists(info.modulepath);
+		live = (Editors2::IsPathBuiltin(info.modulepath)) || Paths::FileExists(info.modulepath);
 
 		name = info.name;
 		displayname = info.displayname;
@@ -259,6 +259,9 @@ namespace Editors2
 				{ true, STDMAPSEDIT, "Standard Maps", EDITORPATH_BUILTIN, "Edit standard (local) maps." },
 				{ true, OVERWORLDEDIT, "Overworld Map", EDITORPATH_BUILTIN, "Edit the overworld map." },
 				{ true, PARTYSETUPEDIT, "Party Setup", EDITORPATH_BUILTIN, "Edit the new game party configuration options." },
+				// Preview editors for 0.9.7.9
+				{ true, PREV_LOCALMAPEDIT, "Local Map (preview)", EDITORPATH_BINPREVIEW, "Edit the overworld map.\nIncludes a popout editor." },
+				{ true, PREV_WORLDMAPEDIT, "World Map (preview)", EDITORPATH_BINPREVIEW, "Edit local maps.\r\nIncludes a popout editor." },
 			};
 			return infos;
 		}
@@ -537,8 +540,12 @@ namespace Editors2
 			}
 			else {
 				// it's tied to an editor.
-				// add a remove node if there are no builtin nodes.
-				if (!std::any_of(cbegin(link.nodes), cend(link.nodes), [](const sEditorInfo & node) { return node.modulepath == EDITORPATH_BUILTIN; })) {
+				// add a remove node if there are no EDITORPATH_BUILTIN nodes.
+				//N.B. - EDITORPATH_BINPREVIEW are distinct from EDITORPATH_BUILTIN in this check, which
+				//		allows them to be turned on or off at will.
+				if (!std::any_of(cbegin(link.nodes), cend(link.nodes),
+					[](const sEditorInfo & node) { return node.modulepath == EDITORPATH_BUILTIN; }))
+				{
 					link.nodes.push_back({ false, link.name, "--" + link.name, EDITORPATH_REMOVED, "Remove this editor" });
 					// select the remove node if this link only has a single external node (i.e. we just added a second node)
 					if (link.nodes.size() == 2)
@@ -616,6 +623,15 @@ namespace Editors2
 		return failures;
 	}
 
+	bool IsPathBuiltin(CString path)
+	{
+		return path == EDITORPATH_BUILTIN || path == EDITORPATH_BINPREVIEW;
+	}
+
+	bool IsPathBuiltinPrefixed(CString path)
+	{
+		return path.Find(EDITORPATH_BUILTIN) == 0 || path.Find(EDITORPATH_BINPREVIEW) == 0;
+	}
 
 	//REFACTOR - THIS SHOULD RECEIVE A CFFHacksterProject, NOT THE INI PATH TO THE PROJECT
 	//		Even if a temp CFFHacksterProject has to be created, that will be
@@ -625,7 +641,7 @@ namespace Editors2
 	{
 		CString testdir = Paths::GetDirectoryPath(testpath);
 
-		if (testdir == EDITORPATH_BUILTIN) return EDITORLEVEL_BUILTIN;
+		if (IsPathBuiltin(testdir)) return EDITORLEVEL_BUILTIN;
 		if (testdir == EDITORPATH_REMOVED) return EDITORLEVEL_REMOVED;
 		if (!Paths::FileExists(testpath)) return EDITORLEVEL_MISSING;
 

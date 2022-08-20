@@ -474,7 +474,7 @@ Editors2::CEditor CFFHacksterDlg::CreateEditor(const Editors2::sEditorInfo & inf
 {
 	//N.B. - if an invalid editor is created, it will throw an exception when invoked
 	Editors2::CEditor editor(info);
-	if (editor.modulepath == EDITORPATH_BUILTIN)
+	if (Editors2::IsPathBuiltin(editor.modulepath))
 		editor.implfunc = GetBuiltinEditorFunc();
 	return editor;
 }
@@ -533,6 +533,8 @@ bool CFFHacksterDlg::InvokeInternalEditor(CString editorcmd)
 	DOINVOKE(STDMAPSEDIT,  OnMaps);
 	DOINVOKE(OVERWORLDEDIT, OnOverworldmap);
 	DOINVOKE(PARTYSETUPEDIT, OnPartySetup);
+	DOINVOKE(PREV_LOCALMAPEDIT, OnLocalMap);
+	DOINVOKE(PREV_WORLDMAPEDIT, OnWorldMap);
 
 	return false;
 }
@@ -779,43 +781,91 @@ bool CFFHacksterDlg::WantsToReload() const
 	return m_bRequestReload;
 }
 
+namespace {
+	template <class ODLG, class NDLG>
+	void RunMapScreenLoop(CWnd & parent, CFFHacksterProject & proj, ODLG& dlg, NDLG& ndlg, bool OV)
+	{
+		bool teleport = 0;
+		bool loop = true;
+		do {
+			// Don't loop unless there's a cross-editor teleport
+			loop = false;
+			if (OV) {
+				dlg.BootToTeleportFollowup = teleport;
+				if (dlg.DoModal() == IDOK) {
+					proj.SaveSharedSettings();
+					teleport = dlg.BootToTeleportFollowup;
+					if (teleport) {
+						OV = false;
+						loop = true;
+					}
+				}
+			}
+			else {
+				ndlg.BootToTeleportFollowup = teleport;
+				if (ndlg.DoModal() == IDOK) {
+					proj.SaveSharedSettings();
+					teleport = ndlg.BootToTeleportFollowup;
+					if (teleport) {
+						OV = true;
+						loop = true;
+					}
+				}
+			}
+		} while (loop);
+		parent.BringWindowToTop();
+	}
+}
+
 void CFFHacksterDlg::GoToMapScreen(bool OV)
 {
-	bool teleport = 0;
+	COverworldMapOrig dlg;
+	dlg.Project = &m_proj;
+	CMapsOrig ndlg;
+	ndlg.Project = &m_proj;
+	ndlg.Enloader = &m_loader;
+
+	RunMapScreenLoop(*this, m_proj, dlg, ndlg, OV);
+}
+
+void CFFHacksterDlg::GoToNewMapScreen(bool OV)
+{
 	COverworldMap dlg;
 	dlg.Project = &m_proj;
 	CMaps ndlg;
 	ndlg.Project = &m_proj;
 	ndlg.Enloader = &m_loader;
 
-	bool loop = true;
-	do {
-		// Don't loop unless there's a cross-editor teleport
-		loop = false;
-		if (OV) {
-			dlg.BootToTeleportFollowup = teleport;
-			if (dlg.DoModal() == IDOK) {
-				m_proj.SaveSharedSettings();
-				teleport = dlg.BootToTeleportFollowup;
-				if (teleport) {
-					OV = false;
-					loop = true;
-				}
-			}
-		}
-		else {
-			ndlg.BootToTeleportFollowup = teleport;
-			if (ndlg.DoModal() == IDOK) {
-				m_proj.SaveSharedSettings();
-				teleport = ndlg.BootToTeleportFollowup;
-				if (teleport) {
-					OV = true;
-					loop = true;
-				}
-			}
-		}
-	} while (loop);
-	this->BringWindowToTop();
+	RunMapScreenLoop(*this, m_proj, dlg, ndlg, OV);
+	//bool teleport = 0;
+	//bool loop = true;
+	//do {
+	//	// Don't loop unless there's a cross-editor teleport
+	//	loop = false;
+	//	if (OV) {
+	//		dlg.BootToTeleportFollowup = teleport;
+	//		if (dlg.DoModal() == IDOK) {
+	//			m_proj.SaveSharedSettings();
+	//			teleport = dlg.BootToTeleportFollowup;
+	//			if (teleport) {
+	//				OV = false;
+	//				loop = true;
+	//			}
+	//		}
+	//	}
+	//	else {
+	//		ndlg.BootToTeleportFollowup = teleport;
+	//		if (ndlg.DoModal() == IDOK) {
+	//			m_proj.SaveSharedSettings();
+	//			teleport = ndlg.BootToTeleportFollowup;
+	//			if (teleport) {
+	//				OV = true;
+	//				loop = true;
+	//			}
+	//		}
+	//	}
+	//} while (loop);
+	//this->BringWindowToTop();
 }
 
 void CFFHacksterDlg::OnArmor() 
@@ -890,14 +940,24 @@ void CFFHacksterDlg::OnStartingItems()
 	dlg.DoModal();
 }
 
+void CFFHacksterDlg::OnOverworldmap()
+{
+	GoToMapScreen(1);
+}
+
 void CFFHacksterDlg::OnMaps()
 {
 	GoToMapScreen(0);
 }
 
-void CFFHacksterDlg::OnOverworldmap()
+void CFFHacksterDlg::OnWorldMap()
 {
-	GoToMapScreen(1);
+	GoToNewMapScreen(true);
+}
+
+void CFFHacksterDlg::OnLocalMap()
+{
+	GoToNewMapScreen(false);
 }
 
 void CFFHacksterDlg::OnPartySetup()

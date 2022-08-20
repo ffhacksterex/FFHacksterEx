@@ -22,6 +22,7 @@ public:
 
 	bool WantsToReload() const;
 	void GoToMapScreen(bool);
+	void GoToNewMapScreen(bool);
 
 	CString InitialEditorName;
 	CString ProjectFile;
@@ -123,7 +124,6 @@ protected:
 	afx_msg void OnNmRclickActionButton(UINT id, NMHDR * pNotify, LRESULT * result);
 	afx_msg void OnBnClickedActionButton(UINT id);
 	afx_msg void OnPartySetup();
-	afx_msg void OnOverworldmap();
 	afx_msg void OnText();
 	afx_msg void OnArmor();
 	afx_msg void OnWeapon();
@@ -132,7 +132,10 @@ protected:
 	afx_msg void OnMagic();
 	afx_msg void OnShop();
 	afx_msg void OnBattle();
+	afx_msg void OnOverworldmap();
 	afx_msg void OnMaps();
+	afx_msg void OnWorldMap();
+	afx_msg void OnLocalMap();
 	afx_msg void OnClasses();
 	afx_msg void OnImportHacksterDAT();
 	afx_msg void OnRevertProject();
