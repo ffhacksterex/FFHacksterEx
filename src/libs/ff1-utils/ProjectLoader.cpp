@@ -48,11 +48,13 @@ pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress * progre
 	// Perform project upgrades if needed.
 	{
 		if (progress) progress->AddSteps(1);
-		if (progress) progress->StepAndProgressText("Upgrading Project...");
+		if (progress) progress->StepAndProgressText("Loading Project...");
 		if (Upgrades::NeedsConversion(projectpath)) {
 			// Ask to upgrade
 			auto answer = AfxMessageBox("Are you sure you want to upgrade this project?\nBe sure to back it up before attemping to upgrade.", MB_OKCANCEL | MB_DEFBUTTON2);
 			if (answer != IDOK) return{ false, "You declined to upgrade at this time." };
+
+			if (progress) progress->SetProgressText("Upgrading Project...");
 
 			// Ask for a folder to create a backup
 			auto zipbackfolder = Ui::PromptForFolder(nullptr, "Select a folder to hold the project backup file",

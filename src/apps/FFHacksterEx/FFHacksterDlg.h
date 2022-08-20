@@ -9,6 +9,7 @@
 #include <EditorSettingsSerializer.h>
 #include <DialogWithBackground.h>
 #include <afxlinkctrl.h>
+#include "SubDlgDynaButtons.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CFFHacksterDlg dialog
@@ -21,6 +22,7 @@ public:
 
 	bool WantsToReload() const;
 	void GoToMapScreen(bool);
+	void GoToNewMapScreen(bool);
 
 	CString InitialEditorName;
 	CString ProjectFile;
@@ -33,6 +35,7 @@ public:
 protected:
 	CMutex * m_pmutex = nullptr;      // Ensure only one instance edits the same project at a time
 	CSingleLock * m_plock = nullptr;
+	CSubDlgDynaButtons m_subdlgbuttons;
 
 // Dialog Data
 	enum { IDD = IDD_FFHACKSTER_DIALOG };
@@ -114,12 +117,13 @@ protected:
 // Implementation
 	DECLARE_MESSAGE_MAP()
 	afx_msg LRESULT OnFfttmShowDesc(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT OnFfeditLclick(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT OnFfeditRclick(WPARAM wparam, LPARAM lparam);
 	afx_msg void OnAbout();
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnNmRclickActionButton(UINT id, NMHDR * pNotify, LRESULT * result);
 	afx_msg void OnBnClickedActionButton(UINT id);
 	afx_msg void OnPartySetup();
-	afx_msg void OnOverworldmap();
 	afx_msg void OnText();
 	afx_msg void OnArmor();
 	afx_msg void OnWeapon();
@@ -128,7 +132,10 @@ protected:
 	afx_msg void OnMagic();
 	afx_msg void OnShop();
 	afx_msg void OnBattle();
+	afx_msg void OnOverworldmap();
 	afx_msg void OnMaps();
+	afx_msg void OnWorldMap();
+	afx_msg void OnLocalMap();
 	afx_msg void OnClasses();
 	afx_msg void OnImportHacksterDAT();
 	afx_msg void OnRevertProject();

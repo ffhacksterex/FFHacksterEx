@@ -1,27 +1,21 @@
 #pragma once
-// Maps.h : header file
+// MapsOrig.h : header file
 
 #include <EditorWithBackground.h>
 #include "ICoordMap.h"
-#include "IMapEditor.h"
 #include <vector>
 #include "afxwin.h"
-#include <SimpleImageButton.h>
-#include <DrawingToolButton.h>
-#include <FloatingMapDlg.h>
 class CFFHacksterProject;
 class CEntriesLoader;
 
 /////////////////////////////////////////////////////////////////////////////
-// CMaps dialog
+// CMapsOrig dialog
 
-class CMaps : public CEditorWithBackground,
-			public ICoordMap,
-			public IMapEditor
+class CMapsOrig : public CEditorWithBackground, public ICoordMap
 {
-	// Construction
+// Construction
 public:
-	CMaps(CWnd* pParent = nullptr);   // standard constructor
+	CMapsOrig(CWnd* pParent = nullptr);   // standard constructor
 
 	enum CancelContext { Coords };
 
@@ -34,20 +28,9 @@ public:
 	virtual POINT GetLastClick() override;
 	virtual int GetCurMap() override;
 	virtual void TeleportHere(int mapindex, int x, int y) override;
-	virtual void DoHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-	virtual void DoVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 
-	// Inherited from IMapEditor
-	virtual void HandleLButtonDown(UINT nFlags, CPoint point);
-	virtual void HandleLButtonUp(UINT nFlags, CPoint point);
-	virtual void HandleLButtonDblClk(UINT nFlags, CPoint point);
-	virtual void HandleRButtonDown(UINT nFlags, CPoint pt);
-	virtual void HandleRButtonUp(UINT nFlags, CPoint pt);
-	virtual void HandleRButtonDblClk(UINT nFlags, CPoint point);
-	virtual void HandleMouseMove(UINT nFlags, CPoint newhover);
-	virtual void HandleMapImport();
-	virtual void HandleMapExport();
-	virtual bool HandleCustomizeTool();
+	void DoHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	void DoVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 
 protected:
 	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
@@ -56,7 +39,6 @@ protected:
 	void DoViewcoords();
 	void DoOK();
 	void DoSelchangeMaplist();
-	void ApplyTileTint(int ref);
 
 	int cur_map;
 	int cur_tileset;
@@ -66,21 +48,19 @@ protected:
 	int cur_tiledata;
 	int cur_tool;
 	BYTE mousedown;
-	bool m_showingrooms = false;
-	bool m_firstpopoutdone = false;
-	bool m_popoutcreated = false;
-	std::vector<CDrawingToolButton*> m_toolbuttons;
 
 	CPoint ptLastClick;
 	CButton	m_viewcoords;
-	
+
 	BYTE DecompressedMap[0x40][0x40];
 	CImageList m_sprites;
+	CImageList m_tools;
 	CPen redpen;
 	CRect rcTiles;
 	CRect rcMap;
 	CRect rcPalettes;
 	CRect rcPalettes2;
+	CRect rcTools;
 	CRect rcToolRect;
 	CPoint ScrollOffset;
 	std::vector<CPoint> Sprite_Coords; // MAPSPRITE_COUNT;
@@ -92,7 +72,6 @@ protected:
 
 	CPoint ptHover;
 	void UpdateClick(CPoint);
-	CPoint fix_map_point(CPoint point);
 
 	void LoadRom();
 	virtual void SaveRom();
@@ -114,15 +93,12 @@ protected:
 	void UpdateTileData();
 	void UpdatePics();
 
-	void init_popout_map_window();
-	void PopMapDialog(bool in);
-
 	BYTE MapPalette[2][4][4];
 	BYTE SpritePalette[2][4];
 	BYTE ControlPalette[8];
 
-	// Dialog Data
-	enum { IDD = IDD_MAPS_NEW };
+// Dialog Data
+	enum { IDD = IDD_MAPS };
 	CBorderedListBox	m_maplist;
 	CClearEdit m_encounterrateedit;
 	CStatic	m_kab;
@@ -184,17 +160,10 @@ protected:
 	CStatic m_mapstatic;
 	CStatic m_tilestatic;
 	CStatic m_palettestatic;
-	CDrawingToolButton m_penbutton{ IDB_PNG_DRAWTOOL_PEN, 0 };
-	CDrawingToolButton m_blockbutton{ IDB_PNG_DRAWTOOL_BLOCK, 1 };
-	CDrawingToolButton m_custom1button{ IDB_PNG_DRAWTOOL_CUSTOM1, 5 };
-	CDrawingToolButton m_custom2button{ IDB_PNG_DRAWTOOL_CUSTOM2, 6 };
-	CStatic m_mappanel;
-	CSimpleImageButton m_popoutbutton{ IDB_PNG_SCREEENSIZE_INCREASE };
 	CCloseButton m_closebutton;
 	CHelpbookButton m_helpbookbutton;
 
 	CSubBanner m_banner;
-	CFloatingMapDlg m_mapdlg;
 
 	int ITEMPRICE_OFFSET = -1;
 	int MAPSPRITEPATTERNTABLE_COUNT = -1;
@@ -218,7 +187,7 @@ protected:
 	int BATTLEDOMAIN_OFFSET = -1;
 	unsigned int BATTLEPROBABILITY_OFFSET = (unsigned int)-1;
 	int TREASURE_OFFSET = -1;
-	unsigned int MAPBATTLERATE_OFFSET = (unsigned int)-1;
+	unsigned int MAPBATTLERATE_OFFSET = (unsigned int )-1;
 
 	int BANK0A_OFFSET = -1;
 	int BANK00_OFFSET = -1;
@@ -231,15 +200,13 @@ protected:
 	int BINBANK01DATA_OFFSET = -1;
 	int BINPRICEDATA_OFFSET = -1;
 
-	// Overrides
-		// ClassWizard generated virtual function overrides
+// Overrides
+	// ClassWizard generated virtual function overrides
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();
-	virtual BOOL PreTranslateMessage(MSG* pMsg);
-	virtual void OnCancel();
 
-	// Implementation
-		// Generated message map functions
+// Implementation
+	// Generated message map functions
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnPaint();
 	afx_msg void OnSelchangeMaplist();
@@ -283,7 +250,4 @@ protected:
 	afx_msg void OnMapImport();
 	afx_msg void OnViewcoords();
 	afx_msg void OnSelchangeTeleportList();
-	afx_msg LRESULT OnDrawToolBnClick(WPARAM wparam, LPARAM lparam);
-	afx_msg void OnBnClickedButtonPopout();
-	afx_msg LRESULT OnShowFloatMap(WPARAM wparam, LPARAM lparam);
 };

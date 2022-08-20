@@ -77,7 +77,7 @@ IDR_MAINFRAME           ICON                    "res\\FFHackster.ico"
 
 IDD_FFHACKSTER_DIALOG DIALOGEX 0, 0, 532, 323
 STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_BORDER
-EXSTYLE WS_EX_APPWINDOW
+EXSTYLE WS_EX_CONTROLPARENT | WS_EX_APPWINDOW
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "Import FFH DAT",IDC_FFH_BTN_IMPORTFFHDAT,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,107,100,42,33,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
@@ -310,6 +310,12 @@ BEGIN
     LTEXT           "These folders represent defaults that are used when browsing for files and folders.\nSet a value to blank if you don't want to use a default for that category.",IDC_STATIC,7,7,283,18
 END
 
+IDD_SUB_DYNABUTTONS DIALOGEX 0, 0, 267, 84
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_VSCROLL
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -429,6 +435,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 169
     END
+
+    IDD_SUB_DYNABUTTONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 249
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 77
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -485,6 +499,11 @@ BEGIN
     100, 100, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0
+END
+
+IDD_SUB_DYNABUTTONS AFX_DIALOG_LAYOUT
+BEGIN
+    0
 END
 
 

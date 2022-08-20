@@ -81,8 +81,8 @@ BOOL CEditorDigestDlg::OnInitDialog()
 	m_editorlist.Links = &m_links;
 
 	m_editorlist.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
-	m_editorlist.InsertColumn(COL_NAME, "Editor", LVCFMT_LEFT, 112);
-	m_editorlist.InsertColumn(COL_STAT, "Status", LVCFMT_LEFT, 112);
+	m_editorlist.InsertColumn(COL_NAME, "Editor", LVCFMT_LEFT, 170);
+	m_editorlist.InsertColumn(COL_STAT, "Status", LVCFMT_LEFT, 60);
 	m_editorlist.InsertColumn(COL_DISP, "Displayname", LVCFMT_LEFT, 144);
 	m_editorlist.InsertColumn(COL_LEV, "Level", LVCFMT_LEFT, 96);
 	m_editorlist.InsertColumn(COL_SRC, "Source", LVCFMT_LEFT, -1);
@@ -350,7 +350,7 @@ void CEditorDigestDlg::OnClickedEdBtnDown()
 
 void CEditorDigestDlg::OnClickedSelectBuiltin()
 {
-	static const auto IsBuiltin = [](const Editors2::sEditorInfo & node) { return node.modulepath == EDITORPATH_BUILTIN; };
+	static const auto IsBuiltin = [](const Editors2::sEditorInfo& node) { return Editors2::IsPathBuiltin(node.modulepath); };
 	static const auto IsRemoved = [](const Editors2::sEditorInfo & node) { return !node.show; };
 	static const std::function<bool(const Editors2::sEditorInfo & node)> preds[] = { IsBuiltin, IsRemoved };
 

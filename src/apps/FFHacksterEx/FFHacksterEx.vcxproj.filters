@@ -40,6 +40,9 @@
     <ClCompile Include="DlgFolderPrefs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SubDlgDynaButtons.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="About.h">
@@ -91,6 +94,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DlgFolderPrefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SubDlgDynaButtons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

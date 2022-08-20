@@ -79,7 +79,8 @@ namespace Editors2
 			
 			// Normalize the path
 			auto modulepath = ReadIni(EditorSettingsPath, section, "modulepath", "");
-			if (modulepath == EDITORPATH_BUILTIN) {
+			if (Editors2::IsPathBuiltin(modulepath))
+			{
 				infos.push_back(GetDefaultEditor(name).GetInfo());
 			}
 			else {
@@ -115,9 +116,9 @@ namespace Editors2
 		return newpath;
 	}
 
+	//N.B. - CWD entries are NOT currently encoded
 	CString EditorSettingsSerializer::EncodeModulePath(CString path)
 	{
-		//N.B. - CWD entries are NOT currently encoded
 		CString newpath = path;
 		CString directory = Paths::GetDirectoryPath(path);
 		if (directory.CompareNoCase(AppFolder) == 0) {
@@ -129,7 +130,7 @@ namespace Editors2
 		else if (directory.CompareNoCase(ProjectAdditionModulesFolder) == 0) {
 			newpath = Paths::Combine({ EDITORPATH_PROJADD, Paths::GetFileName(path) });
 		}
-		else if (path.Find(EDITORPATH_BUILTIN) == 0) {
+		else if (Editors2::IsPathBuiltinPrefixed(path)) {
 			//DEVNOTE - special case, I thought about forcing special handling by throwing here, but that might backfire
 			//		due to code mushrooming to handle the exception...
 			//		for now, just return the path as is.

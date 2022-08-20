@@ -175,6 +175,10 @@
     <ClInclude Include="BattlePalettes.h" />
     <ClInclude Include="BattlePatternTables.h" />
     <ClInclude Include="BattlePic.h" />
+    <ClInclude Include="CSubDlgRenderMap.h" />
+    <ClInclude Include="CSubDlgRenderMapStatic.h" />
+    <ClInclude Include="FloatingMapDlg.h" />
+    <ClInclude Include="DrawingToolButton.h" />
     <ClInclude Include="Coords.h" />
     <ClInclude Include="CustomTool.h" />
     <ClInclude Include="DlgEditIniValue.h" />
@@ -182,6 +186,7 @@
     <ClInclude Include="DlgEditStrings.h" />
     <ClInclude Include="DlgPasteTargets.h" />
     <ClInclude Include="ICoordMap.h" />
+    <ClInclude Include="IMapEditor.h" />
     <ClInclude Include="InplaceArrayEdit.h" />
     <ClInclude Include="Loading.h" />
     <ClInclude Include="Mapman.h" />
@@ -189,6 +194,7 @@
     <ClInclude Include="NESPalette.h" />
     <ClInclude Include="NewLabel.h" />
     <ClInclude Include="resource_subeditors.h" />
+    <ClInclude Include="sRenderMapState.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TileEdit.h" />
@@ -200,6 +206,10 @@
     <ClCompile Include="BattlePalettes.cpp" />
     <ClCompile Include="BattlePatternTables.cpp" />
     <ClCompile Include="BattlePic.cpp" />
+    <ClCompile Include="CSubDlgRenderMap.cpp" />
+    <ClCompile Include="CSubDlgRenderMapStatic.cpp" />
+    <ClCompile Include="FloatingMapDlg.cpp" />
+    <ClCompile Include="DrawingToolButton.cpp" />
     <ClCompile Include="Coords.cpp" />
     <ClCompile Include="CustomTool.cpp" />
     <ClCompile Include="DlgEditIniValue.cpp" />
@@ -212,6 +222,7 @@
     <ClCompile Include="MiniMap.cpp" />
     <ClCompile Include="NESPalette.cpp" />
     <ClCompile Include="NewLabel.cpp" />
+    <ClCompile Include="sRenderMapState.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -235,6 +246,13 @@
     <ProjectReference Include="..\ff1-utils\ff1-utils.vcxproj">
       <Project>{2f35299a-d285-4526-bc40-d1d5d8f0894a}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\iconmonstr-large-thumbnail-filled-16.png" />
+    <Image Include="res\iconmonstr-pencil-7-16.png" />
+    <Image Include="res\iconmonstr-shape-1-16.png" />
+    <Image Include="res\iconmonstr-small-thumbnail-lined-16.png" />
+    <Image Include="res\iconmonstr-weather-94-16.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -87,6 +87,24 @@
     <ClInclude Include="resource_subeditors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DrawingToolButton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FloatingMapDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSubDlgRenderMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSubDlgRenderMapStatic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sRenderMapState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMapEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -149,6 +167,21 @@
     <ClCompile Include="InplaceArrayEdit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DrawingToolButton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FloatingMapDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSubDlgRenderMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSubDlgRenderMapStatic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sRenderMapState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ff1-subeditors.rc">
@@ -159,5 +192,22 @@
     <None Include="ff1-subeditors.rc2">
       <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\iconmonstr-pencil-7-16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\iconmonstr-large-thumbnail-filled-16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\iconmonstr-shape-1-16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\iconmonstr-small-thumbnail-lined-16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\iconmonstr-weather-94-16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

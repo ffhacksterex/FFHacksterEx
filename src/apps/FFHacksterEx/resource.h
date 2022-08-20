@@ -44,6 +44,7 @@
 #define IDD_EDITORDIGEST2               230
 #define IDD_DLG_NEWROM                  231
 #define IDD_FOLDER_PREFS                232
+#define IDD_SUB_DYNABUTTONS             235
 #define IDC_PROJECTS_BTN_NEWROM         1663
 #define IDC_PROJECTS_BTN_NEWASM         1664
 #define IDC_PROJECTS_BTN_OPENROM        1665
@@ -138,7 +139,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        235
+#define _APS_NEXT_RESOURCE_VALUE        237
 #define _APS_NEXT_COMMAND_VALUE         32796
 #define _APS_NEXT_CONTROL_VALUE         1916
 #define _APS_NEXT_SYMED_VALUE           104

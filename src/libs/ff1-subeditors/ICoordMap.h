@@ -2,7 +2,7 @@
 
 #include <afx.h>
 
-// INterface to abstact access to the overworld and standard maps.
+// Interface to abstact access to the overworld and standard maps.
 class ICoordMap
 {
 public:

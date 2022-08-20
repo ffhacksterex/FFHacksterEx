@@ -179,8 +179,10 @@
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="EnemyBattleUsageData.h" />
     <ClInclude Include="Magic.h" />
+    <ClInclude Include="MapsOrig.h" />
     <ClInclude Include="Maps.h" />
     <ClInclude Include="OverworldMap.h" />
+    <ClInclude Include="OverworldMapOrig.h" />
     <ClInclude Include="PartySetup.h" />
     <ClInclude Include="resource_editors.h" />
     <ClInclude Include="Shop.h" />
@@ -197,12 +199,14 @@
     <ClCompile Include="Attack.cpp" />
     <ClCompile Include="Battle.cpp" />
     <ClCompile Include="Classes.cpp" />
+    <ClCompile Include="Maps.cpp" />
     <ClCompile Include="editors_common.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EnemyBattleUsageData.cpp" />
     <ClCompile Include="Magic.cpp" />
-    <ClCompile Include="Maps.cpp" />
+    <ClCompile Include="MapsOrig.cpp" />
     <ClCompile Include="OverworldMap.cpp" />
+    <ClCompile Include="OverworldMapOrig.cpp" />
     <ClCompile Include="PartySetup.cpp" />
     <ClCompile Include="Shop.cpp" />
     <ClCompile Include="SpriteDialogue2.cpp" />
@@ -236,6 +240,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ff1-editors.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\iconmonstr-screen-size-increase-filled-32.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
