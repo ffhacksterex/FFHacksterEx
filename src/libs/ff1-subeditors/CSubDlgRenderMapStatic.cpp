@@ -109,118 +109,101 @@ void CSubDlgRenderMapStatic::handle_sizing(int cx, int cy)
 
 void CSubDlgRenderMapStatic::handle_paint()
 {
-	if (State.overworld) {
-		//REMOVE - won't be using this control for Overworld
-		//	might reimplement CMaps to use CDlgPopoutMap as well,
-		//	it's simpler
+	CDC& dc = m_bmpdc;
+	int coX = 0, coY = 0, tile = 0, coy = 0, cox = 0;
+	int row = 0;
+	CPoint pt;
+	auto& room = *State.showrooms;
+	auto& cur_map = *State.cur_map;
+	auto& cur_tile = *State.cur_tile;
+	auto& cur_tool = *State.cur_tool;
+	auto& ptLastClick = *State.ptLastClick;
+	auto& DecompressedMap = State.DecompressedMap;
+	auto& rcToolRect = *State.rcToolRect;
+	auto& cart = State.project;
+	auto rcMap = Ui::GetClientRect(this);
+	CPoint ScrollOffset{ 0,0 };
 
-		//auto rcMap = Ui::GetClientRect(this);
-		//CDC& dc = m_bmpdc;
-		////State.owner->RenderMap(dc, rcMap, State);
-
-		//
-		//CPaintDC mydc(this); // device context for painting
-		//				   // TODO: Add your message handler code here
-		//				   // Do not call CStatic::OnPaint() for painting messages
-		//mydc.BitBlt(rcMap.left, rcMap.top, rcMap.Width(), rcMap.Height(), &dc, 0, 0, SRCCOPY);
+	//Draw the map
+	//TODO - the 16s in the for statements are the tiledims, since we don't currently scale,
+	//		it doesn't cause a problem yet.
+	//		can probably change the State.mapdims.cx at the end to maxcol
+	int maxrow = State.mapdims.cy;
+	int maxcol = State.mapdims.cx;
+	for (coY = 0, pt.y = rcMap.top, coy = ScrollOffset.y; coY < maxrow; coY++, pt.y += 16, coy++, row = coy * State.mapdims.cx) {
+		for (coX = 0, pt.x = rcMap.left, cox = ScrollOffset.x; coX < maxcol; coX++, pt.x += 16, cox++)
+			cart->GetStandardTiles(cur_map, room).Draw(&dc, DecompressedMap[(row)+cox], pt, ILD_NORMAL);
 	}
-	else {
-		CDC& dc = m_bmpdc;
-		int coX = 0, coY = 0, tile = 0, coy = 0, cox = 0;
-		int row = 0;
-		CPoint pt;
-		auto& room = *State.showrooms;
-		auto& cur_map = *State.cur_map;
-		auto& cur_tile = *State.cur_tile;
-		auto& cur_tool = *State.cur_tool;
-		auto& ptLastClick = *State.ptLastClick;
-		auto& DecompressedMap = State.DecompressedMap;
-		auto& rcToolRect = *State.rcToolRect;
-		auto& cart = State.project;
-		auto rcMap = Ui::GetClientRect(this);
-		CPoint ScrollOffset{ 0,0 };
-
-		//Draw the map
-		//TODO - the 16s in the for statements are the tiledims, since we don't currently scale,
-		//		it doesn't cause a problem yet.
-		//		can probably change the State.mapdims.cx at the end to maxcol
-		int maxrow = State.mapdims.cy;
-		int maxcol = State.mapdims.cx;
-		for (coY = 0, pt.y = rcMap.top, coy = ScrollOffset.y; coY < maxrow; coY++, pt.y += 16, coy++, row = coy * State.mapdims.cx) {
-			for (coX = 0, pt.x = rcMap.left, cox = ScrollOffset.x; coX < maxcol; coX++, pt.x += 16, cox++)
-				cart->GetStandardTiles(cur_map, room).Draw(&dc, DecompressedMap[(row)+cox], pt, ILD_NORMAL);
-		}
-		CRect rcTemp = rcToolRect; rcTemp.NormalizeRect(); rcTemp.bottom += 1; rcTemp.right += 1;
-		CPoint copt;
-		if (*State.pmousedown == 1) {
-			switch (cur_tool) {
-			case 0: break;
-			case 1: {			//fill
-				coY = rcTemp.top - ScrollOffset.y; coX = rcTemp.left - ScrollOffset.x;
-				copt.y = rcTemp.bottom - ScrollOffset.y; copt.x = rcTemp.right - ScrollOffset.x;
-				tile = coX;
-				for (; coY < copt.y; coY++) {
-					for (coX = tile; coX < copt.x; coX++) {
-						pt.x = rcMap.left + (coX << 4); pt.y = rcMap.top + (coY << 4);
-						cart->GetStandardTiles(cur_map, room).Draw(&dc, cur_tile, pt, ILD_NORMAL);
-					}
+	CRect rcTemp = rcToolRect; rcTemp.NormalizeRect(); rcTemp.bottom += 1; rcTemp.right += 1;
+	CPoint copt;
+	if (*State.pmousedown == 1) {
+		switch (cur_tool) {
+		case 0: break;
+		case 1: {			//fill
+			coY = rcTemp.top - ScrollOffset.y; coX = rcTemp.left - ScrollOffset.x;
+			copt.y = rcTemp.bottom - ScrollOffset.y; copt.x = rcTemp.right - ScrollOffset.x;
+			tile = coX;
+			for (; coY < copt.y; coY++) {
+				for (coX = tile; coX < copt.x; coX++) {
+					pt.x = rcMap.left + (coX << 4); pt.y = rcMap.top + (coY << 4);
+					cart->GetStandardTiles(cur_map, room).Draw(&dc, cur_tile, pt, ILD_NORMAL);
 				}
-			}break;
-			default: {
-				CBrush br; br.CreateSolidBrush(RGB(128, 64, 255));
-				rcTemp.left = ((rcTemp.left - ScrollOffset.x) << 4) + rcMap.left;
-				rcTemp.right = ((rcTemp.right - ScrollOffset.x) << 4) + rcMap.left;
-				rcTemp.top = ((rcTemp.top - ScrollOffset.y) << 4) + rcMap.top;
-				rcTemp.bottom = ((rcTemp.bottom - ScrollOffset.y) << 4) + rcMap.top;
-				dc.FillRect(rcTemp, &br);
-				br.DeleteObject();
-			}break;
 			}
+		}break;
+		default: {
+			CBrush br; br.CreateSolidBrush(RGB(128, 64, 255));
+			rcTemp.left = ((rcTemp.left - ScrollOffset.x) << 4) + rcMap.left;
+			rcTemp.right = ((rcTemp.right - ScrollOffset.x) << 4) + rcMap.left;
+			rcTemp.top = ((rcTemp.top - ScrollOffset.y) << 4) + rcMap.top;
+			rcTemp.bottom = ((rcTemp.bottom - ScrollOffset.y) << 4) + rcMap.top;
+			dc.FillRect(rcTemp, &br);
+			br.DeleteObject();
+		}break;
 		}
-
-		// Draw last click rect if option is active
-		if (cart->ShowLastClick) {
-			pt.x = ((ptLastClick.x - ScrollOffset.x) << 4) + rcMap.left;
-			pt.y = ((ptLastClick.y - ScrollOffset.y) << 4) + rcMap.top;
-			if (PtInRect(rcMap, pt)) {
-				auto oldpen = dc.SelectObject(&m_pen);
-				dc.MoveTo(pt); pt.x += 15;
-				dc.LineTo(pt); pt.y += 15;
-				dc.LineTo(pt); pt.x -= 15;
-				dc.LineTo(pt); pt.y -= 15;
-				dc.LineTo(pt);
-				dc.SelectObject(oldpen);
-			}
-		}
-
-		//Draw the sprites
-		auto& Sprite_Coords = *State.Sprite_Coords;
-		auto& Sprite_InRoom = *State.Sprite_InRoom;
-		auto& Sprite_StandStill = *State.Sprite_StandStill;
-		auto& Sprite_Value = *State.Sprite_Value;
-		auto& m_sprites = *State.m_sprites;
-		auto SPRITE_COUNT = State.SPRITE_COUNT;
-		auto SPRITE_PICASSIGNMENT = State.SPRITE_PICASSIGNMENT;
-
-		//TODO - For now, we don't clip, that's coming in a later pass
-		//	We need the scroll rect from the parent to do this.
-		//CRect rc(0, 0, 16, 16);
-		for (coX = 0; coX < SPRITE_COUNT; coX++) {
-			if (!Sprite_Value[coX]) continue;
-			if (room != Sprite_InRoom[coX]) continue;
-			pt.x = Sprite_Coords[coX].x - ScrollOffset.x;
-			pt.y = Sprite_Coords[coX].y - ScrollOffset.y;
-
-			pt.x = (pt.x * State.tiledims.cx) + rcMap.left;
-			pt.y = (pt.y * State.tiledims.cy) + rcMap.top;
-			m_sprites.Draw(&dc, cart->ROM[SPRITE_PICASSIGNMENT + Sprite_Value[coX]], pt, ILD_TRANSPARENT);
-		}
-
-		CPaintDC mydc(this); // device context for painting
-						   // TODO: Add your message handler code here
-						   // Do not call CStatic::OnPaint() for painting messages
-		mydc.BitBlt(rcMap.left, rcMap.top, rcMap.Width(), rcMap.Height(), &dc, 0, 0, SRCCOPY);
 	}
+
+	// Draw last click rect if option is active
+	if (cart->ShowLastClick) {
+		pt.x = ((ptLastClick.x - ScrollOffset.x) << 4) + rcMap.left;
+		pt.y = ((ptLastClick.y - ScrollOffset.y) << 4) + rcMap.top;
+		if (PtInRect(rcMap, pt)) {
+			auto oldpen = dc.SelectObject(&m_pen);
+			dc.MoveTo(pt); pt.x += 15;
+			dc.LineTo(pt); pt.y += 15;
+			dc.LineTo(pt); pt.x -= 15;
+			dc.LineTo(pt); pt.y -= 15;
+			dc.LineTo(pt);
+			dc.SelectObject(oldpen);
+		}
+	}
+
+	//Draw the sprites
+	auto& Sprite_Coords = *State.Sprite_Coords;
+	auto& Sprite_InRoom = *State.Sprite_InRoom;
+	auto& Sprite_StandStill = *State.Sprite_StandStill;
+	auto& Sprite_Value = *State.Sprite_Value;
+	auto& m_sprites = *State.m_sprites;
+	auto SPRITE_COUNT = State.SPRITE_COUNT;
+	auto SPRITE_PICASSIGNMENT = State.SPRITE_PICASSIGNMENT;
+
+	//TODO - For now, we don't clip, that's coming in a later pass
+	//	We need the scroll rect from the parent to do this.
+	//CRect rc(0, 0, 16, 16);
+	for (coX = 0; coX < SPRITE_COUNT; coX++) {
+		if (!Sprite_Value[coX]) continue;
+		if (room != Sprite_InRoom[coX]) continue;
+		pt.x = Sprite_Coords[coX].x - ScrollOffset.x;
+		pt.y = Sprite_Coords[coX].y - ScrollOffset.y;
+
+		pt.x = (pt.x * State.tiledims.cx) + rcMap.left;
+		pt.y = (pt.y * State.tiledims.cy) + rcMap.top;
+		m_sprites.Draw(&dc, cart->ROM[SPRITE_PICASSIGNMENT + Sprite_Value[coX]], pt, ILD_TRANSPARENT);
+	}
+
+	CPaintDC mydc(this); // device context for painting
+					   // TODO: Add your message handler code here
+					   // Do not call CStatic::OnPaint() for painting messages
+	mydc.BitBlt(rcMap.left, rcMap.top, rcMap.Width(), rcMap.Height(), &dc, 0, 0, SRCCOPY);
 }
 
 

@@ -17,11 +17,7 @@ bool sRenderMapState::IsValid() const
 		//DEVNOTE - if the mapdims and/or tiledims must be square, 
 		//	then enforce that in the client class's is_valid() instead.
 
-		m_sprites != nullptr;
-	
-	bool local = overworld 
-		? true // ignore if overworld
-		:
+		m_sprites != nullptr &&
 		SPRITE_COUNT > 0 &&
 		SPRITE_PICASSIGNMENT > 0 &&
 		(showrooms != nullptr) &&
@@ -35,10 +31,5 @@ bool sRenderMapState::IsValid() const
 		(Sprite_Value != nullptr &&
 			Sprite_Value->size() == SPRITE_COUNT);
 
-	bool world = !overworld
-		? true // ignore if not overworld
-		:
-		true;
-
-	return basics && local && world;
+	return basics;
 }

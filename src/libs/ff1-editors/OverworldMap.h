@@ -98,7 +98,7 @@ protected:
 	void DoMinimap();
 	void DoViewcoords();
 
-	void LoadRom();
+	virtual void LoadRom();
 	virtual void SaveRom();
 	void LoadTileData();
 	void StoreTileData();

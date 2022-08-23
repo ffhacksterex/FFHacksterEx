@@ -1981,7 +1981,7 @@ void CMaps::TeleportHere(int mapindex, int x, int y)
 
 void CMaps::init_popout_map_window()
 {
-	//TODO - replace with CDlgPopoutMap if possible
+	//TODO - replbace with CDlgPopoutMap if possible
 	//	CFloatingMapDlg duplicates drawing,
 	//	CDlgPopoutMap can use CMaps to do the drawing instead.
 
