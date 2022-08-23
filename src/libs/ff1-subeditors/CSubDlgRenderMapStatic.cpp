@@ -89,12 +89,10 @@ void CSubDlgRenderMapStatic::handle_sizing(int cx, int cy)
 	// Size the control to its actual size, but don't move it
 	int neww = State.mapdims.cx * State.tiledims.cx;
 	int newh = State.mapdims.cy * State.tiledims.cy;
-	//m_mapframe.SetWindowPos(nullptr, -1, -1, neww, newh, SWP_NOZORDER | SWP_NOMOVE);
 
 	CRect ctlrc = Ui::GetControlRect(this);
 	CRect wrc{ 0,0, neww, newh };
 	AdjustWindowRectEx(wrc, GetStyle(), FALSE, GetExStyle());
-	//m_mapframe.SetWindowPos(nullptr, -1, -1, wrc.Width(), wrc.Height(), SWP_NOZORDER | SWP_NOMOVE);
 	SetWindowPos(nullptr, -1, -1, wrc.Width(), wrc.Height(), SWP_NOZORDER | SWP_NOMOVE);
 
 	if (m_bmpdc.GetSafeHdc()) {
@@ -112,15 +110,19 @@ void CSubDlgRenderMapStatic::handle_sizing(int cx, int cy)
 void CSubDlgRenderMapStatic::handle_paint()
 {
 	if (State.overworld) {
-		auto rcMap = Ui::GetClientRect(this);
-		CDC& dc = m_bmpdc;
-		State.owner->RenderMap(dc, rcMap, State);
+		//REMOVE - won't be using this control for Overworld
+		//	might reimplement CMaps to use CDlgPopoutMap as well,
+		//	it's simpler
 
-		
-		CPaintDC mydc(this); // device context for painting
-						   // TODO: Add your message handler code here
-						   // Do not call CStatic::OnPaint() for painting messages
-		mydc.BitBlt(rcMap.left, rcMap.top, rcMap.Width(), rcMap.Height(), &dc, 0, 0, SRCCOPY);
+		//auto rcMap = Ui::GetClientRect(this);
+		//CDC& dc = m_bmpdc;
+		////State.owner->RenderMap(dc, rcMap, State);
+
+		//
+		//CPaintDC mydc(this); // device context for painting
+		//				   // TODO: Add your message handler code here
+		//				   // Do not call CStatic::OnPaint() for painting messages
+		//mydc.BitBlt(rcMap.left, rcMap.top, rcMap.Width(), rcMap.Height(), &dc, 0, 0, SRCCOPY);
 	}
 	else {
 		CDC& dc = m_bmpdc;
@@ -241,15 +243,8 @@ int CSubDlgRenderMapStatic::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void CSubDlgRenderMapStatic::OnPaint()
 {
-	//CPaintDC dc(this); // device context for painting
-	//				   // TODO: Add your message handler code here
-	//				   // Do not call CStatic::OnPaint() for painting messages
-
-	//auto rc = Ui::GetClientRect(this);
-	//dc.FillSolidRect(rc, RGB(0, 255, 127));
-
 	if (!is_valid()) {
-		//CStatic::OnPaint(); //TODO - displays text if subclassed static is label instead of imageframe
+		//CStatic::OnPaint(); //N.B. - displays text if subclassed static is label instead of imageframe
 		return;
 	}
 	handle_paint();

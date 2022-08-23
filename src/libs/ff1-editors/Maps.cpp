@@ -1981,6 +1981,10 @@ void CMaps::TeleportHere(int mapindex, int x, int y)
 
 void CMaps::init_popout_map_window()
 {
+	//TODO - replace with CDlgPopoutMap if possible
+	//	CFloatingMapDlg duplicates drawing,
+	//	CDlgPopoutMap can use CMaps to do the drawing instead.
+
 	std::vector<sMapDlgButton> buttons(m_toolbuttons.size());
 	std::transform(cbegin(m_toolbuttons), cend(m_toolbuttons), begin(buttons),
 		[](const CDrawingToolButton* srcbtn) { return srcbtn->GetSpec(); });

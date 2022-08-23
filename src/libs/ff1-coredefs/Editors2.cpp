@@ -260,8 +260,8 @@ namespace Editors2
 				{ true, OVERWORLDEDIT, "Overworld Map", EDITORPATH_BUILTIN, "Edit the overworld map." },
 				{ true, PARTYSETUPEDIT, "Party Setup", EDITORPATH_BUILTIN, "Edit the new game party configuration options." },
 				// Preview editors for 0.9.7.9
-				{ true, PREV_LOCALMAPEDIT, "Local Map (preview)", EDITORPATH_BINPREVIEW, "Edit the overworld map.\nIncludes a popout editor." },
-				{ true, PREV_WORLDMAPEDIT, "World Map (preview)", EDITORPATH_BINPREVIEW, "Edit local maps.\r\nIncludes a popout editor." },
+				{ true, PREV_LOCALMAPEDIT, "Local Map (preview)", EDITORPATH_BINPREVIEW, "Edit local maps.\nIncludes a popout editor." },
+				{ true, PREV_WORLDMAPEDIT, "World Map (preview)", EDITORPATH_BINPREVIEW, "Edit the overworld map.\r\nIncludes a popout editor." },
 			};
 			return infos;
 		}

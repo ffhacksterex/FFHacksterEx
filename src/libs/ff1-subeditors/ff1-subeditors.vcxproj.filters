@@ -105,6 +105,12 @@
     <ClInclude Include="IMapEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SubDlgRenderMap2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgPopoutMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -180,6 +186,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sRenderMapState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SubDlgRenderMap2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgPopoutMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

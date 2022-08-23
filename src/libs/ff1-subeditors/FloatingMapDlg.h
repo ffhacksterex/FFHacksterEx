@@ -5,6 +5,7 @@
 #include "CSubDlgRenderMap.h"
 #include <memory>
 
+//DUPE - WMA_SHOWFLOATINGMAP
 #define WMA_SHOWFLOATINGMAP ((WM_APP) + 3)		// WPARAM: 1 = show, 0 = hide
 
 

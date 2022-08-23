@@ -57,6 +57,7 @@ protected:
 	bool probabilitychanged;
 	BYTE mousedown;
 	int kab;
+	CSize m_minmapsize = { 16,16 };
 
 	CPoint misccoords[5];
 

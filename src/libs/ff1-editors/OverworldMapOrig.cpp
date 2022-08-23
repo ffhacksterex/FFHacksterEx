@@ -318,8 +318,9 @@ BOOL COverworldMapOrig::OnInitDialog()
 		minimap.ShowWindow(0);
 		minimap.Map = DecompressedMap[0];
 		minimap.palette = palette[0];
-		minimap.rcNew.SetRect(0, 0, 16, 16);
-		minimap.rcOld.SetRect(0, 0, 16, 16);
+		minimap.SetFocusRect(0, 0, 16, 16);
+		//minimap.rcNew.SetRect(0, 0, 16, 16);
+		//minimap.rcOld.SetRect(0, 0, 16, 16);
 
 		for (co = 0; co < 128; co++)
 			minimap.PalAssign[co] = cart->ROM[OVERWORLDPALETTE_ASSIGNMENT + co] & 3;
@@ -806,7 +807,8 @@ void COverworldMapOrig::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBa
 	if(ScrollOffset.x > 240) ScrollOffset.x = 240;
 
 	m_hscroll.SetScrollPos(ScrollOffset.x);
-	if(m_minimap.GetCheck()) minimap.FixRects(ScrollOffset);
+	//if(m_minimap.GetCheck()) minimap.FixRects(ScrollOffset);
+	if (m_minimap.GetCheck()) minimap.UpdateFocusRect(ScrollOffset, m_minmapsize);
 	InvalidateRect(rcMap,FALSE);
 }
 
@@ -825,7 +827,8 @@ void COverworldMapOrig::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBa
 	if(ScrollOffset.y > 240) ScrollOffset.y = 240;
 
 	m_vscroll.SetScrollPos(ScrollOffset.y);
-	if(m_minimap.GetCheck()) minimap.FixRects(ScrollOffset); 
+	//if(m_minimap.GetCheck()) minimap.FixRects(ScrollOffset);
+	if (m_minimap.GetCheck()) minimap.UpdateFocusRect(ScrollOffset, m_minmapsize);
 	InvalidateRect(rcMap,FALSE);
 }
 
@@ -1532,9 +1535,11 @@ void COverworldMapOrig::OnMapImport()
 
 void COverworldMapOrig::OnMinimap()
 {
-	if(m_minimap.GetCheck()){
-		minimap.rcNew.SetRect(ScrollOffset.x,ScrollOffset.y,ScrollOffset.x + 16,ScrollOffset.y + 16);
-		minimap.rcOld = minimap.rcNew;}
+	if (m_minimap.GetCheck()) {
+		minimap.SetFocusRect(ScrollOffset.x, ScrollOffset.y, ScrollOffset.x + 16, ScrollOffset.y + 16);
+		//minimap.rcNew.SetRect(ScrollOffset.x, ScrollOffset.y, ScrollOffset.x + 16, ScrollOffset.y + 16);
+		//minimap.rcOld = minimap.rcNew;
+	}
 	minimap.ShowWindow(m_minimap.GetCheck());
 }
 

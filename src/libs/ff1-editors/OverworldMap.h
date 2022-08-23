@@ -8,7 +8,7 @@
 #include "afxwin.h"
 #include <DrawingToolButton.h>
 #include <DrawingToolButton.h>
-#include <FloatingMapDlg.h>
+#include <DlgPopoutMap.h>
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -48,10 +48,14 @@ public:
 	virtual void HandleRButtonUp(UINT nFlags, CPoint pt);
 	virtual void HandleRButtonDblClk(UINT nFlags, CPoint point);
 	virtual void HandleMouseMove(UINT nFlags, CPoint newhover);
+	virtual void HandleAfterScroll(CPoint scrolloffset, CRect displayarea);
 	virtual void HandleMapImport();
 	virtual void HandleMapExport();
 	virtual bool HandleCustomizeTool();
-	virtual void RenderMap(CDC& dc, CRect screen, const sRenderMapState& state);
+	virtual void RenderMapEx(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims);
+	virtual int GetCurrentToolIndex() const;
+	virtual void SetMouseDown(int imousedown);
+	virtual int GetMouseDown() const;
 
 protected:
 	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
@@ -59,6 +63,7 @@ protected:
 	CImageList m_backdrop;
 	CPen redpen;
 	CPen bluepen;
+	CBrush toolBrush;
 	CRect rcTiles;
 	CRect rcMap;
 	CRect rcBackdrop;
@@ -66,7 +71,7 @@ protected:
 	CRect rcPalette;
 
 	CSubBanner m_banner;
-	CFloatingMapDlg m_mapdlg;
+	CDlgPopoutMap m_popoutmap;
 	CPoint ptHover;
 	CPoint ptLastClick;
 	CPoint ptDomain;
@@ -79,6 +84,8 @@ protected:
 	bool probabilitychanged;
 	BYTE mousedown;
 	int kab;
+	CSize m_tiledims = { 16,16 };
+	CSize m_minmapsize = { 16,16 };
 	bool m_firstpopoutdone = false;
 	bool m_popoutcreated = false;
 	std::vector<CDrawingToolButton*> m_toolbuttons;
@@ -110,7 +117,13 @@ protected:
 	void PopMapDialog(bool in);
 
 	CPoint fix_map_point(CPoint point);
+	CRect make_minimap_rect(CPoint point);
+	CSize calc_scroll_maximums();
 	void apply_tile_tint(int ref);
+	void handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	void handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	void handle_paint(CDC& dc);
+	void paint_map_elements(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims);
 
 	// Dialog Data
 	enum { IDD = IDD_OVERWORLDMAP_NEW };

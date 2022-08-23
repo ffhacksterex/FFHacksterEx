@@ -542,6 +542,77 @@ namespace Ui
 		return curpos;
 	}
 
+	bool SetContainedScroll(CScrollBar* bar, int nBar, const CRect& rcarea, int clientextent, int tilespan)
+	{
+		// Does the control's extent exceeds the host client area's extent?
+		int ctlw = nBar == SB_HORZ ? rcarea.Width() : rcarea.Height();
+		if (ctlw > clientextent) {
+			// Yes, so show the bar and set it's range
+			//int bump = nBar == SB_HORZ ? GetSystemMetrics(SM_CXVSCROLL) : GetSystemMetrics(SM_CYHSCROLL);
+			int bump = 0;
+			auto scmax = (ctlw - clientextent) + bump + tilespan;
+			bar->ShowWindow(SW_SHOW);
+			SCROLLINFO si = { 0 };
+			bar->GetScrollInfo(&si, SIF_ALL);
+			si.nPage = 16;
+			si.nMin = 0;
+			si.nMax = scmax;
+			si.nPos = (si.nPos > scmax) ? scmax : si.nPos;
+			bar->SetScrollInfo(&si, SIF_ALL);
+			return true;
+		}
+		else {
+			bar->ShowWindow(SW_HIDE);
+			return false;
+		}
+	}
+
+	int HandleContainedScroll(CScrollBar* bar, UINT nBar, UINT nSBCode, UINT nPos)
+	{
+		int curpos = bar->GetScrollPos();
+		int limit = bar->GetScrollLimit();
+		switch (nSBCode)
+		{
+		case SB_LEFT: // == SB_TOP
+			curpos = 0;
+			break;
+		case SB_RIGHT: // == SB_BOTTOM
+			curpos = limit;
+			break;
+		case SB_ENDSCROLL:
+			break;
+		case SB_LINELEFT: // == SB_LINEUP
+			if (curpos > 0) --curpos;
+			break;
+		case SB_LINERIGHT: // == SB_LINEDOWN
+			if (curpos < limit) ++curpos;
+			break;
+		case SB_PAGELEFT: // == SB_PAGEUP
+		{
+			SCROLLINFO info;
+			bar->GetScrollInfo(&info, SIF_ALL);
+			if (curpos > 0) curpos = max(0, curpos - (int)info.nPage);
+		}
+		break;
+		case SB_PAGERIGHT: // == SB_PAGEDOWN
+		{
+			SCROLLINFO info;
+			bar->GetScrollInfo(&info, SIF_ALL);
+			if (curpos < limit) curpos = min(limit, curpos + (int)info.nPage);
+		}
+		break;
+		case SB_THUMBPOSITION:
+			curpos = nPos;	// nPos is the absolute position at the end of the drag.
+			break;
+		case SB_THUMBTRACK:
+			curpos = nPos;  // nPos is the specified position where the scroll box is currently.
+			break;          // This occurs when dragging the scroll box with the mouse.
+		}
+
+		bar->SetScrollPos(curpos);
+		return curpos;
+	}
+
 	CRect GetSubitemRect(CListCtrl & list, int item, int subitem)
 	{
 		CRect rcitem(0, 0, 0, 0);
