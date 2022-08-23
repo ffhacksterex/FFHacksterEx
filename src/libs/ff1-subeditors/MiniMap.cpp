@@ -127,8 +127,18 @@ void CMiniMap::OnLButtonUp(UINT nFlags, CPoint point)
 BOOL CMiniMap::OnInitDialog() 
 {
 	CFFBaseDlg::OnInitDialog();
-	
-	mousedown = 0;
-	
+	mousedown = 0;	
 	return 1;
+}
+
+BOOL CMiniMap::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN) {
+		switch (pMsg->wParam) {
+		case VK_F7:
+			OVmap->SendKeydown(pMsg->wParam, pMsg->lParam);
+			return TRUE;
+		}
+	}
+	return CFFBaseDlg::PreTranslateMessage(pMsg);
 }

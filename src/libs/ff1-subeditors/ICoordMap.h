@@ -2,7 +2,7 @@
 
 #include <afx.h>
 
-// Interface to abstact access to the overworld and standard maps.
+// Interface to abstract access to the overworld and standard maps.
 class ICoordMap
 {
 public:
@@ -17,4 +17,5 @@ public:
 
 	virtual void DoHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) = 0;
 	virtual void DoVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) = 0;
+	virtual void SendKeydown(WPARAM wparam, LPARAM lparam) {}
 };

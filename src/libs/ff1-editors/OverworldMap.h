@@ -39,6 +39,7 @@ public:
 	virtual void TeleportHere(int mapindex, int x, int y) override;
 	virtual void DoHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	virtual void DoVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	virtual void SendKeydown(WPARAM wparam, LPARAM lparam);
 
 	// Inherited from IMapEditor
 	virtual void HandleLButtonDown(UINT nFlags, CPoint point);
@@ -121,7 +122,6 @@ protected:
 	CRect make_minimap_rect(CPoint point);
 	CSize calc_scroll_maximums();
 	void apply_tile_tint(int ref);
-	//CPoint get_scroll_percentages(); //REMOVE?
 	CRect get_display_area();
 	void handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	void handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);

@@ -358,6 +358,7 @@ BOOL CDlgPopoutMap::PreTranslateMessage(MSG* pMsg)
 	if (pMsg->message == WM_KEYDOWN) {
 		switch (pMsg->wParam) {
 		case VK_ESCAPE:
+		case VK_F7:
 			handle_close();
 			return TRUE;
 		case VK_F6:

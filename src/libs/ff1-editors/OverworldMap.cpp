@@ -199,7 +199,6 @@ void COverworldMap::DoHScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 		int newval = (iPos + 8) * 100 / 255; // convert to percentage
 		m_popoutmap.ScrollByPercentage(SB_HORZ, newval);
 	}
-	//OnHScroll(nSBCode, nPos * m_tiledims.cx, pScrollBar);
 	handle_hscroll(nSBCode, nPos * m_tiledims.cx, pScrollBar);
 }
 
@@ -211,8 +210,12 @@ void COverworldMap::DoVScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 		int newval = (iPos + 8) * 100 / 255;
 		m_popoutmap.ScrollByPercentage(SB_VERT, newval);
 	}
-	//OnVScroll(nSBCode, nPos * m_tiledims.cy, pScrollBar);
 	handle_vscroll(nSBCode, nPos * m_tiledims.cy, pScrollBar);
+}
+
+void COverworldMap::SendKeydown(WPARAM wparam, LPARAM lparam)
+{
+	this->PostMessage(WM_KEYDOWN, wparam, lparam);
 }
 
 void COverworldMap::HandleLButtonDown(UINT nFlags, CPoint point)
@@ -510,11 +513,6 @@ bool COverworldMap::HandleCustomizeTool()
 	auto result = dlg.DoModal();
 	return result == IDOK;
 }
-
-//REMOVE
-//void COverworldMap::RenderMap(CDC& dc, CRect screen, const sRenderMapState& state)
-//{
-//}
 
 void COverworldMap::RenderMapEx(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims)
 {
@@ -1050,40 +1048,7 @@ void COverworldMap::OnPaint()
 
 void COverworldMap::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
-	//UNREFERENCED_PARAMETER(pScrollBar);
-
-	//switch(nSBCode){
-	//case 0: ScrollOffset.x -= 1; break;
-	//case 1: ScrollOffset.x += 1; break;
-	//case 2: ScrollOffset.x -= 16; break;
-	//case 3: ScrollOffset.x += 16; break;
-	//case 5: ScrollOffset.x = nPos; break;
-	//}
-	//auto maxes = calc_scroll_maximums();
-	//if(ScrollOffset.x < 0) ScrollOffset.x = 0;
-	//if(ScrollOffset.x > maxes.cy) ScrollOffset.x = maxes.cy;
-
-	//m_hscroll.SetScrollPos(ScrollOffset.x);
-
-	//if (m_minimap.GetCheck()) {
-	//	if (!m_popoutmap.IsWindowVisible()) {
-	//		// No adjustment needed, popout and embedded maps are never shown at the same time
-	//		minimap.UpdateFocusRect(make_minimap_rect(ScrollOffset));
-	//	}
-	//}
-	//InvalidateRect(rcMap,FALSE);
-
 	handle_hscroll(nSBCode, nPos, pScrollBar);
-
-	//if (m_popoutcreated)
-	//{
-	//	//int iPos = ((INT)nPos);
-	//	int iPos = m_hscroll.GetScrollPos();
-	//	int limit = m_hscroll.GetScrollLimit();
-	//	ASSERT(limit > 0);
-	//	int newval = iPos * 100 / limit; // convert to percentage
-	//	m_popoutmap.ScrollByPercentage(SB_HORZ, newval);
-	//}
 }
 
 void COverworldMap::handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -1091,11 +1056,11 @@ void COverworldMap::handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 	UNREFERENCED_PARAMETER(pScrollBar);
 
 	switch (nSBCode) {
-	case 0: ScrollOffset.x -= 1; break;
-	case 1: ScrollOffset.x += 1; break;
-	case 2: ScrollOffset.x -= 16; break;
-	case 3: ScrollOffset.x += 16; break;
-	case 5: ScrollOffset.x = nPos; break;
+	case SB_LINELEFT: ScrollOffset.x -= 1; break;
+	case SB_LINERIGHT: ScrollOffset.x += 1; break;
+	case SB_PAGELEFT: ScrollOffset.x -= 16; break;
+	case SB_PAGERIGHT: ScrollOffset.x += 16; break;
+	case SB_THUMBTRACK: ScrollOffset.x = nPos; break;
 	}
 	auto maxes = calc_scroll_maximums();
 	if (ScrollOffset.x < 0) ScrollOffset.x = 0;
@@ -1114,39 +1079,7 @@ void COverworldMap::handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 
 void COverworldMap::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
-	//UNREFERENCED_PARAMETER(pScrollBar);
-
-	//switch(nSBCode){
-	//case 0: ScrollOffset.y -= 1; break;
-	//case 1: ScrollOffset.y += 1; break;
-	//case 2: ScrollOffset.y -= 16; break;
-	//case 3: ScrollOffset.y += 16; break;
-	//case 5: ScrollOffset.y = nPos; break;
-	//}
-	//auto maxes = calc_scroll_maximums();
-	//if(ScrollOffset.y < 0) ScrollOffset.y = 0;
-	//if(ScrollOffset.y > maxes.cy) ScrollOffset.y = maxes.cy;
-
-	//m_vscroll.SetScrollPos(ScrollOffset.y);
-
-	//if (m_minimap.GetCheck()) {
-	//	if (!m_popoutmap.IsWindowVisible()) {
-	//		// No adjustment needed, popout and embedded maps are never shown at the same time
-	//		minimap.UpdateFocusRect(make_minimap_rect(ScrollOffset));
-	//	}
-	//}
-	//InvalidateRect(rcMap,FALSE);
-
 	handle_vscroll(nSBCode, nPos, pScrollBar);
-
-	//if (m_popoutcreated) {
-	//	//int iPos = ((INT)nPos);
-	//	int iPos = m_vscroll.GetScrollPos();
-	//	int limit = m_vscroll.GetScrollLimit();
-	//	ASSERT(limit > 0);
-	//	int newval = iPos * 100 / limit;
-	//	m_popoutmap.ScrollByPercentage(SB_VERT, newval);
-	//}
 }
 
 void COverworldMap::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -1154,11 +1087,11 @@ void COverworldMap::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 	UNREFERENCED_PARAMETER(pScrollBar);
 
 	switch (nSBCode) {
-	case 0: ScrollOffset.y -= 1; break;
-	case 1: ScrollOffset.y += 1; break;
-	case 2: ScrollOffset.y -= 16; break;
-	case 3: ScrollOffset.y += 16; break;
-	case 5: ScrollOffset.y = nPos; break; //TODO - SB_THUMBTRACK
+	case SB_LINEUP: ScrollOffset.y -= 1; break;
+	case SB_LINEDOWN: ScrollOffset.y += 1; break;
+	case SB_PAGEUP: ScrollOffset.y -= 16; break;
+	case SB_PAGEDOWN: ScrollOffset.y += 16; break;
+	case SB_THUMBTRACK: ScrollOffset.y = nPos; break;
 	}
 	auto maxes = calc_scroll_maximums();
 	if (ScrollOffset.y < 0) ScrollOffset.y = 0;
@@ -1673,6 +1606,7 @@ CRect COverworldMap::make_minimap_rect(CPoint point)
 
 CSize COverworldMap::calc_scroll_maximums()
 {
+	//TODO - hardcoded for now, change to a calculation...
 	return { 240 * m_tiledims.cx, 240 * m_tiledims.cy };
 }
 
@@ -1695,17 +1629,6 @@ void COverworldMap::apply_tile_tint(int ref)
 		InvalidateRect(rcMap, 0);
 	}
 }
-
-//CPoint COverworldMap::get_scroll_percentages()
-//{
-//	CSize extent = { m_hscroll.GetScrollLimit(), m_vscroll.GetScrollLimit() };
-//	CPoint pos = { m_hscroll.GetScrollPos(), m_vscroll.GetScrollPos() };
-//	CSize pct{
-//		pos.x * 100 / extent.cx,
-//		pos.y * 100 / extent.cy
-//	};
-//	return pct;
-//}
 
 CRect COverworldMap::get_display_area()
 {
@@ -1867,27 +1790,6 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scroll
 
 void COverworldMap::sync_map_positions(bool popin)
 {
-	//if (popin) {
-	//	ASSERT(!m_popoutmap.IsWindowVisible());
-	//	// Get popout percentages, set the embedded map scroll pos
-	//	auto oldoff = ScrollOffset;
-	//	auto scrpct = m_popoutmap.GetScrollPercentages();
-	//	CPoint limits = { m_hscroll.GetScrollLimit(), m_vscroll.GetScrollLimit() };
-	//	CPoint newoff = { scrpct.x * limits.x / 100, scrpct.y * limits.y / 100 };
-	//	//DoHScroll(SB_THUMBTRACK, newoff.x, nullptr);
-	//	//DoVScroll(SB_THUMBTRACK, newoff.y, nullptr);
-	//	handle_hscroll(SB_THUMBTRACK, newoff.x, nullptr);
-	//	handle_vscroll(SB_THUMBTRACK, newoff.y, nullptr);
-	//}
-	//else {
-	//	ASSERT(m_popoutmap.IsWindowVisible());
-	//	// Get embedded percentages, set the popout map scroll pos
-	//	auto oldoff = m_popoutmap.GetScrollOffset();
-	//	auto scrpct = get_scroll_percentages();
-	//	m_popoutmap.ScrollByPercentage(SB_HORZ, scrpct.x);
-	//	m_popoutmap.ScrollByPercentage(SB_VERT, scrpct.y);
-	//}
-
 	if (popin) {
 		ASSERT(!m_popoutmap.IsWindowVisible());
 		// Get popout percentages, set the embedded map scroll pos
