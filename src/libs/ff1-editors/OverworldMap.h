@@ -84,6 +84,7 @@ protected:
 	bool probabilitychanged;
 	BYTE mousedown;
 	int kab;
+	CSize m_mapsize = { 256, 256 };
 	CSize m_tiledims = { 16,16 };
 	CSize m_minmapsize = { 16,16 };
 	bool m_firstpopoutdone = false;
@@ -120,10 +121,13 @@ protected:
 	CRect make_minimap_rect(CPoint point);
 	CSize calc_scroll_maximums();
 	void apply_tile_tint(int ref);
+	//CPoint get_scroll_percentages(); //REMOVE?
+	CRect get_display_area();
 	void handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	void handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	void handle_paint(CDC& dc);
 	void paint_map_elements(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims);
+	void sync_map_positions(bool popin);
 
 	// Dialog Data
 	enum { IDD = IDD_OVERWORLDMAP_NEW };

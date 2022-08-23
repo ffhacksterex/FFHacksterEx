@@ -21,10 +21,13 @@ public:
 	bool SetButtons(const std::vector<sMapDlgButton>& buttons);
 	void UpdateControls();
 	void ScrollByPercentage(int nBar, int percent);
+	void ScrollToPos(int nBar, int mappos);
 
 	CPoint GetScrollOffset() const;
 	CSize GetTileDims() const;
 	CSize GetMiniMapDims() const;
+	//CPoint GetScrollPercentages() const; //REMOVE?
+	CRect GetDisplayArea() const;
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -54,8 +57,8 @@ protected:
 	CStatic m_displaystatic;
 	CStatic m_buttonanchor;
 	CButton m_customizebutton;
-	CScrollBar m_hscroll;
-	CScrollBar m_vscroll;
+	mutable CScrollBar m_hscroll;
+	mutable CScrollBar m_vscroll;
 
 	// Overrides and handlers
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

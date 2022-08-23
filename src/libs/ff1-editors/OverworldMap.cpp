@@ -1158,7 +1158,7 @@ void COverworldMap::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 	case 1: ScrollOffset.y += 1; break;
 	case 2: ScrollOffset.y -= 16; break;
 	case 3: ScrollOffset.y += 16; break;
-	case 5: ScrollOffset.y = nPos; break;
+	case 5: ScrollOffset.y = nPos; break; //TODO - SB_THUMBTRACK
 	}
 	auto maxes = calc_scroll_maximums();
 	if (ScrollOffset.y < 0) ScrollOffset.y = 0;
@@ -1626,6 +1626,7 @@ void COverworldMap::PopMapDialog(bool in)
 	m_popoutmap.ShowWindow(in ? SW_HIDE : SW_SHOW);
 	m_popoutbutton.EnableWindow(in ? 1 : 0);
 
+	sync_map_positions(in);
 	if (in) {
 		m_popoutbutton.SetFocus();
 	}
@@ -1693,6 +1694,22 @@ void COverworldMap::apply_tile_tint(int ref)
 		InvalidateRect(rcTiles, 0);
 		InvalidateRect(rcMap, 0);
 	}
+}
+
+//CPoint COverworldMap::get_scroll_percentages()
+//{
+//	CSize extent = { m_hscroll.GetScrollLimit(), m_vscroll.GetScrollLimit() };
+//	CPoint pos = { m_hscroll.GetScrollPos(), m_vscroll.GetScrollPos() };
+//	CSize pct{
+//		pos.x * 100 / extent.cx,
+//		pos.y * 100 / extent.cy
+//	};
+//	return pct;
+//}
+
+CRect COverworldMap::get_display_area()
+{
+	return rcMap;
 }
 
 void COverworldMap::handle_paint(CDC& dc)
@@ -1789,16 +1806,13 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scroll
 			}
 		}break;
 		default: {
-			//CBrush br; br.CreateSolidBrush(RGB(128, 64, 255));
-			auto& br = toolBrush;
-
 			// rcTemp is in map coords, translate to pixels
+			auto& br = toolBrush;
 			rcTemp.left = ((rcTemp.left - gridanchor.x) * tiledims.cx) + displayarea.left;
 			rcTemp.right = ((rcTemp.right - gridanchor.x) * tiledims.cx) + displayarea.left;
 			rcTemp.top = ((rcTemp.top - gridanchor.y) * tiledims.cy) + displayarea.top;
 			rcTemp.bottom = ((rcTemp.bottom - gridanchor.y) * tiledims.cy) + displayarea.top;
 			dc.FillRect(rcTemp, &br);
-			//br.DeleteObject();
 		}break;
 		}
 	}
@@ -1848,6 +1862,51 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scroll
 		pt.x = (pt.x * tiledims.cx) + displayarea.left;
 		pt.y = (pt.y * tiledims.cy) + displayarea.top;
 		m_sprites.Draw(&dc, coX, pt, ILD_TRANSPARENT);
+	}
+}
+
+void COverworldMap::sync_map_positions(bool popin)
+{
+	//if (popin) {
+	//	ASSERT(!m_popoutmap.IsWindowVisible());
+	//	// Get popout percentages, set the embedded map scroll pos
+	//	auto oldoff = ScrollOffset;
+	//	auto scrpct = m_popoutmap.GetScrollPercentages();
+	//	CPoint limits = { m_hscroll.GetScrollLimit(), m_vscroll.GetScrollLimit() };
+	//	CPoint newoff = { scrpct.x * limits.x / 100, scrpct.y * limits.y / 100 };
+	//	//DoHScroll(SB_THUMBTRACK, newoff.x, nullptr);
+	//	//DoVScroll(SB_THUMBTRACK, newoff.y, nullptr);
+	//	handle_hscroll(SB_THUMBTRACK, newoff.x, nullptr);
+	//	handle_vscroll(SB_THUMBTRACK, newoff.y, nullptr);
+	//}
+	//else {
+	//	ASSERT(m_popoutmap.IsWindowVisible());
+	//	// Get embedded percentages, set the popout map scroll pos
+	//	auto oldoff = m_popoutmap.GetScrollOffset();
+	//	auto scrpct = get_scroll_percentages();
+	//	m_popoutmap.ScrollByPercentage(SB_HORZ, scrpct.x);
+	//	m_popoutmap.ScrollByPercentage(SB_VERT, scrpct.y);
+	//}
+
+	if (popin) {
+		ASSERT(!m_popoutmap.IsWindowVisible());
+		// Get popout percentages, set the embedded map scroll pos
+		auto rcsrc = m_popoutmap.GetDisplayArea();
+		auto srcpos = m_popoutmap.GetScrollOffset();
+		CPoint newoff = {
+			srcpos.x + (rcsrc.Width() / 2),
+			srcpos.y + (rcsrc.Height() / 2)
+		};
+		handle_hscroll(SB_THUMBTRACK, newoff.x, nullptr);
+		handle_vscroll(SB_THUMBTRACK, newoff.y, nullptr);
+	}
+	else {
+		ASSERT(m_popoutmap.IsWindowVisible());
+		// Get embedded percentages, set the popout map scroll pos
+		auto rcsrc = get_display_area();
+		auto srcpos = ScrollOffset;
+		m_popoutmap.ScrollToPos(SB_HORZ, srcpos.x);
+		m_popoutmap.ScrollToPos(SB_VERT, srcpos.y);
 	}
 }
 

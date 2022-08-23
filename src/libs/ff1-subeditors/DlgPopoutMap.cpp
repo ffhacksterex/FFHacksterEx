@@ -136,6 +136,47 @@ void CDlgPopoutMap::ScrollByPercentage(int nBar, int percent)
 	}
 }
 
+void CDlgPopoutMap::ScrollToPos(int nBar, int mappos)
+{
+	ASSERT(is_valid());
+	if (!is_valid()) return;
+
+	// This is a percentage of the map size, NOT the scroll offset.
+	CScrollBar* bar = nullptr;
+	auto rcdisp = get_display_area();
+	int halfdisp = 0;
+	int mapextent = 0;
+	if (nBar == SB_HORZ) {
+		bar = &m_hscroll;
+		halfdisp = (rcdisp.Width() / 2);
+		mapextent = Mapsize.cx * Tilesize.cx;
+	}
+	else {
+		ASSERT(nBar == SB_VERT);
+		bar = &m_vscroll;
+		halfdisp = (rcdisp.Height() / 2);
+		mapextent = Mapsize.cy * Tilesize.cy;
+	}
+
+	if (bar != nullptr) {
+		SCROLLINFO info;
+		bar->GetScrollInfo(&info, SIF_ALL);
+		int limit = info.nMax;
+		int diff = mapextent - limit;
+		int newpos = mappos - diff;
+
+		newpos += halfdisp; // center on the clicked point if possible
+		if (newpos < 0)
+			newpos = 0;
+		if (newpos > limit)
+			newpos = limit;
+
+		bar->SetScrollPos(newpos);
+		invalidate_display_area();
+		Editor->HandleAfterScroll(get_scroll_pos(), rcdisp);
+	}
+}
+
 CPoint CDlgPopoutMap::GetScrollOffset() const
 {
 	return get_scroll_pos();
@@ -156,6 +197,18 @@ CSize CDlgPopoutMap::GetMiniMapDims() const
 	};
 	return sz;
 }
+
+//CPoint CDlgPopoutMap::GetScrollPercentages() const
+//{
+//	//CSize extent = { Mapsize.cx * Tilesize.cx, Mapsize.cy * Tilesize.cy };
+//	CSize extent = { m_hscroll.GetScrollLimit(), m_vscroll.GetScrollLimit() };
+//	CPoint pos = get_scroll_pos();
+//	CSize pct{
+//		pos.x * 100 / extent.cx,
+//		pos.y * 100 / extent.cy
+//	};
+//	return pct;
+//}
 
 bool CDlgPopoutMap::SetButtons(const std::vector<sMapDlgButton>& buttons)
 {
@@ -232,6 +285,11 @@ CRect CDlgPopoutMap::get_sizer_rect(bool client)
 	return rc;
 }
 
+CRect CDlgPopoutMap::GetDisplayArea() const
+{
+	return get_display_area();
+}
+
 CPoint CDlgPopoutMap::get_scroll_pos() const
 {
 	CPoint pt{ m_hscroll.GetScrollPos(), m_vscroll.GetScrollPos() };
@@ -277,10 +335,9 @@ void CDlgPopoutMap::handle_sizing(int clientx, int clienty)
 	InvalidateRect(nullptr);
 
 	CRect maparea{ 0, 0, Mapsize.cx * Tilesize.cx, Mapsize.cy * Tilesize.cy };
-	//CRect maparea{ 0, 0, (Mapsize.cx - 1) * Tilesize.cx, (Mapsize.cy - 1) * Tilesize.cy };
 	auto client = Ui::GetControlRect(&m_displaystatic);
-	Ui::SetContainedScroll(&m_hscroll, SB_HORZ, maparea, client.Width(), Tilesize.cx);
-	Ui::SetContainedScroll(&m_vscroll, SB_VERT, maparea, client.Height(), Tilesize.cy);
+	Ui::SetContainedScroll(&m_hscroll, SB_HORZ, maparea, client.Width(), 0);
+	Ui::SetContainedScroll(&m_vscroll, SB_VERT, maparea, client.Height(), 0);
 }
 
 
@@ -355,11 +412,10 @@ void CDlgPopoutMap::OnPaint()
 	auto client = Ui::GetClientRect(this);
 	auto displayarea = Ui::GetControlRect(&m_displaystatic);
 
-	//--new
 	// SIGH.... to reduce flicker, use offscreen drawing.
 	// Create a compatible bitmap, select it into a compatible DC.
 	// "Compatible" here means compatible with the color format of the paint DC.
-	// This is an awful lot of bolierplate for a relatively simple operation.
+	// This is an awful lot of boilerplate for a relatively simple operation.
 	CDC compat;
 	compat.CreateCompatibleDC(&dc);
 	CBitmap bmp;
@@ -385,28 +441,6 @@ void CDlgPopoutMap::OnPaint()
 		SRCCOPY);
 	dc.RestoreDC(save);
 	compat.SelectObject(oldbmp);
-	//--endnew
-	
-	//dc.FillSolidRect(client, RGB(255, 255, 255));
-
-	////--
-	//auto save = dc.SaveDC();
-	//CRgn rgn;
-	//rgn.CreateRectRgn(displayarea.left, displayarea.top, displayarea.right, displayarea.bottom);
-	//dc.SelectClipRgn(&rgn);
-	////--
-
-	//auto scrolloff = get_scroll_pos();
-	//Editor->RenderMapEx(dc, displayarea, scrolloff, Tilesize);
-	////{
-	////	CMemDC memdc(dc, displayarea);
-	////	auto& drawdc = memdc.GetDC();
-	////	Editor->RenderMapEx(drawdc, displayarea, scrolloff, Tilesize);
-	////}
-
-	////--
-	//dc.RestoreDC(save);
-	////--
 
 	//TODO - might remove this frame border
 	displayarea.InflateRect(1, 1);
@@ -547,7 +581,6 @@ LRESULT CDlgPopoutMap::OnDrawToolBnClick(WPARAM wparam, LPARAM lparam)
 
 BOOL CDlgPopoutMap::OnEraseBkgnd(CDC* pDC)
 {
-	//return CDialogEx::OnEraseBkgnd(pDC);
 	auto client = Ui::GetClientRect(this);
 	auto rcdisp = get_display_area();
 
