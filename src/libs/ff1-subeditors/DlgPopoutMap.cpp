@@ -466,7 +466,7 @@ void CDlgPopoutMap::OnPaint()
 
 void CDlgPopoutMap::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	Ui::HandleContainedScroll(&m_hscroll, SB_HORZ, nSBCode, nPos);
+	Ui::HandleContainedScroll(&m_hscroll, SB_HORZ, nSBCode, nPos, 8, 2);
 	invalidate_display_area();
 	CDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
 	Editor->HandleAfterScroll(get_scroll_pos(), get_display_area());
@@ -474,7 +474,7 @@ void CDlgPopoutMap::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
 void CDlgPopoutMap::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	Ui::HandleContainedScroll(&m_vscroll, SB_VERT, nSBCode, nPos);
+	Ui::HandleContainedScroll(&m_vscroll, SB_VERT, nSBCode, nPos, 8, 2);
 	invalidate_display_area();
 	CDialogEx::OnVScroll(nSBCode, nPos, pScrollBar);
 	Editor->HandleAfterScroll(get_scroll_pos(), get_display_area());

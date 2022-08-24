@@ -80,7 +80,7 @@ BOOL CSubDlgRenderMap::init()
 
 int CSubDlgRenderMap::handle_scroll(UINT nBar, UINT nSBCode, UINT nPos)
 {
-	return Ui::HandleClientScroll(this, nBar, nSBCode, nPos);
+	return Ui::HandleClientScroll(this, nBar, nSBCode, nPos, 8, 2);
 }
 
 void CSubDlgRenderMap::handle_sizing()
