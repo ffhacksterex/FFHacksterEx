@@ -403,6 +403,7 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 		}break;
 		}
 		if (m_minimap.GetCheck()) minimap.UpdateCur();
+		OnFindKAB();
 	}
 }
 
@@ -416,6 +417,7 @@ void COverworldMap::HandleLButtonDblClk(UINT nFlags, CPoint point)
 void COverworldMap::HandleRButtonDown(UINT nFlags, CPoint pt)
 {
 	StoreTileData();
+	OnFindKAB();
 	cur_tile = DecompressedMap[pt.y][pt.x];
 	UpdateClick(pt);
 	InvalidateRect(rcTiles, 0);
@@ -477,9 +479,11 @@ void COverworldMap::HandleMouseMove(UINT nFlags, CPoint newhover)
 			}break;
 			}
 			UpdateClick(ptHover);
+			OnFindKAB();
 		}
 		else if (mousedown) {
 			UpdateClick(ptHover);
+			OnFindKAB();
 			misccoords[mousedown - 2] = ptHover;
 			text.Format("%X", ptHover.x); m_miscx.SetWindowText(text);
 			text.Format("%X", ptHover.y); m_miscy.SetWindowText(text);
