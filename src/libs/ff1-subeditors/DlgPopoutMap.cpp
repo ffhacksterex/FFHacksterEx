@@ -141,31 +141,25 @@ void CDlgPopoutMap::ScrollToPos(int nBar, int mappos)
 	ASSERT(is_valid());
 	if (!is_valid()) return;
 
-	// This is a percentage of the map size, NOT the scroll offset.
 	CScrollBar* bar = nullptr;
 	auto rcdisp = get_display_area();
 	int halfdisp = 0;
-	int mapextent = 0;
 	if (nBar == SB_HORZ) {
 		bar = &m_hscroll;
 		halfdisp = (rcdisp.Width() / 2);
-		mapextent = Mapsize.cx * Tilesize.cx;
 	}
 	else {
 		ASSERT(nBar == SB_VERT);
 		bar = &m_vscroll;
 		halfdisp = (rcdisp.Height() / 2);
-		mapextent = Mapsize.cy * Tilesize.cy;
 	}
 
 	if (bar != nullptr) {
 		SCROLLINFO info;
 		bar->GetScrollInfo(&info, SIF_ALL);
 		int limit = info.nMax;
-		int diff = mapextent - limit;
-		int newpos = mappos - diff;
+		int newpos = mappos - halfdisp;
 
-		newpos += halfdisp; // center on the clicked point if possible
 		if (newpos < 0)
 			newpos = 0;
 		if (newpos > limit)
@@ -175,6 +169,17 @@ void CDlgPopoutMap::ScrollToPos(int nBar, int mappos)
 		invalidate_display_area();
 		Editor->HandleAfterScroll(get_scroll_pos(), rcdisp);
 	}
+}
+
+CPoint CDlgPopoutMap::GetMapPos() const
+{
+	auto rc = get_display_area();
+	auto scrpos = get_scroll_pos();
+	CPoint pos{
+		scrpos.x + (rc.Width()/2),
+		scrpos.y + (rc.Height()/2)
+	};
+	return pos;
 }
 
 CPoint CDlgPopoutMap::GetScrollOffset() const

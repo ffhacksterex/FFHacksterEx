@@ -23,6 +23,7 @@ public:
 	void ScrollByPercentage(int nBar, int percent);
 	void ScrollToPos(int nBar, int mappos);
 
+	CPoint GetMapPos() const;
 	CPoint GetScrollOffset() const;
 	CSize GetTileDims() const;
 	CSize GetMiniMapDims() const;

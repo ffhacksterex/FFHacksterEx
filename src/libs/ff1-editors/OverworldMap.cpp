@@ -1654,9 +1654,32 @@ void COverworldMap::handle_paint(CDC& dc)
 	dc.LineTo(pt); pt.y -= 15;
 	dc.LineTo(pt);
 
-	CSize tiledims = { 16,16 };
-	CPoint scrolloff = ScrollOffset;
-	paint_map_elements(dc, rcMap, scrolloff, tiledims);
+	{
+		CSize tiledims = { 16,16 };
+		CPoint scrolloff = ScrollOffset;
+		CDC compat;
+		compat.CreateCompatibleDC(&dc);
+		CBitmap bmp;
+		bmp.CreateCompatibleBitmap(&dc, rcMap.Width() + tiledims.cx, rcMap.Height());
+		auto oldbmp = compat.SelectObject(&bmp);
+		CRect client = { 0,0,rcMap.Width() + tiledims.cx, rcMap.Height() };
+		compat.FillSolidRect(client, RGB(255, 255, 255));
+		paint_map_elements(compat, client, scrolloff, tiledims);
+
+		// Draw the bitmap to the window's display area.
+		// To ensure we only draw to that area, set it as the clip region.
+		CRgn rgn;
+		rgn.CreateRectRgn(rcMap.left, rcMap.top, rcMap.right, rcMap.bottom);
+		compat.SelectClipRgn(&rgn);
+
+		auto save = dc.SaveDC();
+		dc.BitBlt(rcMap.left, rcMap.top, rcMap.Width(), rcMap.Height(),
+			&compat,
+			0, 0,
+			SRCCOPY);
+		dc.RestoreDC(save);
+		compat.SelectObject(oldbmp);
+	}
 
 	//Draw the backdrop
 	pt.x = rcBackdrop.left;
@@ -1790,25 +1813,29 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scroll
 
 void COverworldMap::sync_map_positions(bool popin)
 {
+	// Get the source scroll pos and add its half dims to it.
+	// That forms map pos, pass that to the other map.
 	if (popin) {
 		ASSERT(!m_popoutmap.IsWindowVisible());
-		// Get popout percentages, set the embedded map scroll pos
-		auto rcsrc = m_popoutmap.GetDisplayArea();
-		auto srcpos = m_popoutmap.GetScrollOffset();
+		auto mappos = m_popoutmap.GetMapPos();
+		auto rcdst = get_display_area();
 		CPoint newoff = {
-			srcpos.x + (rcsrc.Width() / 2),
-			srcpos.y + (rcsrc.Height() / 2)
+			mappos.x - (rcdst.Width() / 2),
+			mappos.y - (rcdst.Height() / 2)
 		};
 		handle_hscroll(SB_THUMBTRACK, newoff.x, nullptr);
 		handle_vscroll(SB_THUMBTRACK, newoff.y, nullptr);
 	}
 	else {
 		ASSERT(m_popoutmap.IsWindowVisible());
-		// Get embedded percentages, set the popout map scroll pos
 		auto rcsrc = get_display_area();
 		auto srcpos = ScrollOffset;
-		m_popoutmap.ScrollToPos(SB_HORZ, srcpos.x);
-		m_popoutmap.ScrollToPos(SB_VERT, srcpos.y);
+		CPoint mappos = {
+			srcpos.x + (rcsrc.Width() / 2),
+			srcpos.y + (rcsrc.Height() / 2)
+		};
+		m_popoutmap.ScrollToPos(SB_HORZ, mappos.x);
+		m_popoutmap.ScrollToPos(SB_VERT, mappos.y);
 	}
 }
 
