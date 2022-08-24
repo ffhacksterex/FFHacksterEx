@@ -109,9 +109,13 @@ namespace Ui
 	bool SetClientScroll(CWnd* wnd, int nBar, const CRect& rcarea,
 		int clientextent, int tilespan = 0);
 	int HandleClientScroll(CWnd* pwnd, UINT nBar, UINT nSBCode, UINT nPos);
+	int HandleClientScroll(CWnd* pwnd, UINT nBar, UINT nSBCode, UINT nPos,
+		int arrowmultiplier, int pagemultiplier = 1);
 	bool SetContainedScroll(CScrollBar* bar, int nBar, const CRect& rcarea,
 		int clientextent, int tilespan);
 	int HandleContainedScroll(CScrollBar* bar, UINT nBar, UINT nSBCode, UINT nPos);
+	int HandleContainedScroll(CScrollBar* bar, UINT nBar, UINT nSBCode, UINT nPos,
+		int arrowmultiplier, int pagemultiplier = 1);
 
 	CRect GetSubitemRect(CListCtrl & list, int item, int subitem);
 	void RenumberList(CListCtrl & list, int subitem, int base, int startat);
@@ -181,4 +185,6 @@ namespace Ui
 	LRESULT SendNotificationToParent(CWnd* wnd, UINT notifyid);
 	LRESULT SendBnClickedToParent(CWnd* wnd);
 	LRESULT SendLbnSelchangeToParent(CWnd* wnd);
+
+	int MultiplyIf(int multiplier);
 }

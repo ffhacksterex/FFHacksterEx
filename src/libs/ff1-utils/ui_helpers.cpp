@@ -499,36 +499,47 @@ namespace Ui
 
 	int HandleClientScroll(CWnd* pwnd, UINT nBar, UINT nSBCode, UINT nPos)
 	{
+		return HandleClientScroll(pwnd, nBar, nSBCode, nPos, 1, 1);
+	}
+
+	int HandleClientScroll(CWnd* pwnd, UINT nBar, UINT nSBCode, UINT nPos,
+		int arrowmultiplier, int pagemultiplier)
+	{
+		ASSERT(arrowmultiplier > 0);
+		ASSERT(pagemultiplier > 0);
+		if (arrowmultiplier < 1) arrowmultiplier = 1;
+		if (pagemultiplier < 1) pagemultiplier = 1;
+
 		int curpos = pwnd->GetScrollPos(nBar);
 		int limit = pwnd->GetScrollLimit(nBar);
 		switch (nSBCode)
 		{
-		case SB_LEFT: // == SB_TOP
+		case SB_LEFT:
 			curpos = 0;
 			break;
-		case SB_RIGHT: // == SB_BOTTOM
+		case SB_RIGHT:
 			curpos = limit;
 			break;
 		case SB_ENDSCROLL:
 			break;
-		case SB_LINELEFT: // == SB_LINEUP
-			if (curpos > 0) --curpos;
+		case SB_LINELEFT:
+			curpos -= 1 * Ui::MultiplyIf(arrowmultiplier);
 			break;
-		case SB_LINERIGHT: // == SB_LINEDOWN
-			if (curpos < limit) ++curpos;
+		case SB_LINERIGHT:
+			curpos += 1 * Ui::MultiplyIf(arrowmultiplier);
 			break;
-		case SB_PAGELEFT: // == SB_PAGEUP
+		case SB_PAGELEFT:
 		{
 			SCROLLINFO info;
 			pwnd->GetScrollInfo(nBar, &info, SIF_ALL);
-			if (curpos > 0) curpos = max(0, curpos - (int)info.nPage);
+			curpos -= (int)info.nPage * Ui::MultiplyIf(pagemultiplier);
 		}
 		break;
-		case SB_PAGERIGHT: // == SB_PAGEDOWN
+		case SB_PAGERIGHT:
 		{
 			SCROLLINFO info;
 			pwnd->GetScrollInfo(nBar, &info, SIF_ALL);
-			if (curpos < limit) curpos = min(limit, curpos + (int)info.nPage);
+			curpos += (int)info.nPage * Ui::MultiplyIf(pagemultiplier);
 		}
 		break;
 		case SB_THUMBPOSITION:
@@ -539,6 +550,8 @@ namespace Ui
 			break;          // This occurs when dragging the scroll box with the mouse.
 		}
 
+		if (curpos < 0) curpos = 0;
+		else if (curpos > limit) curpos = limit;
 		pwnd->SetScrollPos(nBar, curpos);
 		return curpos;
 	}
@@ -578,36 +591,47 @@ namespace Ui
 
 	int HandleContainedScroll(CScrollBar* bar, UINT nBar, UINT nSBCode, UINT nPos)
 	{
+		return HandleContainedScroll(bar, nBar, nSBCode, nPos, 1, 1);
+	}
+
+	int HandleContainedScroll(CScrollBar* bar, UINT nBar, UINT nSBCode, UINT nPos,
+		int arrowmultiplier, int pagemultiplier)
+	{
+		ASSERT(arrowmultiplier > 0);
+		ASSERT(pagemultiplier > 0);
+		if (arrowmultiplier < 1) arrowmultiplier = 1;
+		if (pagemultiplier < 1) pagemultiplier = 1;
+
 		int curpos = bar->GetScrollPos();
 		int limit = bar->GetScrollLimit();
 		switch (nSBCode)
 		{
-		case SB_LEFT: // == SB_TOP
+		case SB_LEFT:
 			curpos = 0;
 			break;
-		case SB_RIGHT: // == SB_BOTTOM
+		case SB_RIGHT:
 			curpos = limit;
 			break;
 		case SB_ENDSCROLL:
 			break;
-		case SB_LINELEFT: // == SB_LINEUP
-			if (curpos > 0) --curpos;
+		case SB_LINELEFT:
+			curpos -= 1 * Ui::MultiplyIf(arrowmultiplier);
 			break;
-		case SB_LINERIGHT: // == SB_LINEDOWN
-			if (curpos < limit) ++curpos;
+		case SB_LINERIGHT:
+			curpos += 1 * Ui::MultiplyIf(arrowmultiplier);
 			break;
-		case SB_PAGELEFT: // == SB_PAGEUP
+		case SB_PAGELEFT:
 		{
 			SCROLLINFO info;
 			bar->GetScrollInfo(&info, SIF_ALL);
-			if (curpos > 0) curpos = max(0, curpos - (int)info.nPage);
+			curpos -= (int)info.nPage * Ui::MultiplyIf(pagemultiplier);
 		}
 		break;
-		case SB_PAGERIGHT: // == SB_PAGEDOWN
+		case SB_PAGERIGHT:
 		{
 			SCROLLINFO info;
 			bar->GetScrollInfo(&info, SIF_ALL);
-			if (curpos < limit) curpos = min(limit, curpos + (int)info.nPage);
+			curpos += (int)info.nPage * Ui::MultiplyIf(pagemultiplier);
 		}
 		break;
 		case SB_THUMBPOSITION:
@@ -618,6 +642,8 @@ namespace Ui
 			break;          // This occurs when dragging the scroll box with the mouse.
 		}
 
+		if (curpos < 0) curpos = 0;
+		else if (curpos > limit) curpos = limit;
 		bar->SetScrollPos(curpos);
 		return curpos;
 	}
@@ -1153,6 +1179,11 @@ namespace Ui
 	LRESULT SendLbnSelchangeToParent(CWnd * wnd)
 	{
 		return SendNotificationToParent(wnd, LBN_SELCHANGE);
+	}
+
+	int MultiplyIf(int multiplier)
+	{
+		return IsKeyDown(VK_CONTROL) ? multiplier : 1;
 	}
 
 } // end namespace Ui

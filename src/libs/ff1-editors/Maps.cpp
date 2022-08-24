@@ -901,10 +901,10 @@ void CMaps::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	UNREFERENCED_PARAMETER(pScrollBar);
 
 	switch (nSBCode) {
-	case 0: ScrollOffset.x -= 1; break;
-	case 1: ScrollOffset.x += 1; break;
-	case 2: ScrollOffset.x -= 16; break;
-	case 3: ScrollOffset.x += 16; break;
+	case 0: ScrollOffset.x -= 1 * Ui::MultiplyIf(8); break;
+	case 1: ScrollOffset.x += 1 * Ui::MultiplyIf(8); break;
+	case 2: ScrollOffset.x -= 16 * Ui::MultiplyIf(2); break;
+	case 3: ScrollOffset.x += 16 * Ui::MultiplyIf(2); break;
 	case 5: ScrollOffset.x = nPos; break;
 	}
 	if (ScrollOffset.x < 0) ScrollOffset.x = 0;
@@ -920,10 +920,10 @@ void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	UNREFERENCED_PARAMETER(pScrollBar);
 
 	switch (nSBCode) {
-	case 0: ScrollOffset.y -= 1; break;
-	case 1: ScrollOffset.y += 1; break;
-	case 2: ScrollOffset.y -= 16; break;
-	case 3: ScrollOffset.y += 16; break;
+	case 0: ScrollOffset.y -= 1 * Ui::MultiplyIf(8); break;
+	case 1: ScrollOffset.y += 1 * Ui::MultiplyIf(8); break;
+	case 2: ScrollOffset.y -= 16 * Ui::MultiplyIf(1); break;
+	case 3: ScrollOffset.y += 16 * Ui::MultiplyIf(1); break;
 	case 5: ScrollOffset.y = nPos; break;
 	}
 	if (ScrollOffset.y < 0) ScrollOffset.y = 0;
