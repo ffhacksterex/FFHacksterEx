@@ -6,6 +6,8 @@
 #include "ICoordMap.h"
 #include "MiniMap.h"
 #include "FFHacksterProject.h"
+#include <ui_helpers.h>
+#include <OffscreenDC.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -45,13 +47,19 @@ const COLORREF RED = RGB(255, 0, 0);
 
 void CMiniMap::OnPaint() 
 {
-	CPaintDC dc(this);
-	int coX, coY, co = 0;
-	for (coY = 0; coY < 256; coY++) {
-		for (coX = 0; coX < 256; coX++, co++)
-			dc.SetPixelV(coX, coY, cart->Palette[0][palette[(PalAssign[Map[co]] << 2) + 3]]);
+	CPaintDC paintdc(this);
+	{
+		auto client = Ui::GetClientRect(this);
+		COffscreenDC odc(paintdc, client);
+		auto& dc = odc.GetDrawingDC();
+		int coX, coY, co = 0;
+		for (coY = 0; coY < 256; coY++) {
+			for (coX = 0; coX < 256; coX++, co++)
+				dc.SetPixelV(coX, coY, cart->Palette[0][palette[(PalAssign[Map[co]] << 2) + 3]]);
+		}
+		odc.Update();
 	}
-	dc.Draw3dRect(rcNew, RED, RED);
+	paintdc.Draw3dRect(rcNew, RED, RED);
 }
 
 void CMiniMap::SetFocusRect(int left, int top, int right, int bottom)

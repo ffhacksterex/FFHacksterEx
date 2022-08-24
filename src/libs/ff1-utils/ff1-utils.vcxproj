@@ -176,6 +176,7 @@
     <ClInclude Include="BorderedListCtrl.h" />
     <ClInclude Include="BorderedListBox.h" />
     <ClInclude Include="BrowseForFolderDialog.h" />
+    <ClInclude Include="OffscreenDC.h" />
     <ClInclude Include="SimpleImageButton.h" />
     <ClInclude Include="DlgPickDestinationFile.h" />
     <ClInclude Include="CloseButton.h" />
@@ -231,6 +232,7 @@
     <ClCompile Include="BorderedListCtrl.cpp" />
     <ClCompile Include="BorderedListBox.cpp" />
     <ClCompile Include="BrowseForFolderDialog.cpp" />
+    <ClCompile Include="OffscreenDC.cpp" />
     <ClCompile Include="SimpleImageButton.cpp" />
     <ClCompile Include="DlgPickDestinationFile.cpp" />
     <ClCompile Include="CloseButton.cpp" />
