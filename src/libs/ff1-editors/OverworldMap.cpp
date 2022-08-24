@@ -130,6 +130,8 @@ void COverworldMap::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM1, m_custom1button);
 	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM2, m_custom2button);
 	DDX_Control(pDX, IDC_BTN_DRAWTOOLS_CUSTOM3, m_custom3button);
+	DDX_Control(pDX, IDC_STATIC_INFRA_MAPPANEL, m_mappanel);
+	DDX_Control(pDX, IDC_BUTTON_POPOUT, m_popoutbutton);
 }
 
 
@@ -177,6 +179,8 @@ BEGIN_MESSAGE_MAP(COverworldMap, CEditorWithBackground)
 	ON_BN_CLICKED(IDC_BUTTON_IMPORT_MAP, &COverworldMap::OnBnClickedButtonImportMap)
 	ON_BN_CLICKED(IDC_BUTTON_EXPORT_MAP, &COverworldMap::OnBnClickedButtonExportMap)
 	ON_MESSAGE(WMA_DRAWTOOLBNCLICK, OnDrawToolBnClick)
+	ON_BN_CLICKED(IDC_BUTTON_POPOUT, &COverworldMap::OnBnClickedButtonPopout)
+	ON_MESSAGE(WMA_SHOWFLOATINGMAP, &COverworldMap::OnShowFloatMap)
 END_MESSAGE_MAP()
 
 
@@ -186,12 +190,348 @@ END_MESSAGE_MAP()
 
 void COverworldMap::DoHScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 {
-	OnHScroll(nSBCode, nPos, pScrollBar);
+	if (m_popoutcreated)
+	{
+		//N.B. - minimap subtracts 8 in an attempt to center the viewpoint
+		// For now, we workaround that by adding back the 8 that was subtracted
+		// and let the popout map handle centering directly.
+		int iPos = ((INT)nPos);
+		int newval = (iPos + 8) * 100 / 255; // convert to percentage
+		m_popoutmap.ScrollByPercentage(SB_HORZ, newval);
+	}
+	handle_hscroll(nSBCode, nPos * m_tiledims.cx, pScrollBar);
 }
 
 void COverworldMap::DoVScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 {
-	OnVScroll(nSBCode, nPos, pScrollBar);
+	if (m_popoutcreated) {
+		//N.B. - see the note in OnVHScroll, similar logic here.
+		int iPos = ((INT)nPos);
+		int newval = (iPos + 8) * 100 / 255;
+		m_popoutmap.ScrollByPercentage(SB_VERT, newval);
+	}
+	handle_vscroll(nSBCode, nPos * m_tiledims.cy, pScrollBar);
+}
+
+void COverworldMap::SendKeydown(WPARAM wparam, LPARAM lparam)
+{
+	this->PostMessage(WM_KEYDOWN, wparam, lparam);
+}
+
+void COverworldMap::HandleLButtonDown(UINT nFlags, CPoint point)
+{
+	switch (cur_tool) {
+	case 0: {		//pencil
+		mousedown = 1;
+		UpdateClick(point);
+		DecompressedMap[point.y][point.x] = (BYTE)cur_tile;
+		InvalidateRect(rcMap, 0);
+	}break;
+	default: {		//fill/smarttools
+		mousedown = 1;
+		UpdateClick(point);
+		rcToolRect.SetRect(point.x, point.y, point.x, point.y);
+		InvalidateRect(rcMap, 0);
+	}break;
+	}
+}
+
+void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
+{
+	UNREFERENCED_PARAMETER(nFlags);
+	UNREFERENCED_PARAMETER(point);
+
+	if (mousedown) {
+		rcToolRect.NormalizeRect();
+		int coY, coX, temp, co;
+		bool draw;
+		switch (cur_tool) {
+		case 0: break;
+		case 1: {			//fill
+			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
+				for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
+					DecompressedMap[coY][coX] = (BYTE)cur_tile;
+			}
+		}break;
+		default: {			//smarttools
+			temp = cur_tool - 2;
+			//flood fill
+			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
+				for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
+					DecompressedMap[coY][coX] = cart->SmartTools[temp][4];
+			}
+			//"smart" top edge
+			coY = rcToolRect.top;
+			for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++) {
+				draw = 1;
+				if (coY) {
+					for (co = 0; co < 6 && draw; co++) {
+						if (DecompressedMap[coY - 1][coX] == cart->SmartTools[temp][co]) draw = 0;
+					}
+				}
+				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][1];
+			}
+			//"smart" bottom edge
+			coY = rcToolRect.bottom;
+			for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++) {
+				draw = 1;
+				if (coY < 255) {
+					for (co = 3; co < 9 && draw; co++) {
+						if (DecompressedMap[coY + 1][coX] == cart->SmartTools[temp][co]) draw = 0;
+					}
+				}
+				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][7];
+			}
+			//"smart" left edge
+			coX = rcToolRect.left;
+			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
+				draw = 1;
+				if (coX) {
+					for (co = 0; co < 8 && draw; co++) {
+						if (co % 3 == 2) co++;
+						if (DecompressedMap[coY][coX - 1] == cart->SmartTools[temp][co]) draw = 0;
+					}
+				}
+				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][3];
+			}
+			//"smart" right edge
+			coX = rcToolRect.right;
+			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
+				draw = 1;
+				if (coX < 255) {
+					for (co = 1; co < 9 && draw; co++) {
+						if (co % 3 == 0) co++;
+						if (DecompressedMap[coY][coX + 1] == cart->SmartTools[temp][co]) draw = 0;
+					}
+				}
+				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][5];
+			}
+			//"smart" NW corner
+			co = 0;
+			draw = 1;
+			if (rcToolRect.left) {
+				coY = DecompressedMap[rcToolRect.top][rcToolRect.left - 1];
+				for (coX = 0; draw && coX < 8; coX++) {
+					if (coX % 3 == 2) coX++;
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) co = 1;
+			draw = 1;
+			if (rcToolRect.top) {
+				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.left];
+				for (coX = 0; draw && coX < 6; coX++) {
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) {
+				if (co == 1) co = 4;
+				else co = 3;
+			}
+			DecompressedMap[rcToolRect.top][rcToolRect.left] = cart->SmartTools[temp][co];
+			//"smart" SW corner
+			co = 6;
+			draw = 1;
+			if (rcToolRect.left) {
+				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.left - 1];
+				for (coX = 0; draw && coX < 8; coX++) {
+					if (coX % 3 == 2) coX++;
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) co = 7;
+			draw = 1;
+			if (rcToolRect.bottom < 255) {
+				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.left];
+				for (coX = 3; draw && coX < 9; coX++) {
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) {
+				if (co == 7) co = 4;
+				else co = 3;
+			}
+			DecompressedMap[rcToolRect.bottom][rcToolRect.left] = cart->SmartTools[temp][co];
+			//"smart" NE corner
+			co = 2;
+			draw = 1;
+			if (rcToolRect.right < 255) {
+				coY = DecompressedMap[rcToolRect.top][rcToolRect.right + 1];
+				for (coX = 1; draw && coX < 9; coX++) {
+					if (coX % 3 == 0) coX++;
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) co = 1;
+			draw = 1;
+			if (rcToolRect.top) {
+				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.right];
+				for (coX = 0; draw && coX < 6; coX++) {
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) {
+				if (co == 1) co = 4;
+				else co = 5;
+			}
+			DecompressedMap[rcToolRect.top][rcToolRect.right] = cart->SmartTools[temp][co];
+			//"smart" SE corner
+			co = 8;
+			draw = 1;
+			if (rcToolRect.right < 255) {
+				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.right + 1];
+				for (coX = 1; draw && coX < 9; coX++) {
+					if (coX % 3 == 0) coX++;
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) co = 7;
+			draw = 1;
+			if (rcToolRect.bottom < 255) {
+				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.right];
+				for (coX = 3; draw && coX < 9; coX++) {
+					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+				}
+			}
+			if (!draw) {
+				if (co == 7) co = 4;
+				else co = 5;
+			}
+			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
+
+			InvalidateRect(rcMap);
+		}break;
+		}
+		if (m_minimap.GetCheck()) minimap.UpdateCur();
+	}
+}
+
+void COverworldMap::HandleLButtonDblClk(UINT nFlags, CPoint point)
+{
+	UNREFERENCED_PARAMETER(nFlags);
+	UNREFERENCED_PARAMETER(point);
+	// By default, does nothing on the map
+}
+
+void COverworldMap::HandleRButtonDown(UINT nFlags, CPoint pt)
+{
+	StoreTileData();
+	cur_tile = DecompressedMap[pt.y][pt.x];
+	UpdateClick(pt);
+	InvalidateRect(rcTiles, 0);
+	LoadTileData();
+	if (cur_tool > 1) {
+		CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
+			m_blockbutton.GetDlgCtrlID());
+		cur_tool = m_blockbutton.GetToolIndex();
+		m_customizetool.EnableWindow(FALSE);
+		m_popoutmap.UpdateControls();
+	}
+	if (m_showlastclick.GetCheck()) InvalidateRect(rcMap, 0);
+
+	//if they clicked on a sprite... adjust the Sprite Editor accordingly
+	for (int co = 0; co < 5; co++) {
+		if (misccoords[co] == pt) {
+			mousedown = (BYTE)(co + 2);
+			m_misccoords.SetCurSel(co);
+			OnSelchangeMisccoords();
+			break;
+		}
+	}
+}
+
+void COverworldMap::HandleRButtonUp(UINT nFlags, CPoint point)
+{
+	UNREFERENCED_PARAMETER(nFlags);
+	UNREFERENCED_PARAMETER(point);
+	// By default, does nothing on the map
+}
+
+void COverworldMap::HandleRButtonDblClk(UINT nFlags, CPoint point)
+{
+	UNREFERENCED_PARAMETER(nFlags);
+	auto ref = DecompressedMap[point.y][point.x];
+	if (ref != -1)
+		apply_tile_tint(ref);
+}
+
+void COverworldMap::HandleMouseMove(UINT nFlags, CPoint newhover)
+{
+	UNREFERENCED_PARAMETER(nFlags);
+
+	if (ptHover != newhover) {
+		ptHover = newhover;
+		CString text;
+		text.Format("%X,%X", ptHover.x, ptHover.y);
+		m_hovering.SetWindowText(text);
+		if (mousedown == 1) {
+			switch (cur_tool) {
+			case 0: {		//pencil
+				DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
+				InvalidateRect(rcMap, 0);
+			}break;
+			default: {		//fill / Smarttools
+				rcToolRect.right = ptHover.x;
+				rcToolRect.bottom = ptHover.y;
+				InvalidateRect(rcMap, 0);
+			}break;
+			}
+			UpdateClick(ptHover);
+		}
+		else if (mousedown) {
+			UpdateClick(ptHover);
+			misccoords[mousedown - 2] = ptHover;
+			text.Format("%X", ptHover.x); m_miscx.SetWindowText(text);
+			text.Format("%X", ptHover.y); m_miscy.SetWindowText(text);
+			InvalidateRect(rcMap, 0);
+		}
+	}
+}
+
+void COverworldMap::HandleAfterScroll(CPoint scrolloffset, CRect displayarea)
+{
+	UNREFERENCED_PARAMETER(displayarea);
+	minimap.UpdateFocusRect(make_minimap_rect(scrolloffset));
+}
+
+void COverworldMap::HandleMapImport()
+{
+	OnMapImport();
+}
+
+void COverworldMap::HandleMapExport()
+{
+	OnMapExport();
+}
+
+bool COverworldMap::HandleCustomizeTool()
+{
+	CCustomTool dlg;
+	dlg.dat = cart;
+	dlg.m_tiles = &cart->m_overworldtiles;
+	dlg.tool = cur_tool - 2;
+	auto result = dlg.DoModal();
+	return result == IDOK;
+}
+
+void COverworldMap::RenderMapEx(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims)
+{
+	paint_map_elements(dc, displayarea, scrolloff, tiledims);
+}
+
+int COverworldMap::GetCurrentToolIndex() const
+{
+	return cur_tool;
+}
+
+void COverworldMap::SetMouseDown(int imousedown)
+{
+	mousedown = imousedown;
+}
+
+int COverworldMap::GetMouseDown() const
+{
+	return mousedown;
 }
 
 void COverworldMap::DoMinimap()
@@ -317,14 +657,16 @@ BOOL COverworldMap::OnInitDialog()
 		m_viewcoords.SetCheck(BootToTeleportFollowup);
 		OnViewcoords();
 
+		m_toolbuttons = { &m_penbutton, &m_blockbutton, &m_custom1button, &m_custom2button, &m_custom3button };
+		init_popout_map_window();
+
 		minimap.cart = cart;minimap.Context = Minimap;
 		minimap.OVmap = this;
 		minimap.Create(IDD_MINIMAP, this);
 		minimap.ShowWindow(0);
 		minimap.Map = DecompressedMap[0];
 		minimap.palette = palette[0];
-		minimap.rcNew.SetRect(0, 0, 16, 16);
-		minimap.rcOld.SetRect(0, 0, 16, 16);
+		minimap.SetFocusRect(0, 0, 16, 16); // default, will change when invoked
 
 		for (co = 0; co < 128; co++)
 			minimap.PalAssign[co] = cart->ROM[OVERWORLDPALETTE_ASSIGNMENT + co] & 3;
@@ -356,6 +698,7 @@ BOOL COverworldMap::OnInitDialog()
 
 		IF_NOHANDLE(redpen).CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
 		IF_NOHANDLE(bluepen).CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
+		IF_NOHANDLE(toolBrush).CreateSolidBrush(RGB(128, 64, 255));
 
 		CRect rcpos;
 		GetControlRect(&m_backdropstatic, &rcpos);
@@ -377,8 +720,9 @@ BOOL COverworldMap::OnInitDialog()
 		m_penbutton.SetCheck(BST_CHECKED);
 		cur_tool = m_penbutton.GetToolIndex();
 
-		m_hscroll.SetScrollRange(0, 240);
-		m_vscroll.SetScrollRange(0, 240);
+		auto maxes = calc_scroll_maximums();
+		m_hscroll.SetScrollRange(0, maxes.cx);
+		m_vscroll.SetScrollRange(0, maxes.cy);
 		ScrollOffset.x = 0;
 		ScrollOffset.y = 0;
 
@@ -431,6 +775,39 @@ BOOL COverworldMap::OnInitDialog()
 	}
 
 	return TRUE;
+}
+
+BOOL COverworldMap::PreTranslateMessage(MSG* pMsg)
+{
+	switch (pMsg->message) {
+	case WM_KEYDOWN:
+		switch (pMsg->wParam) {
+		case VK_F6:
+			if (m_popoutcreated && m_popoutmap.IsWindowVisible()) {
+				m_popoutmap.SetActiveWindow();
+				return TRUE;
+			}
+			break;
+		case VK_F7:
+			if (m_popoutcreated) {
+				bool in = m_popoutmap.IsWindowVisible() == TRUE;
+				PopMapDialog(in);
+				return TRUE;
+			}
+			break;
+		}
+		break;
+	}
+	return CEditorWithBackground::PreTranslateMessage(pMsg);
+}
+
+void COverworldMap::OnCancel()
+{
+	if (m_popoutcreated && m_popoutmap.IsWindowVisible()) {
+		m_popoutmap.PostMessage(WM_KEYDOWN, VK_ESCAPE);
+		return;
+	}
+	CEditorWithBackground::OnCancel();
 }
 
 void COverworldMap::LoadTileData()
@@ -666,181 +1043,75 @@ void COverworldMap::InitBackdrops()
 void COverworldMap::OnPaint() 
 {
 	CPaintDC dc(this);
-	CPen* origpen = dc.SelectObject(&redpen);
-	int coX, coY, tile;
-	CPoint pt;
-
-	//Draw the Tiles on the screen
-	for(coY = 0, tile = 0, pt.y = rcTiles.top; coY < 0x08; coY++, pt.y += 16){
-	for(coX = 0, pt.x = rcTiles.left; coX < 0x10; coX++, pt.x += 16, tile++)
-		cart->m_overworldtiles.Draw(&dc,tile,pt,ILD_NORMAL);}
-	pt.x = ((cur_tile & 0x0F) << 4) + rcTiles.left;
-	pt.y = (cur_tile & 0xF0) + rcTiles.top;
-	dc.MoveTo(pt); pt.x += 15;
-	dc.LineTo(pt); pt.y += 15;
-	dc.LineTo(pt); pt.x -= 15;
-	dc.LineTo(pt); pt.y -= 15;
-	dc.LineTo(pt);
-
-	//Draw the map!
-	CPoint copt;
-	CRect rcTemp = rcToolRect;
-	rcTemp.NormalizeRect(); rcTemp.right += 1; rcTemp.bottom += 1;
-	copt = ScrollOffset;
-	for(coY = 0, pt.y = rcMap.top; coY < 16; coY++, pt.y += 16, copt.y += 1){
-	for(coX = 0, pt.x = rcMap.left, copt.x = ScrollOffset.x; coX < 16; coX++, pt.x += 16, copt.x += 1){
-		if(!(mousedown && cur_tool && PtInRect(rcTemp,copt))){
-			cart->m_overworldtiles.Draw(&dc,DecompressedMap[copt.y][copt.x],pt,ILD_NORMAL);}}}
-	if(mousedown){
-		switch(cur_tool){
-		case 0: break;
-		case 1:{			//fill
-			coY = rcTemp.top - ScrollOffset.y; coX = rcTemp.left - ScrollOffset.x;
-			copt.y = rcTemp.bottom - ScrollOffset.y; copt.x = rcTemp.right - ScrollOffset.x;
-			tile = coX;
-			for(; coY < copt.y; coY++){
-			for(coX = tile; coX < copt.x; coX++){
-				pt.x = rcMap.left + (coX << 4); pt.y = rcMap.top + (coY << 4);
-				cart->m_overworldtiles.Draw(&dc,cur_tile,pt,ILD_NORMAL);}}
-			   }break;
-		default:{
-			CBrush br; br.CreateSolidBrush(RGB(128,64,255));
-			rcTemp.left = ((rcTemp.left - ScrollOffset.x) << 4) + rcMap.left;
-			rcTemp.right = ((rcTemp.right - ScrollOffset.x) << 4) + rcMap.left;
-			rcTemp.top = ((rcTemp.top - ScrollOffset.y) << 4) + rcMap.top;
-			rcTemp.bottom = ((rcTemp.bottom - ScrollOffset.y) << 4) + rcMap.top;
-			dc.FillRect(rcTemp,&br);
-			br.DeleteObject();
-				}break;
-		}
-	}
-	if(cart->ShowLastClick){
-		pt.x = ((ptLastClick.x - ScrollOffset.x) << 4) + rcMap.left;
-		pt.y = ((ptLastClick.y - ScrollOffset.y) << 4) + rcMap.top;
-		if(PtInRect(rcMap,pt)){
-			dc.MoveTo(pt); pt.x += 15;
-			dc.LineTo(pt); pt.y += 15;
-			dc.LineTo(pt); pt.x -= 15;
-			dc.LineTo(pt); pt.y -= 15;
-			dc.LineTo(pt);}
-	}
-	if(cart->DrawDomainGrid){
-		dc.SelectObject(&bluepen);
-		CPoint is;
-		CPoint goo;
-		goo.x = (ScrollOffset.x + 15) >> 4;
-		goo.y = (ScrollOffset.y + 15) >> 4;
-		if(!(goo.x & 1)){
-			is.x = ScrollOffset.x & 0x0F;
-			if(is.x) is.x = ((16 - is.x) << 4) + rcMap.left;
-			else is.x = (is.x << 4) + rcMap.left;
-			dc.MoveTo(is.x,rcMap.top); dc.LineTo(is.x,rcMap.bottom);}
-		if(!(goo.y & 1)){
-			is.y = ScrollOffset.y & 0x0F;
-			if(is.y) is.y = ((16 - is.y) << 4) + rcMap.top;
-			else is.y = (is.y << 4) + rcMap.top;
-			dc.MoveTo(rcMap.left,is.y); dc.LineTo(rcMap.right,is.y);}
-		dc.SetBkMode(TRANSPARENT);
-		dc.SetTextColor(RGB(0,0,255));
-		CString text;
-		text.Format("%d,%d",goo.x >> 1,goo.y >> 1);
-		if(!(goo.x % 2 && goo.y % 2))
-			dc.TextOut(is.x,is.y,text);}
-	
-	//Draw the sprites
-	CRect rc(0,0,16,16);
-	for(coX = 0; coX < 5; coX++){
-		pt.x = misccoords[coX].x - ScrollOffset.x;
-		pt.y = misccoords[coX].y - ScrollOffset.y;
-		if(!PtInRect(rc,pt)) continue;
-		pt.x = (pt.x << 4) + rcMap.left;
-		pt.y = (pt.y << 4) + rcMap.top;
-		m_sprites.Draw(&dc,coX,pt,ILD_TRANSPARENT);
-	}
-
-	//Draw the backdrop
-	pt.x = rcBackdrop.left;
-	pt.y = rcBackdrop.top;
-	tile = m_backdroplist.GetCurSel();
-	m_backdrop.Draw(&dc,tile,pt,ILD_NORMAL); pt.x += 64;
-	m_backdrop.Draw(&dc,tile,pt,ILD_NORMAL);
-
-	//Draw the palette!
-	CBrush br;
-	rc = rcPalette;
-	rc.right = rc.left + 16; rc.bottom = rc.top + 16;
-	for(pt.y = 0; pt.y < 2; pt.y += 1, rc.top += 16, rc.bottom += 16, rc.left -= 256, rc.right -= 256){
-	for(pt.x = 0; pt.x < 16; pt.x++, rc.left += 16, rc.right += 16){
-		br.CreateSolidBrush(cart->Palette[0][palette[pt.y][pt.x]]);
-		dc.FillRect(rc,&br);
-		br.DeleteObject();}}
-
-	dc.SelectObject(origpen);
-
-	m_banner.Render(dc, 8, 8);
+	handle_paint(dc);
 }
 
 void COverworldMap::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
+	handle_hscroll(nSBCode, nPos, pScrollBar);
+}
+
+void COverworldMap::handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
 	UNREFERENCED_PARAMETER(pScrollBar);
 
-	switch(nSBCode){
-	case 0: ScrollOffset.x -= 1; break;
-	case 1: ScrollOffset.x += 1; break;
-	case 2: ScrollOffset.x -= 16; break;
-	case 3: ScrollOffset.x += 16; break;
-	case 5: ScrollOffset.x = nPos; break;
+	switch (nSBCode) {
+	case SB_LINELEFT: ScrollOffset.x -= 1; break;
+	case SB_LINERIGHT: ScrollOffset.x += 1; break;
+	case SB_PAGELEFT: ScrollOffset.x -= 16; break;
+	case SB_PAGERIGHT: ScrollOffset.x += 16; break;
+	case SB_THUMBTRACK: ScrollOffset.x = nPos; break;
 	}
-	if(ScrollOffset.x < 0) ScrollOffset.x = 0;
-	if(ScrollOffset.x > 240) ScrollOffset.x = 240;
+	auto maxes = calc_scroll_maximums();
+	if (ScrollOffset.x < 0) ScrollOffset.x = 0;
+	if (ScrollOffset.x > maxes.cy) ScrollOffset.x = maxes.cy;
 
 	m_hscroll.SetScrollPos(ScrollOffset.x);
-	if(m_minimap.GetCheck()) minimap.FixRects(ScrollOffset);
-	InvalidateRect(rcMap,FALSE);
+
+	if (m_minimap.GetCheck()) {
+		if (!m_popoutmap.IsWindowVisible()) {
+			// No adjustment needed, popout and embedded maps are never shown at the same time
+			minimap.UpdateFocusRect(make_minimap_rect(ScrollOffset));
+		}
+	}
+	InvalidateRect(rcMap, FALSE);
 }
 
 void COverworldMap::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
+	handle_vscroll(nSBCode, nPos, pScrollBar);
+}
+
+void COverworldMap::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
 	UNREFERENCED_PARAMETER(pScrollBar);
 
-	switch(nSBCode){
-	case 0: ScrollOffset.y -= 1; break;
-	case 1: ScrollOffset.y += 1; break;
-	case 2: ScrollOffset.y -= 16; break;
-	case 3: ScrollOffset.y += 16; break;
-	case 5: ScrollOffset.y = nPos; break;
+	switch (nSBCode) {
+	case SB_LINEUP: ScrollOffset.y -= 1; break;
+	case SB_LINEDOWN: ScrollOffset.y += 1; break;
+	case SB_PAGEUP: ScrollOffset.y -= 16; break;
+	case SB_PAGEDOWN: ScrollOffset.y += 16; break;
+	case SB_THUMBTRACK: ScrollOffset.y = nPos; break;
 	}
-	if(ScrollOffset.y < 0) ScrollOffset.y = 0;
-	if(ScrollOffset.y > 240) ScrollOffset.y = 240;
+	auto maxes = calc_scroll_maximums();
+	if (ScrollOffset.y < 0) ScrollOffset.y = 0;
+	if (ScrollOffset.y > maxes.cy) ScrollOffset.y = maxes.cy;
 
 	m_vscroll.SetScrollPos(ScrollOffset.y);
-	if(m_minimap.GetCheck()) minimap.FixRects(ScrollOffset); 
-	InvalidateRect(rcMap,FALSE);
+
+	if (m_minimap.GetCheck()) {
+		if (!m_popoutmap.IsWindowVisible()) {
+			// No adjustment needed, popout and embedded maps are never shown at the same time
+			minimap.UpdateFocusRect(make_minimap_rect(ScrollOffset));
+		}
+	}
+	InvalidateRect(rcMap, FALSE);
 }
 
 void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
 {
-	UNREFERENCED_PARAMETER(nFlags);
-
 	if(PtInRect(rcMap,pt)){
-		CPoint fixedpt;
-		fixedpt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		fixedpt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		switch(cur_tool){
-		case 0:{		//pencil
-			mousedown = 1;
-			UpdateClick(fixedpt);
-			DecompressedMap[fixedpt.y][fixedpt.x] = (BYTE)cur_tile;
-			InvalidateRect(rcMap,0);
-			   }break;
-		default:{		//fill/smarttools
-			mousedown = 1;
-			UpdateClick(fixedpt);
-			rcToolRect.SetRect(fixedpt.x,fixedpt.y,fixedpt.x,fixedpt.y);
-			InvalidateRect(rcMap,0);
-			   }break;
-
-		}
+		HandleLButtonDown(nFlags, fix_map_point(pt));
 	}
 	else if(PtInRect(rcTiles,pt)){
 		StoreTileData();
@@ -879,31 +1150,11 @@ void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
 void COverworldMap::OnRButtonDown(UINT nFlags, CPoint pt)
 {
 	mousedown = 0;
-	if(PtInRect(rcTiles,pt)) OnLButtonDown(nFlags,pt);
-	else if(PtInRect(rcMap,pt)){
-		StoreTileData();
-		pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		cur_tile = DecompressedMap[pt.y][pt.x];
-		UpdateClick(pt);
-		InvalidateRect(rcTiles,0);
-		LoadTileData();
-		if (cur_tool > 1) {
-			CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
-				m_blockbutton.GetDlgCtrlID());
-			cur_tool = m_blockbutton.GetToolIndex();
-			m_customizetool.EnableWindow(FALSE);
-		}
-		if(m_showlastclick.GetCheck()) InvalidateRect(rcMap,0);
-
-		
-		//if they clicked on a sprite... adjust the Sprite Editor accordingly
-		for(int co = 0; co < 5; co++){
-			if(misccoords[co] == pt){
-				mousedown = (BYTE)(co + 2);
-				m_misccoords.SetCurSel(co);
-				OnSelchangeMisccoords();
-				break;}}
+	if (PtInRect(rcTiles, pt)) {
+		OnLButtonDown(nFlags, pt);
+	}
+	else if (PtInRect(rcMap, pt)) {
+		HandleRButtonDown(nFlags, fix_map_point(pt));
 	}
 }
 
@@ -916,45 +1167,17 @@ void COverworldMap::OnEditlabel()
 void COverworldMap::OnSelchangeBackdrop() 
 {InvalidateRect(rcBackdrop);}
 
-void COverworldMap::OnMouseMove(UINT nFlags, CPoint pt) 
+void COverworldMap::OnMouseMove(UINT nFlags, CPoint pt)
 {
-	UNREFERENCED_PARAMETER(nFlags);
-
 	CString text = "";
-	if(PtInRect(rcMap,pt)){
-		CPoint newhover;
-		newhover.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		newhover.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		if(ptHover != newhover){
-			ptHover = newhover;
-			text.Format("%X,%X",ptHover.x,ptHover.y);
-			m_hovering.SetWindowText(text);
-			if(mousedown == 1){
-				switch(cur_tool){
-				case 0:{		//pencil
-					DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
-					InvalidateRect(rcMap,0);
-					   }break;
-				default:{		//fill / Smarttools
-					rcToolRect.right = ptHover.x;
-					rcToolRect.bottom = ptHover.y;
-					InvalidateRect(rcMap,0);
-					   }break;
-				}
-				UpdateClick(ptHover);
-			}
-			else if(mousedown){
-				UpdateClick(ptHover);
-				misccoords[mousedown - 2] = ptHover;
-				text.Format("%X",ptHover.x); m_miscx.SetWindowText(text);
-				text.Format("%X",ptHover.y); m_miscy.SetWindowText(text);
-				InvalidateRect(rcMap,0);}
-		}
+	if (PtInRect(rcMap, pt)) {
+		HandleMouseMove(nFlags, fix_map_point(pt));
 	}
-	else{
-		if(ptHover.x != -1){
+	else {
+		if (ptHover.x != -1) {
 			m_hovering.SetWindowText(text);
-			ptHover.x = -1;}
+			ptHover.x = -1;
+		}
 	}
 }
 
@@ -1106,136 +1329,9 @@ void COverworldMap::OnTeleport()
 	m_teleportbox.ShowWindow(teleport);
 }
 
-void COverworldMap::OnLButtonUp(UINT nFlags, CPoint point) 
+void COverworldMap::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	UNREFERENCED_PARAMETER(nFlags);
-	UNREFERENCED_PARAMETER(point);
-
-	if(mousedown){
-		rcToolRect.NormalizeRect();
-		int coY, coX, temp, co;
-		bool draw;
-		switch(cur_tool){
-		case 0: break;
-		case 1:{			//fill
-			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
-			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
-				DecompressedMap[coY][coX] = (BYTE)cur_tile;}
-			   }break;
-		default:{			//smarttools
-			temp = cur_tool - 2;
-			//flood fill
-			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
-			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
-				DecompressedMap[coY][coX] = cart->SmartTools[temp][4];}
-			//"smart" top edge
-			coY = rcToolRect.top;
-			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++){
-				draw = 1;
-				if(coY){ for(co = 0; co < 6 && draw; co++){
-					if(DecompressedMap[coY - 1][coX] == cart->SmartTools[temp][co]) draw = 0;}}
-				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][1];}
-			//"smart" bottom edge
-			coY = rcToolRect.bottom;
-			for(coX = rcToolRect.left; coX <= rcToolRect.right; coX++){
-				draw = 1;
-				if(coY < 255){ for(co = 3; co < 9 && draw; co++){
-					if(DecompressedMap[coY + 1][coX] == cart->SmartTools[temp][co]) draw = 0;}}
-				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][7];}
-			//"smart" left edge
-			coX = rcToolRect.left;
-			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
-				draw = 1;
-				if(coX){ for(co = 0; co < 8 && draw; co++){
-					if(co % 3 == 2) co++;
-					if(DecompressedMap[coY][coX - 1] == cart->SmartTools[temp][co]) draw = 0;}}
-				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][3];}
-			//"smart" right edge
-			coX = rcToolRect.right;
-			for(coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++){
-				draw = 1;
-				if(coX < 255){ for(co = 1; co < 9 && draw; co++){
-					if(co % 3 == 0) co++;
-					if(DecompressedMap[coY][coX + 1] == cart->SmartTools[temp][co]) draw = 0;}}
-				if(draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][5];}
-			//"smart" NW corner
-			co = 0;
-			draw = 1;
-			if(rcToolRect.left){
-				coY = DecompressedMap[rcToolRect.top][rcToolRect.left - 1];
-				for(coX = 0; draw && coX < 8; coX++){
-					if(coX % 3 == 2) coX++;
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw) co = 1;
-			draw = 1;
-			if(rcToolRect.top){
-				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.left];
-				for(coX = 0; draw && coX < 6; coX++){
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw){
-				if(co == 1) co = 4;
-				else co = 3;}
-			DecompressedMap[rcToolRect.top][rcToolRect.left] = cart->SmartTools[temp][co];
-			//"smart" SW corner
-			co = 6;
-			draw = 1;
-			if(rcToolRect.left){
-				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.left - 1];
-				for(coX = 0; draw && coX < 8; coX++){
-					if(coX % 3 == 2) coX++;
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw) co = 7;
-			draw = 1;
-			if(rcToolRect.bottom < 255){
-				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.left];
-				for(coX = 3; draw && coX < 9; coX++){
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw){
-				if(co == 7) co = 4;
-				else co = 3;}
-			DecompressedMap[rcToolRect.bottom][rcToolRect.left] = cart->SmartTools[temp][co];
-			//"smart" NE corner
-			co = 2;
-			draw = 1;
-			if(rcToolRect.right < 255){
-				coY = DecompressedMap[rcToolRect.top][rcToolRect.right + 1];
-				for(coX = 1; draw && coX < 9; coX++){
-					if(coX % 3 == 0) coX++;
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw) co = 1;
-			draw = 1;
-			if(rcToolRect.top){
-				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.right];
-				for(coX = 0; draw && coX < 6; coX++){
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw){
-				if(co == 1) co = 4;
-				else co = 5;}
-			DecompressedMap[rcToolRect.top][rcToolRect.right] = cart->SmartTools[temp][co];
-			//"smart" SE corner
-			co = 8;
-			draw = 1;
-			if(rcToolRect.right < 255){
-				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.right + 1];
-				for(coX = 1; draw && coX < 9; coX++){
-					if(coX % 3 == 0) coX++;
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw) co = 7;
-			draw = 1;
-			if(rcToolRect.bottom < 255){
-				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.right];
-				for(coX = 3; draw && coX < 9; coX++){
-					if(coY == cart->SmartTools[temp][coX]) draw = 0;}}
-			if(!draw){
-				if(co == 7) co = 4;
-				else co = 5;}
-			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
-
-			InvalidateRect(rcMap);
-				}break;
-		}
-		if(m_minimap.GetCheck()) minimap.UpdateCur();
-	}
+	HandleLButtonUp(nFlags, fix_map_point(point));
 	mousedown = 0;
 }
 
@@ -1276,11 +1372,7 @@ void COverworldMap::OnFindKAB()
 
 void COverworldMap::OnCustomizetool()
 {
-	CCustomTool dlg;
-	dlg.dat = cart;
-	dlg.m_tiles = &cart->m_overworldtiles;
-	dlg.tool = cur_tool - 2;
-	dlg.DoModal();
+	HandleCustomizeTool();
 }
 
 void COverworldMap::CompressMap()
@@ -1343,35 +1435,18 @@ void COverworldMap::CompressMap()
 
 void COverworldMap::OnRButtonDblClk(UINT nFlags, CPoint pt)
 {
-	UNREFERENCED_PARAMETER(nFlags);
-
 	int ref = -1;
-	if(PtInRect(rcMap,pt)){
-		pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		ref = DecompressedMap[pt.y][pt.x];}
-	else if(PtInRect(rcTiles,pt)){
+	if (PtInRect(rcMap, pt)) {
+		HandleRButtonDblClk(nFlags, fix_map_point(pt));
+	}
+	else if (PtInRect(rcTiles, pt)) {
 		pt.x = (pt.x - rcTiles.left) >> 4;
 		pt.y = (pt.y - rcTiles.top) & 0xF0;
-		ref = pt.x + pt.y;}
+		ref = pt.x + pt.y;
+	}
 
 	if (ref != -1) {
-		int old = cart->TintTiles[0][ref];
-		CTint dlg;
-		dlg.tintvalue = old;
-		dlg.m_tintvariant = cart->TintVariant;
-		if (dlg.DoModal() == IDOK) {
-			cart->TintTiles[0][ref] = (BYTE)dlg.tintvalue;
-			if (cart->TintVariant != dlg.m_tintvariant) {
-				cart->TintVariant = (BYTE)dlg.m_tintvariant;
-				cart->ReTintPalette();
-			}
-			cart->m_overworldtiles.DeleteImageList();
-			cart->OK_overworldtiles = 0;
-			ReloadGraphics();
-			InvalidateRect(rcTiles, 0);
-			InvalidateRect(rcMap, 0);
-		}
+		apply_tile_tint(ref);
 	}
 }
 
@@ -1437,6 +1512,352 @@ void COverworldMap::StoreMiscCoords()
 	misccoords[0].y += 7;
 }
 
+void COverworldMap::init_popout_map_window()
+{
+	if (m_popoutmap.CreateModeless(this, { 256,256 }, { 16,16 }, this))
+	{
+		std::vector<sMapDlgButton> buttons(m_toolbuttons.size());
+		std::transform(cbegin(m_toolbuttons), cend(m_toolbuttons), begin(buttons),
+			[](const CDrawingToolButton* srcbtn) { return srcbtn->GetSpec(); });
+		VERIFY(m_popoutmap.SetButtons(buttons));
+		m_popoutcreated = true;
+	}
+	else {
+		AfxMessageBox(_T("Unable to initialize the popout map window."));
+		m_popoutbutton.EnableWindow(FALSE);
+	}
+}
+
+void COverworldMap::PopMapDialog(bool in)
+{
+	// Show/Hide the popout map dialog
+	// Shrink/Grow the main dialog to hide/show the its embedded map area
+	// Slide the relevant controls left/right as required
+
+	auto rc = Ui::GetControlRect(&m_mappanel);
+	int diff = rc.Width() * (in ? -1 : 1);
+	Ui::ShrinkWindow(this, diff, 0);
+
+	if (!in) {
+		if (!m_firstpopoutdone) {
+			// on initial popout, size the dialog over the portion of the
+			// dialog that was hidden.
+			m_firstpopoutdone = true;
+			auto dlgrc = Ui::GetWindowRect(this);
+			auto left = dlgrc.right - GetSystemMetrics(SM_CXSIZEFRAME) + 1;
+			CRect poprc{
+				left,
+				dlgrc.top,
+				left + diff + GetSystemMetrics(SM_CXSIZEFRAME),
+				dlgrc.bottom + GetSystemMetrics(SM_CYSIZEFRAME)
+			};
+			m_popoutmap.MoveWindow(poprc);
+		}
+		m_popoutmap.UpdateControls();
+	}
+
+	m_popoutmap.ShowWindow(in ? SW_HIDE : SW_SHOW);
+	m_popoutbutton.EnableWindow(in ? 1 : 0);
+
+	sync_map_positions(in);
+	if (in) {
+		m_popoutbutton.SetFocus();
+	}
+	else {
+		m_popoutmap.PostMessage(WM_SETFOCUS); //DEVNOTE - don't use SetFocus()/SendMessage for this
+	}
+
+	// The focus rect size depends on which map is visible.
+	BOOL popvis = m_popoutmap.IsWindowVisible();
+	auto scroff = popvis ? m_popoutmap.GetScrollOffset() : ScrollOffset;
+	auto minidims = popvis ? m_popoutmap.GetMiniMapDims() : m_minmapsize;
+	minimap.UpdateFocusRect(make_minimap_rect(scroff));
+
+	std::vector<UINT> ids{ IDHELPBOOK, IDCANCEL2, IDC_SAVE, IDOK, IDCANCEL };
+	int slide = -diff;
+	for (const auto& id : ids) {
+		auto pwnd = GetDlgItem(id);
+		Ui::MoveControlBy(pwnd, slide, 0);
+	}
+}
+
+CPoint COverworldMap::fix_map_point(CPoint point)
+{
+	CPoint fixedpt;
+	fixedpt.x = ((point.x - rcMap.left) + ScrollOffset.x) / 16;
+	fixedpt.y = ((point.y - rcMap.top) + ScrollOffset.y) / 16;
+	return fixedpt;
+}
+
+CRect COverworldMap::make_minimap_rect(CPoint point)
+{
+	// Here, the minimap rect position is base on tiles.
+	// Its size is based on displayarea size.
+	BOOL popvis = m_popoutmap.IsWindowVisible();
+	auto mapdims = popvis ? m_popoutmap.GetMiniMapDims() : m_minmapsize;
+	auto tiledims = popvis ? m_popoutmap.GetTileDims() : m_tiledims;
+	CRect rc;
+	rc.left = point.x / tiledims.cx;
+	rc.right = rc.left + mapdims.cx;
+	rc.top = point.y / tiledims.cy;
+	rc.bottom = rc.top + mapdims.cy;
+	return rc;
+}
+
+CSize COverworldMap::calc_scroll_maximums()
+{
+	//TODO - hardcoded for now, change to a calculation...
+	return { 240 * m_tiledims.cx, 240 * m_tiledims.cy };
+}
+
+CSize COverworldMap::get_scroll_limits()
+{
+	return CSize{
+		m_hscroll.GetScrollLimit(),
+		m_vscroll.GetScrollLimit()
+	};
+}
+
+void COverworldMap::apply_tile_tint(int ref)
+{
+	int old = cart->TintTiles[0][ref];
+	CTint dlg;
+	dlg.tintvalue = old;
+	dlg.m_tintvariant = cart->TintVariant;
+	if (dlg.DoModal() == IDOK) {
+		cart->TintTiles[0][ref] = (BYTE)dlg.tintvalue;
+		if (cart->TintVariant != dlg.m_tintvariant) {
+			cart->TintVariant = (BYTE)dlg.m_tintvariant;
+			cart->ReTintPalette();
+		}
+		cart->m_overworldtiles.DeleteImageList();
+		cart->OK_overworldtiles = 0;
+		ReloadGraphics();
+		InvalidateRect(rcTiles, 0);
+		InvalidateRect(rcMap, 0);
+	}
+}
+
+CRect COverworldMap::get_display_area()
+{
+	return rcMap;
+}
+
+void COverworldMap::handle_paint(CDC& dc)
+{
+	CPen* origpen = dc.SelectObject(&redpen);
+	int coX, coY, tile;
+	CPoint pt;
+
+	//Draw the Tiles on the screen
+	for (coY = 0, tile = 0, pt.y = rcTiles.top; coY < 0x08; coY++, pt.y += 16) {
+		for (coX = 0, pt.x = rcTiles.left; coX < 0x10; coX++, pt.x += 16, tile++)
+			cart->m_overworldtiles.Draw(&dc, tile, pt, ILD_NORMAL);
+	}
+	pt.x = ((cur_tile & 0x0F) << 4) + rcTiles.left;
+	pt.y = (cur_tile & 0xF0) + rcTiles.top;
+	dc.MoveTo(pt); pt.x += 15;
+	dc.LineTo(pt); pt.y += 15;
+	dc.LineTo(pt); pt.x -= 15;
+	dc.LineTo(pt); pt.y -= 15;
+	dc.LineTo(pt);
+
+	{
+		CSize tiledims = { 16,16 };
+		CPoint scrolloff = ScrollOffset;
+		CDC compat;
+		compat.CreateCompatibleDC(&dc);
+		CBitmap bmp;
+		bmp.CreateCompatibleBitmap(&dc, rcMap.Width() + tiledims.cx, rcMap.Height() + tiledims.cy);
+		auto oldbmp = compat.SelectObject(&bmp);
+		CRect client = { 0,0,rcMap.Width() + tiledims.cx, rcMap.Height() };
+		compat.FillSolidRect(client, RGB(255, 255, 255));
+		paint_map_elements(compat, client, scrolloff, tiledims);
+
+		// Draw the bitmap to the window's display area.
+		// To ensure we only draw to that area, set it as the clip region.
+		CRgn rgn;
+		rgn.CreateRectRgn(rcMap.left, rcMap.top, rcMap.right, rcMap.bottom);
+		compat.SelectClipRgn(&rgn);
+
+		auto save = dc.SaveDC();
+		dc.BitBlt(rcMap.left, rcMap.top, rcMap.Width(), rcMap.Height(),
+			&compat,
+			0, 0,
+			SRCCOPY);
+		dc.RestoreDC(save);
+		compat.SelectObject(oldbmp);
+	}
+
+	//Draw the backdrop
+	pt.x = rcBackdrop.left;
+	pt.y = rcBackdrop.top;
+	tile = m_backdroplist.GetCurSel();
+	m_backdrop.Draw(&dc, tile, pt, ILD_NORMAL); pt.x += 64;
+	m_backdrop.Draw(&dc, tile, pt, ILD_NORMAL);
+
+	//Draw the palette!
+	CBrush br;
+	CRect rc(0, 0, 16, 16);
+	rc = rcPalette;
+	rc.right = rc.left + 16; rc.bottom = rc.top + 16;
+	for (pt.y = 0; pt.y < 2; pt.y += 1, rc.top += 16, rc.bottom += 16, rc.left -= 256, rc.right -= 256) {
+		for (pt.x = 0; pt.x < 16; pt.x++, rc.left += 16, rc.right += 16) {
+			br.CreateSolidBrush(cart->Palette[0][palette[pt.y][pt.x]]);
+			dc.FillRect(rc, &br);
+			br.DeleteObject();
+		}
+	}
+
+	dc.SelectObject(origpen);
+	m_banner.Render(dc, 8, 8);
+}
+
+void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims)
+{
+	ASSERT(tiledims.cx > 0);
+	ASSERT(tiledims.cy > 0);
+	if (tiledims.cx <= 0 || tiledims.cy <= 0) return;
+
+	CSize gridvis = {displayarea.Width() / tiledims.cx, displayarea.Height() / tiledims.cy};
+	CPoint gridanchor = { scrolloff.x / tiledims.cx, scrolloff.y / tiledims.cy };
+	int coX, coY, tile;
+	CPoint pt;
+	CPoint copt;
+	CRect rcTemp = rcToolRect;
+	rcTemp.NormalizeRect(); rcTemp.right += 1; rcTemp.bottom += 1;
+
+	// If we aren't aligned on a tile boundary, then the first col/row is partially drawn.
+	// Back up the start of drawing to accomodate this.
+	CPoint tileoff = { scrolloff.x % tiledims.cx, scrolloff.y % tiledims.cy };
+	displayarea.left -= tileoff.x;
+	displayarea.top -= tileoff.y;
+	if (tileoff.x) ++gridvis.cx;
+	if (tileoff.y) ++gridvis.cy;
+
+	// If not at the right col or bottom row, overdraw by 1 tile.
+	// This enables cheap partial tile rendering; the clipping region will clean it up.
+	if ((gridanchor.x + gridvis.cx) < m_mapsize.cx)
+		++gridvis.cx;
+	if ((gridanchor.y + gridvis.cy) < m_mapsize.cy)
+		++gridvis.cy;
+
+	copt = gridanchor;
+	for (coY = 0, pt.y = displayarea.top; coY < gridvis.cy; coY++, pt.y += tiledims.cy, copt.y += 1) {
+		for (coX = 0, pt.x = displayarea.left, copt.x = gridanchor.x; coX < gridvis.cx; coX++, pt.x += tiledims.cx, copt.x += 1) {
+			if (!(mousedown && cur_tool && PtInRect(rcTemp, copt))) {
+				cart->m_overworldtiles.Draw(&dc, DecompressedMap[copt.y][copt.x], pt, ILD_NORMAL);
+			}
+		}
+	}
+
+	if (mousedown) {
+		switch (cur_tool) {
+		case 0: break;
+		case 1: {			//fill
+			coY = rcTemp.top - gridanchor.y;
+			coX = rcTemp.left - gridanchor.x;
+			copt.y = rcTemp.bottom - gridanchor.y;
+			copt.x = rcTemp.right - gridanchor.x;
+			tile = coX;
+			for (; coY < copt.y; coY++) {
+				for (coX = tile; coX < copt.x; coX++) {
+					pt.x = displayarea.left + (coX << 4); pt.y = displayarea.top + (coY << 4);
+					cart->m_overworldtiles.Draw(&dc, cur_tile, pt, ILD_NORMAL);
+				}
+			}
+		}break;
+		default: {
+			// rcTemp is in map coords, translate to pixels
+			auto& br = toolBrush;
+			rcTemp.left = ((rcTemp.left - gridanchor.x) * tiledims.cx) + displayarea.left;
+			rcTemp.right = ((rcTemp.right - gridanchor.x) * tiledims.cx) + displayarea.left;
+			rcTemp.top = ((rcTemp.top - gridanchor.y) * tiledims.cy) + displayarea.top;
+			rcTemp.bottom = ((rcTemp.bottom - gridanchor.y) * tiledims.cy) + displayarea.top;
+			dc.FillRect(rcTemp, &br);
+		}break;
+		}
+	}
+	if (cart->ShowLastClick) {
+		pt.x = ((ptLastClick.x - gridanchor.x) * tiledims.cx) + displayarea.left;
+		pt.y = ((ptLastClick.y - gridanchor.y) * tiledims.cy) + displayarea.top;
+		if (PtInRect(displayarea, pt)) {
+			dc.MoveTo(pt); pt.x += tiledims.cx;
+			dc.LineTo(pt); pt.y += tiledims.cy;
+			dc.LineTo(pt); pt.x -= tiledims.cx;
+			dc.LineTo(pt); pt.y -= tiledims.cy;
+			dc.LineTo(pt);
+		}
+	}
+	if (cart->DrawDomainGrid) {
+		dc.SelectObject(&bluepen);
+		CPoint is;
+		CPoint goo;
+		goo.x = (gridanchor.x + 15) >> 4;
+		goo.y = (gridanchor.y + 15) >> 4;
+		if (!(goo.x & 1)) {
+			is.x = gridanchor.x & 0x0F;
+			if (is.x) is.x = ((16 - is.x) << 4) + displayarea.left;
+			else is.x = (is.x << 4) + displayarea.left;
+			dc.MoveTo(is.x, displayarea.top); dc.LineTo(is.x, displayarea.bottom);
+		}
+		if (!(goo.y & 1)) {
+			is.y = gridanchor.y & 0x0F;
+			if (is.y) is.y = ((16 - is.y) << 4) + displayarea.top;
+			else is.y = (is.y << 4) + displayarea.top;
+			dc.MoveTo(displayarea.left, is.y); dc.LineTo(displayarea.right, is.y);
+		}
+		dc.SetBkMode(TRANSPARENT);
+		dc.SetTextColor(RGB(0, 0, 255));
+		CString text;
+		text.Format("%d,%d", goo.x >> 1, goo.y >> 1);
+		if (!(goo.x % 2 && goo.y % 2))
+			dc.TextOut(is.x, is.y, text);
+	}
+
+	//Draw the sprites
+	CRect rc(0, 0, 16, 16);
+	for (coX = 0; coX < 5; coX++) {
+		pt.x = misccoords[coX].x - gridanchor.x;
+		pt.y = misccoords[coX].y - gridanchor.y;
+		if (!PtInRect(rc, pt)) continue;
+		pt.x = (pt.x * tiledims.cx) + displayarea.left;
+		pt.y = (pt.y * tiledims.cy) + displayarea.top;
+		m_sprites.Draw(&dc, coX, pt, ILD_TRANSPARENT);
+	}
+}
+
+void COverworldMap::sync_map_positions(bool popin)
+{
+	ASSERT(m_popoutcreated);
+	if (!m_popoutcreated) return;
+
+	auto embpos = ScrollOffset;
+	auto poppos = m_popoutmap.GetScrollOffset();
+	auto emblim = get_scroll_limits();
+	auto poplim = m_popoutmap.GetScrollLimits();
+	if (popin) {
+		ASSERT(!m_popoutmap.IsWindowVisible());
+		// popout map to embedded
+		POINTF newoff = {
+			poppos.x* emblim.cx / (float)poplim.cx,
+			poppos.y* emblim.cy / (float)poplim.cy
+		};
+		handle_hscroll(SB_THUMBTRACK, (int)std::round(newoff.x), nullptr);
+		handle_vscroll(SB_THUMBTRACK, (int)std::round(newoff.y), nullptr);
+	}
+	else {
+		ASSERT(m_popoutmap.IsWindowVisible());
+		// embedded map to popout
+		POINTF newoff = {
+			embpos.x* poplim.cx / (float)emblim.cx,
+			embpos.y* poplim.cy / (float)emblim.cy
+		};
+		m_popoutmap.ScrollToPos(SB_HORZ, (int)std::round(newoff.x), ForceCenteringOnMapSwitch);
+		m_popoutmap.ScrollToPos(SB_VERT, (int)std::round(newoff.y), ForceCenteringOnMapSwitch);
+	}
+}
+
 bool COverworldMap::DoSave()
 {
 	try {
@@ -1484,8 +1905,7 @@ void COverworldMap::OnChangeMiscy()
 
 void COverworldMap::OnRButtonUp(UINT nFlags, CPoint point)
 {
-	UNREFERENCED_PARAMETER(nFlags);
-	UNREFERENCED_PARAMETER(point);
+	HandleRButtonUp(nFlags, fix_map_point(point));
 	mousedown = (BYTE)0;
 }
 
@@ -1521,9 +1941,13 @@ void COverworldMap::OnMapImport()
 
 void COverworldMap::OnMinimap()
 {
-	if(m_minimap.GetCheck()){
-		minimap.rcNew.SetRect(ScrollOffset.x,ScrollOffset.y,ScrollOffset.x + 16,ScrollOffset.y + 16);
-		minimap.rcOld = minimap.rcNew;}
+	if (m_minimap.GetCheck()) {
+		// The focus rect size depends on which map is visible.
+		BOOL popvis = m_popoutmap.IsWindowVisible();
+		auto scroff = popvis ? m_popoutmap.GetScrollOffset() : ScrollOffset;
+		auto minidims = popvis ? m_popoutmap.GetMiniMapDims() : m_minmapsize;
+		minimap.SetFocusRect(make_minimap_rect(scroff));
+	}
 	minimap.ShowWindow(m_minimap.GetCheck());
 }
 
@@ -1557,8 +1981,14 @@ void COverworldMap::OnBnClickedButtonExportMap()
 	OnMapExport();
 }
 
+void COverworldMap::OnBnClickedButtonPopout()
+{
+	PopMapDialog(false);
+}
+
 LRESULT COverworldMap::OnDrawToolBnClick(WPARAM wparam, LPARAM lparam)
 {
+	UNREFERENCED_PARAMETER(wparam);
 	cur_tool = (int)lparam;
 	m_customizetool.EnableWindow(cur_tool > 1);
 	return 0;
@@ -1606,4 +2036,23 @@ void COverworldMap::TeleportHere(int mapindex, int x, int y)
 		BootToTeleportFollowup = 1;
 		OnOK();
 	}
+}
+
+LRESULT COverworldMap::OnShowFloatMap(WPARAM wparam, LPARAM lparam)
+{
+	UNREFERENCED_PARAMETER(lparam);
+	bool in = (wparam == 0);
+
+	if (in) {
+		// We know the tool index, just need to check the corresponding button.
+		auto iter = std::find_if(cbegin(m_toolbuttons), cend(m_toolbuttons),
+			[this](const CDrawingToolButton* btn) { return btn->GetToolIndex() == cur_tool; });
+		if (iter != cend(m_toolbuttons)) {
+			CheckRadioButton(m_penbutton.GetDlgCtrlID(), m_custom2button.GetDlgCtrlID(),
+				(*iter)->GetDlgCtrlID());
+		}
+	}
+
+	PopMapDialog(in);
+	return 0;
 }

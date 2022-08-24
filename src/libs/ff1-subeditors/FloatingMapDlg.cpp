@@ -4,10 +4,12 @@
 #include "resource_subeditors.h"
 #include "FloatingMapDlg.h"
 #include "afxdialogex.h"
+#include "IMapEditor.h"
 #include <ui_helpers.h>
 #include <FFHacksterProject.h>
 #include <FFBaseApp.h>
 
+//DUPE - IDCR_TOOLBTN
 #define IDCR_TOOLBTN 1
 
 // CFloatingMapDlg dialog

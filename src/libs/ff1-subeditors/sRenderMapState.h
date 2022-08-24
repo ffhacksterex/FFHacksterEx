@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IMapEditor.h"
+class IMapEditor;
 class CFFHacksterProject;
 
 struct sRenderMapState

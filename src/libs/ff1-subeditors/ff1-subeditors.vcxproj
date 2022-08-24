@@ -175,6 +175,7 @@
     <ClInclude Include="BattlePalettes.h" />
     <ClInclude Include="BattlePatternTables.h" />
     <ClInclude Include="BattlePic.h" />
+    <ClInclude Include="DlgPopoutMap.h" />
     <ClInclude Include="CSubDlgRenderMap.h" />
     <ClInclude Include="CSubDlgRenderMapStatic.h" />
     <ClInclude Include="FloatingMapDlg.h" />
@@ -196,6 +197,7 @@
     <ClInclude Include="resource_subeditors.h" />
     <ClInclude Include="sRenderMapState.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SubDlgRenderMap2.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TileEdit.h" />
     <ClInclude Include="Tint.h" />
@@ -229,6 +231,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="DlgPopoutMap.cpp" />
+    <ClCompile Include="SubDlgRenderMap2.cpp" />
     <ClCompile Include="TileEdit.cpp" />
     <ClCompile Include="Tint.cpp" />
     <ClCompile Include="WepMagGraphic.cpp" />
@@ -248,11 +252,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\iconmonstr-drop-28-16.png" />
+    <Image Include="res\iconmonstr-drop-28-blue-16.png" />
     <Image Include="res\iconmonstr-large-thumbnail-filled-16.png" />
     <Image Include="res\iconmonstr-pencil-7-16.png" />
     <Image Include="res\iconmonstr-shape-1-16.png" />
     <Image Include="res\iconmonstr-small-thumbnail-lined-16.png" />
+    <Image Include="res\iconmonstr-tree-11-green-16.png" />
     <Image Include="res\iconmonstr-weather-94-16.png" />
+    <Image Include="res\iconmonstr-weather-94-brown-16.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

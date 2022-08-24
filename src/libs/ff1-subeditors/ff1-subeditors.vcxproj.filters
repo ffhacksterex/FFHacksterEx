@@ -105,6 +105,12 @@
     <ClInclude Include="IMapEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SubDlgRenderMap2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgPopoutMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -182,6 +188,12 @@
     <ClCompile Include="sRenderMapState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SubDlgRenderMap2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgPopoutMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ff1-subeditors.rc">
@@ -207,6 +219,18 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\iconmonstr-weather-94-16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\iconmonstr-drop-28-16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\iconmonstr-tree-11-green-16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\iconmonstr-drop-28-blue-16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\iconmonstr-weather-94-brown-16.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

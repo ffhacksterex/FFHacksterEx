@@ -3,14 +3,12 @@
 
 bool sRenderMapState::IsValid() const
 {
-	return
+	bool basics =
 		(pmousedown != nullptr) &&
 		(project != nullptr) &&
 		(owner != nullptr) &&
-		(showrooms != nullptr) &&
 		(ptLastClick != nullptr) &&
 		(rcToolRect != nullptr) &&
-		(cur_map != nullptr) &&
 		(cur_tile != nullptr) &&
 		(cur_tool != nullptr) &&
 		(DecompressedMap != nullptr) &&
@@ -22,7 +20,8 @@ bool sRenderMapState::IsValid() const
 		m_sprites != nullptr &&
 		SPRITE_COUNT > 0 &&
 		SPRITE_PICASSIGNMENT > 0 &&
-
+		(showrooms != nullptr) &&
+		(cur_map != nullptr) &&
 		(Sprite_Coords != nullptr &&
 			Sprite_Coords->size() == SPRITE_COUNT) &&
 		(Sprite_InRoom != nullptr &&
@@ -31,4 +30,6 @@ bool sRenderMapState::IsValid() const
 			Sprite_StandStill->size() == SPRITE_COUNT) &&
 		(Sprite_Value != nullptr &&
 			Sprite_Value->size() == SPRITE_COUNT);
+
+	return basics;
 }

@@ -23,26 +23,28 @@ public:
 
 	CFFHacksterProject* cart;
 	int Context;
-
+	ICoordMap* OVmap;
 	BYTE* Map;
 	BYTE* palette;
 	BYTE PalAssign[128];
+	CSize Tilesize = { 16,16 };
 
-	CRect rcOld;
-	CRect rcNew;
-
-	void FixRects(CPoint);
+	void SetFocusRect(int left, int top, int right, int bottom);
+	void SetFocusRect(CRect rect);
+	void UpdateFocusRect(int left, int top, int right, int bottom);
+	void UpdateFocusRect(CPoint pt, CSize sz);
+	void UpdateFocusRect(CRect rect);
 	void UpdateCur();
 	void UpdateAll();
 
+protected:
+	CRect rcOld;
+	CRect rcNew;
 	bool mousedown;
-
-	ICoordMap* OVmap;
 
 // Dialog Data
 	enum { IDD = IDD_MINIMAP };
 
-protected:
 // Overrides
 	// ClassWizard generated virtual function overrides
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -56,6 +58,8 @@ protected:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	DECLARE_MESSAGE_MAP()
+public:
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };
 
 #endif // !defined(AFX_MINIMAP_H__9A93F35D_2E6D_4F7C_8BC4_F23373EB2E79__INCLUDED_)

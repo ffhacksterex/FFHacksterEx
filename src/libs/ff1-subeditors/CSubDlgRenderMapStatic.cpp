@@ -6,6 +6,7 @@
 #include "CSubDlgRenderMapStatic.h"
 #include <FFHacksterProject.h>
 #include <ui_helpers.h>
+#include <IMapEditor.h>
 
 // CSubDlgRenderMapStatic
 
@@ -88,12 +89,10 @@ void CSubDlgRenderMapStatic::handle_sizing(int cx, int cy)
 	// Size the control to its actual size, but don't move it
 	int neww = State.mapdims.cx * State.tiledims.cx;
 	int newh = State.mapdims.cy * State.tiledims.cy;
-	//m_mapframe.SetWindowPos(nullptr, -1, -1, neww, newh, SWP_NOZORDER | SWP_NOMOVE);
 
 	CRect ctlrc = Ui::GetControlRect(this);
 	CRect wrc{ 0,0, neww, newh };
 	AdjustWindowRectEx(wrc, GetStyle(), FALSE, GetExStyle());
-	//m_mapframe.SetWindowPos(nullptr, -1, -1, wrc.Width(), wrc.Height(), SWP_NOZORDER | SWP_NOMOVE);
 	SetWindowPos(nullptr, -1, -1, wrc.Width(), wrc.Height(), SWP_NOZORDER | SWP_NOMOVE);
 
 	if (m_bmpdc.GetSafeHdc()) {
@@ -122,11 +121,13 @@ void CSubDlgRenderMapStatic::handle_paint()
 	auto& DecompressedMap = State.DecompressedMap;
 	auto& rcToolRect = *State.rcToolRect;
 	auto& cart = State.project;
-
-	//Draw the map
 	auto rcMap = Ui::GetClientRect(this);
 	CPoint ScrollOffset{ 0,0 };
 
+	//Draw the map
+	//TODO - the 16s in the for statements are the tiledims, since we don't currently scale,
+	//		it doesn't cause a problem yet.
+	//		can probably change the State.mapdims.cx at the end to maxcol
 	int maxrow = State.mapdims.cy;
 	int maxcol = State.mapdims.cx;
 	for (coY = 0, pt.y = rcMap.top, coy = ScrollOffset.y; coY < maxrow; coY++, pt.y += 16, coy++, row = coy * State.mapdims.cx) {
@@ -225,15 +226,8 @@ int CSubDlgRenderMapStatic::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void CSubDlgRenderMapStatic::OnPaint()
 {
-	//CPaintDC dc(this); // device context for painting
-	//				   // TODO: Add your message handler code here
-	//				   // Do not call CStatic::OnPaint() for painting messages
-
-	//auto rc = Ui::GetClientRect(this);
-	//dc.FillSolidRect(rc, RGB(0, 255, 127));
-
 	if (!is_valid()) {
-		//CStatic::OnPaint(); //TODO - displays text if subclassed static is label instead of imageframe
+		//CStatic::OnPaint(); //N.B. - displays text if subclassed static is label instead of imageframe
 		return;
 	}
 	handle_paint();

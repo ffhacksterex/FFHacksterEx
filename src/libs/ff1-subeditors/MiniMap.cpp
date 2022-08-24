@@ -6,6 +6,8 @@
 #include "ICoordMap.h"
 #include "MiniMap.h"
 #include "FFHacksterProject.h"
+#include <ui_helpers.h>
+#include <OffscreenDC.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -41,29 +43,52 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CMiniMap message handlers
 
+const COLORREF RED = RGB(255, 0, 0);
+
 void CMiniMap::OnPaint() 
 {
-	CPaintDC dc(this);
-	CPen redpen; redpen.CreatePen(PS_SOLID,1,RGB(255,0,0));
-	CPen* oldpen = dc.SelectObject(&redpen);
-	int coX, coY, co = 0;
-	for(coY = 0; coY < 256; coY++){
-	for(coX = 0; coX < 256; coX++, co++)
-		dc.SetPixelV(coX,coY,cart->Palette[0][palette[(PalAssign[Map[co]] << 2) + 3]]);}
-
-	dc.MoveTo(rcNew.TopLeft()); dc.LineTo(rcNew.left + 15,rcNew.top); dc.LineTo(rcNew.left + 15,rcNew.top + 15);
-	dc.LineTo(rcNew.left,rcNew.top + 15); dc.LineTo(rcNew.TopLeft());
-
-	dc.SelectObject(oldpen);
-	redpen.DeleteObject();
+	CPaintDC paintdc(this);
+	{
+		auto client = Ui::GetClientRect(this);
+		COffscreenDC odc(paintdc, client);
+		auto& dc = odc.GetDrawingDC();
+		int coX, coY, co = 0;
+		for (coY = 0; coY < 256; coY++) {
+			for (coX = 0; coX < 256; coX++, co++)
+				dc.SetPixelV(coX, coY, cart->Palette[0][palette[(PalAssign[Map[co]] << 2) + 3]]);
+		}
+		odc.Update();
+	}
+	paintdc.Draw3dRect(rcNew, RED, RED);
 }
 
-void CMiniMap::FixRects(CPoint pt)
+void CMiniMap::SetFocusRect(int left, int top, int right, int bottom)
 {
-	rcNew.SetRect(pt.x,pt.y,pt.x + 16,pt.y + 16);
-	InvalidateRect(rcNew,0);
-	InvalidateRect(rcOld,0);
+	rcNew.SetRect(left, top, right, bottom);
 	rcOld = rcNew;
+}
+
+void CMiniMap::SetFocusRect(CRect rect)
+{
+	SetFocusRect(rect.left, rect.top, rect.right, rect.bottom);
+}
+
+void CMiniMap::UpdateFocusRect(int left, int top, int right, int bottom)
+{
+	rcNew.SetRect(left, top, right, bottom);
+	InvalidateRect(rcNew, 0);
+	InvalidateRect(rcOld, 0);
+	rcOld = rcNew;
+}
+
+void CMiniMap::UpdateFocusRect(CPoint pt, CSize sz)
+{
+	UpdateFocusRect(pt.x, pt.y, pt.x + sz.cx, pt.y + sz.cy);
+}
+
+void CMiniMap::UpdateFocusRect(CRect rect)
+{
+	UpdateFocusRect(rect.left, rect.top, rect.right, rect.bottom);
 }
 
 void CMiniMap::OnCancel() 
@@ -87,9 +112,17 @@ void CMiniMap::OnMouseMove(UINT nFlags, CPoint pt)
 	UNREFERENCED_PARAMETER(nFlags);
 
 	if(mousedown){
-		OVmap->DoHScroll(5,pt.x - 8, nullptr);
-		OVmap->DoVScroll(5,pt.y - 8, nullptr);
+		//N.B. - since the main map is fixed at 16x16, the "-8"s below
+		//		attempt to center the scrolling done by the minimap.
+		//		For now, keep this intact, as the overworld map has a
+		//		workaround to this for the popout map.
+		OVmap->DoHScroll(SB_THUMBTRACK, pt.x - 8, nullptr);
+		OVmap->DoVScroll(SB_THUMBTRACK, pt.y - 8, nullptr);
 	}
+
+	CString msg("Minimap");
+	if (pt.x < 256 && pt.y < 256) msg.AppendFormat("   X: %d  Y: %d", pt.x, pt.y);
+	SetWindowText(msg);
 }
 
 void CMiniMap::OnLButtonUp(UINT nFlags, CPoint point)
@@ -102,8 +135,18 @@ void CMiniMap::OnLButtonUp(UINT nFlags, CPoint point)
 BOOL CMiniMap::OnInitDialog() 
 {
 	CFFBaseDlg::OnInitDialog();
-	
-	mousedown = 0;
-	
+	mousedown = 0;	
 	return 1;
+}
+
+BOOL CMiniMap::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN) {
+		switch (pMsg->wParam) {
+		case VK_F7:
+			OVmap->SendKeydown(pMsg->wParam, pMsg->lParam);
+			return TRUE;
+		}
+	}
+	return CFFBaseDlg::PreTranslateMessage(pMsg);
 }
