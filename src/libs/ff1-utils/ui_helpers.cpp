@@ -465,21 +465,22 @@ namespace Ui
 		return pt;
 	}
 
+	// Sets the scrolling range for a window's embedded client area scroll bar.
 	// Returns - true if scroll is shown, false if hidden.
 	// Params:
-	// pwnd - window whose scroll bar will be set or hidden
-	// nBar - SB_HORZ or SB_VERT
-	// rcarea - rect of the area that might need to scroll
-	// clientextent - the client width (if nBar == SB_HORZ) or height (SB_VERT)
-	// tilespan - if tiled, the span of a single tile
-	bool SetClientScroll(CWnd* pwnd, int nBar, const CRect& rcarea, int clientextent, int tilespan)
+	//   @pwnd - window whose scroll bar will be set or hidden
+	//   @nBar - SB_HORZ or SB_VERT
+	//   @rcarea - rect of the area that might need to scroll
+	//   @clientextent - the client width (if nBar == SB_HORZ) or height (SB_VERT)
+	//   @tilespanbump - if tiled, the span of a single tile
+	bool SetClientScroll(CWnd* pwnd, int nBar, const CRect& rcarea, int clientextent, int tilespanbump)
 	{
 		// Does the control's extent exceeds the host client area's extent?
 		int ctlw = nBar == SB_HORZ ? rcarea.Width() : rcarea.Height();
 		if (ctlw > clientextent) {
 			// Yes, so show the bar and set it's range
 			int bump = nBar == SB_HORZ ? GetSystemMetrics(SM_CXVSCROLL) : GetSystemMetrics(SM_CYHSCROLL);
-			auto scmax = (ctlw - clientextent) + bump + tilespan;
+			auto scmax = (ctlw - clientextent) + bump + tilespanbump;
 			pwnd->EnableScrollBarCtrl(nBar, TRUE);
 			SCROLLINFO si = { 0 };
 			pwnd->GetScrollInfo(nBar, &si, SIF_ALL);
@@ -542,7 +543,15 @@ namespace Ui
 		return curpos;
 	}
 
-	bool SetContainedScroll(CScrollBar* bar, int nBar, const CRect& rcarea, int clientextent, int tilespan)
+	// Sets the scrolling range for a standalone scroll bar control.
+	// Returns - true if scroll is shown, false if hidden.
+	// Params:
+	//   @bar - scroll bar to set or hide
+	//   @nBar - SB_HORZ (if bar is a horz scroll bar) or SB_VERT
+	//   @rcarea - rect of the area that might need to scroll
+	//   @clientextent - the client width (if nBar == SB_HORZ) or height (SB_VERT)
+	//   @tilespanbump - if tiled, the span of a single tile
+	bool SetContainedScroll(CScrollBar* bar, int nBar, const CRect& rcarea, int clientextent, int tilespanbump)
 	{
 		// Does the control's extent exceeds the host client area's extent?
 		int ctlw = nBar == SB_HORZ ? rcarea.Width() : rcarea.Height();
@@ -550,7 +559,7 @@ namespace Ui
 			// Yes, so show the bar and set it's range
 			//int bump = nBar == SB_HORZ ? GetSystemMetrics(SM_CXVSCROLL) : GetSystemMetrics(SM_CYHSCROLL);
 			int bump = 0;
-			auto scmax = (ctlw - clientextent) + bump + tilespan;
+			auto scmax = (ctlw - clientextent) + bump + tilespanbump;
 			bar->ShowWindow(SW_SHOW);
 			SCROLLINFO si = { 0 };
 			bar->GetScrollInfo(&si, SIF_ALL);

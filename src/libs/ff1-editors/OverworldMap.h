@@ -25,6 +25,7 @@ public:
 	enum CancelContext { Coords, Minimap };
 
 	bool BootToTeleportFollowup;
+	bool ForceCenteringOnMapSwitch = false; //N.B. - for now, this is always false
 
 	LRESULT OnDrawToolBnClick(WPARAM wparam, LPARAM lparam);
 
@@ -121,6 +122,7 @@ protected:
 	CPoint fix_map_point(CPoint point);
 	CRect make_minimap_rect(CPoint point);
 	CSize calc_scroll_maximums();
+	CSize get_scroll_limits();
 	void apply_tile_tint(int ref);
 	CRect get_display_area();
 	void handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);

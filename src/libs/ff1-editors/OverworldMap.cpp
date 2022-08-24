@@ -1610,6 +1610,14 @@ CSize COverworldMap::calc_scroll_maximums()
 	return { 240 * m_tiledims.cx, 240 * m_tiledims.cy };
 }
 
+CSize COverworldMap::get_scroll_limits()
+{
+	return CSize{
+		m_hscroll.GetScrollLimit(),
+		m_vscroll.GetScrollLimit()
+	};
+}
+
 void COverworldMap::apply_tile_tint(int ref)
 {
 	int old = cart->TintTiles[0][ref];
@@ -1813,29 +1821,32 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scroll
 
 void COverworldMap::sync_map_positions(bool popin)
 {
-	// Get the source scroll pos and add its half dims to it.
-	// That forms map pos, pass that to the other map.
+	ASSERT(m_popoutcreated);
+	if (!m_popoutcreated) return;
+
+	auto embpos = ScrollOffset;
+	auto poppos = m_popoutmap.GetScrollOffset();
+	auto emblim = get_scroll_limits();
+	auto poplim = m_popoutmap.GetScrollLimits();
 	if (popin) {
 		ASSERT(!m_popoutmap.IsWindowVisible());
-		auto mappos = m_popoutmap.GetMapPos();
-		auto rcdst = get_display_area();
-		CPoint newoff = {
-			mappos.x - (rcdst.Width() / 2),
-			mappos.y - (rcdst.Height() / 2)
+		// popout map to embedded
+		POINTF newoff = {
+			poppos.x* emblim.cx / (float)poplim.cx,
+			poppos.y* emblim.cy / (float)poplim.cy
 		};
-		handle_hscroll(SB_THUMBTRACK, newoff.x, nullptr);
-		handle_vscroll(SB_THUMBTRACK, newoff.y, nullptr);
+		handle_hscroll(SB_THUMBTRACK, (int)std::round(newoff.x), nullptr);
+		handle_vscroll(SB_THUMBTRACK, (int)std::round(newoff.y), nullptr);
 	}
 	else {
 		ASSERT(m_popoutmap.IsWindowVisible());
-		auto rcsrc = get_display_area();
-		auto srcpos = ScrollOffset;
-		CPoint mappos = {
-			srcpos.x + (rcsrc.Width() / 2),
-			srcpos.y + (rcsrc.Height() / 2)
+		// embedded map to popout
+		POINTF newoff = {
+			embpos.x* poplim.cx / (float)emblim.cx,
+			embpos.y* poplim.cy / (float)emblim.cy
 		};
-		m_popoutmap.ScrollToPos(SB_HORZ, mappos.x);
-		m_popoutmap.ScrollToPos(SB_VERT, mappos.y);
+		m_popoutmap.ScrollToPos(SB_HORZ, (int)std::round(newoff.x), ForceCenteringOnMapSwitch);
+		m_popoutmap.ScrollToPos(SB_VERT, (int)std::round(newoff.y), ForceCenteringOnMapSwitch);
 	}
 }
 

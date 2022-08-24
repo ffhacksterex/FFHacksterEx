@@ -136,7 +136,7 @@ void CDlgPopoutMap::ScrollByPercentage(int nBar, int percent)
 	}
 }
 
-void CDlgPopoutMap::ScrollToPos(int nBar, int mappos)
+void CDlgPopoutMap::ScrollToPos(int nBar, int mappos, bool center)
 {
 	ASSERT(is_valid());
 	if (!is_valid()) return;
@@ -158,7 +158,7 @@ void CDlgPopoutMap::ScrollToPos(int nBar, int mappos)
 		SCROLLINFO info;
 		bar->GetScrollInfo(&info, SIF_ALL);
 		int limit = info.nMax;
-		int newpos = mappos - halfdisp;
+		int newpos = center ? mappos - halfdisp : mappos;
 
 		if (newpos < 0)
 			newpos = 0;
@@ -185,6 +185,14 @@ CPoint CDlgPopoutMap::GetMapPos() const
 CPoint CDlgPopoutMap::GetScrollOffset() const
 {
 	return get_scroll_pos();
+}
+
+CSize CDlgPopoutMap::GetScrollLimits() const
+{
+	return CSize{
+		m_hscroll.GetScrollLimit(),
+		m_vscroll.GetScrollLimit()
+	};
 }
 
 CSize CDlgPopoutMap::GetTileDims() const
@@ -341,8 +349,8 @@ void CDlgPopoutMap::handle_sizing(int clientx, int clienty)
 
 	CRect maparea{ 0, 0, Mapsize.cx * Tilesize.cx, Mapsize.cy * Tilesize.cy };
 	auto client = Ui::GetControlRect(&m_displaystatic);
-	Ui::SetContainedScroll(&m_hscroll, SB_HORZ, maparea, client.Width(), 0);
-	Ui::SetContainedScroll(&m_vscroll, SB_VERT, maparea, client.Height(), 0);
+	Ui::SetContainedScroll(&m_hscroll, SB_HORZ, maparea, client.Width(), Tilesize.cx);
+	Ui::SetContainedScroll(&m_vscroll, SB_VERT, maparea, client.Height(), Tilesize.cy);
 }
 
 

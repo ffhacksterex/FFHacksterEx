@@ -21,10 +21,11 @@ public:
 	bool SetButtons(const std::vector<sMapDlgButton>& buttons);
 	void UpdateControls();
 	void ScrollByPercentage(int nBar, int percent);
-	void ScrollToPos(int nBar, int mappos);
+	void ScrollToPos(int nBar, int mappos, bool center);
 
 	CPoint GetMapPos() const;
 	CPoint GetScrollOffset() const;
+	CSize GetScrollLimits() const;
 	CSize GetTileDims() const;
 	CSize GetMiniMapDims() const;
 	//CPoint GetScrollPercentages() const; //REMOVE?
