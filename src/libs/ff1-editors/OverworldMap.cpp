@@ -1668,7 +1668,7 @@ void COverworldMap::handle_paint(CDC& dc)
 		CDC compat;
 		compat.CreateCompatibleDC(&dc);
 		CBitmap bmp;
-		bmp.CreateCompatibleBitmap(&dc, rcMap.Width() + tiledims.cx, rcMap.Height());
+		bmp.CreateCompatibleBitmap(&dc, rcMap.Width() + tiledims.cx, rcMap.Height() + tiledims.cy);
 		auto oldbmp = compat.SelectObject(&bmp);
 		CRect client = { 0,0,rcMap.Width() + tiledims.cx, rcMap.Height() };
 		compat.FillSolidRect(client, RGB(255, 255, 255));
@@ -1734,6 +1734,14 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scroll
 	displayarea.top -= tileoff.y;
 	if (tileoff.x) ++gridvis.cx;
 	if (tileoff.y) ++gridvis.cy;
+
+	// If not at the right col or bottom row, overdraw by 1 tile.
+	// This enables cheap partial tile rendering; the clipping region will clean it up.
+	if ((gridanchor.x + gridvis.cx) < m_mapsize.cx)
+		++gridvis.cx;
+	if ((gridanchor.y + gridvis.cy) < m_mapsize.cy)
+		++gridvis.cy;
+
 	copt = gridanchor;
 	for (coY = 0, pt.y = displayarea.top; coY < gridvis.cy; coY++, pt.y += tiledims.cy, copt.y += 1) {
 		for (coX = 0, pt.x = displayarea.left, copt.x = gridanchor.x; coX < gridvis.cx; coX++, pt.x += tiledims.cx, copt.x += 1) {
