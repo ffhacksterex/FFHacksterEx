@@ -9,6 +9,41 @@
 using namespace Ini;
 using Types::dec;
 
+void sAppFolderPrefs::DecodePrefPaths()
+{
+	auto paths = get_path_reflist();
+	const CString appfolder = Paths::GetProgramFolder();
+	for (CString* pstr : paths) {
+		CString& str = *pstr;
+		str.Replace("*APP", appfolder);
+	}
+}
+
+void sAppFolderPrefs::EncodePrefPaths()
+{
+	auto paths = get_path_reflist();
+	const CString appfolder = Paths::GetProgramFolder();
+	for (CString* pstr : paths) {
+		CString& str = *pstr;
+		str.Replace(appfolder, "*APP");
+	}
+}
+
+std::vector<CString*> sAppFolderPrefs::get_path_reflist()
+{
+	return std::vector<CString*>{
+		&PrefProjectParentFolder,
+			& PrefCleanFolder,
+			& PrefAdditionalModulesFolder,
+			& PrefPublishFolder,
+			& PrefArchiveFolder,
+			& PrefMapImportExportFolder,
+			& PrefImageImportExportFolder,
+			& PrefAsmDllFolder
+	};
+}
+
+
 #define READBOOL(ini,name) name = ReadIniBool(ini, #name, "value", name)
 #define READSTR(ini,name) name = ReadIni(ini, #name, "value", name)
 #define READINT(ini,name) name = dec(ReadIni(ini, #name, "value", dec((int)name)))
@@ -34,8 +69,6 @@ using Types::dec;
 
 #define READ_SETTING_HELP(name) name = (HelpType)Types::dec(Ini::ReadIni(m_inifile, #name, "value", Types::dec(name)))
 #define WRITE_SETTING_HELP WRITE_SETTING_DEC
-
-
 
 AppSettings::AppSettings(CString inifile)
 	: m_inifile(inifile)
@@ -112,6 +145,7 @@ void AppSettings::Read()
 		READ_SETTING_STR(PrefMapImportExportFolder);
 		READ_SETTING_STR(PrefImageImportExportFolder);
 		READ_SETTING_STR(PrefAsmDllFolder);
+		this->DecodePrefPaths(); // so clients have the actual app folder, not *APP
 	}
 	catch (std::exception & ex) {
 		AfxMessageBox(CString("Unable to read app settings:\n") + ex.what());
@@ -143,6 +177,7 @@ void AppSettings::Write()
 		WRITEBOOL(inifile, EnableHelpChoice);
 		WriteMru();
 
+		this->EncodePrefPaths(); // so that the file contains *APP
 		WRITE_SETTING_STR(PrefProjectParentFolder);
 		WRITE_SETTING_STR(PrefCleanFolder);
 		WRITE_SETTING_STR(PrefAdditionalModulesFolder);
@@ -151,6 +186,7 @@ void AppSettings::Write()
 		WRITE_SETTING_STR(PrefMapImportExportFolder);
 		WRITE_SETTING_STR(PrefImageImportExportFolder);
 		WRITE_SETTING_STR(PrefAsmDllFolder);
+		this->DecodePrefPaths(); // so clients have the actual app folder, not *APP
 	}
 	catch (std::exception & ex) {
 		AfxMessageBox(CString("Unable to write app settings:\n") + ex.what());
