@@ -3,6 +3,7 @@
 #include "FFHacksterProject.h"
 #include "DRAW_STRUCT.h"
 #include "common_symbols.h" //TODO - only added for UiTemp::COMMON_OFN
+#include "path_functions.h"
 
 
 BYTE Draw_ButtonDown(DRAW_STRUCT* draw, CPoint pt, bool rbutton)
@@ -228,10 +229,16 @@ void Draw_DrawBufferTile(CDC* mDC, int pX, int pY, CFFHacksterProject* cart, DRA
 		br[co].DeleteObject();
 }
 
-void Draw_ExportToBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* pal)
+void Draw_ExportToBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* pal, CString initialfile)
 {
 	CFileDialog dlg(0, "bmp", nullptr, OFN_OVERWRITEPROMPT | UiTemp::COMMON_OFN,
 		"16/256 Color Bitmaps (*.bmp)|*bmp|All Files (*.*)|*.*||");
+	char initpath[_MAX_PATH + 1] = { 0 };
+	if (!initialfile.IsEmpty()) {
+		dlg.m_pOFN->lpstrFile = initpath;
+		if (Paths::IsDir(initialfile)) initialfile += "\\"; // this sets it as initial dir instead
+		strncpy(initpath, initialfile, _MAX_PATH);
+	}
 	if (dlg.DoModal() != IDOK) return;
 
 	FILE* file = fopen(dlg.GetPathName(), "w+b");
@@ -306,10 +313,21 @@ void Draw_ExportToBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* pal)
 	fclose(file);
 }
 
-void Draw_ImportFromBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* palette)
+void Draw_ImportFromBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* palette, CString initialfile)
 {
 	CFileDialog dlg(1, "bmp", nullptr, OFN_HIDEREADONLY | UiTemp::COMMON_OFN,
 		"16/256 Color Bitmaps (*.bmp)|*bmp|All Files (*.*)|*.*||");
+	TCHAR initpath[_MAX_PATH] = { 0 };
+	if (!initialfile.IsEmpty()) {
+		if (Paths::FileExists(initialfile)) {
+			strncpy(initpath, initialfile, _MAX_PATH);
+			dlg.m_pOFN->lpstrFile = initpath;
+		}
+		else if (Paths::DirExists(initialfile)) {
+			strncpy(initpath, initialfile, _MAX_PATH);
+			dlg.m_pOFN->lpstrInitialDir = initpath;
+		}
+	}
 	if (dlg.DoModal() != IDOK) return;
 
 	FILE* file = fopen(dlg.GetPathName(), "rb");
