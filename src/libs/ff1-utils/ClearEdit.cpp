@@ -47,10 +47,15 @@ void CClearEdit::OnNcPaint()
 	pdc->SelectObject(&br);
 
 	CPen pen;
-	if ((style & WS_BORDER) || (exstyle & WS_EX_CLIENTEDGE))
-		pen.CreateStockObject(BLACK_PEN);
-	else
+	if ((style & WS_BORDER) || (exstyle & WS_EX_CLIENTEDGE)) {
+		if (GetFocus() == this)
+			pen.CreatePen(PS_SOLID, 1, GetSysColor(COLOR_HOTLIGHT));
+		else
+			pen.CreateStockObject(BLACK_PEN);
+	}
+	else {
 		pen.CreateStockObject(NULL_PEN);
+	}
 	pdc->SelectObject(&pen);
 
 	CRect rc;
@@ -62,6 +67,7 @@ void CClearEdit::OnNcPaint()
 	//		verify that it's not needed and remove it.
 	//		However, there's still a problem with the non-client area not
 	//		refreshing for multiline controls.
+	//FUTURE - Test this in the near future to see if it's still an issue.
 	//if ((style & WS_BORDER) || (exstyle & WS_EX_CLIENTEDGE))
 	pdc->Rectangle(&rc);
 
@@ -72,27 +78,8 @@ void CClearEdit::OnNcPaint()
 
 void CClearEdit::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
-	UNREFERENCED_PARAMETER(bCalcValidRects);
-
-	RECT & rc = lpncsp->rgrc[0];
-	int origcy = rc.bottom - rc.top;
-
-	auto pdc = GetWindowDC();
-	auto oldfont = pdc->SelectObject(GetFont());
-	//REFACTOR - verify use of the actual text (instead of single line text) to calculate extent
-	//auto sitext = pdc->GetTextExtent("Wy");
-	CString text = Ui::GetControlText(*this);
-	auto sitext = pdc->GetTextExtent(text);
-	auto diff = (origcy - sitext.cy) / 2;
-	pdc->SelectObject(oldfont);
-	ReleaseDC(pdc);
-
-	rc.top += diff;
-	rc.bottom -= diff;
-	rc.left += 1;
-	rc.right -= 1;
+	Default();
 }
-
 
 BOOL CClearEdit::OnEraseBkgnd(CDC* pDC)
 {
@@ -100,7 +87,6 @@ BOOL CClearEdit::OnEraseBkgnd(CDC* pDC)
 
 	return TRUE;
 }
-
 
 void CClearEdit::OnMouseMove(UINT nFlags, CPoint point)
 {
