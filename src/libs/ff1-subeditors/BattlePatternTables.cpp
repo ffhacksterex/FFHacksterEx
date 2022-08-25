@@ -5,6 +5,7 @@
 #include "resource_subeditors.h"
 #include "BattlePatternTables.h"
 #include "NESPalette.h"
+#include <AppSettings.h>
 #include "FFHacksterProject.h"
 #include "general_functions.h"
 #include "ini_functions.h"
@@ -561,16 +562,6 @@ void CBattlePatternTables::StoreValues()
 	Draw_Buffer_ROM(cart,(patterntable << 11) + BATTLEPATTERNTABLE_OFFSET,&draw);
 }
 
-void CBattlePatternTables::OnExportbitmap() 
-{
-	BYTE* sendpalette = palette;
-	if(!view){
-		sendpalette = &palette[palview];
-		draw.palmax = 4;}
-	Draw_ExportToBmp(&draw,cart,sendpalette);
-	draw.palmax = 16;
-}
-
 void CBattlePatternTables::OnLButtonDblClk(UINT nFlags, CPoint pt) 
 {
 	UNREFERENCED_PARAMETER(nFlags);
@@ -594,13 +585,24 @@ void CBattlePatternTables::OnLButtonDblClk(UINT nFlags, CPoint pt)
 	}
 }
 
+void CBattlePatternTables::OnExportbitmap()
+{
+	BYTE* sendpalette = palette;
+	if (!view) {
+		sendpalette = &palette[palview];
+		draw.palmax = 4;
+	}
+	Draw_ExportToBmp(&draw, cart, sendpalette, cart->AppSettings->PrefImageImportExportFolder);
+	draw.palmax = 16;
+}
+
 void CBattlePatternTables::OnImportbitmap() 
 {
 	BYTE* sendpalette = palette;
 	if(!view){
 		sendpalette = &palette[palview];
 		draw.palmax = 4;}
-	Draw_ImportFromBmp(&draw,cart,sendpalette);
+	Draw_ImportFromBmp(&draw,cart,sendpalette, cart->AppSettings->PrefImageImportExportFolder);
 	draw.palmax = 16;
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);

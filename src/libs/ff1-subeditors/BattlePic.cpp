@@ -5,6 +5,7 @@
 #include "BattlePic.h"
 #include "AsmFiles.h"
 #include "FFHacksterProject.h"
+#include <AppSettings.h>
 #include "GameSerializer.h"
 #include "NESPalette.h"
 #include "draw_functions.h"
@@ -280,12 +281,14 @@ void CBattlePic::StoreValues()
 	StorePalette();
 }
 
-void CBattlePic::OnExportbitmap() 
-{Draw_ExportToBmp(&draw,cart,palette);}
+void CBattlePic::OnExportbitmap()
+{
+	Draw_ExportToBmp(&draw, cart, palette, cart->AppSettings->PrefImageImportExportFolder);
+}
 
 void CBattlePic::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,cart,palette);
+	Draw_ImportFromBmp(&draw, cart, palette, cart->AppSettings->PrefImageImportExportFolder);
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }
