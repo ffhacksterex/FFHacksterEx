@@ -322,8 +322,8 @@ BOOL CClasses::OnInitDialog()
 
 	try {
 		InitButtons();
-		ReadOffsets();
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		ar_1m[0] = &m_1m1;ar_1m[1] = &m_1m2;ar_1m[2] = &m_1m3;ar_1m[3] = &m_1m4;ar_2m[0] = &m_2m1;
 		ar_2m[1] = &m_2m2;ar_2m[2] = &m_2m3;ar_2m[3] = &m_2m4;ar_3m[0] = &m_3m1;ar_3m[1] = &m_3m2;
@@ -378,7 +378,7 @@ void CClasses::InitButtons()
 	m_banner.Set(this, RGB(0, 0, 0), RGB(255, 32, 64), "Classes");
 }
 
-void CClasses::ReadOffsets()
+void CClasses::LoadOffsets()
 {
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	CLASS_OFFSET = ReadHex(Project->ValuesPath, "CLASS_OFFSET");

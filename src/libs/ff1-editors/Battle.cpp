@@ -185,7 +185,8 @@ BOOL CBattle::OnInitDialog()
 	BaseClass::OnInitDialog();
 	
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		SetRedraw(FALSE);
 
@@ -383,10 +384,8 @@ void CBattle::LoadFiendChaosPic(int pattern_off,int palette_off,bool chaos)
 	bmp.DeleteObject();
 }
 
-void CBattle::LoadRom()
+void CBattle::LoadOffsets()
 {
-	Project->ClearROM();
-
 	BATTLE_COUNT = ReadDec(Project->ValuesPath, "BATTLE_COUNT");
 	BATTLE_OFFSET = ReadHex(Project->ValuesPath, "BATTLE_OFFSET");
 	BATTLE_BYTES = ReadHex(Project->ValuesPath, "BATTLE_BYTES");
@@ -423,8 +422,11 @@ void CBattle::LoadRom()
 
 	// used by subeditors
 	BANK00_OFFSET = ReadHex(Project->ValuesPath, "BANK00_OFFSET");
+}
 
-	// Now load the data
+void CBattle::LoadRom()
+{
+	Project->ClearROM();
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}

@@ -34,17 +34,18 @@ CPartySetup::~CPartySetup()
 {
 }
 
-void CPartySetup::LoadRom()
+void CPartySetup::LoadOffsets()
 {
-	Project->ClearROM();
-
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	NEWPARTYCLASSCOUNT_OFFSET = ReadHex(Project->ValuesPath, "NEWPARTYCLASSCOUNT_OFFSET");
 	NEWPARTYCLASSINC_OFFSET = ReadHex(Project->ValuesPath, "NEWPARTYCLASSINC_OFFSET");
 	PTYGEN_OFFSET = ReadHex(Project->ValuesPath, "PTYGEN_OFFSET");
 	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
+}
 
-	// Now load the data
+void CPartySetup::LoadRom()
+{
+	Project->ClearROM();
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
@@ -145,7 +146,8 @@ BOOL CPartySetup::OnInitDialog()
 	BaseClass::OnInitDialog();
 
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		m_banner.Set(this, COLOR_BLACK, COLOR_ORANGE, "Party Setup");
 

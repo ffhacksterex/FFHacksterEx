@@ -22,6 +22,16 @@ public:
 	bool WantsToReload() const;
 
 protected:
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
+	virtual void PaintClient(CDC& dc);
+	virtual void LoadClassEngineData(GameSerializer& ser);
+	virtual void SaveClassEngineData(GameSerializer& ser);
+	virtual int GetLevelOffset(int classid) const;
+
 	CStrikeCheck* ar_1m[4];
 	CStrikeCheck* ar_2m[4];
 	CStrikeCheck* ar_3m[4];
@@ -137,18 +147,6 @@ protected:
 	bool m_pastewarned = false;
 
 	void InitButtons();
-
-	virtual void ReadOffsets();
-	virtual void LoadRom();
-	virtual void SaveRom();
-	virtual void LoadValues();
-	virtual void StoreValues();
-	virtual void LoadClassEngineData(GameSerializer & ser);
-	virtual void SaveClassEngineData(GameSerializer & ser);
-	virtual int GetLevelOffset(int classid) const;
-
-	virtual void PaintClient(CDC & dc);
-
 	void DisplayRunningTotals();
 	void ScrollXPViewBy(int offset);
 

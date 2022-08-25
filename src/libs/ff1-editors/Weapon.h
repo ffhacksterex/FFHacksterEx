@@ -20,14 +20,15 @@ public:
 	CRect rcGraphic;
 
 protected:
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
+	virtual void PaintClient(CDC& dc);
+
 	CImageList m_graphics;
 	void ResetGraphicList();
-
-	void LoadRom();
-	virtual void SaveRom();
-	void LoadValues();
-	virtual void StoreValues();
-	virtual void PaintClient(CDC & dc);
 
 // Dialog Data
 	//{{AFX_DATA(CWeapon)

@@ -31,6 +31,14 @@ public:
 	virtual void DoVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 
 protected:
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadTileData();
+	virtual void StoreTileData();
+	virtual void DecompressMap();
+	virtual void CompressMap();
+
 	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
 	CImageList m_sprites;
 	CImageList m_backdrop;
@@ -65,13 +73,6 @@ protected:
 	void DoMinimap();
 	void DoViewcoords();
 
-	void LoadRom();
-	virtual void SaveRom();
-	void LoadTileData();
-	void StoreTileData();
-
-	void DecompressMap();
-	void CompressMap();
 	void ReloadGraphics();
 	void ReloadSpriteGraphics(CProgressCtrl*);
 	void InitBackdrops();

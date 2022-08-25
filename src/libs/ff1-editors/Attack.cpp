@@ -73,12 +73,21 @@ void CAttack::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDHELPBOOK, m_helpbookbutton);
 }
 
+BEGIN_MESSAGE_MAP(CAttack, CEditorWithBackground)
+	ON_LBN_SELCHANGE(IDC_ATTACKLIST, OnSelchangeAttacklist)
+	ON_BN_CLICKED(IDC_EFF_DAMAGE, OnEffDamage)
+	ON_BN_CLICKED(IDC_EFF_EFFECT, OnEffEffect)
+	ON_BN_CLICKED(IDC_SAVE, OnSave)
+END_MESSAGE_MAP()
+
+
 BOOL CAttack::OnInitDialog()
 {
 	CEditorWithBackground::OnInitDialog();
 
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		LoadListBox(m_attacklist, LoadAttackEntries(*Project));
 		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, LoadElementLabels(*Project));
@@ -100,17 +109,17 @@ BOOL CAttack::OnInitDialog()
 	return TRUE;
 }
 
-void CAttack::LoadRom()
+void CAttack::LoadOffsets()
 {
-	Project->ClearROM();
-
-	// Read the scalars
 	ATTACK_OFFSET = ReadHex(Project->ValuesPath, "ATTACK_OFFSET");
 	ATTACK_BYTES = ReadDec(Project->ValuesPath, "ATTACK_BYTES");
 	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
 	MAGIC_OFFSET = ReadHex(Project->ValuesPath, "MAGIC_OFFSET");
+}
 
-	// Now load the data
+void CAttack::LoadRom()
+{
+	Project->ClearROM();
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
@@ -232,14 +241,6 @@ void CAttack::PaintClient(CDC & dc)
 {
 	__super::PaintClient(dc);
 }
-
-
-BEGIN_MESSAGE_MAP(CAttack, CEditorWithBackground)
-	ON_LBN_SELCHANGE(IDC_ATTACKLIST, OnSelchangeAttacklist)
-	ON_BN_CLICKED(IDC_EFF_DAMAGE, OnEffDamage)
-	ON_BN_CLICKED(IDC_EFF_EFFECT, OnEffEffect)
-	ON_BN_CLICKED(IDC_SAVE, OnSave)
-END_MESSAGE_MAP()
 
 
 /////////////////////////////////////////////////////////////////////////////

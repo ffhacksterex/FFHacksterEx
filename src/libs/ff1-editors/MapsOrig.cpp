@@ -185,10 +185,8 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CMapsOrig message handlers
 
-void CMapsOrig::LoadRom()
+void CMapsOrig::LoadOffsets()
 {
-	cart->ClearROM();
-
 	ITEMPRICE_OFFSET = ReadHex(cart->ValuesPath, "ITEMPRICE_OFFSET");
 	MAPSPRITEPATTERNTABLE_COUNT = ReadDec(cart->ValuesPath, "MAPSPRITEPATTERNTABLE_COUNT");
 	MAPSPRITEPATTERNTABLE_OFFSET = ReadHex(cart->ValuesPath, "MAPSPRITEPATTERNTABLE_OFFSET");
@@ -223,8 +221,11 @@ void CMapsOrig::LoadRom()
 	BANK07_OFFSET = ReadHex(cart->ValuesPath, "BANK07_OFFSET");
 	BINBANK01DATA_OFFSET = ReadHex(cart->ValuesPath, "BINBANK01DATA_OFFSET");
 	BINPRICEDATA_OFFSET = ReadHex(cart->ValuesPath, "BINPRICEDATA_OFFSET");
+}
 
-	// Now load the data
+void CMapsOrig::LoadRom()
+{
+	cart->ClearROM();
 	if (cart->IsRom()) {
 		load_binary(cart->WorkRomPath, cart->ROM);
 	}
@@ -288,7 +289,8 @@ BOOL CMapsOrig::OnInitDialog()
 		if (cart == nullptr) throw std::runtime_error("no project was specified for this editor");
 		if (Enloader == nullptr) throw std::runtime_error("No entry loader was specified for this editor");
 
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		Sprite_Coords.resize(MAPSPRITE_COUNT);
 		Sprite_InRoom.resize(MAPSPRITE_COUNT);

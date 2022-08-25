@@ -20,6 +20,12 @@ public:
 #endif
 
 protected:
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
+
 	int HASCANOE_OFFSET;
 	int SHIPVIS_OFFSET = -1;
 	int AIRSHIPVIS_OFFSET = -1;
@@ -55,11 +61,6 @@ protected:
 
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();
-
-	void LoadRom();
-	virtual void SaveRom();
-	void LoadValues();
-	virtual void StoreValues();
 
 	DECLARE_MESSAGE_MAP()
 };

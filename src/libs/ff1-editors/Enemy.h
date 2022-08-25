@@ -17,6 +17,15 @@ public:
 	CEnemy(CWnd* pParent = nullptr);   // standard constructor
 
 protected:
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
+	virtual void PaintClient(CDC& dc);
+	void LoadAI();
+	void StoreAI();
+
 	bool m_usagedataon = false;
 	int cur;
 	int cur_ai;
@@ -50,13 +59,6 @@ protected:
 	static CString UsageDataFormatter(CFFHacksterProject& proj, const sUseData& u);
 
 	void LoadCustomizedControls();
-	void LoadRom();
-	virtual void SaveRom();
-	void LoadValues();
-	virtual void StoreValues();
-	void LoadAI();
-	void StoreAI();
-	virtual void PaintClient(CDC & dc);
 
 	unsigned char GetByte15HaxValue();
 	unsigned char GetByte15ValueFromFlags();

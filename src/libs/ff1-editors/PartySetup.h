@@ -37,7 +37,8 @@ protected:
 	CClearButton m_cancelbutton;
 	CHelpbookButton m_helpbookbutton;
 
-	void LoadRom();
+	virtual void LoadOffsets();
+	virtual void LoadRom();
 	virtual void SaveRom();
 	virtual void StoreValues();
 

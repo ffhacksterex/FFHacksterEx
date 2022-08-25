@@ -16,6 +16,13 @@ public:
 	CBattle(CWnd* pParent = nullptr);   // standard constructor
 
 protected:
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
+	virtual void PaintClient(CDC& dc);
+
 	bool m_usagedataon = false;
 	int cur;
 	bool form;
@@ -47,12 +54,6 @@ protected:
 	void UpdateType(int);
 	void ReloadGraphics();
 	void LoadFiendChaosPic(int,int,bool);
-
-	void LoadRom();
-	virtual void SaveRom();
-	void LoadValues();
-	virtual void StoreValues();
-	virtual void PaintClient(CDC & dc);
 
 	int BATTLE_COUNT = -1;
 	int BATTLE_OFFSET = -1; // bank0B

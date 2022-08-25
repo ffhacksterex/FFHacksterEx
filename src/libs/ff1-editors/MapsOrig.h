@@ -33,6 +33,14 @@ public:
 	void DoVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 
 protected:
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
+	virtual void LoadTileData();
+	virtual void StoreTileData();
+
 	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
 
 	void UpdateTeleportLabel(int,bool);
@@ -72,13 +80,6 @@ protected:
 
 	CPoint ptHover;
 	void UpdateClick(CPoint);
-
-	void LoadRom();
-	virtual void SaveRom();
-	void LoadValues();
-	virtual void StoreValues();
-	void LoadTileData();
-	void StoreTileData();
 	void CompressMap();
 	int GetByteCount(int,bool);
 

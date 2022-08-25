@@ -138,7 +138,8 @@ BOOL CEnemy::OnInitDialog()
 	BaseClass::OnInitDialog();
 
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		SetRedraw(FALSE);
 
@@ -358,10 +359,8 @@ void CEnemy::LoadCustomizedControls()
 	}
 }
 
-void CEnemy::LoadRom()
+void CEnemy::LoadOffsets()
 {
-	Project->ClearROM();
-
 	ENEMY_OFFSET = ReadHex(Project->ValuesPath, "ENEMY_OFFSET");
 	ENEMY_BYTES = ReadDec(Project->ValuesPath, "ENEMY_BYTES");
 	AI_OFFSET = ReadHex(Project->ValuesPath, "AI_OFFSET");
@@ -381,8 +380,11 @@ void CEnemy::LoadRom()
 	BINFIENDTSA_OFFSET = ReadHex(Project->ValuesPath, "BINFIENDTSA_OFFSET");
 	BANK00_OFFSET = ReadHex(Project->ValuesPath, "BANK00_OFFSET");
 	BANK07_OFFSET = ReadHex(Project->ValuesPath, "BANK07_OFFSET");
+}
 
-	// Now load the data
+void CEnemy::LoadRom()
+{
+	Project->ClearROM();
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}

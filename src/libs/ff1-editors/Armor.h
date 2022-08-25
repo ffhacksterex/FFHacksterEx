@@ -16,9 +16,10 @@ public:
 	int cur;
 
 protected:
-	void LoadRom();
+	virtual void LoadOffsets();
+	virtual void LoadRom();
 	virtual void SaveRom();
-	void LoadValues();
+	virtual void LoadValues();
 	virtual void StoreValues();
 
 // Dialog Data
