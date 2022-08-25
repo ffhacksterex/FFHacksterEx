@@ -5,6 +5,7 @@
 #include "resource_subeditors.h"
 #include "WepMagGraphic.h"
 #include "FFHacksterProject.h"
+#include <AppSettings.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "string_functions.h"
@@ -210,12 +211,14 @@ void CWepMagGraphic::SetCaption(CString caption)
 	m_caption = caption;
 }
 
-void CWepMagGraphic::OnExportbitmap() 
-{Draw_ExportToBmp(&draw,Project,palette);}
+void CWepMagGraphic::OnExportbitmap()
+{
+	Draw_ExportToBmp(&draw, Project, palette, Project->AppSettings->PrefImageImportExportFolder);
+}
 
 void CWepMagGraphic::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,Project,palette);
+	Draw_ImportFromBmp(&draw,Project,palette, Project->AppSettings->PrefImageImportExportFolder);
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }
