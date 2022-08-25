@@ -17,6 +17,12 @@ public:
 	CString PrefMapImportExportFolder;
 	CString PrefImageImportExportFolder;
 	CString PrefAsmDllFolder;
+
+	void DecodePrefPaths();
+	void EncodePrefPaths();
+
+protected:
+	std::vector<CString*> get_path_reflist();
 };
 
 class AppSettings : public sAppFolderPrefs

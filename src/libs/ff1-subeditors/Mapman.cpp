@@ -5,6 +5,7 @@
 #include "Mapman.h"
 #include "NESPalette.h"
 #include "FFHacksterProject.h"
+#include <AppSettings.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "io_functions.h"
@@ -261,12 +262,14 @@ void CMapman::StoreValues()
 	}
 }
 
-void CMapman::OnExportbitmap() 
-{Draw_ExportToBmp(&draw,cart,palette);}
+void CMapman::OnExportbitmap()
+{
+	Draw_ExportToBmp(&draw, cart, palette, cart->AppSettings->PrefImageImportExportFolder);
+}
 
 void CMapman::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,cart,palette);
+	Draw_ImportFromBmp(&draw,cart,palette, cart->AppSettings->PrefImageImportExportFolder);
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }

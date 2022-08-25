@@ -332,9 +332,13 @@ void CDlgAppSettings::OnCbnSelchangeComboHelpTypes()
 
 void CDlgAppSettings::OnBnClickedFolderPrefs()
 {
+	// In the settings file, we store *APP.
+	// At runtime, the object contains the actual app folder path.
 	CDlgFolderPrefs dlg(this);
 	dlg.Prefs = m_folderprefs;
+	dlg.Prefs.EncodePrefPaths(); // encode so the user sees *APP
 	if (dlg.DoModal() == IDOK) {
 		m_folderprefs = dlg.Prefs;
+		m_folderprefs.DecodePrefPaths(); // so the object has the app folder, not *APP
 	}
 }
