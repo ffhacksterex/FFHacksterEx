@@ -12,6 +12,7 @@
 #include <string_functions.h>
 #include <ui_helpers.h>
 #include <FFHacksterProject.h>
+#include <AppSettings.h>
 #include "AsmFiles.h"
 #include <GameSerializer.h>
 
@@ -210,12 +211,12 @@ void CBackdrop::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 void CBackdrop::OnExportbitmap()
 {
-	Draw_ExportToBmp(&draw, Project, palette);
+	Draw_ExportToBmp(&draw, Project, palette, Project->AppSettings->PrefImageImportExportFolder);
 }
 
 void CBackdrop::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,Project,palette);
+	Draw_ImportFromBmp(&draw,Project,palette, Project->AppSettings->PrefImageImportExportFolder);
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }
