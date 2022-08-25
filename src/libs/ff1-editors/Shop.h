@@ -27,10 +27,11 @@ public:
 protected:
 	virtual int GetItemPriceOffset(int index);
 
-	void LoadRom();
-	void SaveRom();
-	void LoadValues();
-	void StoreValues();
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
 
 	void FindKAB();
 	void Remove(int);

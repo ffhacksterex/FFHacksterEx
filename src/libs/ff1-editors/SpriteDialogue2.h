@@ -28,27 +28,25 @@ protected:
 	CFFHacksterProject & m_proj;
 	Paths::FilePathRestorer m_dialoguepathrestorer;
 
+	virtual void LoadOffsets();
 	virtual void LoadRom();
 	virtual void SaveRom();
-
-	void LoadRomTalkData();
-	void SaveRomTalkData();
-	void LoadAsmTalkData(GameSerializer & ser);
-	void SaveAsmTalkData(GameSerializer & ser);
+	virtual void LoadRomTalkData();
+	virtual void SaveRomTalkData();
+	virtual void LoadAsmTalkData(GameSerializer & ser);
+	virtual void SaveAsmTalkData(GameSerializer & ser);
+	virtual void LoadValues();
+	virtual void StoreValues();
+	virtual void LoadElement(int elementindex, int bankaddr, CString routinename);
+	virtual void SaveElement(int elementindex, int bankaddr, CString routinename);
 
 	void EnsureValidSpriteHandlers();
 	void EnaureSynchedHandlerTables();
-
-	void LoadValues();
-	void StoreValues();
 
 	void FormatElementList();
 	void SetupLayout();
 	void LoadElementList();
 	void SaveElementList();
-
-	void LoadElement(int elementindex, int bankaddr, CString routinename);
-	void SaveElement(int elementindex, int bankaddr, CString routinename);
 
 	std::pair<CString, int> GetElementValue(int elementindex, int bankaddr, CString marker, CString inputvalue);
 	void SetRomValue(int elementindex, int bankaddr, CString marker, CString inputvalue, CString newvalue);

@@ -95,7 +95,8 @@ BOOL CArmor::OnInitDialog()
 	BaseClass::OnInitDialog();
 	
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		std::vector<CWnd*> classlists = {
 			&m_use1,&m_use2,&m_use3,&m_use4,&m_use5,&m_use6,
@@ -134,10 +135,8 @@ void CArmor::OnSelchangeArmorlist()
 	LoadValues();
 }
 
-void CArmor::LoadRom()
+void CArmor::LoadOffsets()
 {
-	Project->ClearROM();
-
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	ARMORTEXT_OFFSET = ReadHex(Project->ValuesPath, "ARMORTEXT_OFFSET");
 	BASICTEXT_PTRADD = ReadHex(Project->ValuesPath, "BASICTEXT_PTRADD");
@@ -156,7 +155,11 @@ void CArmor::LoadRom()
 	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
 	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
 
-	// Now load the data
+}
+
+void CArmor::LoadRom()
+{
+	Project->ClearROM();
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}

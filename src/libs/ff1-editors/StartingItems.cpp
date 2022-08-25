@@ -64,7 +64,8 @@ BOOL CStartingItems::OnInitDialog()
 	BaseClass::OnInitDialog();
 
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		m_itemids = { IDC_STARTITEMS_CHECK_1,IDC_STARTITEMS_CHECK_2,IDC_STARTITEMS_CHECK_3,IDC_STARTITEMS_CHECK_4,
 			IDC_STARTITEMS_CHECK_5,IDC_STARTITEMS_CHECK_6,IDC_STARTITEMS_CHECK_7,IDC_STARTITEMS_CHECK_8,
@@ -96,10 +97,8 @@ BOOL CStartingItems::OnInitDialog()
 				  // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void CStartingItems::LoadRom()
+void CStartingItems::LoadOffsets()
 {
-	Project->ClearROM();
-
 	HASCANOE_OFFSET = ReadHex(Project->ValuesPath, "HASCANOE_OFFSET");
 	SHIPVIS_OFFSET = ReadHex(Project->ValuesPath, "SHIPVIS_OFFSET");
 	AIRSHIPVIS_OFFSET = ReadHex(Project->ValuesPath, "AIRSHIPVIS_OFFSET");
@@ -112,8 +111,11 @@ void CStartingItems::LoadRom()
 
 	BANK00_OFFSET = ReadHex(Project->ValuesPath, "BANK00_OFFSET");
 	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
+}
 
-	// Now load the data
+void CStartingItems::LoadRom()
+{
+	Project->ClearROM();
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}

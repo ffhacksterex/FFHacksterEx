@@ -97,16 +97,12 @@ BOOL CShop::OnInitDialog()
 {
 	CEditorWithBackground::OnInitDialog();
 
-	//REFACTOR - I'm not sure what's wrong in the dialog template, but a resizing bordeer keeps gettingn added even thought the
-	//		dialog editor says it's a thin border. There's a lot of padding on the right and bottom margins.
-	//		I don't have time to look into it now, so instead I just live with the padding and remove the thickframe manually.
-	//this->ModifyStyle(WS_THICKFRAME | WS_OVERLAPPED, 0);
-
 	try {
 		if (Project == nullptr) throw std::runtime_error("No project was specified for this editor");
 		if (Enloader == nullptr) throw std::runtime_error("No entry loader was specified for this editor");
 
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		CString shoptypes[7] = { "Weapon","Armor","White","Black","Clinic","Inn","Item" };
 
@@ -159,10 +155,8 @@ int CShop::GetItemPriceOffset(int index)
 	return offset;
 }
 
-void CShop::LoadRom()
+void CShop::LoadOffsets()
 {
-	Project->ClearROM();
-
 	SHOP_START = ReadHex(Project->ValuesPath, "SHOP_START");
 	SHOP_OFFSET = ReadHex(Project->ValuesPath, "SHOP_OFFSET");
 	SHOP_PTRADD = ReadHex(Project->ValuesPath, "SHOP_PTRADD");
@@ -175,8 +169,11 @@ void CShop::LoadRom()
 	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
 	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
 	BINSHOPDATA_OFFSET = ReadHex(Project->ValuesPath, "BINSHOPDATA_OFFSET");
+}
 
-	// Now load the data
+void CShop::LoadRom()
+{
+	Project->ClearROM();
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}

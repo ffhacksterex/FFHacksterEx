@@ -82,7 +82,8 @@ BOOL CSpriteDialogue2::OnInitDialog()
 	try {
 		CWaitCursor wait;
 		LoadListBox(m_mainlist, LoadSpriteLabels(m_proj, true));
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 		SetupLayout();
 		FormatElementList();
 		m_mainlist.SetCurSel(0);
@@ -97,6 +98,16 @@ BOOL CSpriteDialogue2::OnInitDialog()
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // EXCEPTION: OCX Property Pages should return FALSE
+}
+
+void CSpriteDialogue2::LoadOffsets()
+{
+	TALKROUTINEPTRTABLE_OFFSET = ReadHex(m_proj.ValuesPath, "TALKROUTINEPTRTABLE_OFFSET");
+	TALKROUTINEPTRTABLE_BYTES = ReadDec(m_proj.ValuesPath, "TALKROUTINEPTRTABLE_BYTES");
+	TALKROUTINEPTRTABLE_PTRADD = ReadHex(m_proj.ValuesPath, "TALKROUTINEPTRTABLE_PTRADD");
+	TALKROUTINEDATA_OFFSET = ReadHex(m_proj.ValuesPath, "TALKROUTINEDATA_OFFSET");
+	TALKROUTINEDATA_BYTES = ReadDec(m_proj.ValuesPath, "TALKROUTINEDATA_BYTES");
+	BANK0A_OFFSET = ReadHex(m_proj.ValuesPath, "BANK0A_OFFSET");
 }
 
 void CSpriteDialogue2::LoadRom()
@@ -115,13 +126,6 @@ void CSpriteDialogue2::LoadRom()
 	};
 	AddFanfareValue("talkfanfare", ASM_TRUE, 0x7DE6);
 	AddFanfareValue("notalksnd", ASM_FALSE, 0xEAEA);
-
-	TALKROUTINEPTRTABLE_OFFSET = ReadHex(m_proj.ValuesPath, "TALKROUTINEPTRTABLE_OFFSET");
-	TALKROUTINEPTRTABLE_BYTES = ReadDec(m_proj.ValuesPath, "TALKROUTINEPTRTABLE_BYTES");
-	TALKROUTINEPTRTABLE_PTRADD = ReadHex(m_proj.ValuesPath, "TALKROUTINEPTRTABLE_PTRADD");
-	TALKROUTINEDATA_OFFSET = ReadHex(m_proj.ValuesPath, "TALKROUTINEDATA_OFFSET");
-	TALKROUTINEDATA_BYTES = ReadDec(m_proj.ValuesPath, "TALKROUTINEDATA_BYTES");
-	BANK0A_OFFSET = ReadHex(m_proj.ValuesPath, "BANK0A_OFFSET");
 
 	if (m_proj.IsRom()) {
 		load_binary(m_proj.WorkRomPath, m_proj.ROM);

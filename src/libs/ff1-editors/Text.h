@@ -28,6 +28,17 @@ public:
 	bool madechange;
 
 protected:
+	// Overrides
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
+	virtual CString GetInfoText();
+
+	// Text behavior overridables
+	virtual bool ShowCurrentTextItemIndex() const;
+
 	std::vector<int> m_editcontexts;
 	std::vector<CString> m_editcontextnames;
 
@@ -115,16 +126,6 @@ protected:
 	void UpdateSpinChange(int newpos);
 	bool CanShowDialogueEdit(int context);
 	int GetOffset(int theptroffset, int theptradd, int index);
-	CString GetInfoText();
-
-	// Text behavior overridables
-	virtual bool ShowCurrentTextItemIndex() const;
-
-	// Overrides
-	void LoadRom();
-	virtual void SaveRom();
-	void LoadValues();
-	virtual void StoreValues();
 
 	// Dialog Data
 	enum { IDD = IDD_TEXT };

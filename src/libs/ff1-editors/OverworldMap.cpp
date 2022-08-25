@@ -548,10 +548,8 @@ void COverworldMap::DoViewcoords()
 	OnViewcoords();
 }
 
-void COverworldMap::LoadRom()
+void COverworldMap::LoadOffsets()
 {
-	cart->ClearROM();
-
 	TRANSPARENTCOLOR = ReadRgb(cart->ValuesPath, "TRANSPARENTCOLOR");
 	OVERWORLDPALETTE_ASSIGNMENT = ReadHex(cart->ValuesPath, "OVERWORLDPALETTE_ASSIGNMENT");
 	OVERWORLDPALETTE_OFFSET = ReadHex(cart->ValuesPath, "OVERWORLDPALETTE_OFFSET");
@@ -584,8 +582,11 @@ void COverworldMap::LoadRom()
 	BANK07_OFFSET = ReadHex(cart->ValuesPath, "BANK07_OFFSET");
 	BANK08_OFFSET = ReadHex(cart->ValuesPath, "BANK08_OFFSET");
 	BINBANK01DATA_OFFSET = ReadHex(cart->ValuesPath, "BINBANK01DATA_OFFSET");
+}
 
-	// Now load the data
+void COverworldMap::LoadRom()
+{
+	cart->ClearROM();
 	if (cart->IsRom()) {
 		load_binary(cart->WorkRomPath, cart->ROM);
 	}
@@ -642,7 +643,8 @@ BOOL COverworldMap::OnInitDialog()
 	CEditorWithBackground::OnInitDialog();
 
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		m_misccoordoffsets.push_back(COORD_STARTING_OFFSET);
 		m_misccoordoffsets.push_back(COORD_SHIP_OFFSET);

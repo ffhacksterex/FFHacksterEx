@@ -22,6 +22,13 @@ public:
 	bool cur_graphic;
 
 protected:
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
+	virtual void PaintClient(CDC& dc);
+
 	bool m_initialized = false;
 	CRect rcPalette;
 	CRect rcFinger;
@@ -34,13 +41,7 @@ protected:
 	int UsesChecks(int);
 	void ResetGraphicList();
 
-	void LoadCode();
-	void LoadRom();
-	virtual void SaveRom();
-	void LoadValues();
-	virtual void StoreValues();
-	virtual void PaintClient(CDC & dc);
-
+	void ShowHideOutOfBattleControls();
 	void UpdateTarget(int);
 	void UpdateEffect(int);
 

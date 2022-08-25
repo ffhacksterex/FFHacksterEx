@@ -105,7 +105,8 @@ BOOL CText::OnInitDialog()
 	CEditorWithBackground::OnInitDialog();
 
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		int epiloguepages = Project->ROM[EPILOGUELASTPAGE_OFFSET];
 		CString text;
@@ -156,10 +157,8 @@ void CText::OnOK()
 	}
 }
 
-void CText::LoadRom()
+void CText::LoadOffsets()
 {
-	Project->ClearROM();
-
 	BASICTEXT_PTRADD = ReadHex(Project->ValuesPath, "BASICTEXT_PTRADD");
 	BASICTEXT_OFFSET = ReadHex(Project->ValuesPath, "BASICTEXT_OFFSET");
 	BASICTEXT_COUNT = ReadDec(Project->ValuesPath, "BASICTEXT_COUNT");
@@ -224,7 +223,11 @@ void CText::LoadRom()
 
 	PROLOGUELASTPAGE_OFFSET = ReadHex(Project->ValuesPath, "PROLOGUELASTPAGE_OFFSET");
 	EPILOGUELASTPAGE_OFFSET = ReadHex(Project->ValuesPath, "EPILOGUELASTPAGE_OFFSET");
+}
 
+void CText::LoadRom()
+{
+	Project->ClearROM();
 	if (Project->IsAsm()) {
 		CREDITTEXTPTR_OFFSET = ReadHex(Project->ValuesPath, "CREDITTEXTPTR_OFFSET");
 		CREDITTEXT_OFFSET = ReadHex(Project->ValuesPath, "CREDITTEXT_OFFSET");

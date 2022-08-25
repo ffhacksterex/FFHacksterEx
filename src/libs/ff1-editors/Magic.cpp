@@ -197,7 +197,8 @@ BOOL CMagic::OnInitDialog()
 	CEditorWithBackground::OnInitDialog();
 
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		haltwrite = 1;
 
@@ -281,7 +282,7 @@ BOOL CMagic::OnInitDialog()
 	return 1;
 }
 
-void CMagic::LoadCode()
+void CMagic::ShowHideOutOfBattleControls()
 {
 	m_outbattlelist.ShowWindow(SW_HIDE);
 	m_outmin.ShowWindow(SW_HIDE);
@@ -295,10 +296,8 @@ void CMagic::LoadCode()
 	GetDlgItem(IDC_STATIC_OBMAGICASM)->ShowWindow(SW_SHOW);
 }
 
-void CMagic::LoadRom()
+void CMagic::LoadOffsets()
 {
-	Project->ClearROM();
-
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	MAGIC_OFFSET = ReadHex(Project->ValuesPath, "MAGIC_OFFSET");
 	MAGIC_BYTES = ReadDec(Project->ValuesPath, "MAGIC_BYTES");
@@ -346,8 +345,11 @@ void CMagic::LoadRom()
 	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
 	BINBANK09GFXDATA_OFFSET = ReadHex(Project->ValuesPath, "BINBANK09GFXDATA_OFFSET");
 	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
+}
 
-	// Now load the data
+void CMagic::LoadRom()
+{
+	Project->ClearROM();
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
@@ -362,7 +364,7 @@ void CMagic::LoadRom()
 		ser.LoadAsmBin(BIN_NOTHINGHAPPENS, NOTHINGHAPPENS_OFFSET);
 		ser.LoadInline(ASM_0C, { { asmlabel, "lut_MagicBattleMessages", { BATTLEMESSAGE_OFFSET } } });
 		ser.LoadInline(ASM_0E, { { asmtable, "lut_MagicPermissions", { MAGICPERMISSIONS_OFFSET } } });
-		LoadCode();
+		ShowHideOutOfBattleControls();
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);

@@ -22,6 +22,15 @@ public:
 	int cur;
 
 protected:
+	virtual void LoadOffsets();
+	virtual void LoadRom();
+	virtual void SaveRom();
+	virtual void LoadValues();
+	virtual void StoreValues();
+	virtual void PaintClient(CDC& dc);
+
+	void ChangeEffect(bool);
+
 // Dialog Data
 	enum { IDD = IDD_ATTACK };
 
@@ -66,13 +75,6 @@ protected:
 	virtual BOOL OnInitDialog();
 
 // Implementation
-	void LoadRom();
-	void SaveRom();
-	void LoadValues();
-	void StoreValues();
-	void ChangeEffect(bool);
-	virtual void PaintClient(CDC & dc);
-
 	// Generated message map functions
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnSelchangeAttacklist();

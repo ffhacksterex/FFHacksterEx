@@ -108,7 +108,8 @@ BOOL CWeapon::OnInitDialog()
 	ShowWindow(SW_HIDE);
 
 	try {
-		LoadRom();
+		this->LoadOffsets();
+		this->LoadRom();
 
 		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, LoadElementLabels(*Project));
 		LoadCaptions(std::vector<CWnd*>{ &m_cat1, &m_cat2, &m_cat3, &m_cat4, &m_cat5, &m_cat6, &m_cat7, &m_cat8 }, LoadEnemyCategoryLabels(*Project));
@@ -161,10 +162,8 @@ BOOL CWeapon::OnInitDialog()
 	return TRUE;
 }
 
-void CWeapon::LoadRom()
+void CWeapon::LoadOffsets()
 {
-	Project->ClearROM();
-
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	WEAPON_COUNT = ReadDec(Project->ValuesPath, "WEAPON_COUNT");
 	WEAPON_OFFSET = ReadHex(Project->ValuesPath, "WEAPON_OFFSET");
@@ -176,7 +175,11 @@ void CWeapon::LoadRom()
 	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
 	BINBANK09GFXDATA_OFFSET = ReadHex(Project->ValuesPath, "BINBANK09GFXDATA_OFFSET");
 	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
+}
 
+void CWeapon::LoadRom()
+{
+	Project->ClearROM();
 	// Now load the data
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
