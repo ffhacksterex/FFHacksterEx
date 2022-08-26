@@ -1822,7 +1822,7 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scroll
 	}
 
 	//Draw the sprites
-	CRect rc(0, 0, 16, 16);
+	CRect rc(0, 0, gridvis.cx, gridvis.cy);
 	for (coX = 0; coX < 5; coX++) {
 		pt.x = misccoords[coX].x - gridanchor.x;
 		pt.y = misccoords[coX].y - gridanchor.y;
