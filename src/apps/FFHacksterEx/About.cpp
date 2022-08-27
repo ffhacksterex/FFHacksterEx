@@ -99,7 +99,7 @@ BOOL CAbout::OnInitDialog()
 #elif defined(_WIN32)
 	subtext.AppendFormat(" (x86 build)");
 #else
-	subtext.AppendFormat(" (unknown architecture)");
+	subtext.AppendFormat(" (unknown build architecture)");
 #endif
 	SetStaticText(m_progtitlestatic, subtext);
 
