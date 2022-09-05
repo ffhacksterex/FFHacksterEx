@@ -513,4 +513,79 @@ namespace Ingametext
 		return LoadExpandedOneBasedEntry(address(proj.ROM), index, WEAPONTEXT_OFFSET, BASICTEXT_PTRADD, proj.GetTable(1), showindex);
 	}
 
+	void DoPasteSwapStringBytes(bool swapping, CFFHacksterProject& proj, int context, int sourceindex, int destindex)
+	{
+		if (context == INTROTEXT) {
+			return; //TODO - or throw? it's not applicable here
+		}
+
+		//TODO - read this from shared or context-specific settings (see Values File Split for more info)
+		//		and move it to an object that can be passed int.
+		int BASICTEXT_PTRADD = ReadHex(proj.ValuesPath, "BASICTEXT_PTRADD");
+		int BASICTEXT_OFFSET = ReadHex(proj.ValuesPath, "BASICTEXT_OFFSET");
+		int BASICTEXT_COUNT = ReadDec(proj.ValuesPath, "BASICTEXT_COUNT");
+		int ITEM_COUNT = ReadDec(proj.ValuesPath, "ITEM_COUNT");
+		int WEAPON_COUNT = ReadDec(proj.ValuesPath, "WEAPON_COUNT");
+		int ARMOR_COUNT = ReadDec(proj.ValuesPath, "ARMOR_COUNT");
+		int GOLDITEM_COUNT = ReadDec(proj.ValuesPath, "GOLDITEM_COUNT");
+		int MAGIC_COUNT = ReadDec(proj.ValuesPath, "MAGIC_COUNT");
+		int CLASS_COUNT = ReadDec(proj.ValuesPath, "CLASS_COUNT");
+		int INTROTEXT_OFFSET = ReadHex(proj.ValuesPath, "INTROTEXT_OFFSET"); // no pointer table, just a single complex string
+
+		// Set up the offsets
+		const int ptradd = BASICTEXT_PTRADD;
+		int ptroffset = BASICTEXT_OFFSET;
+		int count = ITEM_COUNT;
+		if (context < ENEMYATTACKS) {
+			if (context > 0) { ptroffset += count << 1; count = WEAPON_COUNT; }
+			if (context > 1) { ptroffset += count << 1; count = ARMOR_COUNT; }
+			if (context > 2) { ptroffset += count << 1; count = GOLDITEM_COUNT; }
+			if (context > 3) { ptroffset += count << 1; count = MAGIC_COUNT; }
+			if (context > 4) { ptroffset += count << 1; count = CLASS_COUNT; }
+		}
+		else {
+			CString fmt;
+			fmt.Format("Can't swap ingame text indexes %d and %d for unrecognized context %d.",
+				sourceindex, destindex, context);
+			throw std::runtime_error((LPCSTR)fmt);
+		}
+
+		const auto ReadBytes = [&](int index) {
+			std::vector<unsigned char> bytes;
+			size_t offset = (size_t)(ptroffset + (index << 1));
+			offset = (size_t)(proj.ROM[offset] + (proj.ROM[offset + 1] << 8) + ptradd);
+			for (; proj.ROM[offset]; ++offset)
+				bytes.push_back(proj.ROM[offset]);
+			return bytes;
+		};
+		const auto WriteBytes = [&](int index, const std::vector<unsigned char>& bytes) {
+			size_t offset = (size_t)(ptroffset + (index << 1));
+			offset = (size_t)(proj.ROM[offset] + (proj.ROM[offset + 1] << 8) + ptradd);
+			for (size_t i = 0; i < bytes.size(); ++i, ++offset)
+				proj.ROM[offset] = bytes[i];
+		};
+
+		auto srcbytes = ReadBytes(sourceindex);
+		auto dstbytes = ReadBytes(destindex);
+
+			ASSERT(srcbytes.size() == dstbytes.size());
+		if (srcbytes.size() != dstbytes.size())
+			throw std::runtime_error("Source and dest byte lengths don't match.");
+
+		// We always write srcbytes to the dest index.
+		// if swapping, also write dstbytes to the source.
+		if (swapping) WriteBytes(sourceindex, dstbytes);
+		WriteBytes(destindex, srcbytes);
+	}
+
+	void SwapStringBytes(CFFHacksterProject& proj, int context, int sourceindex, int destindex)
+	{
+		DoPasteSwapStringBytes(true, proj, context, sourceindex, destindex);
+	}
+
+	void OverwriteStringBytes(CFFHacksterProject& proj, int context, int sourceindex, int destindex)
+	{
+		DoPasteSwapStringBytes(false, proj, context, sourceindex, destindex);
+	}
+
 } // end namespace Ingametext

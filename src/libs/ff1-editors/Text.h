@@ -112,13 +112,6 @@ protected:
 	int CREDITTEXT_END = -1;
 	int CREDITTEXT_COUNT = -1;
 
-	enum {
-		ITEMS, WEAPONS, ARMOR, GOLD, STDMAGIC, CLASSES, ENEMYATTACKS, ENEMIES, DIALOGUE, BATTLEMESSAGES,
-		INTROTEXT, SHOPTEXT, STATUSMENUTEXT, STORY,
-		CREDIT, //FUTURE - need to add PPU address support before this will work
-		TEXTMODE_COUNT
-	};
-
 	void FindKAB();
 	void ResetTextList();
 	void UpdateTextList();

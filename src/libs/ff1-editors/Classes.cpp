@@ -43,15 +43,18 @@ static char THIS_FILE[] = __FILE__;
 #define CLASS_PASTE 2
 #define CLASS_SWAP 4
 
-#define PASTE_SAIVLDATA 0x1
-#define PASTE_LEVELDATA 0x2
-#define PASTE_BATTLEGFX 0x4
-#define PASTE_MAPMANGFX 0x8
-#define PASTE_MAPMANPAL 0x10
-#define PASTE_WEAPONPERM 0x20
-#define PASTE_ARMORPERM 0x40
-#define PASTE_MAGICPERM 0x80
-#define PASTE_OP_SWAP   0x80000000
+// Paste check flags
+#define PASTE_STARTINFO  0x1
+#define PASTE_SAIVLDATA  0x2
+#define PASTE_LEVELDATA  0x4
+#define PASTE_BATTLEGFX  0x8
+#define PASTE_MAPMANGFX  0x10
+#define PASTE_MAPMANPAL  0x20
+#define PASTE_WEAPONPERM 0x40
+#define PASTE_ARMORPERM  0x80
+#define PASTE_MAGICPERM  0x100
+#define PASTE_NAMES      0x200
+#define PASTE_OP_SWAP    0x80000000
 
 #define CONTEXT_CHECKED 1
 #define CONTEXT_UNCHECKED 2
@@ -1430,22 +1433,27 @@ void CClasses::HandleClassListContextMenu(CWnd * pWnd, CPoint point)
 			CString method = selop == CLASS_PASTE ? "Paste" : "Swap";
 			CDlgPasteTargets dlg(this);
 			dlg.Title = FormText(selop, strselclass, strdestclass);
+			// See Paste check flags at the top of the file.
+			// Each entry in this vector corresponds to a flag in ascending order,
+			// e.g. first entry is 1 << 0 (0x1), second is 1 << 1 (0x2),
+			//		third is 1 << 2 (0x4), fourth is 1 << 3 (0x8), and so on.
 			auto targets = std::vector<PasteTarget>{
-				{ "Startup data", true},
-				{ "SAIVL/Strong level data", true },
-				{ "Spell charge level data", true },
+				{ "Startup data", false },
+				{ "SAIVL/Strong level data", false },
+				{ "Spell charge level data", false },
 				{ "Battle graphics", false },
 				{ "Mapman graphics", false, "Copies only the image; select the palette entry below to also copy the palette." },
 				{ "Mapman palette", false, "The overwritten mapman palette can't be restored by simply importing a saved bitmap." },
 				{ "Weapon permissions", false },
 				{ "Armor permissions", false },
-				{ "Magic permissions", false }
+				{ "Magic permissions", false },
+				{ "Class Names", false }
 			};
 			dlg.SetTargets(targets);
 			if (dlg.DoModal() == IDOK) {
 				int methodflag = selop == CLASS_PASTE ? 0 : PASTE_OP_SWAP;
-				int start = dlg.IsChecked(0);
-				if (start) PasteStartInfo(m_copiedclass, selclass, methodflag);
+				int start = dlg.IsChecked(0) ? PASTE_STARTINFO : 0;
+				PasteStartInfo(m_copiedclass, selclass, start | methodflag);
 				int saivl = dlg.IsChecked(1) ? PASTE_SAIVLDATA : 0;
 				int level = dlg.IsChecked(2) ? PASTE_LEVELDATA : 0;
 				PasteLevelInfo(m_copiedclass, selclass, saivl | level | methodflag);
@@ -1457,9 +1465,17 @@ void CClasses::HandleClassListContextMenu(CWnd * pWnd, CPoint point)
 				int armor = dlg.IsChecked(7) ? PASTE_ARMORPERM : 0;
 				int magic = dlg.IsChecked(8) ? PASTE_MAGICPERM : 0;
 				PasteUsables(m_copiedclass, selclass, weapon | armor | magic | methodflag);
+				int names = dlg.IsChecked(9) ? PASTE_NAMES : 0;
+				PasteName(m_copiedclass, selclass, names | methodflag);
 
-				if (start | saivl | level | battle | mapman | mappal | weapon | armor | magic)
+				if (start | saivl | level | battle | mapman | mappal |
+					weapon | armor | magic | names)
+				{
 					LoadValues();
+				}
+				else {
+					AfxMessageBox("You must select at least one item for paste/swap to have an effect.");
+				}
 			}
 		}
 	}
@@ -1540,6 +1556,8 @@ bool CClasses::WarnCancelPaste()
 
 void CClasses::PasteStartInfo(int srcindex, int destindex, int flags)
 {
+	if ((flags & PASTE_STARTINFO) == 0) return;
+
 	bool swapping = (flags & PASTE_OP_SWAP) == PASTE_OP_SWAP;
 	size_t srcoffset = CLASS_OFFSET + (srcindex * CLASS_BYTES);
 	size_t dstoffset = CLASS_OFFSET + (destindex * CLASS_BYTES);
@@ -1567,15 +1585,17 @@ void CClasses::PasteStartInfo(int srcindex, int destindex, int flags)
 
 void CClasses::PasteLevelInfo(int srcindex, int destindex, int flags)
 {
-	// src and dest indices are class IDs
-	bool swapping = (flags & PASTE_OP_SWAP) == PASTE_OP_SWAP;
-	bool pastestart = (flags & PASTE_SAIVLDATA) == PASTE_SAIVLDATA;
+	bool pastesaivl = (flags & PASTE_SAIVLDATA) == PASTE_SAIVLDATA;
 	bool pastelevel = (flags & PASTE_LEVELDATA) == PASTE_LEVELDATA;
-	for (int level = 0; level < 50; ++level) {
-		size_t srcoffset = ((srcindex % 6) * 98) + (level << 1) + GetLevelOffset(srcindex);
-		size_t dstoffset = ((destindex % 6) * 98) + (level << 1) + GetLevelOffset(destindex);
-		if (pastestart) CopySwapBytes(swapping, srcoffset, dstoffset, 0, 1);
-		if (pastelevel) CopySwapBytes(swapping, srcoffset + 1, dstoffset + 1, 0, 1);
+	if (pastesaivl || pastelevel) {
+		// src and dest indices are class IDs
+		bool swapping = (flags & PASTE_OP_SWAP) == PASTE_OP_SWAP;
+		for (int level = 0; level < 49; ++level) {
+			size_t srcoffset = ((srcindex % 6) * 98) + (level << 1) + GetLevelOffset(srcindex);
+			size_t dstoffset = ((destindex % 6) * 98) + (level << 1) + GetLevelOffset(destindex);
+			if (pastesaivl) CopySwapBytes(swapping, srcoffset, dstoffset, 0, 1);
+			if (pastelevel) CopySwapBytes(swapping, srcoffset + 1, dstoffset + 1, 0, 1);
+		}
 	}
 }
 
@@ -1645,6 +1665,46 @@ void CClasses::PasteUsables(int srcindex, int destindex, int flags)
 		size_t srcoffset = MAGICPERMISSIONS_OFFSET + (size_t(srcindex) * 8);
 		size_t dstoffset = MAGICPERMISSIONS_OFFSET + (size_t(destindex) * 8);
 		CopySwapBytes(swapping, srcoffset, dstoffset, 0, SPELLLEVEL_COUNT);
+	}
+}
+
+void CClasses::PasteName(int srcindex, int destindex, int flags)
+{
+	if ((flags & PASTE_NAMES) == 0) return;
+
+	bool swapping = (flags & PASTE_OP_SWAP) == PASTE_OP_SWAP;
+	try {
+		if (swapping) {
+			Ingametext::SwapStringBytes(*Project, CLASSES, srcindex, destindex);
+		}
+		else {
+			Ingametext::OverwriteStringBytes(*Project, CLASSES, srcindex, destindex);
+		}
+
+		CString srcname = LoadClassEntry(*Project, srcindex).name.Trim();
+		CString dstname = LoadClassEntry(*Project, destindex).name.Trim();
+
+		// Now, reload the class names in the list box...
+		Ui::ReplaceString(m_classlist, srcindex, srcname);
+		Ui::ReplaceString(m_classlist, destindex, dstname);
+
+		// ... and the HoldMP/BBMA dropdowns
+		auto drops = std::vector<CComboBox*>{
+			&m_bbmacombo1, &m_bbmacombo2, &m_2xhitscombo1, &m_2xhitscombo2,
+			&m_comboclass1, &m_comboclass2, &m_combopost1, &m_combopost2,
+			&m_mpmincombo, &m_mpmaxcombo
+		};
+		for (auto* drop : drops) {
+			auto isrc = Ui::FindIndexByData(*drop, srcindex);
+			if (isrc != -1)
+				Ui::ReplaceString(*drop, isrc, srcname);
+			auto idst = Ui::FindIndexByData(*drop, destindex);
+			if (idst != -1)
+				Ui::ReplaceString(*drop, idst, dstname);
+		}
+	}
+	catch (std::exception& ex) {
+		AfxMessageBox(ex.what());
 	}
 }
 

@@ -80,6 +80,8 @@ namespace Ui
 	void AddEntry(CListBox & box, CString string, DWORD_PTR data);
 	void InsertEntry(CComboBox & box, int index,  CString string, DWORD_PTR data);
 	void InsertEntry(CListBox & box, int index, CString string, DWORD_PTR data);
+	void ReplaceString(CComboBox& box, int index, CString newstring);
+	void ReplaceString(CListBox& box, int index, CString newstring);
 
 	int FindIndexByData(CComboBox & box, DWORD_PTR data);
 	int FindIndexByPrefix(CComboBox & box, int matchvalue);

@@ -51,4 +51,14 @@ namespace Ingametext
 	dataintnode LoadPotionEntry(CFFHacksterProject & proj, int index, bool showindex = false);
 	dataintnode LoadWeaponEntry(CFFHacksterProject & proj, int index, bool showindex = false);
 
+	void SwapStringBytes(CFFHacksterProject& proj, int context, int sourceindex, int destindex);
+	void OverwriteStringBytes(CFFHacksterProject& proj, int context, int sourceindex, int destindex);
+
+	enum {
+		ITEMS, WEAPONS, ARMOR, GOLD, STDMAGIC, CLASSES, ENEMYATTACKS, ENEMIES, DIALOGUE, BATTLEMESSAGES,
+		INTROTEXT, SHOPTEXT, STATUSMENUTEXT, STORY,
+		CREDIT, //FUTURE - need to add PPU address support before this will work
+		TEXTMODE_COUNT
+	};
+
 } // end namespace Ingametext

@@ -284,6 +284,27 @@ namespace Ui
 		box.SetItemData(addedindex, data);
 	}
 
+	void ReplaceString(CComboBox& box, int index, CString newstring)
+	{
+		RedrawScope rs(&box);
+		auto prevsel = box.GetCurSel();
+		auto data = box.GetItemData(index);
+		box.DeleteString(index);
+		int addedindex = box.InsertString(index, newstring);
+		box.SetItemData(addedindex, data);
+		box.SetCurSel(prevsel);
+	}
+
+	void ReplaceString(CListBox& box, int index, CString newstring)
+	{
+		auto prevsel = box.GetCurSel();
+		auto data = box.GetItemData(index);
+		box.DeleteString(index);
+		int addedindex = box.InsertString(index, newstring);
+		box.SetItemData(addedindex, data);
+		box.SetCurSel(prevsel);
+	}
+
 	int FindIndexByData(CComboBox & box, DWORD_PTR data)
 	{
 		for (int i = 0; i < box.GetCount(); ++i) {

@@ -160,6 +160,7 @@ protected:
 	virtual void PasteLevelInfo(int srcindex, int destindex, int flags);
 	virtual void PasteSpriteAndPaletteInfo(int srcindex, int destindex, int flags);
 	virtual void PasteUsables(int srcindex, int destindex, int flags);
+	virtual void PasteName(int srcindex, int destindex, int flags);
 	virtual void HandleClassListContextMenu(CWnd* pWnd, CPoint point);
 	virtual void HandleSpellCheckContextMenu(CWnd* pWnd, CPoint point);
 	virtual void HandleSaivlCheckContextMenu(CWnd* pWnd, CPoint point);
