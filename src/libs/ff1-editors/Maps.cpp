@@ -884,18 +884,16 @@ void CMaps::OnSelchangeMaplist()
 	LoadValues();
 
 	InvalidateRect(rcTiles,0);
-	InvalidateRect(rcMap,0);
-	m_mapdlg.InvalidateMap();
 	InvalidateRect(rcPalettes,0);
 	InvalidateRect(rcPalettes2,0);
+	invalidate_maps();
 }
 
 void CMaps::OnShowrooms()
 {
 	m_showingrooms = Ui::GetCheckValue(m_showrooms);
 	InvalidateRect(rcTiles, 0);
-	InvalidateRect(rcMap, 0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -913,8 +911,7 @@ void CMaps::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	if (ScrollOffset.x > 48) ScrollOffset.x = 48;
 
 	m_hscroll.SetScrollPos(ScrollOffset.x);
-	InvalidateRect(rcMap, FALSE);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -932,8 +929,7 @@ void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	if (ScrollOffset.y > 48) ScrollOffset.y = 48;
 
 	m_vscroll.SetScrollPos(ScrollOffset.y);
-	InvalidateRect(rcMap, FALSE);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
@@ -1041,8 +1037,7 @@ void CMaps::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 			InvalidateRect(rcPalettes, 0);
 			InvalidateRect(rcTiles, 0);
-			InvalidateRect(rcMap, 0);
-			m_mapdlg.InvalidateMap();
+			invalidate_maps();
 		}
 	}
 }
@@ -1086,28 +1081,30 @@ void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
 		CTint dlg;
 		dlg.tintvalue = old;
 		dlg.m_tintvariant = cart->TintVariant;
-		if(dlg.DoModal() == IDOK){
+		if (dlg.DoModal() == IDOK) {
 
 			cart->OK_tiles[cur_map] = 0;
-			cart->GetStandardTiles(cur_map,0).DeleteImageList();
-			cart->GetStandardTiles(cur_map,1).DeleteImageList();
+			cart->GetStandardTiles(cur_map, 0).DeleteImageList();
+			cart->GetStandardTiles(cur_map, 1).DeleteImageList();
 
 			cart->TintTiles[cur_tileset + 1][ref] = (BYTE)dlg.tintvalue;
-			if(cart->TintVariant != dlg.m_tintvariant){
+			if (cart->TintVariant != dlg.m_tintvariant) {
 				cart->TintVariant = (BYTE)dlg.m_tintvariant;
-				cart->ReTintPalette();}
+				cart->ReTintPalette();
+			}
 
 			CLoading dlgmaps;
-			dlgmaps.Create(IDD_LOADING,this);
-			dlgmaps.m_progress.SetRange(0,128);
+			dlgmaps.Create(IDD_LOADING, this);
+			dlgmaps.m_progress.SetRange(0, 128);
 			dlgmaps.m_progress.SetPos(0);
 			dlgmaps.ShowWindow(1);
 
 			ReloadImages(&dlgmaps.m_progress);
 
 			dlgmaps.ShowWindow(0);
-			InvalidateRect(rcTiles,0);
-			InvalidateRect(rcMap,0);}
+			InvalidateRect(rcTiles, 0);
+			invalidate_maps();
+		}
 	}
 }
 
@@ -1146,8 +1143,7 @@ void CMaps::UpdatePics()
 
 	dlg.ShowWindow(0);
 	InvalidateRect(rcTiles,0);
-	InvalidateRect(rcMap,0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::UpdateTileData()
@@ -1267,8 +1263,7 @@ void CMaps::OnSelchangeTileset()
 
 	dlg.ShowWindow(0);
 	InvalidateRect(rcTiles,0);
-	InvalidateRect(rcMap,0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 	LoadTileData();
 }
 
@@ -1301,8 +1296,7 @@ void CMaps::OnStill()
 void CMaps::OnInroom()
 {
 	Sprite_InRoom[m_sprite_list.GetCurSel()] = m_inroom.GetCheck() != 0;
-	InvalidateRect(rcMap,0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::OnChangeSpritecoordx()
@@ -1311,8 +1305,7 @@ void CMaps::OnChangeSpritecoordx()
 	m_spritecoordx.GetWindowText(text); number = StringToInt_HEX(text);
 	if(number > 0x3F) number = 0x3F;
 	Sprite_Coords[m_sprite_list.GetCurSel()].x = number;
-	InvalidateRect(rcMap,0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::OnChangeSpritecoordy()
@@ -1321,23 +1314,20 @@ void CMaps::OnChangeSpritecoordy()
 	m_spritecoordy.GetWindowText(text); number = StringToInt_HEX(text);
 	if(number > 0x3F) number = 0x3F;
 	Sprite_Coords[m_sprite_list.GetCurSel()].y = number;
-	InvalidateRect(rcMap,0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::OnSelchangeSprite()
 {
 	Sprite_Value[m_sprite_list.GetCurSel()] = (short)m_sprite.GetCurSel();
 	m_spritegraphic.SetCurSel(cart->ROM[MAPSPRITE_PICASSIGNMENT + m_sprite.GetCurSel()]);
-	InvalidateRect(rcMap,0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::OnSelchangeSpritegraphic()
 {
 	cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[m_sprite_list.GetCurSel()]] = (BYTE)m_spritegraphic.GetCurSel();
-	InvalidateRect(rcMap, 0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::UpdateClick(CPoint pt)
@@ -1358,8 +1348,7 @@ CPoint CMaps::fix_map_point(CPoint point)
 void CMaps::OnShowlastclick()
 {
 	cart->ShowLastClick = (m_showlastclick.GetCheck() != 0);
-	InvalidateRect(rcMap, 0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::OnCustomtool()
@@ -1528,8 +1517,7 @@ void CMaps::OnMapImport()
 		return;}
 	fread(DecompressedMap,1,0x1000,file);
 	fclose(file);
-	InvalidateRect(rcMap,0);
-	m_mapdlg.InvalidateMap();
+	invalidate_maps();
 }
 
 void CMaps::OnViewcoords()
@@ -1576,15 +1564,13 @@ void CMaps::HandleLButtonDown(UINT nFlags, CPoint point)
 		mousedown = 1;
 		UpdateClick(point);
 		DecompressedMap[point.y][point.x] = (BYTE)cur_tile;
-		InvalidateRect(rcMap, 0);
-		m_mapdlg.InvalidateMap();
+		invalidate_maps();
 	}break;
 	default: {		//fill/smarttools
 		mousedown = 1;
 		UpdateClick(point);
 		rcToolRect.SetRect(point.x, point.y, point.x, point.y);
-		InvalidateRect(rcMap, 0);
-		m_mapdlg.InvalidateMap();
+		invalidate_maps();
 	}break;
 	}
 }
@@ -1605,8 +1591,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 				for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
 					DecompressedMap[coY][coX] = (BYTE)cur_tile;
 			}
-			InvalidateRect(rcMap, 0);
-			m_mapdlg.InvalidateMap();
+			invalidate_maps();
 		}break;
 
 		default: {			//smarttools
@@ -1755,8 +1740,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 			}
 			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
 
-			InvalidateRect(rcMap, 0);
-			m_mapdlg.InvalidateMap();
+			invalidate_maps();
 		}break;
 		}
 		OnFindkab();
@@ -1779,8 +1763,7 @@ void CMaps::HandleRButtonDown(UINT nFlags, CPoint pt)
 	UpdateClick(pt);
 	InvalidateRect(rcTiles, 0);
 	if (m_showlastclick.GetCheck()) {
-		InvalidateRect(rcMap, 0);
-		m_mapdlg.InvalidateMap();
+		invalidate_maps();
 	}
 	if (coords_dlg.m_mouseclick.GetCheck()) {
 		coords_dlg.m_coord_l.SetCurSel(m_maplist.GetCurSel());
@@ -1839,15 +1822,13 @@ void CMaps::HandleMouseMove(UINT nFlags, CPoint newhover)
 			switch (cur_tool) {
 			case 0: {		//pencil
 				DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
-				InvalidateRect(rcMap, 0);
-				m_mapdlg.InvalidateMap();
+				invalidate_maps();
 				break;
 			}
 			default: {		//fill / Smarttools
 				rcToolRect.right = ptHover.x;
 				rcToolRect.bottom = ptHover.y;
-				InvalidateRect(rcMap, 0);
-				m_mapdlg.InvalidateMap();
+				invalidate_maps();
 				break;
 			}
 			}
@@ -1862,8 +1843,7 @@ void CMaps::HandleMouseMove(UINT nFlags, CPoint newhover)
 			m_spritecoordx.SetWindowText(text);
 			text.Format("%X", ptHover.y);
 			m_spritecoordy.SetWindowText(text);
-			InvalidateRect(rcMap, 0);
-			m_mapdlg.InvalidateMap();
+			invalidate_maps();
 		}
 	}
 }
@@ -1931,7 +1911,7 @@ void CMaps::ApplyTileTint(int ref)
 
 		dlgmaps.ShowWindow(0);
 		InvalidateRect(rcTiles, 0);
-		InvalidateRect(rcMap, 0);
+		invalidate_maps();
 	}
 }
 
@@ -2066,6 +2046,12 @@ void CMaps::PopMapDialog(bool in)
 		auto pwnd = GetDlgItem(id);
 		Ui::MoveControlBy(pwnd, slide, 0);
 	}
+}
+
+void CMaps::invalidate_maps()
+{
+	InvalidateRect(rcMap, 0);
+	m_mapdlg.InvalidateMap();
 }
 
 void CMaps::OnBnClickedButtonPopout()

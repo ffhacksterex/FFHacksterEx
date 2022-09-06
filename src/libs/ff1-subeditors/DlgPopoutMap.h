@@ -20,6 +20,8 @@ public:
 	BOOL CreateModeless(IMapEditor* editor, CSize mapdims, CSize tiledims, CWnd* parent = nullptr);
 	bool SetButtons(const std::vector<sMapDlgButton>& buttons);
 	void UpdateControls();
+	void InvalidateMap();
+
 	void ScrollByPercentage(int nBar, int percent);
 	void ScrollToPos(int nBar, int mappos, bool center);
 

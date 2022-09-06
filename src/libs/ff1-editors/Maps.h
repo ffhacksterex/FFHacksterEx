@@ -118,6 +118,7 @@ protected:
 
 	void init_popout_map_window();
 	void PopMapDialog(bool in);
+	void invalidate_maps();
 
 	BYTE MapPalette[2][4][4];
 	BYTE SpritePalette[2][4];
