@@ -131,7 +131,7 @@ BOOL CShop::OnInitDialog()
 			LoadCombo(*m_item[co], treasureitems);
 		}
 
-		m_banner.Set(this, COLOR_BLACK, COLOR_GREEN, "Shops");
+		m_banner.Set(this, COLOR_BLACK, COLOR_FFGREEN, "Shops");
 
 		cur_type = -1;
 		m_shoptype.SetCurSel(0);
