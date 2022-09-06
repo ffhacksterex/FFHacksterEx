@@ -67,8 +67,7 @@ const sRenderMapState& CSubDlgRenderMap::GetRenderState() const
 
 void CSubDlgRenderMap::InvalidateFrame()
 {
-	CRect rc{ Ui::GetClientRect(this) };
-	m_frame.InvalidateRect(rc);
+	m_frame.InvalidateRect(nullptr, 0);
 }
 
 // Internal implementation
