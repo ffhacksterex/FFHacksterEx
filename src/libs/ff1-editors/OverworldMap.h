@@ -73,8 +73,8 @@ protected:
 	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
 	CImageList m_sprites;
 	CImageList m_backdrop;
+	COLORREF m_gridcolor;
 	CPen redpen;
-	CPen bluepen;
 	CBrush toolBrush;
 	CRect rcTiles;
 	CRect rcMap;
@@ -96,9 +96,11 @@ protected:
 	bool probabilitychanged;
 	BYTE mousedown;
 	int kab;
-	CSize m_mapsize = { 256, 256 };
+	CSize m_mapsize = { 256, 256 }; //TODO - rename to m_maptilesize?
 	CSize m_tiledims = { 16,16 };
-	CSize m_minmapsize = { 16,16 };
+	CSize m_minmapsize = { 16,16 }; //TODO - rename to m_minimaptilesize?
+	CSize m_domaincounts = { 8, 8 };
+	std::vector<CRect> m_domainrects;
 	bool m_firstpopoutdone = false;
 	bool m_popoutcreated = false;
 	std::vector<CDrawingToolButton*> m_toolbuttons;
@@ -126,6 +128,9 @@ protected:
 	CSize get_scroll_limits();
 	void apply_tile_tint(int ref);
 	CRect get_display_area();
+	void build_domain_rects();
+	void invalidate_maps();
+
 	void handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	void handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	void handle_paint(CDC& dc);

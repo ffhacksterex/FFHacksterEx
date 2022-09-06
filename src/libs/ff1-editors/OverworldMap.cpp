@@ -225,13 +225,13 @@ void COverworldMap::HandleLButtonDown(UINT nFlags, CPoint point)
 		mousedown = 1;
 		UpdateClick(point);
 		DecompressedMap[point.y][point.x] = (BYTE)cur_tile;
-		InvalidateRect(rcMap, 0);
+		invalidate_maps();
 	}break;
 	default: {		//fill/smarttools
 		mousedown = 1;
 		UpdateClick(point);
 		rcToolRect.SetRect(point.x, point.y, point.x, point.y);
-		InvalidateRect(rcMap, 0);
+		invalidate_maps();
 	}break;
 	}
 }
@@ -246,12 +246,15 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 		int coY, coX, temp, co;
 		bool draw;
 		switch (cur_tool) {
-		case 0: break;
+		case 0:
+			invalidate_maps();
+			break;
 		case 1: {			//fill
 			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
 				for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
 					DecompressedMap[coY][coX] = (BYTE)cur_tile;
 			}
+			invalidate_maps();
 		}break;
 		default: {			//smarttools
 			temp = cur_tool - 2;
@@ -399,7 +402,7 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 			}
 			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
 
-			InvalidateRect(rcMap);
+			invalidate_maps();
 		}break;
 		}
 		if (m_minimap.GetCheck()) minimap.UpdateCur();
@@ -429,7 +432,7 @@ void COverworldMap::HandleRButtonDown(UINT nFlags, CPoint pt)
 		m_customizetool.EnableWindow(FALSE);
 		m_popoutmap.UpdateControls();
 	}
-	if (m_showlastclick.GetCheck()) InvalidateRect(rcMap, 0);
+	if (m_showlastclick.GetCheck()) invalidate_maps();
 
 	//if they clicked on a sprite... adjust the Sprite Editor accordingly
 	for (int co = 0; co < 5; co++) {
@@ -470,12 +473,12 @@ void COverworldMap::HandleMouseMove(UINT nFlags, CPoint newhover)
 			switch (cur_tool) {
 			case 0: {		//pencil
 				DecompressedMap[ptHover.y][ptHover.x] = (BYTE)cur_tile;
-				InvalidateRect(rcMap, 0);
+				invalidate_maps();
 			}break;
 			default: {		//fill / Smarttools
 				rcToolRect.right = ptHover.x;
 				rcToolRect.bottom = ptHover.y;
-				InvalidateRect(rcMap, 0);
+				invalidate_maps();
 			}break;
 			}
 			UpdateClick(ptHover);
@@ -487,7 +490,7 @@ void COverworldMap::HandleMouseMove(UINT nFlags, CPoint newhover)
 			misccoords[mousedown - 2] = ptHover;
 			text.Format("%X", ptHover.x); m_miscx.SetWindowText(text);
 			text.Format("%X", ptHover.y); m_miscy.SetWindowText(text);
-			InvalidateRect(rcMap, 0);
+			invalidate_maps();
 		}
 	}
 }
@@ -702,8 +705,8 @@ BOOL COverworldMap::OnInitDialog()
 		m_misccoords.SetCurSel(0);
 		OnSelchangeMisccoords();
 
+		m_gridcolor = RGB(0, 0, 255);
 		IF_NOHANDLE(redpen).CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
-		IF_NOHANDLE(bluepen).CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
 		IF_NOHANDLE(toolBrush).CreateSolidBrush(RGB(128, 64, 255));
 
 		CRect rcpos;
@@ -739,6 +742,7 @@ BOOL COverworldMap::OnInitDialog()
 		ptDomain.x = 0;
 		ptDomain.y = 0;
 
+		build_domain_rects();
 		LoadDomain();
 		CPoint pt(0, 0);
 		UpdateClick(pt);
@@ -1080,7 +1084,28 @@ void COverworldMap::handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 			minimap.UpdateFocusRect(make_minimap_rect(ScrollOffset));
 		}
 	}
-	InvalidateRect(rcMap, FALSE);
+	invalidate_maps();
+}
+
+void COverworldMap::build_domain_rects()
+{
+	// We'll store the domain rectangles.
+	// The popout map can display more than one domain
+	// if it's large enough.
+	m_domainrects.clear();
+	CSize sizeofdomain = {
+		m_mapsize.cx / m_domaincounts.cx * m_tiledims.cx,
+		m_mapsize.cy / m_domaincounts.cy * m_tiledims.cy
+	};
+	for (int row = 0; row < m_domaincounts.cy; ++row)
+	{
+		CRect rcdomain{ 0, row * sizeofdomain.cy, sizeofdomain.cx, sizeofdomain.cy };
+		for (int col = 0; col < m_domaincounts.cx; ++col)
+		{
+			m_domainrects.push_back(rcdomain);
+			rcdomain.OffsetRect(sizeofdomain.cx, 0);
+		}
+	}
 }
 
 void COverworldMap::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
@@ -1111,7 +1136,13 @@ void COverworldMap::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 			minimap.UpdateFocusRect(make_minimap_rect(ScrollOffset));
 		}
 	}
-	InvalidateRect(rcMap, FALSE);
+	invalidate_maps();
+}
+
+void COverworldMap::invalidate_maps()
+{
+	InvalidateRect(rcMap, 0);
+	m_popoutmap.InvalidateMap();
 }
 
 void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
@@ -1144,8 +1175,8 @@ void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
 			cart->OK_overworldtiles = 0;
 			ReloadGraphics();
 			InvalidateRect(rcTiles,0);
-			InvalidateRect(rcMap,0);
 			InvalidateRect(rcPalette,0);
+			invalidate_maps();
 		}
 	}
 	else {
@@ -1321,10 +1352,16 @@ void COverworldMap::UpdateMisc(int update)
 	m_chime.SetCheck(update == 2);
 	m_raiseairship.SetCheck(update == 4);
 }
-void COverworldMap::OnShowlastclick() 
-{cart->ShowLastClick = (m_showlastclick.GetCheck() != 0); InvalidateRect(rcMap,0);}
-void COverworldMap::OnDrawgrid() 
-{cart->DrawDomainGrid = (m_drawgrid.GetCheck() != 0); InvalidateRect(rcMap,0);}
+void COverworldMap::OnShowlastclick()
+{
+	cart->ShowLastClick = (m_showlastclick.GetCheck() != 0);
+	invalidate_maps();
+}
+void COverworldMap::OnDrawgrid()
+{
+	cart->DrawDomainGrid = (m_drawgrid.GetCheck() != 0);
+	invalidate_maps();
+}
 void COverworldMap::OnTeleport() 
 {
 	bool teleport = m_teleport.GetCheck() != 0;
@@ -1491,7 +1528,7 @@ void COverworldMap::OnLButtonDblClk(UINT nFlags, CPoint pt)
 			ReloadGraphics();
 			InvalidateRect(rcPalette,0);
 			InvalidateRect(rcTiles,0);
-			InvalidateRect(rcMap,0);
+			invalidate_maps();
 		}
 	}
 }
@@ -1640,7 +1677,7 @@ void COverworldMap::apply_tile_tint(int ref)
 		cart->OK_overworldtiles = 0;
 		ReloadGraphics();
 		InvalidateRect(rcTiles, 0);
-		InvalidateRect(rcMap, 0);
+		invalidate_maps();
 	}
 }
 
@@ -1678,7 +1715,7 @@ void COverworldMap::handle_paint(CDC& dc)
 		auto oldbmp = compat.SelectObject(&bmp);
 		CRect client = { 0,0,rcMap.Width() + tiledims.cx, rcMap.Height() };
 		compat.FillSolidRect(client, RGB(255, 255, 255));
-		paint_map_elements(compat, client, scrolloff, tiledims);
+		paint_map_elements(compat, rcMap, scrolloff, tiledims);
 
 		// Draw the bitmap to the window's display area.
 		// To ensure we only draw to that area, set it as the clip region.
@@ -1719,12 +1756,13 @@ void COverworldMap::handle_paint(CDC& dc)
 	m_banner.Render(dc, 8, 8);
 }
 
-void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims)
+void COverworldMap::paint_map_elements(CDC& dc, CRect displayrect, CPoint scrolloff, CSize tiledims)
 {
 	ASSERT(tiledims.cx > 0);
 	ASSERT(tiledims.cy > 0);
 	if (tiledims.cx <= 0 || tiledims.cy <= 0) return;
 
+	CRect displayarea = { 0, 0, displayrect.Width(), displayrect.Height() };
 	CSize gridvis = {displayarea.Width() / tiledims.cx, displayarea.Height() / tiledims.cy};
 	CPoint gridanchor = { scrolloff.x / tiledims.cx, scrolloff.y / tiledims.cy };
 	int coX, coY, tile;
@@ -1796,29 +1834,50 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayarea, CPoint scroll
 		}
 	}
 	if (cart->DrawDomainGrid) {
-		dc.SelectObject(&bluepen);
-		CPoint is;
-		CPoint goo;
-		goo.x = (gridanchor.x + 15) >> 4;
-		goo.y = (gridanchor.y + 15) >> 4;
-		if (!(goo.x & 1)) {
-			is.x = gridanchor.x & 0x0F;
-			if (is.x) is.x = ((16 - is.x) << 4) + displayarea.left;
-			else is.x = (is.x << 4) + displayarea.left;
-			dc.MoveTo(is.x, displayarea.top); dc.LineTo(is.x, displayarea.bottom);
-		}
-		if (!(goo.y & 1)) {
-			is.y = gridanchor.y & 0x0F;
-			if (is.y) is.y = ((16 - is.y) << 4) + displayarea.top;
-			else is.y = (is.y << 4) + displayarea.top;
-			dc.MoveTo(displayarea.left, is.y); dc.LineTo(displayarea.right, is.y);
-		}
-		dc.SetBkMode(TRANSPARENT);
-		dc.SetTextColor(RGB(0, 0, 255));
+		auto oldbkmode = dc.SetBkMode(TRANSPARENT);
+		auto oldtxcolor = dc.SetTextColor(m_gridcolor);
 		CString text;
-		text.Format("%d,%d", goo.x >> 1, goo.y >> 1);
-		if (!(goo.x % 2 && goo.y % 2))
-			dc.TextOut(is.x, is.y, text);
+
+		// Create a translucent square behind each domain label.
+		BLENDFUNCTION bf = { 0 };
+		bf.BlendOp = AC_SRC_OVER;
+		bf.BlendFlags = 0;
+		bf.AlphaFormat = 0; //N.B. - DO NOT set this to AC_SRC_ALPHA in this case
+		bf.SourceConstantAlpha = 192;
+		CRect rcblend{ 0, 0, m_tiledims.cx * 2, m_tiledims.cy };
+		CDC dcblend;
+		CBitmap bmblend;
+		dcblend.CreateCompatibleDC(&dc);
+		bmblend.CreateCompatibleBitmap(&dc, rcblend.Width(), rcblend.Height());
+		dcblend.SelectObject(&bmblend);
+		dcblend.FillSolidRect(&rcblend, COLOR_WHITE);
+
+		CPoint ptmouse = Ui::GetControlCursorPos(this);
+		ptmouse.Offset(-displayrect.left, -displayrect.top);
+
+		for (size_t irc = 0, row = 0; row < m_domaincounts.cy; ++row, +irc) {
+			for (size_t col = 0; col < m_domaincounts.cx; ++col, ++irc) {
+				// Translate to displayarea coordinates
+				CRect rcdomain = m_domainrects[irc];
+				rcdomain.OffsetRect(-scrolloff.x, -scrolloff.y);
+
+				// Draw the rectangle ...
+				dc.Draw3dRect(rcdomain, m_gridcolor, m_gridcolor);
+
+				// ... but only render text if not currently drawing under it.
+				CRect rcextent{ rcdomain.TopLeft(), m_tiledims };
+				rcextent.InflateRect(0, 0, m_tiledims.cx, 0);
+				BOOL undermouse = rcextent.PtInRect(ptmouse);
+				if (!(mousedown && undermouse)) {
+					dc.AlphaBlend(rcextent.left, rcextent.top, rcextent.Width(), rcextent.Height(),
+						&dcblend, 0, 0, rcblend.Width(), rcblend.Height(), bf);
+					text.Format(_T("%d,%d"), col, row);
+					dc.DrawText(text, rcextent, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+				}
+			}
+		}
+		dc.SetTextColor(oldtxcolor);
+		dc.SetBkMode(oldbkmode);
 	}
 
 	//Draw the sprites
@@ -1897,7 +1956,7 @@ void COverworldMap::OnChangeMiscx()
 	m_miscx.GetWindowText(text); number = StringToInt_HEX(text);
 	if(number > 0xFF) number = 0xFF;
 	misccoords[m_misccoords.GetCurSel()].x = number;
-	InvalidateRect(rcMap,0);
+	invalidate_maps();
 }
 
 void COverworldMap::OnChangeMiscy() 
@@ -1906,7 +1965,7 @@ void COverworldMap::OnChangeMiscy()
 	m_miscy.GetWindowText(text); number = StringToInt_HEX(text);
 	if(number > 0xFF) number = 0xFF;
 	misccoords[m_misccoords.GetCurSel()].y = number;
-	InvalidateRect(rcMap,0);
+	invalidate_maps();
 }
 
 void COverworldMap::OnRButtonUp(UINT nFlags, CPoint point)
@@ -1942,7 +2001,7 @@ void COverworldMap::OnMapImport()
 		return;}
 	fread(DecompressedMap,1,0x10000,file);
 	fclose(file);
-	InvalidateRect(rcMap,0);
+	invalidate_maps();
 }
 
 void COverworldMap::OnMinimap()

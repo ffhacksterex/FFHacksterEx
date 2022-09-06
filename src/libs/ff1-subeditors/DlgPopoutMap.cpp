@@ -7,6 +7,7 @@
 #include "afxdialogex.h"
 #include "IMapEditor.h"
 #include <FFBaseApp.h>
+#include <ff1.colors.h>
 #include <ui_helpers.h>
 #include <algorithm>
 #include <afxglobals.h>
@@ -92,6 +93,12 @@ BOOL CDlgPopoutMap::CreateModeless(IMapEditor* editor, CSize mapdims, CSize tile
 void CDlgPopoutMap::UpdateControls()
 {
 	update_tool_index();
+}
+
+void CDlgPopoutMap::InvalidateMap()
+{
+	auto rcdisp = GetDisplayArea();
+	InvalidateRect(rcdisp, 0);
 }
 
 void CDlgPopoutMap::ScrollByPercentage(int nBar, int percent)
@@ -440,7 +447,7 @@ void CDlgPopoutMap::OnPaint()
 	compat.FillSolidRect(client, RGB(255, 255, 255));
 	auto scrolloff = get_scroll_pos();
 	CRect drawrect = { 0, 0, displayarea.Width(), displayarea.Height() };
-	Editor->RenderMapEx(compat, drawrect, scrolloff, Tilesize);
+	Editor->RenderMapEx(compat, displayarea, scrolloff, Tilesize);
 
 	// Draw the bitmap to the window's display area.
 	// To ensure we only draw to that area, set it as the clip region.
@@ -458,7 +465,7 @@ void CDlgPopoutMap::OnPaint()
 
 	//TODO - might remove this frame border
 	displayarea.InflateRect(1, 1);
-	dc.Draw3dRect(displayarea, RGB(0, 0, 0), RGB(0, 0, 0));
+	dc.Draw3dRect(displayarea, COLOR_GRAY, COLOR_GRAY);
 
 	auto rc = get_sizer_rect(true);
 	dc.DrawFrameControl(rc, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
