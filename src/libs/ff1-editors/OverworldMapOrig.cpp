@@ -1508,7 +1508,7 @@ void COverworldMapOrig::OnRButtonUp(UINT nFlags, CPoint point)
 void COverworldMapOrig::OnMapExport() 
 {
 	CString text = "Overworld Map." + CString(FFH_MAP_EXT);
-	CString filename = Paths::Combine({ Project->AppSettings->PrefMapImportExportFolder , text });
+	CString filename = Paths::Combine({ FOLDERPREF(Project->AppSettings, PrefMapImportExportFolder) , text });
 	auto result = Ui::SaveFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Export Overworld Map", filename);
 	if (!result) return;
 
@@ -1523,7 +1523,7 @@ void COverworldMapOrig::OnMapExport()
 void COverworldMapOrig::OnMapImport() 
 {
 	auto result = OpenFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Import Overworld Map",
-		Project->AppSettings->PrefMapImportExportFolder);
+		FOLDERPREF(Project->AppSettings, PrefMapImportExportFolder));
 	if (!result) return;
 
 	FILE* file = fopen(result.value, "r+b");

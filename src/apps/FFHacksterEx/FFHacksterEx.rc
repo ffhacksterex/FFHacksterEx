@@ -231,7 +231,7 @@ BEGIN
     CONTROL         "Show background &art",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | BS_FLAT | NOT WS_VISIBLE | WS_TABSTOP,7,70,344,10,WS_EX_TRANSPARENT
     CONTROL         "Display &Strikeout checkboxes in editors (where supported)",IDC_CHECK4,
                     "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,82,202,10,WS_EX_TRANSPARENT
-    CONTROL         "",IDC_STATIC2,"Static",SS_BLACKFRAME | SS_NOTIFY,215,82,37,10
+    CONTROL         "",IDC_STATIC2,"Static",SS_BLACKFRAME | SS_NOTIFY,215,82,50,10
     CONTROL         "Force new &label creation for new projects (instead of copying app defaults)",IDC_CHECK3,
                     "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,94,344,10,WS_EX_TRANSPARENT
     CONTROL         "Always &compile before running (assembly projects only)",IDC_CHECK5,
@@ -242,7 +242,9 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,130,344,10,WS_EX_TRANSPARENT
     CONTROL         "&Warn if loading assembly source using incompatible DLL",IDC_CHECK8,
                     "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,142,344,10,WS_EX_TRANSPARENT
-    CONTROL         "Folders...",IDC_APPSETTINGS_BUTTON3_DIRECTORIES,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,155,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
+    CONTROL         "&Use Folder Preferences for file and folder prompts",IDC_CHECK_USEFOLDERPREFS,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,7,154,192,10,WS_EX_TRANSPARENT
+    CONTROL         "Folders...",IDC_APPSETTINGS_BUTTON3_DIRECTORIES,"Button",BS_OWNERDRAW | BS_BITMAP | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,215,152,50,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
     LTEXT           "&Help Type",IDC_APPSTGS_STATIC_HELPTYPE,7,173,33,14,SS_CENTERIMAGE
     COMBOBOX        IDC_COMBO_HELP_TYPES,63,174,65,64,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "NOTE: Web help always points to the most recent program version.\nIt's best to use Local App help with older versions.",IDC_STATIC,134,172,217,18,0,WS_EX_TRANSPARENT

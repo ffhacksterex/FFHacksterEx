@@ -213,12 +213,12 @@ void CWepMagGraphic::SetCaption(CString caption)
 
 void CWepMagGraphic::OnExportbitmap()
 {
-	Draw_ExportToBmp(&draw, Project, palette, Project->AppSettings->PrefImageImportExportFolder);
+	Draw_ExportToBmp(&draw, Project, palette, FOLDERPREF(Project->AppSettings, PrefImageImportExportFolder));
 }
 
 void CWepMagGraphic::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,Project,palette, Project->AppSettings->PrefImageImportExportFolder);
+	Draw_ImportFromBmp(&draw,Project,palette, FOLDERPREF(Project->AppSettings, PrefImageImportExportFolder));
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }

@@ -48,6 +48,8 @@ BOOL CDlgPickDestinationFile::OnInitDialog()
 	if (!Blurb.IsEmpty()) Ui::ResizeBlurb(this, &m_blurb, Blurb);
 	if (!Title.IsEmpty()) SetWindowText(Title);
 
+	StartInFolder = Paths::AddTrailingSlash(StartInFolder);
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // EXCEPTION: OCX Property Pages should return FALSE
 }
@@ -69,8 +71,7 @@ void CDlgPickDestinationFile::OnOK()
 
 void CDlgPickDestinationFile::OnBnClickedBrowseParentfolder()
 {
-	CString startfolder = StartInFolder;
-	auto file = Ui::PromptToSaveProjectByFilter(this, DefaultExt, Filter);
+	auto file = Ui::PromptToSaveByFilter(this, DefaultExt, Filter, StartInFolder);
 	if (file) {
 		m_editParentFolder.SetWindowText(file);
 		m_editParentFolder.SetFocus();

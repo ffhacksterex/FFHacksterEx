@@ -321,38 +321,27 @@ pair_result<CString> CFFHacksterGenerator::CreateAsmProject()
 // Select and open a project, otherwise prompt.
 pair_result<CString> CFFHacksterGenerator::OpenProject()
 {
-	CFileDialog dlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | Ui::COMMON_OFN,
-		"FF1 Projects (*.ff1rom;*.ff1asm)|*.ff1rom;*.ff1asm|"
-		"FF1 ROM Projects (*.ff1rom)|*.ff1rom|"
-		"FF1 Assembly Projects (*.ff1asm)|*.ff1asm|"
-		"|",
-		AfxGetMainWnd());
-
-	auto modalresult = dlg.DoModal();
-	if (modalresult == IDOK)
-		return{ true, dlg.GetPathName() };
-	if (modalresult == IDCANCEL)
+	auto result = Ui::BrowseForProject(AfxGetMainWnd(), "Open Project",
+		FOLDERPREF(AppStgs, PrefProjectParentFolder));
+	if (result)
+		return{ true, result.value };
+	if (result.value.IsEmpty())
 		return{ false, "prompt" };
 
 	CString err;
-	err.Format("Failed while prompting to open a project (modal result %d)", modalresult);
+	err.Format("Failed while prompting to open a project:\n%s", result.value);
 	return{ false, err };
 }
 
 // Unzip an archive file that contains one of the supported project types, otherwise prompt.
 pair_result<CString> CFFHacksterGenerator::UnzipProject()
 {
-	CFileDialog dlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | Ui::COMMON_OFN,
-		"FF1 Zipped Projects (*.ff1zip)|*.ff1zip|"
-		"|",
-		AfxGetMainWnd());
-
-	auto modalresult = dlg.DoModal();
-	if (modalresult == IDCANCEL)
-		return{ false, "prompt" };
-
-	if (modalresult == IDOK) {
-		CString pathname = dlg.GetPathName();
+	auto result = Ui::OpenFilePrompt(AfxGetMainWnd(),
+		"FF1 Zipped Projects (*.ff1zip)|*.ff1zip||",
+		"Open Archive", FOLDERPREF(AppStgs, PrefArchiveFolder));
+	if (result)
+	{
+		CString pathname = result.value;
 		auto ziptypes = std::vector<CString>{ ".ff1rom", ".ff1asm" };
 		auto index = Io::ZipHasFileExtension(pathname, ziptypes);
 		switch (index) {
@@ -370,9 +359,12 @@ pair_result<CString> CFFHacksterGenerator::UnzipProject()
 		}
 		return{ false, "prompt" };
 	}
+	else if (result.value.IsEmpty()) {
+		return{ false, "prompt" };
+	}
 
 	CString err;
-	err.Format("Failed while prompting to unzip a project (modal result %d)", modalresult);
+	err.Format("Failed while prompting to unzip a project:\n%s", result.value);
 	return{ false, err };
 }
 

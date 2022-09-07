@@ -188,7 +188,8 @@ END_MESSAGE_MAP()
 
 void CDlgWelcome::OnBnClickedProjectsBtnEditrom()
 {
-	auto result = OpenFilePrompt(this, "FF1 ROM (*.nes)|*.nes|All files (*.*)|*.*||", "Select a clean FF1 file");
+	auto result = Ui::BrowseForProject(this, "Select ROM to edit",
+		FOLDERPREF(AppStgs, PrefProjectParentFolder));
 	if (!result)
 		return;
 

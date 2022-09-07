@@ -106,6 +106,8 @@
 #define IDC_CHECK7                      1888
 #define IDC_CHECK8                      1889
 #define IDC_RADIO_LOCALHELP             1890
+#define IDC_CHECK9                      1890
+#define IDC_CHECK_USEFOLDERPREFS        1890
 #define IDC_RADIO_WEBHELP               1891
 #define IDC_BUTTON_LOCALHELP            1892
 #define IDC_EDIT_LOCALHELP              1893

@@ -12,12 +12,19 @@
 
 namespace Ui
 {
-
+	// See OpenFilePromptExt for return value info.
 	pair_result<CString> OpenFilePrompt(CWnd * parent, CString filter, CString title, CString initialfile)
 	{
 		return OpenFilePromptExt(parent, filter, nullptr, title, initialfile);
 	}
 
+	// Returns a pair_result<CString> as follows:
+	// - success returns {true, "C:\path\to\file"}
+	// - cancel returns {false, ""}
+	// - otherwise, returns {false, "Error reason"}
+	// Cancelling the dialog will always return false with an empty string value.
+	// Any other result is treated as an error, in which case false is returned
+	// and the value will contain some message (even if it's a generic message).
 	pair_result<CString> OpenFilePromptExt(CWnd* parent, CString filter, CString defext, CString title, CString initialfile)
 	{
 		TCHAR initpath[_MAX_PATH] = { 0 };
@@ -39,11 +46,13 @@ namespace Ui
 		return pair_result<CString>(false, modalresult == IDCANCEL ? "" : "An error occurred while attempting to prompt for an open filename.");
 	}
 
+	// See OpenFilePromptExt for return value info.
 	pair_result<CString> SaveFilePrompt(CWnd * parent, CString filter, CString title, CString initialfile) //REFACTOR
 	{
 		return SaveFilePromptExt(parent, filter, nullptr, title, initialfile);
 	}
 
+	// See OpenFilePromptExt for return value info.
 	pair_result<CString> SaveFilePromptExt(CWnd* parent, CString filter, CString defext, CString title, CString initialfile)
 	{
 		char initpath[_MAX_PATH + 1] = { 0 };
@@ -60,53 +69,7 @@ namespace Ui
 		return pair_result<CString>(false, modalresult == IDCANCEL ? "" : "An error occurred while attempting to prompt for a save filename.");
 	}
 
-	CString PromptForRomPath(CWnd * parent)
-	{
-		CFileDialog dlg(TRUE, "nes", nullptr, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST,
-			"FF1 NES ROM image (*.nes)|*.nes||", parent);
-		INT_PTR result;
-		while ((result = dlg.DoModal()) != IDOK) {
-			if (result == IDCANCEL) return CString();
-		}
-		return CString(dlg.GetPathName());
-	}
-
-	CString PromptForProject(CWnd * parent)
-	{
-		CFileDialog dlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST,
-			"FF1 Projects (*.ff1rom;*.ff1asm)|*.ff1rom;*.ff1asm||", parent);
-
-		auto modalresult = dlg.DoModal();
-		if (modalresult == IDOK)
-			return dlg.GetPathName();
-		return "";
-	}
-
-	CString PromptToSaveProject(CWnd * parent, bool isrom, const char* promptcaption)
-	{
-		CString filter;
-		CString defext;
-		if (isrom) {
-			filter = "FF1 ROM Projects (*.ff1rom)|*.ff1rom||";
-			defext = "ff1rom";
-		}
-		else {
-			filter = "FF1 Assembly Projects (*.ff1asm)|*.ff1asm||";
-			defext = "ff1asm";
-		}
-
-		CFileDialog dlg(FALSE, defext, nullptr, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT,
-			filter, parent);
-		if (promptcaption != nullptr) dlg.m_ofn.lpstrTitle = promptcaption;
-
-		auto modalresult = dlg.DoModal();
-		if (modalresult == IDOK)
-			return dlg.GetPathName();
-		return "";
-	}
-
-	//TODO - rename PromptToSaveProjectByFilter, it's not tied to saving only projects
-	CString PromptToSaveProjectByFilter(CWnd * parent, CString defext, CString filter, CString defaultfilename)
+	CString PromptToSaveByFilter(CWnd * parent, CString defext, CString filter, CString defaultfilename)
 	{
 		LPCSTR pszfilename = !defaultfilename.IsEmpty() ? (LPCSTR)defaultfilename : nullptr;
 		CFileDialog dlg(FALSE, defext, pszfilename, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT,
@@ -147,7 +110,7 @@ namespace Ui
 		return result;
 	}
 
-	pair_result<CString> BrowseForProject(CWnd* parent, CString title) //MOVE
+	pair_result<CString> BrowseForProject(CWnd* parent, CString title, CString initialfileordir)
 	{
 		CString filter =
 			"FF1 Projects (*.ff1rom;*.ff1asm)|*.ff1rom;*.ff1asm|"
@@ -155,7 +118,7 @@ namespace Ui
 			"FF1 Assembly Projects (*.ff1asm)|*.ff1asm|"
 			"|";
 		if (parent == nullptr) parent = AfxGetMainWnd();
-		return OpenFilePrompt(parent, filter, title);
+		return OpenFilePrompt(parent, filter, title, initialfileordir);
 	}
 
 
