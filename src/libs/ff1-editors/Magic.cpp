@@ -268,6 +268,7 @@ BOOL CMagic::OnInitDialog()
 		OnSelchangeMagiclist();
 
 		m_banner.Set(this, COLOR_BLACK, COLOR_FFBLUE, "Magic");
+		SetODDefButtonID(IDOK);
 
 		SetTimer(1, 400, nullptr);
 		m_initialized = true;

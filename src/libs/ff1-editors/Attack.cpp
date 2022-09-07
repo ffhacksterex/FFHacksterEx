@@ -98,6 +98,7 @@ BOOL CAttack::OnInitDialog()
 		OnSelchangeAttacklist();
 
 		m_banner.Set(this, COLOR_BLACK, RGB(255, 224, 32), "Attacks");
+		SetODDefButtonID(IDOK);
 	}
 	catch (std::exception & ex) {
 		return Ui::AbortInitDialog(this, CString("Failed to load game data:\n") + ex.what());

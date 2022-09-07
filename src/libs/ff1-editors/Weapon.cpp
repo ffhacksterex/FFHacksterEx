@@ -151,6 +151,7 @@ BOOL CWeapon::OnInitDialog()
 		OnSelchangeWeaponlist();
 
 		m_banner.Set(this, RGB(0, 0, 0), RGB(255, 32, 64), "Weapons");
+		SetODDefButtonID(IDOK);
 	}
 	catch (std::exception & ex) {
 		return Ui::AbortInitDialog(this, CString("Failed to load game data:\n") + ex.what());

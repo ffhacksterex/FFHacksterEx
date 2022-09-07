@@ -215,6 +215,7 @@ BOOL CEnemy::OnInitDialog()
 		SetRedraw(TRUE);
 		Invalidate();
 		CenterToParent(this);
+		SetODDefButtonID(IDOK);
 	}
 	catch (std::exception & ex) {
 		return Ui::AbortFail(this, CString("Failed to load game data:\n") + ex.what());
