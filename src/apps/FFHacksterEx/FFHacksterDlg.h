@@ -78,6 +78,7 @@ protected:
 	void InitTooltips();
 	void InitStdButtonImages();
 	void UpdateSharedDisplayProperties();
+	CString build_project_type_text();
 
 	void ReloadProject();
 	void AbortProject();

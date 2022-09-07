@@ -11,6 +11,7 @@
 #include "FilePathRestorer.h"
 #include <AppSettings.h>
 
+#include <asmdll_impl.h>
 #include <path_functions.h>
 #include <general_functions.h>
 #include <imaging_helpers.h>
@@ -370,10 +371,9 @@ void CFFHacksterDlg::PaintClient(CDC & dc)
 		dc.SetBkMode(TRANSPARENT);
 		dc.SetTextColor(GetSysColor(COLOR_WINDOWTEXT));
 
-		// Draw the Editing project text right-aligned to the close button
-		//REFACTOR - Make the Editing project text a right-aligned custom colored static control instead
-		CString text;
-		text.Format("Editing %s project", m_proj.IsRom() ? "ROM" : "Assembly");
+		// Draw the project type text right-aligned to the close button
+		//REFACTOR - Make the Editing project text a right-aligned custom colored static control instead?
+		CString text = build_project_type_text();
 		int rightedge = rcclose.right - (rcclose.Width() / 4);
 		CRect rctext = { rightedge, rcstill.bottom - 4, rightedge, rcstill.bottom - 4 };
 		dc.SelectObject(&m_bannerfont);
@@ -457,6 +457,20 @@ void CFFHacksterDlg::UpdateSharedDisplayProperties()
 	//REFACTOR - can this function be moved into ff1-utils CFFBaseApp or CFFBaseDlg? It's also used by GoldItems
 	CStrikeCheck::RenderAsCheckbox = AppStgs->DisplayStrikeChecksAsNormalCheckboxes == true;
 	CStrikeCheck::SharedCheckedColor = AppStgs->StrikeCheckedColor;
+}
+
+CString CFFHacksterDlg::build_project_type_text()
+{
+	CString text = "Unknown project type";
+	if (m_proj.IsRom()) {
+		text = "ROM project";
+	}
+	else if (m_proj.IsAsm()) {
+		pair_result<CString> result = asmdll_impl::GetAsmDllVersion(m_proj.AsmDLLPath);
+		CString ver = result ? "v" + result.value : "Unknown version";
+		text.Format("Assembly (%s)", ver);
+	}
+	return text;
 }
 
 void CFFHacksterDlg::ReloadProject()
