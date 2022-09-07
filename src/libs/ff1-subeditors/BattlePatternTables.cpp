@@ -592,7 +592,7 @@ void CBattlePatternTables::OnExportbitmap()
 		sendpalette = &palette[palview];
 		draw.palmax = 4;
 	}
-	Draw_ExportToBmp(&draw, cart, sendpalette, cart->AppSettings->PrefImageImportExportFolder);
+	Draw_ExportToBmp(&draw, cart, sendpalette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
 	draw.palmax = 16;
 }
 
@@ -602,7 +602,7 @@ void CBattlePatternTables::OnImportbitmap()
 	if(!view){
 		sendpalette = &palette[palview];
 		draw.palmax = 4;}
-	Draw_ImportFromBmp(&draw,cart,sendpalette, cart->AppSettings->PrefImageImportExportFolder);
+	Draw_ImportFromBmp(&draw,cart,sendpalette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
 	draw.palmax = 16;
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);

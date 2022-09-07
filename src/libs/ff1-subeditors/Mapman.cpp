@@ -264,12 +264,12 @@ void CMapman::StoreValues()
 
 void CMapman::OnExportbitmap()
 {
-	Draw_ExportToBmp(&draw, cart, palette, cart->AppSettings->PrefImageImportExportFolder);
+	Draw_ExportToBmp(&draw, cart, palette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
 }
 
 void CMapman::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,cart,palette, cart->AppSettings->PrefImageImportExportFolder);
+	Draw_ImportFromBmp(&draw,cart,palette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }

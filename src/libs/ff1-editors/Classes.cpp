@@ -365,6 +365,7 @@ BOOL CClasses::OnInitDialog()
 		cur_class = -1;
 		m_classlist.SetCurSel(0);
 		OnSelchangeClasslist();
+		SetODDefButtonID(IDOK);
 	}
 	catch (std::exception & ex) {
 		return AbortFail(this, CString("Failed to load game data:\n") + ex.what());

@@ -86,6 +86,7 @@ AppSettings::AppSettings(CString inifile)
 	, WarnAssemblyDllCompatibility(true)
 	, HelpTypeId(HelpType::LocalApp)
 	, EnableHelpChoice(false)
+	, UseFolderPrefs(true)
 {
 	m_inifile.Trim();
 	if (m_inifile.IsEmpty())
@@ -135,6 +136,7 @@ void AppSettings::Read()
 		READHELPTYPE(inifile, HelpTypeId);
 		READSTR(inifile, HelpPath);
 		READBOOL(inifile, EnableHelpChoice);
+		READBOOL(inifile, UseFolderPrefs);
 		ReadMru();
 
 		READ_SETTING_STR(PrefProjectParentFolder);
@@ -175,6 +177,7 @@ void AppSettings::Write()
 		WRITEHELPTYPE(inifile, HelpTypeId);
 		WRITESTR(inifile, HelpPath);
 		WRITEBOOL(inifile, EnableHelpChoice);
+		WRITEBOOL(inifile, UseFolderPrefs);
 		WriteMru();
 
 		this->EncodePrefPaths(); // so that the file contains *APP

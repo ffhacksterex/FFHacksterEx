@@ -41,4 +41,6 @@ protected:
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg LRESULT OnSetCheck(WPARAM wparam, LPARAM lparam);
 	afx_msg LRESULT OnGetCheck(WPARAM wparam, LPARAM lparam);
+public:
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };

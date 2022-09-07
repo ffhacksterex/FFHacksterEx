@@ -6,6 +6,8 @@
 #define MRULOWLIMIT 4
 #define MRUMAXLIMIT 25
 
+#define FOLDERPREF(as,name) ((as)->UseFolderPrefs ? ((as)->name) : "")
+
 struct sAppFolderPrefs
 {
 public:
@@ -58,6 +60,7 @@ public:
 	bool WarnAssemblyDllCompatibility;
 	HelpType HelpTypeId;
 	CString HelpPath;
+	bool UseFolderPrefs;
 
 	std::vector<CString> MruPaths;
 	size_t MruMaxCount;

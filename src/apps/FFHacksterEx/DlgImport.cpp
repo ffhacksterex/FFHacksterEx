@@ -10,7 +10,7 @@
 #include "path_functions.h"
 #include "ui_helpers.h"
 #include "ui_prompts.h"
-
+#include <AppSettings.h>
 #include <ProjectLoader.h>
 
 using namespace Ini;
@@ -167,8 +167,9 @@ void CDlgImport::OnOK()
 
 void CDlgImport::OnBnClickedButtonDat()
 {
-	auto result = OpenFilePrompt(this, "FFHackster DAT files (FFHackster*.dat)|FFHackster*.dat|All files (*.*)|*.*||",
-		"Open an FFHackster Data file");
+	auto result = OpenFilePrompt(this,
+		"FFHackster DAT files (FFHackster*.dat)|FFHackster*.dat|All files (*.*)|*.*||",
+		"Open an FFHackster Data file", FOLDERPREF(Project->AppSettings, PrefCleanFolder));
 	if (result) {
 		m_datedit.SetWindowText(result.value);
 		m_datedit.SetFocus();
@@ -180,7 +181,8 @@ void CDlgImport::OnBnClickedButtonDat()
 
 void CDlgImport::OnBnClickedButtonProject()
 {
-	auto result = BrowseForProject(this, "Open Project containing Values file");
+	auto result = BrowseForProject(this, "Open Project containing Values file",
+		FOLDERPREF(Project->AppSettings, PrefProjectParentFolder));
 	if (result) {
 		m_projectedit.SetWindowText(result.value);
 		m_projectedit.SetFocus();

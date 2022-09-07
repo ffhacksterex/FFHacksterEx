@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "DlgProjectSettings.h"
+#include <AppSettings.h>
 #include <FFHacksterProject.h>
 #include <ProjectLoader.h>
 #include <asmdll_impl.h>
@@ -84,6 +85,16 @@ void CDlgProjectSettings::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PROJSTGS_CHECK_SUPPRESSASMWARNING, m_suppressasmwarningcheck);
 	DDX_Control(pDX, IDC_PROJSTGS_BUTTON_COERCEASM, m_coerceasmbutton);
 }
+
+BEGIN_MESSAGE_MAP(CDlgProjectSettings, CDialogWithBackground)
+	ON_BN_CLICKED(IDC_PROJSET_BUTTON_REVERTPATH, &CDlgProjectSettings::OnBnClickedProjsetButtonRevertpath)
+	ON_BN_CLICKED(IDC_PROJSET_BUTTON_PUBLISHPATH, &CDlgProjectSettings::OnBnClickedProjsetButtonPublishpath)
+	ON_BN_CLICKED(IDC_PROJSET_BUTTON_REVERTCLEAR, &CDlgProjectSettings::OnBnClickedProjsetButtonRevertclear)
+	ON_BN_CLICKED(IDC_APPSETTINGS_BTN_ADDLMODFOLDER, &CDlgProjectSettings::OnBnClickedAppsettingsBtnAddlmodfolder)
+	ON_BN_CLICKED(IDC_BUTTON1, &CDlgProjectSettings::OnBnClickedProjectAssemblyDllPath)
+	ON_BN_CLICKED(IDC_PROJSTGS_BUTTON_COERCEASM, &CDlgProjectSettings::OnBnClickedProjstgsButtonCoerceasm)
+END_MESSAGE_MAP()
+
 
 BOOL CDlgProjectSettings::OnInitDialog()
 {
@@ -201,7 +212,7 @@ void CDlgProjectSettings::OnOK()
 	if (!revertpath.IsEmpty()) {
 		if (!Paths::FileCopy(revertpath, m_proj->RevertGameDataPath)) {
 			auto result = AfxMessageBox(
-				"The reversion file copuld not be updated.\nContinue saving the other project settings?",
+				"The reversion file could not be updated.\nContinue saving the other project settings?",
 				MB_OKCANCEL | MB_ICONQUESTION);
 			if (result != IDOK) return;
 		}
@@ -216,17 +227,6 @@ void CDlgProjectSettings::OnOK()
 
 	CDialogWithBackground::OnOK();
 }
-
-
-BEGIN_MESSAGE_MAP(CDlgProjectSettings, CDialogWithBackground)
-	ON_BN_CLICKED(IDC_PROJSET_BUTTON_REVERTPATH, &CDlgProjectSettings::OnBnClickedProjsetButtonRevertpath)
-	ON_BN_CLICKED(IDC_PROJSET_BUTTON_PUBLISHPATH, &CDlgProjectSettings::OnBnClickedProjsetButtonPublishpath)
-	ON_BN_CLICKED(IDC_PROJSET_BUTTON_REVERTCLEAR, &CDlgProjectSettings::OnBnClickedProjsetButtonRevertclear)
-	ON_BN_CLICKED(IDC_APPSETTINGS_BTN_ADDLMODFOLDER, &CDlgProjectSettings::OnBnClickedAppsettingsBtnAddlmodfolder)
-	ON_BN_CLICKED(IDC_BUTTON1, &CDlgProjectSettings::OnBnClickedProjectAssemblyDllPath)
-	ON_BN_CLICKED(IDC_PROJSTGS_BUTTON_COERCEASM, &CDlgProjectSettings::OnBnClickedProjstgsButtonCoerceasm)
-END_MESSAGE_MAP()
-
 
 // CDlgProjectSettings message handlers
 
@@ -247,7 +247,7 @@ void CDlgProjectSettings::OnBnClickedProjsetButtonRevertpath()
 	}
 
 	// The file must exist, so use OpenFilePrompt
-	auto result = OpenFilePrompt(this, filter, title);
+	auto result = OpenFilePrompt(this, filter, title, FOLDERPREF(m_proj->AppSettings, PrefCleanFolder));
 	if (result)
 		Ui::SetEditTextAndFocus(m_editRevertPath, result.value);
 }
@@ -260,6 +260,8 @@ void CDlgProjectSettings::OnBnClickedProjsetButtonRevertclear()
 void CDlgProjectSettings::OnBnClickedProjsetButtonPublishpath()
 {
 	auto prevfile = iif(Ui::GetControlText(m_editPublishPath), m_proj->PublishRomPath);
+	if (!Paths::FileExists(prevfile) && m_proj->AppSettings->UseFolderPrefs)
+		prevfile = m_proj->AppSettings->PrefPublishFolder;
 	auto result = SaveFilePrompt(this, "FF1 ROM (*.nes)|*.nes||", "Select Destination ROM location", prevfile);
 	if (result)
 		Ui::SetEditTextAndFocus(m_editPublishPath, result.value);
@@ -268,6 +270,8 @@ void CDlgProjectSettings::OnBnClickedProjsetButtonPublishpath()
 void CDlgProjectSettings::OnBnClickedAppsettingsBtnAddlmodfolder()
 {
 	auto prevfolder = iif(Ui::GetControlText(m_addlmodfolderedit), m_proj->AdditionalModulesFolder);
+	if (!Paths::DirExists(prevfolder) && m_proj->AppSettings->UseFolderPrefs)
+		prevfolder = m_proj->AppSettings->PrefAdditionalModulesFolder;
 	auto folder = PromptForFolder(this, "Select Additional Modules Folder", prevfolder);
 	if (Paths::DirExists(folder))
 		Ui::SetEditTextAndFocus(m_addlmodfolderedit, folder.value);
@@ -276,6 +280,8 @@ void CDlgProjectSettings::OnBnClickedAppsettingsBtnAddlmodfolder()
 void CDlgProjectSettings::OnBnClickedProjectAssemblyDllPath()
 {
 	auto prevfile = iif(Ui::GetControlText(m_asmdlledit), m_proj->AsmDLLPath);
+	if (!Paths::FileExists(prevfile) && m_proj->AppSettings->UseFolderPrefs)
+		prevfile = m_proj->AppSettings->PrefAsmDllFolder;
 	auto result = OpenFilePrompt(AfxGetMainWnd(), "FFHacksterEX Assembly parsing DLL (*.dll)|*.dll||",
 		"Locate FFHacksterEX assembly DLL", prevfile);
 	if (result) {

@@ -85,6 +85,7 @@ BOOL CDlgAppSettings::OnInitDialog()
 	SetCheckValue(m_usefiledialogtobrowsecheck, AppStgs->UseFileDialogToBrowseFolders);
 	SetCheckValue(m_enforceasmcompatcheck, AppStgs->EnforceAssemblyDllCompatibility);
 	SetCheckValue(m_warnasmcompatcheck, AppStgs->WarnAssemblyDllCompatibility);
+	SetCheckValue(m_usefolderprefscheck, AppStgs->UseFolderPrefs);
 	m_editRunExe.SetWindowText(AppStgs->RunExe);
 	m_cmdparamsedit.SetWindowText(AppStgs->RunParams);
 
@@ -142,6 +143,7 @@ void CDlgAppSettings::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK6, m_usefiledialogtobrowsecheck);
 	DDX_Control(pDX, IDC_CHECK7, m_enforceasmcompatcheck);
 	DDX_Control(pDX, IDC_CHECK8, m_warnasmcompatcheck);
+	DDX_Control(pDX, IDC_CHECK_USEFOLDERPREFS, m_usefolderprefscheck);
 	DDX_Control(pDX, IDC_BUTTON_LOCALHELP, m_localhelpbutton);
 	DDX_Control(pDX, IDC_EDIT_LOCALHELP, m_editlocalhelp);
 	DDX_Control(pDX, IDC_COMBO_HELP_TYPES, m_helptypes);
@@ -189,6 +191,7 @@ void CDlgAppSettings::OnOK()
 	AppStgs->UseFileDialogToBrowseFolders = GetCheckValue(m_usefiledialogtobrowsecheck);
 	AppStgs->EnforceAssemblyDllCompatibility = GetCheckValue(m_enforceasmcompatcheck);
 	AppStgs->WarnAssemblyDllCompatibility = GetCheckValue(m_warnasmcompatcheck);
+	AppStgs->UseFolderPrefs = GetCheckValue(m_usefolderprefscheck);
 	AppStgs->RunExe = runexe;
 	AppStgs->RunParams = Ui::GetControlText(m_cmdparamsedit);
 

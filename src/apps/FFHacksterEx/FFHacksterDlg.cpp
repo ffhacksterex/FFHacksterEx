@@ -596,9 +596,9 @@ BEGIN_MESSAGE_MAP(CFFHacksterDlg, BaseClass)
 	ON_BN_CLICKED(IDC_FFH_BTN_PROJSETTINGS, &CFFHacksterDlg::EditProjectSettings)
 	ON_BN_CLICKED(IDABOUT, &CFFHacksterDlg::OnAbout)
 	ON_BN_CLICKED(IDC_FFH_BTN_EDITORS, &CFFHacksterDlg::EditProjectEditorsList)
+	ON_BN_CLICKED(IDC_BUTTON1, &CFFHacksterDlg::OnCloneProject)
 	ON_BN_CLICKED(IDC_FFH_BTN_ARCHIVEPROJECT, &CFFHacksterDlg::OnArchiveProject)
 	ON_BN_CLICKED(IDC_FFH_BTN_MIN, &CFFHacksterDlg::OnMinimizeButton)
-	ON_BN_CLICKED(IDC_BUTTON1, &CFFHacksterDlg::OnCloneProject)
 	ON_NOTIFY_RANGE(NM_RCLICK, IDC_DYNABUTTON_EDITORS, IDC_DYNABUTTON_EDITORS + 100, &CFFHacksterDlg::OnNmRclickActionButton)
 	ON_CONTROL_RANGE(BN_CLICKED, IDC_DYNABUTTON_EDITORS, IDC_DYNABUTTON_EDITORS + 100, &CFFHacksterDlg::OnBnClickedActionButton)
 	ON_WM_MOVE()
@@ -1262,7 +1262,8 @@ void CFFHacksterDlg::OnCloneProject()
 		"The project will be created inside a subfolder with the name specified "
 		"in the Name edit field.";
 	pick.SourceFolderName = m_proj.ProjectName;
-	pick.StartInFolder = Paths::GetDirectoryPath(m_proj.ProjectFolder);
+	pick.StartInFolder = iif(FOLDERPREF(m_proj.AppSettings, PrefProjectParentFolder),
+		Paths::GetParentDirectory(m_proj.ProjectFolder));
 	if (pick.DoModal() == IDOK) {
 		const auto & newdir = pick.DestFolderPath;
 		if (Paths::DirExists(newdir) && !Paths::DirEmpty(newdir)) {
@@ -1300,7 +1301,8 @@ void CFFHacksterDlg::OnArchiveProject()
 	pick.Blurb = "Select a destination filename.\nThe project will be zipped into an "
 		"archive file that can be imported on the Welcome screen.";
 	pick.Filter = "Project archives (*.ff1zip)|*.ff1zip||";
-	pick.StartInFolder = Paths::GetDirectoryPath(m_proj.ProjectFolder);
+	pick.StartInFolder = iif(FOLDERPREF(m_proj.AppSettings, PrefArchiveFolder),
+		Paths::GetParentDirectory(m_proj.ProjectFolder));
 	if (pick.DoModal() == IDOK) {
 		if (Io::Zip(pick.DestFile, m_proj.ProjectFolder, true)) {
 			AfxMessageBox("Archive the project to " + pick.DestFile + ".");

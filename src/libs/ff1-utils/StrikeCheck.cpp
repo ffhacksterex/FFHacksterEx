@@ -262,3 +262,35 @@ LRESULT CStrikeCheck::OnGetCheck(WPARAM wparam, LPARAM lparam)
 	UNREFERENCED_PARAMETER(lparam);
 	return Default();
 }
+
+// Another workaround...
+// Owner draw buttons (like this) that aren't tied to commands
+// don't trigger a dialog's default button the way standard
+// buttons do.
+// So when ENTER/RETURN is pressed, we'll trigger the default button if:
+// 1) our parent is a CDialog-derived class
+// 2) we get a default ID value that isn't reserved.
+// It appears to take quite a bit more work than this
+// to properly (and generally) make owner draw buttons
+// handle this scenario. For now, this quick-n-dirty
+// workaround will have to do.
+
+BOOL CStrikeCheck::PreTranslateMessage(MSG* pMsg)
+{
+	switch (pMsg->message) {
+	case WM_KEYDOWN:
+		if (pMsg->wParam == VK_RETURN) {
+			::DispatchMessage(pMsg);
+			auto pdlg = DYNAMIC_DOWNCAST(CDialog, GetParent());
+			auto defid = (pdlg != nullptr) ? pdlg->GetDefID() : 0;
+
+			// avoid the dozen reserved dialog control IDs (IDOK, etc.)
+			auto pctl = defid > 12 ? pdlg->GetDlgItem(defid) : nullptr;
+			if (defid > 0)
+				pdlg->PostMessage(WM_COMMAND, MAKEWPARAM(defid, BN_CLICKED), (LPARAM)pctl);
+			return true;
+		}
+		break;
+	}
+	return CClearButton::PreTranslateMessage(pMsg);
+}

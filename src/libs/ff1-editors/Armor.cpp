@@ -115,6 +115,7 @@ BOOL CArmor::OnInitDialog()
 		OnSelchangeArmorlist();
 
 		m_banner.Set(this, COLOR_BLACK, COLOR_FFRED, "Armor");
+		SetODDefButtonID(IDOK);
 	}
 	catch (std::exception & ex) {
 		return AbortInitDialog(this, CString("Failed to load game data:\n") + ex.what());

@@ -211,12 +211,12 @@ void CBackdrop::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 void CBackdrop::OnExportbitmap()
 {
-	Draw_ExportToBmp(&draw, Project, palette, Project->AppSettings->PrefImageImportExportFolder);
+	Draw_ExportToBmp(&draw, Project, palette, FOLDERPREF(Project->AppSettings, PrefImageImportExportFolder));
 }
 
 void CBackdrop::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,Project,palette, Project->AppSettings->PrefImageImportExportFolder);
+	Draw_ImportFromBmp(&draw,Project,palette, FOLDERPREF(Project->AppSettings, PrefImageImportExportFolder));
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }

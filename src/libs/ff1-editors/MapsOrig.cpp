@@ -1635,7 +1635,7 @@ void CMapsOrig::OnLButtonDblClk(UINT nFlags, CPoint pt)
 void CMapsOrig::OnMapExport() 
 {
 	CString text = LoadMapLabel(*cart, cur_map).name + " Map." + CString(FFH_MAP_EXT);
-	CString filename = Paths::Combine({ Project->AppSettings->PrefMapImportExportFolder , text });
+	CString filename = Paths::Combine({ FOLDERPREF(Project->AppSettings, PrefMapImportExportFolder) , text });
 	auto result = Ui::SaveFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Export Standard Map", filename);
 	if (!result) return;
 
@@ -1650,7 +1650,7 @@ void CMapsOrig::OnMapExport()
 void CMapsOrig::OnMapImport() 
 {
 	auto result = OpenFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Import Standard Map",
-		Project->AppSettings->PrefMapImportExportFolder);
+		FOLDERPREF(Project->AppSettings, PrefMapImportExportFolder));
 	if (!result) return;
 
 	FILE* file = fopen(result.value, "r+b");

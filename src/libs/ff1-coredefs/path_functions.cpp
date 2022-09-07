@@ -605,6 +605,14 @@ namespace Paths
 		return retval;
 	}
 
+	CString AddTrailingSlash(CString fullpath)
+	{
+		if (fullpath.IsEmpty()) return "";
+		auto ch = fullpath[fullpath.GetLength() - 1];
+		if (ch != '/' && ch != '\\') return fullpath + '\\';
+		return fullpath;
+	}
+
 	CString RemoveExtension(CString filepath)
 	{
 		fsys::path origpath = (LPCSTR)filepath;
