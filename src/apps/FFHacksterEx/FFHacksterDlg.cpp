@@ -178,8 +178,9 @@ void CFFHacksterDlg::CreateDynaButtons(const Editors2::CEditorVector & editors)
 	}
 	dc.SelectObject(oldfont);
 
-	// ... but cap width at 160
-	if (fixedsize.cx > 160) fixedsize.cx = 160;
+	// ... but cap the width
+	static const int MaxButtonTextWidth = 160;
+	if (fixedsize.cx > MaxButtonTextWidth) fixedsize.cx = MaxButtonTextWidth;
 
 	const CSize buttonpadding = { 16,16 };
 	CSize subfixedsize = fixedsize;

@@ -241,7 +241,6 @@ void CSubDlgDynaButtons::UpdateLayout()
 			if (pbclear != nullptr)
 				pbclear->SetEndWithEllipsis(true);
 
-			//pbtn->SetWindowPos(nullptr, rcbutton.left, rcbutton.top, rcbutton.Width(), rcbutton.Height()
 			pbtn->MoveWindow(rcbutton);
 			pbtn->ShowWindow(SW_SHOW);
 
