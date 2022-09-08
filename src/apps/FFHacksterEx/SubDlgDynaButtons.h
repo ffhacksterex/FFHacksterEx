@@ -15,8 +15,10 @@ public:
 	void UseDynamicButtonSize();
 	void SetButtonFont(CFont* font);
 	void Add(UINT id, int eventindex, CString text);
+	void Preload(UINT id, int eventindex, CString text);
 	void ClearButtons();
 
+	void UpdateLayout();
 	void SuppressLayout(bool suppress);
 	bool SuppressingLayout() const;
 

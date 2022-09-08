@@ -126,6 +126,20 @@ void CSubDlgDynaButtons::Add(UINT id, int eventindex, CString text)
 	if (!m_supresslayout) handle_size();
 }
 
+void CSubDlgDynaButtons::Preload(UINT id, int eventindex, CString text)
+{
+	CWnd* pwndlast = m_buttons.empty() ? nullptr : m_buttons.back();
+	CRect rcbutton{ 0, 0, 16, 16 };
+	auto newbutton = new CClearButton();
+	m_buttons.push_back(newbutton);
+
+	newbutton->Create(text, styles, rcbutton, this, id);
+	newbutton->SetFont(m_buttonfont);
+	newbutton->SetWindowPos(pwndlast, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	newbutton->ModifyStyleEx(0, WS_EX_TRANSPARENT);
+	SetWindowLongPtr(newbutton->GetSafeHwnd(), GWLP_USERDATA, eventindex);
+}
+
 void CSubDlgDynaButtons::ClearButtons()
 {
 	for (CWnd* pbtn : m_buttons) {
@@ -133,6 +147,127 @@ void CSubDlgDynaButtons::ClearButtons()
 		delete pbtn;
 	}
 	m_buttons.clear();
+}
+
+void CSubDlgDynaButtons::UpdateLayout()
+{
+	Ui::RedrawScope redraw(this);
+	// Usable width has side borders the width of a vscroll bar + 1 on each each.
+	// Get the usable width and items-per-row count.
+	auto rawclient = Ui::GetClientRect(this);
+	auto sidepad = GetSystemMetrics(SM_CXVSCROLL) + 1;
+	auto cwidth = rawclient.Width() - (sidepad * 2);
+	int farbottom = 0;
+	//TODO - for now, we'll use a toppad of 4 to avoid unneeded scrollbars.
+	//auto toppad = GetSystemMetrics(SM_CYHSCROLL) + 1;
+	int toppad = 4;
+
+	if (m_usedynabuttonsize) {
+		// we have cwidth, but don't know the button widths.
+		// we'll just have to walk through and size as we go.
+		// if a button rect crosses the right boundary, out it
+		// on the next line immediately (not on the next loop)
+		static const CSize btn_padding{ 48,8 };
+		static const CSize btn_margin{ 2,2 };
+
+		CPaintDC dc(this);
+		auto sifont = dc.GetTextExtent("Wy");
+		const CPoint ptbasebtn{ CPoint(sidepad,toppad) + btn_margin };
+		const int rbound = rawclient.Width() - sidepad;
+		const int ystep = sifont.cy + (btn_margin.cy * 2) + (btn_padding.cy * 2);
+		const int height = ystep - (btn_margin.cy * 2);
+
+		CRect rcbutton{ ptbasebtn, CSize{0, height} };
+		bool firstinrow = true;
+		for (int i = 0; i < m_buttons.size(); ++i) {
+			CWnd* pbtn = m_buttons[i];
+			auto extent = dc.GetTextExtent(Ui::GetControlText(*pbtn));
+			int xstep = extent.cx + (btn_padding.cx * 2) + (btn_margin.cx * 2);
+			rcbutton.right = rcbutton.left + extent.cx + (btn_padding.cx * 2);
+
+			auto* pbclear = DYNAMIC_DOWNCAST(CClearButton, pbtn);
+			if (pbclear != nullptr)
+				pbclear->SetEndWithEllipsis(true);
+
+			if (!firstinrow) {
+				if (rcbutton.right > rbound) {
+					auto bwid = rcbutton.Width();
+					rcbutton.left = ptbasebtn.x;
+					rcbutton.right = rcbutton.left + bwid;
+					rcbutton.OffsetRect(0, ystep);
+					firstinrow = true;
+				}
+			}
+			pbtn->MoveWindow(rcbutton);
+			pbtn->ShowWindow(SW_SHOW);
+			firstinrow = false;
+
+			rcbutton.OffsetRect(xstep, 0);
+			if (rcbutton.right > rbound) {
+				rcbutton.left = ptbasebtn.x;
+				rcbutton.right = rcbutton.left; // width is assigned next iteration
+				rcbutton.OffsetRect(0, ystep);
+				firstinrow = true;
+			}
+		}
+
+		farbottom = rcbutton.bottom;
+	}
+	else {
+		static const CSize btn_padding{ 16,16 };
+		static const CSize btn_margin{ 2,2 };
+
+		CSize fixedsize = m_fixedbuttonsize;
+		if (fixedsize.cx == 0) fixedsize.cx = 128;
+		if (fixedsize.cy == 0) fixedsize.cy = 32;
+		int perrow = cwidth / m_fixedbuttonsize.cx;
+		int perrem = cwidth % m_fixedbuttonsize.cx;
+		if (perrem != 0) {
+			sidepad += perrem / 2;
+			cwidth = rawclient.Width() - (sidepad * 2);
+		}
+		const CPoint ptbasebtn{ CPoint(sidepad,toppad) + btn_margin };
+		CPoint ptbase = { ptbasebtn.x, ptbasebtn.y };
+		CSize livesize = { fixedsize.cx - btn_margin.cx, fixedsize.cy - btn_margin.cy };
+
+		// Now loop through each row
+		const CRect rcbutton{ ptbasebtn, fixedsize };
+		int row = 0, col = 0;
+		for (int i = 0; i < m_buttons.size(); ++i) {
+			CWnd* pbtn = m_buttons[i];
+			CRect rcbutton{ ptbase, livesize };
+
+			auto* pbclear = DYNAMIC_DOWNCAST(CClearButton, pbtn);
+			if (pbclear != nullptr)
+				pbclear->SetEndWithEllipsis(true);
+
+			//pbtn->SetWindowPos(nullptr, rcbutton.left, rcbutton.top, rcbutton.Width(), rcbutton.Height()
+			pbtn->MoveWindow(rcbutton);
+			pbtn->ShowWindow(SW_SHOW);
+
+			ptbase.x += fixedsize.cx;
+			++col;
+			if (col >= perrow) {
+				++row;
+				col = 0;
+				ptbase.x = ptbasebtn.x;
+				ptbase.y += fixedsize.cy;
+			}
+		}
+		farbottom = rcbutton.bottom;
+	}
+
+	// If everything fits, then let's cut the toppad in half and slide all buttons up
+	// by that amount. That prevents an unneeded scroll bar.
+	if (farbottom <= rawclient.Height()) {
+		int newtoppad = -toppad / 2;
+		for (int i = 0; i < m_buttons.size(); ++i) {
+			CWnd* pbtn = m_buttons[i];
+			Ui::MoveControlBy(pbtn, newtoppad);
+		}
+	}
+
+	handle_size();
 }
 
 void CSubDlgDynaButtons::SuppressLayout(bool suppress)
@@ -166,14 +301,22 @@ void CSubDlgDynaButtons::handle_size()
 
 void CSubDlgDynaButtons::handle_size(int clientx, int clienty)
 {
-	auto plast = get_last_child();
-	auto bottom = (plast != nullptr) ? Ui::GetControlRect(plast).bottom : 0;
-	CRect area = { 0, 0, 1, bottom + margin.cy };
-	bool shown = Ui::SetClientScroll(this, SB_VERT, area, clienty);
-	if (shown)
-		this->ModifyStyle(0, WS_BORDER, SWP_DRAWFRAME);
-	else
-		this->ModifyStyle(WS_BORDER, 0, SWP_DRAWFRAME);
+	auto pfirst = this->GetWindow(GW_CHILD);
+	if (pfirst == nullptr) {
+		this->EnableScrollBarCtrl(SB_VERT, FALSE);
+	}
+	else {
+		auto rcfirst = Ui::GetControlRect(pfirst);
+		auto toppad = rcfirst.top;
+		auto plast = get_last_child();
+		auto bottom = (plast != nullptr) ? Ui::GetControlRect(plast).bottom : 0;
+		CRect area = { 0, 0, 1, bottom + toppad };
+		bool shown = Ui::SetClientScroll(this, SB_VERT, area, clienty);
+		if (shown)
+			this->ModifyStyle(0, WS_BORDER, SWP_DRAWFRAME);
+		else
+			this->ModifyStyle(WS_BORDER, 0, SWP_DRAWFRAME);
+	}
 }
 
 void CSubDlgDynaButtons::slide_buttons(int amount)
@@ -199,7 +342,7 @@ void CSubDlgDynaButtons::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 	int curpos = Ui::HandleClientScroll(this, SB_VERT, nSBCode, nPos);
 	slide_buttons(oldpos - curpos); // inverted, negative value scrolls controls up
 	CDialogEx::OnVScroll(nSBCode, nPos, pScrollBar);
-	if (nSBCode == SB_PAGEUP) InvalidateRect(nullptr);
+	InvalidateRect(nullptr, 1);
 }
 
 BOOL CSubDlgDynaButtons::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
@@ -218,6 +361,7 @@ BOOL CSubDlgDynaButtons::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 		if (diff != 0) {
 			SetScrollPos(SB_VERT, newpos);
 			slide_buttons(oldpos - newpos);
+			InvalidateRect(nullptr, 1);
 		}
 	}
 	return FALSE;
