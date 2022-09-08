@@ -16,6 +16,9 @@ public:
 	CClearButton(UINT resid, CString restype);
 	virtual ~CClearButton();
 
+	void SetEndWithEllipsis(bool set);
+	bool EndWithEllipsis() const;
+
 	BOOL CreateButton(UINT id, CString caption, CRect rect, CWnd* parent);
 	void SetButtonImage(HINSTANCE hinst, UINT resid, CString restype);
 
@@ -24,6 +27,7 @@ protected:
 	CString m_restype;
 	BOOL m_bUseNotifyForLeftClick;
 
+	bool m_endellipsis = false;
 	bool m_tracking = false;
 	bool m_inclient = false;
 	Gdiplus::Bitmap * m_bmp;

@@ -163,6 +163,10 @@ void CFFHacksterDlg::ClearDynaButtons()
 
 void CFFHacksterDlg::CreateDynaButtons(const Editors2::CEditorVector & editors)
 {
+	//DEVNOTE - if this becomes an option, then
+	// 	   skip everything below before the SetFont call.
+
+	// For now, determine an average fixed size using text width...
 	CPaintDC dc(this);
 	auto oldfont = dc.SelectObject(&m_actionbuttonfont);
 	CSize fixedsize = { 0,0 };
@@ -174,20 +178,25 @@ void CFFHacksterDlg::CreateDynaButtons(const Editors2::CEditorVector & editors)
 	}
 	dc.SelectObject(oldfont);
 
+	// ... but cap the width
+	static const int MaxButtonTextWidth = 160;
+	if (fixedsize.cx > MaxButtonTextWidth) fixedsize.cx = MaxButtonTextWidth;
+
 	const CSize buttonpadding = { 16,16 };
 	CSize subfixedsize = fixedsize;
 	subfixedsize += buttonpadding;
 	m_subdlgbuttons.UseFixedButtonSize(subfixedsize);
+
+	// Set the fonts and go
 	m_subdlgbuttons.SetFont(&m_actionbuttonfont);
 	m_subdlgbuttons.SetButtonFont(&m_actionbuttonfont);
 
-	m_subdlgbuttons.SuppressLayout(true);
 	for (auto loop = 0u; loop < editors.size(); ++loop) {
 		const auto & editor = editors[loop];
 			ASSERT(editor.live); // dead editors have unpredictable behavior
-		m_subdlgbuttons.Add(IDC_DYNABUTTON_EDITORS + loop, loop, editor.displayname);
+		m_subdlgbuttons.Preload(IDC_DYNABUTTON_EDITORS + loop, loop, editor.displayname);
 	}
-	m_subdlgbuttons.SuppressLayout(false);
+	m_subdlgbuttons.UpdateLayout();
 }
 
 void CFFHacksterDlg::RepositionButtonsForROMProject()

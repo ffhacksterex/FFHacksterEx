@@ -50,6 +50,17 @@ CClearButton::~CClearButton()
 	if (m_bmp != nullptr) delete m_bmp;
 }
 
+void CClearButton::SetEndWithEllipsis(bool set)
+{
+	m_endellipsis = set;
+	InvalidateRect(nullptr, 0);
+}
+
+bool CClearButton::EndWithEllipsis() const
+{
+	return m_endellipsis;
+}
+
 BOOL CClearButton::CreateButton(UINT id, CString caption, CRect rect, CWnd* parent)
 {
 	return CreateEx(WS_EX_CLIENTEDGE | WS_EX_TRANSPARENT, "BUTTON", caption,
@@ -124,6 +135,9 @@ void CClearButton::DrawItem(LPDRAWITEMSTRUCT pdi)
 		align |= DT_SINGLELINE;
 	else
 		align |= DT_WORDBREAK;
+
+	if (m_endellipsis)
+		align |= DT_END_ELLIPSIS;
 
 	if (!transparent) {
 		CRect rcfill(client);
