@@ -625,7 +625,7 @@ BEGIN
     IDS_PROGRAMCAPTION      "FFHacksterEX"
     IDS_PROGRAMSUBTITLE     "An experimental extension to FFHackster"
     IDS_ASMDLL_DEFAULT      "ff1asm-disch.dll"
-    IDS_RELEASETEXT         "August 2022"
+    IDS_RELEASETEXT         "September 2022"
     IDD_DLG_NEWROM          "IDD_DLG_NEWROM"
 END
 
