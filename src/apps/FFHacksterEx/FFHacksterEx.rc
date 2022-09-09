@@ -325,8 +325,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,9,7,0
- PRODUCTVERSION 0,9,7,0
+ FILEVERSION FFHEX_FILE_VERSION_NUMBER
+ PRODUCTVERSION FFHEX_PROD_VERSION_NUMBER
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -341,14 +341,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "Esselle Jaye"
-            VALUE "FileDescription", "FFHacksterEx - an extension of FFHackster for experimentatl rom hacking"
-            VALUE "FileVersion", "0,9,7,0"
+            VALUE "CompanyName", DD_COMPANY_TEXT
+            VALUE "FileDescription", "FFHacksterEx - an extension of FFHackster for experimental ROM hacking"
+            VALUE "FileVersion", FFHEX_FILE_VERSION_TEXT
             VALUE "InternalName", "FFHacksterEx"
-            VALUE "LegalCopyright", "Copyright (C) 2022 MIT/Expat"
+            VALUE "LegalCopyright", FFHEX_COPYRIGHT_TEXT
             VALUE "OriginalFilename", "FFHacksterEx.EXE"
             VALUE "ProductName", "FFHacksterEx"
-            VALUE "ProductVersion", "0,9,7,0"
+            VALUE "ProductVersion", FFHEX_PROD_VERSION_TEXT
         END
     END
     BLOCK "VarFileInfo"
@@ -625,7 +625,7 @@ BEGIN
     IDS_PROGRAMCAPTION      "FFHacksterEX"
     IDS_PROGRAMSUBTITLE     "An experimental extension to FFHackster"
     IDS_ASMDLL_DEFAULT      "ff1asm-disch.dll"
-    IDS_RELEASETEXT         "September 2022"
+    IDS_RELEASETEXT         FFHEX_RELEASE_TEXT
     IDD_DLG_NEWROM          "IDD_DLG_NEWROM"
 END
 
