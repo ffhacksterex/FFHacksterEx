@@ -1017,7 +1017,14 @@ void CFFHacksterDlg::OnRevertProject()
 void CFFHacksterDlg::OnPublishProject()
 {
 	CString msg;
-	if (m_proj.Publish()) {
+	if (m_proj.PublishRomPath.IsEmpty()) {
+		AfxMessageBox("Please specify a Publish path first in Project Settings.", MB_ICONWARNING);
+	}
+	else if (!Paths::FileExists(m_proj.WorkRomPath)) {
+		CString comment = m_proj.IsAsm() ? "\nTry compiling the project first." : "";
+		AfxMessageBox("No working file file exists to export." + comment, MB_ICONWARNING);
+	}
+	else if (m_proj.Publish()) {
 		msg.Format("Successfully published working ROM to\n'%s'.", (LPCSTR)m_proj.PublishRomPath);
 		AfxMessageBox(msg);
 	}

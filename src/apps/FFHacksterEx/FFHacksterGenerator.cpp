@@ -158,8 +158,8 @@ pair_result<CString> CFFHacksterGenerator::EditROM(CString rompath)
 	dlgproj.ForceNewLabels = AppStgs->ForceNewLabelsForNewProjects;
 	dlgproj.ParentFolder = parentfolder;
 	dlgproj.ProjectName = projectname;
-	dlgproj.RevertPath = rompath;
-	dlgproj.PublishPath = Paths::Combine({ projectfolder, Paths::GetFileName(rompath) });
+	dlgproj.RevertPath = rompath;      // this creates an internal copy to use for reversion
+	dlgproj.PublishPath = rompath;     // this will overwrite the original when published
 	if (dlgproj.DoModal() != IDOK)
 		return{ false, "" };
 
@@ -615,13 +615,13 @@ CString CFFHacksterGenerator::BuildEditRomProjectPath(CString rompath)
 
 pair_result<CString> CFFHacksterGenerator::DoCreateRomProject(const sProjectGeneratorValues & values)
 {
-	auto parentfolder = values.parentfolder;
-	auto projectname = values.projectname;
-	auto romfile = values.romfile;
-	auto publishromfile = values.publishromfile;
-	auto datfile = values.datfile;
-	auto addlmodfolder = values.addlmodfolder;
-	auto forcenewlabels = values.forcenewlabels;
+	CString parentfolder = values.parentfolder;
+	CString projectname = values.projectname;
+	CString romfile = values.romfile;
+	CString publishromfile = values.publishromfile;
+	CString datfile = values.datfile;
+	CString addlmodfolder = values.addlmodfolder;
+	bool forcenewlabels = values.forcenewlabels;
 
 	CWaitCursor wait;
 	CWaitingDlg waiting;
@@ -648,23 +648,11 @@ pair_result<CString> CFFHacksterGenerator::DoCreateRomProject(const sProjectGene
 	if (!Paths::FileCopy(romfile, destromfile))
 		return{ false, "Can't create work ROM " + destromfile };
 
-	Io::MakeWritable(destromfile);
-
-	CString publishromsettingpath;
-	if (!publishromfile.IsEmpty()) {
-		publishromsettingpath = publishromsettingpath;
-	}
-	else {
-		// Auto-populate with a filepath inside this folder, and make sure the setting uses a relative path.
-		publishromsettingpath.Format("%s.nes", (LPCSTR)projectname);
-		publishromfile.Format("%s\\%s", (LPCSTR)thisfolder, (LPCSTR)publishromsettingpath);
-	}
-	if (!Paths::FileCopy(romfile, publishromfile))
-		return{ false, "Can't create publish ROM " + publishromfile };
+	if (publishromfile.IsEmpty())
+		publishromfile.Format("%s\\%s.nes", (LPCSTR)thisfolder, (LPCSTR)projectname);
 
 	Io::MakeWritable(destromfile);
 	Io::MakeWritable(revertromfile);
-	Io::MakeWritable(publishromfile);
 
 	// Settings initialization
 	auto talkfile = CopyAppFileType("dialogue", thisfolder, projectname);
@@ -700,6 +688,7 @@ pair_result<CString> CFFHacksterGenerator::DoCreateRomProject(const sProjectGene
 	WriteIni(projectpath, PROJECTSECTION, "workrom", Paths::GetFileName(destromfile));
 
 	try {
+		// These files MUST be in theproject folder, so no path info is stored, just the filenames.
 		CFFHacksterProject::SetIniFilePath(projectpath, FFHFILE_ValuesPath, Paths::GetFileName(valuesfile.value));
 		CFFHacksterProject::SetIniFilePath(projectpath, FFHFILE_RevertValuesPath, Paths::GetFileName(revertvaluesfile.value));
 		CFFHacksterProject::SetIniFilePath(projectpath, FFHFILE_StringsPath, Paths::GetFileName(stringsfile.value));
@@ -710,8 +699,11 @@ pair_result<CString> CFFHacksterGenerator::DoCreateRomProject(const sProjectGene
 		CFFHacksterProject::SetIniFilePath(projectpath, FFHFILE_DialoguePath, Paths::GetFileName(talkfile.value));
 		//CFFHacksterProject::SetIniFilePath(projectpath, FFHFILE_ReservedPath, Paths::GetFileName(reservedfile.value)); //REMOVERESERVED
 
-		CFFHacksterProject::SetIniRefDir(projectpath, FFHREFDIR_Publish, publishromsettingpath);
-		CFFHacksterProject::SetIniRefDir(projectpath, FFHREFDIR_AddlModFolder, addlmodfolder);
+		// These files can be anywhere, and they can also be encoded.
+		CFFHacksterProject::SetIniRefDir(projectpath, FFHREFDIR_Publish,
+			CFFHacksterProject::EncodePathnameIfInKnownFolder(publishromfile, projectpath));
+		CFFHacksterProject::SetIniRefDir(projectpath, FFHREFDIR_AddlModFolder,
+			CFFHacksterProject::EncodePathnameIfInKnownFolder(addlmodfolder, projectpath));
 	}
 	catch (std::exception & ex) {
 		return { false, "Couldn't set INI file paths, " + CString(ex.what()) };

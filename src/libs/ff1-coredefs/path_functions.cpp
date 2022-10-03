@@ -163,7 +163,7 @@ namespace Paths
 
 		auto files = GetFiles(source, GetFilesScope::NotRecursive);
 		size_t copycount = 0;
-		for (auto file : files) {
+		for (const auto & file : files) {
 			if (FileCopyTo(file, dest))
 				++copycount;
 		}
@@ -186,7 +186,7 @@ namespace Paths
 		if (!IsDir(source)) return false;
 
 		auto files = GetFiles(source, GetFilesScope::NotRecursive);
-		for (auto file : files) {
+		for (const auto & file : files) {
 			auto destfile = Paths::ReplacePath(file, dest);
 			std::error_code ec;
 			if (!fsys::copy_file((LPCSTR)file, (LPCSTR)destfile, fsys::copy_options::update_existing, ec)) {
@@ -259,7 +259,7 @@ namespace Paths
 	CString Combine(std::initializer_list<CString> parts)
 	{
 		fsys::path fpath;
-		for (auto part : parts)
+		for (const auto & part : parts)
 			fpath.append((LPCSTR)part);
 		return CString(fpath.u8string().c_str());
 	}
@@ -358,7 +358,7 @@ namespace Paths
 			// Find the files matching the filter in this folder
 			if (!filters.IsEmpty()) {
 				auto thefilters = Strings::split(filters, ";");
-				for (auto filter : thefilters) {
+				for (const auto & filter : thefilters) {
 					intptr_t hspecific = _findfirst(Paths::Combine({ folder, filter }), &c_file);
 					if (hspecific != -1L) {
 						do {
@@ -478,7 +478,7 @@ namespace Paths
 		if (fullpath[0] == '*') {
 			auto last = fullpath.ReverseFind('/');
 			last = (last != -1) ? last : fullpath.ReverseFind('\\');			
-			auto dir = (last == -1) ? fullpath : fullpath.Mid(0, last);
+			CString dir = (last == -1) ? fullpath : fullpath.Mid(0, last);
 			return dir;
 		}
 
@@ -679,7 +679,7 @@ namespace Paths
 		auto stem = origpath.GetLength() > 1 ? origpath.Mid(1) : "";
 		if (stem.GetLength() > 0 && (stem[0] == '/' || stem[0] == '\\'))
 			stem = stem.Mid(1);
-		auto temp = Paths::Combine({ base,  stem });
+		CString temp = Paths::Combine({ base,  stem });
 		auto newp = fsys::path((LPCSTR)temp);
 		//auto final = fsys::weakly_canonical(newp); //VISTA+
 		//return CString(final.u8string().c_str());
@@ -756,7 +756,7 @@ namespace Urls
 	{
 		CString out;
 		bool notfirst = false;
-		for (auto part : parts) {
+		for (const auto & part : parts) {
 			out.Append(notfirst ? "/" : "");
 			out.Append(part);
 			notfirst = true;
@@ -769,7 +769,7 @@ namespace Urls
 		if (filepath.Find("file:///") == 0) return filepath;
 
 		// Prefix the protocol and change back slashes to forward.
-		auto result = filepath;
+		CString result = filepath;
 		result.Replace("\\", "/");
 		return "file:///" + result;
 	}

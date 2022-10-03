@@ -681,7 +681,7 @@ pair_result<CString> CFFHacksterProject::RevertValues()
 	Io::MakeWritable(destfile);
 
 	// If a temp file is being used, update that as well.
-	auto tempfile = this->ValuesPath;
+	const auto & tempfile = this->ValuesPath;
 	if (tempfile != destfile) {
 		if (!Paths::FileCopy(srcfile, tempfile))
 			THROWEXCEPTION(std::runtime_error,
@@ -714,9 +714,9 @@ bool CFFHacksterProject::UpdateVarsAndConstants()
 {
 	if (IsRom()) {
 		auto groups = mfcstrvec(ReadIni(ValuesPath, "ROMINIT_VARNAMES_SECTIONS", "value", ""));
-		for (auto group : groups) {
+		for (const auto & group : groups) {
 			auto names = mfcstrvec(ReadIni(ValuesPath, group, "value", ""));
-			for (auto name : names) {
+			for (const auto & name : names) {
 				auto value = ReadIni(ValuesPath, name, "value", "");
 				if (value.IsEmpty())
 					THROWEXCEPTION(std::runtime_error, "Value '" + std::string((LPCSTR)name) + "' is either missing or has an empty value property.");
@@ -912,7 +912,7 @@ bool CFFHacksterProject::RenameProjectFiles(CString projectpath, CString project
 			if (oldvalue.IsEmpty() || oldvalue.Find(srctitle) == -1) return;
 
 			//DEVNOTE - don't call Paths::ReplaceFileTitle here; it doesn't handle multi-dot extensions well in this case.
-			auto newvalue = oldvalue;
+			CString newvalue = oldvalue;
 			newvalue.Replace(srctitle, desttitle);
 			WriteIni(ini, section, key, newvalue);
 		};
