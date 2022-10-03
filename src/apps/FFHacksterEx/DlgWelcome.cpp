@@ -37,6 +37,38 @@ CDlgWelcome::~CDlgWelcome()
 {
 }
 
+void CDlgWelcome::DoDataExchange(CDataExchange* pDX)
+{
+	BaseClass::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_PROJECTS_BTN_OPENROM, m_openprojectbutton);
+	DDX_Control(pDX, IDC_PROJECTS_BTN_EDITROM, m_editrombutton);
+	DDX_Control(pDX, IDC_PROJECTS_BTN_NEWROM, m_newrombutton);
+	DDX_Control(pDX, IDC_PROJECTS_BTN_NEWASM, m_newasmbutton);
+	DDX_Control(pDX, IDCANCEL, m_cancelbutton);
+	DDX_Control(pDX, IDC_STATIC3, m_editromstatic);
+	DDX_Control(pDX, IDC_STATIC4, m_newromstatic);
+	DDX_Control(pDX, IDC_STATIC5, m_newasmstatic);
+	DDX_Control(pDX, IDC_STATIC6, m_openprojectstatic);
+	DDX_Control(pDX, IDC_STATIC2, m_subbannerstatic);
+	DDX_Control(pDX, IDC_PROJECTS_BTN_UNZIP, m_unzipbutton);
+	DDX_Control(pDX, IDC_STATIC8, m_unzipstatic);
+	DDX_Control(pDX, IDC_FFH_BTN_APPSETTINGS, m_appsettingsbutton);
+	DDX_Control(pDX, IDABOUT, m_aboutbutton);
+	DDX_Control(pDX, IDHELPBOOK, m_helpbookbutton);
+}
+
+BEGIN_MESSAGE_MAP(CDlgWelcome, BaseClass)
+	ON_BN_CLICKED(IDC_PROJECTS_BTN_NEWROM, &CDlgWelcome::OnBnClickedProjectsBtnNewrom)
+	ON_BN_CLICKED(IDC_PROJECTS_BTN_NEWASM, &CDlgWelcome::OnBnClickedProjectsBtnNewasm)
+	ON_BN_CLICKED(IDC_PROJECTS_BTN_OPENROM, &CDlgWelcome::OnBnClickedProjectsBtnOpen)
+	ON_BN_CLICKED(IDC_PROJECTS_BTN_EDITROM, &CDlgWelcome::OnBnClickedProjectsBtnEditrom)
+	ON_BN_CLICKED(IDC_PROJECTS_BTN_UNZIP, &CDlgWelcome::OnBnClickedProjectsBtnUnzip)
+	ON_WM_CONTEXTMENU()
+	ON_BN_CLICKED(IDC_FFH_BTN_APPSETTINGS, &CDlgWelcome::OnBnClickedFfhBtnAppsettings)
+	ON_BN_CLICKED(IDABOUT, &CDlgWelcome::OnBnClickedAbout)
+END_MESSAGE_MAP()
+
+
 void CDlgWelcome::OnSelectAction()
 {
 	SaveMru();
@@ -114,26 +146,6 @@ void CDlgWelcome::PaintClient(CDC& dc)
 	}
 }
 
-void CDlgWelcome::DoDataExchange(CDataExchange* pDX)
-{
-	BaseClass::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_PROJECTS_BTN_OPENROM, m_openprojectbutton);
-	DDX_Control(pDX, IDC_PROJECTS_BTN_EDITROM, m_editrombutton);
-	DDX_Control(pDX, IDC_PROJECTS_BTN_NEWROM, m_newrombutton);
-	DDX_Control(pDX, IDC_PROJECTS_BTN_NEWASM, m_newasmbutton);
-	DDX_Control(pDX, IDCANCEL, m_cancelbutton);
-	DDX_Control(pDX, IDC_STATIC3, m_editromstatic);
-	DDX_Control(pDX, IDC_STATIC4, m_newromstatic);
-	DDX_Control(pDX, IDC_STATIC5, m_newasmstatic);
-	DDX_Control(pDX, IDC_STATIC6, m_openprojectstatic);
-	DDX_Control(pDX, IDC_STATIC2, m_subbannerstatic);
-	DDX_Control(pDX, IDC_PROJECTS_BTN_UNZIP, m_unzipbutton);
-	DDX_Control(pDX, IDC_STATIC8, m_unzipstatic);
-	DDX_Control(pDX, IDC_FFH_BTN_APPSETTINGS, m_appsettingsbutton);
-	DDX_Control(pDX, IDABOUT, m_aboutbutton);
-	DDX_Control(pDX, IDHELPBOOK, m_helpbookbutton);
-}
-
 BOOL CDlgWelcome::OnInitDialog()
 {
 	BaseClass::OnInitDialog();
@@ -172,23 +184,12 @@ BOOL CDlgWelcome::OnInitDialog()
 }
 
 
-BEGIN_MESSAGE_MAP(CDlgWelcome, BaseClass)
-	ON_BN_CLICKED(IDC_PROJECTS_BTN_NEWROM, &CDlgWelcome::OnBnClickedProjectsBtnNewrom)
-	ON_BN_CLICKED(IDC_PROJECTS_BTN_NEWASM, &CDlgWelcome::OnBnClickedProjectsBtnNewasm)
-	ON_BN_CLICKED(IDC_PROJECTS_BTN_OPENROM, &CDlgWelcome::OnBnClickedProjectsBtnOpen)
-	ON_BN_CLICKED(IDC_PROJECTS_BTN_EDITROM, &CDlgWelcome::OnBnClickedProjectsBtnEditrom)
-	ON_BN_CLICKED(IDC_PROJECTS_BTN_UNZIP, &CDlgWelcome::OnBnClickedProjectsBtnUnzip)
-	ON_WM_CONTEXTMENU()
-	ON_BN_CLICKED(IDC_FFH_BTN_APPSETTINGS, &CDlgWelcome::OnBnClickedFfhBtnAppsettings)
-	ON_BN_CLICKED(IDABOUT, &CDlgWelcome::OnBnClickedAbout)
-END_MESSAGE_MAP()
-
-
 // CDlgWelcome message handlers
 
 void CDlgWelcome::OnBnClickedProjectsBtnEditrom()
 {
-	auto result = Ui::BrowseForProject(this, "Select ROM to edit",
+	auto result = Ui::OpenFilePromptExt(this, "NES ROM files (*.nes)|*.nes||",
+		".nes", "Select ROM to edit",
 		FOLDERPREF(AppStgs, PrefProjectParentFolder));
 	if (!result)
 		return;
