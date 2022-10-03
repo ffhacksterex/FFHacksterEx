@@ -64,6 +64,7 @@ CFFHacksterGenerator::~CFFHacksterGenerator()
 CString CFFHacksterGenerator::ProcessAction(CString curaction, CString appinipath, CString actionparam)
 {
 	pair_result<CString> result = { false, "'" + curaction + "' is not recognized: no action was taken." };
+	CString problem;
 
 	try {
 		if (curaction == "immediaterom")
@@ -96,20 +97,26 @@ CString CFFHacksterGenerator::ProcessAction(CString curaction, CString appinipat
 			result = pair_result<CString>(true, extract_term(curaction, "editquit|"));
 			curaction = "editquit";
 		}
+		else {
+			problem = "Unrecognized command.";
+		}
 
 		if (result)
 			return ExecuteActionResult(curaction, result.value, appinipath);
 	}
 	catch (std::exception & ex) {
+		problem = "Error!";
 		result = { false, "An exception was caught: " + CString(ex.what()) };
 	}
 	catch (...) {
-		result = { false, "An unexpected exception was caught" };
+		problem = "Error!";
+		result = { false, "An unexpected exception was caught." };
 	}
 
 	if (result.value != "prompt" && !result.value.IsEmpty()) {
 		CString msg;
-		msg.Format("Unexpected command '%s' will be ignored, and a prompt will occur instead.", (LPCSTR)result.value);
+		if (!problem.IsEmpty()) problem += "\n";
+		msg.Format("%s%s'", (LPCSTR)problem, (LPCSTR)result.value);
 		AfxMessageBox(msg);
 	}
 	return "prompt";
@@ -117,6 +124,21 @@ CString CFFHacksterGenerator::ProcessAction(CString curaction, CString appinipat
 
 pair_result<CString> CFFHacksterGenerator::EditROM(CString rompath)
 {
+	// Don't allow working ROMs to be used (wherever they occur).
+	static const CString worknes = ".work.nes";
+	if (rompath.Find(worknes) == (rompath.GetLength() - worknes.GetLength()))
+		return { false, "Project working ROMs can't be used as edit ROM targets." };
+
+	// Don't allow targets inside of a project folder
+	// (creates a project within a project, which we won't support).
+	// This means we need to know if any support project file is in this folder.
+	static const auto projexts = std::set<CString>{".ff1rom", ".ff1asm"};
+	auto testfolder = Paths::GetDirectoryPath(rompath);
+	auto projfiles = Paths::GetFiles(testfolder, Paths::GetFilesScope::NotRecursive,
+		[](CString fp) { return projexts.find(Paths::GetFileExtension(fp)) != cend(projexts); });
+	if (!projfiles.empty())
+		return { false, "Can't use ROMs inside of a project folder as Edit ROM targets." };
+
 	// If a project already exists for this ROM, just open the project.
 	// The project is created in a folder beside the ROM with the same file title.
 	auto projectpath = BuildEditRomProjectPath(rompath);
