@@ -34,10 +34,10 @@ protected:
 // Dialog Data
 	enum { IDD = IDD_ATTACK };
 
-	CClearButton	m_eff_effect;
-	CClearButton	m_eff_damage;
+	CClearRadio	m_eff_effect;
+	CClearRadio	m_eff_damage;
 	CClearEdit	m_unknown;
-	CClearButton	m_target;
+	CClearCheck	m_target;
 	CStrikeCheck	m_elem8;
 	CStrikeCheck	m_elem7;
 	CStrikeCheck	m_elem6;
