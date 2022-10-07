@@ -36,6 +36,10 @@ namespace Upgrades
 
 		pair_result<CString> AddValuesToKeys(CString projectini, const std::vector<value_entry> & newentries);
 		pair_result<CString> AddLabels(CString stringsini, CString section, const mfcstringvector & strings);
+
+		CString BuildAppTemplateIniPath(CString filetitle);
+		void ImportStringsFromTemplates(CString projectini, CString stringsini, CString labelname, CString countname);
+		void ImportValuesFromTemplates(CString projectini, CString valuesini, mfcstringvector valuenames);
 	}
 
 	pair_result<CString> UpgradeProject_none_to_1(int oldver, int newver, CString projectfolder, CString projectini);
@@ -49,6 +53,7 @@ namespace Upgrades
 	pair_result<CString> UpgradeProject_8_to_9(int oldver, int newver, CString projectfolder, CString projectini);
 	pair_result<CString> UpgradeProject_9_to_10(int oldver, int newver, CString projectfolder, CString projectini);
 	pair_result<CString> UpgradeProject_10_to_971(int oldver, int newver, CString projectfolder, CString projectini);
+	pair_result<CString> UpgradeProject_971_to_9810(int oldver, int newver, CString projectfolder, CString projectini);
 
 
 	// PUBLIC IMPLEMENTATION
@@ -123,6 +128,8 @@ namespace Upgrades
 			upgresult = DoProjectUpgrade(9, 10, tempfolder, tempini, UpgradeProject_9_to_10);
 		if (upgresult)
 			upgresult = DoProjectUpgrade(10, 971, tempfolder, tempini, UpgradeProject_10_to_971);
+		if (upgresult)
+			upgresult = DoProjectUpgrade(971, 9810, tempfolder, tempini, UpgradeProject_971_to_9810);
 
 		if (Paths::FileExists(errlogpath))
 			Paths::FileMoveToFolder(errlogpath, projectfolder);
@@ -244,6 +251,34 @@ namespace Upgrades
 				return{ false, "Failed to add labels to section " + section };
 
 			return{ true, "" };
+		}
+
+		CString BuildAppTemplateIniPath(CString filetitle)
+		{
+			CString filename;
+			filename.Format("%s.%s.template", Paths::GetProgramName(), filetitle);
+			CString templateini = Paths::Combine({ Paths::GetProgramFolder(), filename });
+			return templateini;
+		}
+
+		void ImportStringsFromTemplates(CString projectini, CString stringsini, CString labelname, CString countname)
+		{
+			CString stringtemplate = BuildAppTemplateIniPath("strings");
+			CString valuestemplate = BuildAppTemplateIniPath("values");
+			WriteIni(projectini, "STRINGCOUNTS", labelname, countname);
+			CopyIniSection(stringtemplate, stringsini, labelname);
+		}
+
+		void ImportValuesFromTemplates(CString projectini, CString valuesini, mfcstringvector valuenames)
+		{
+			// copy value sections from the app template to the values ini file.
+			// Only imports a section if it doesn't already exist.
+			CString valuestemplate = BuildAppTemplateIniPath("values");
+			for (const auto& n : valuenames) {
+				if (!Ini::HasIniSection(valuesini, n)) {
+					Ini::CopyIniSection(valuestemplate, valuesini, n);
+				}
+			}
 		}
 
 	} // END LOCAL HELPER IMPLEMENTATIONS
@@ -825,6 +860,24 @@ namespace Upgrades
 				Ini::CopyIniSection(appini, valuesini, n);
 			}
 		}
+		return { true, "" };
+	}
+
+	pair_result<CString> UpgradeProject_971_to_9810(int oldver, int newver, CString projectfolder, CString projectini)
+	{
+		UNREFERENCED_PARAMETER(oldver);
+		UNREFERENCED_PARAMETER(newver);
+
+		auto stringsini = CFFHacksterProject::GetIniFilePath(projectini, FFHFILE_StringsPath);
+		if (!Paths::FileExists(stringsini))
+			return{ false, "Can't upgrade the strings file because it can't be found" };
+
+		auto valuesini = CFFHacksterProject::GetIniFilePath(projectini, FFHFILE_ValuesPath);
+		if (!Paths::FileExists(valuesini))
+			return{ false, "Can't upgrade the values file because it can't be found" };
+
+		ImportStringsFromTemplates(projectini, stringsini, "ARMORTYPELABELS", "ARMORTYPE_COUNT");
+		ImportValuesFromTemplates(projectini, valuesini, { "ARMORTYPE_COUNT", "ARMORTYPE_OFFSET" });
 		return { true, "" };
 	}
 

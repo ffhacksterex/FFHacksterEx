@@ -35,6 +35,7 @@ namespace Editorlabels
 	dataintnodevector LoadAilEffectLabels(CFFHacksterProject & proj, bool showindex = false);
 	dataintnodevector LoadElementLabels(CFFHacksterProject & proj, bool showindex = false);
 	dataintnodevector LoadEnemyCategoryLabels(CFFHacksterProject & proj, bool showindex = false);
+	dataintnodevector LoadArmorTypes(CFFHacksterProject& proj, bool showindex = false);
 
 	dataintnodevector LoadFanfareLabels(CFFHacksterProject & proj, bool showindex = false);
 	dataintnodevector LoadFanfareTrueFalseLabels(CFFHacksterProject & proj, bool showindex = false);
@@ -67,6 +68,7 @@ namespace Editorlabels
 	dataintnode LoadAilEffectLabel(CFFHacksterProject & proj, int index, bool showindex = false);
 	dataintnode LoadElementLabel(CFFHacksterProject & proj, int index, bool showindex = false);
 	dataintnode LoadEnemyCategoryLabel(CFFHacksterProject & proj, int index, bool showindex = false);
+	dataintnode LoadArmorTypeLabel(CFFHacksterProject& proj, int index, bool showindex = false);
 
 	dataintnode LoadFanfareLabel(CFFHacksterProject & proj, int index, bool showindex = false);
 
@@ -95,4 +97,5 @@ namespace Editorlabels
 	void WriteAilEffectLabel(CFFHacksterProject & proj, int index, CString newvalue);
 	void WriteElementLabel(CFFHacksterProject & proj, int index, CString newvalue);
 	void WriteEnemyCategoryLabel(CFFHacksterProject & proj, int index, CString newvalue);
+	void WriteArmorTypeLabel(CFFHacksterProject& proj, int index, CString newvalue);
 }

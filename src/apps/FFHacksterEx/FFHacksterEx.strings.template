@@ -1307,3 +1307,8 @@
 5=Water
 6=Mage
 7=Regenerative
+[ARMORTYPELABELS]
+0=Body
+1=Shield
+2=Head
+3=Arms

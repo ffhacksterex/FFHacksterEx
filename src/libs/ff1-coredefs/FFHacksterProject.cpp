@@ -84,7 +84,7 @@ const CString CFFHacksterProject::MAGIC = "MAGIC";
 const bool CFFHacksterProject::DEF_TEXTVIEWINDTE[20] = { false, false, false, false, false, true, false, false, true, false, true, true, true, true, true, 0 };
 
 //STATIC
-const int CFFHacksterProject::Version = 971;
+const int CFFHacksterProject::Version = 9810;
 
 CFFHacksterProject::CFFHacksterProject()
 	: m_projtype(ProjType::Unknown)
@@ -989,6 +989,7 @@ bool CFFHacksterProject::WriteStringCounts(CString projectini)
 	WriteIni(projectini, section, "AILEFFECTLABELS", "AILEFFECT_COUNT");
 	WriteIni(projectini, section, "ELEMENTLABELS", "ELEMENT_COUNT");
 	WriteIni(projectini, section, "ENEMYCATEGORYLABELS", "ENEMYCATEGORY_COUNT");
+	WriteIni(projectini, section, "ARMORTYPELABELS", "ARMORTYPE_COUNT");
 	return true;
 }
 

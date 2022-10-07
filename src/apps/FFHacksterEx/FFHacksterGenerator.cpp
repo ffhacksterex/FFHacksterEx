@@ -493,6 +493,7 @@ pair_result<CString> CFFHacksterGenerator::CreateEditorLabels(CString folder, CS
 	CopyLabels(inifile, "AILEFFECTLABELS", editordefs_aileffects, _countof(editordefs_aileffects));
 	CopyLabels(inifile, "ELEMENTLABELS", editordefs_elements, _countof(editordefs_elements));
 	CopyLabels(inifile, "ENEMYCATEGORYLABELS", editordefs_enemycategories, _countof(editordefs_enemycategories));
+	CopyLabels(inifile, "ARMORTYPELABELS", editordefs_enemycategories, _countof(editordefs_enemycategories));
 
 	bool exists = Paths::FileExists(inifile);
 	CString str = exists ? inifile : inifile + " could not be created.";

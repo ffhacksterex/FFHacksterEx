@@ -68,6 +68,7 @@ void CArmor::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_DEF1, m_def1);
 	DDX_Control(pDX, IDC_DEF, m_def);
 	DDX_Control(pDX, IDC_SPELLCAST, m_spellcast);
+	DDX_Control(pDX, IDC_ARMORTYPE, m_armortype);
 	DDX_Control(pDX, IDC_ARMORLIST, m_armorlist);
 	DDX_Control(pDX, IDC_STATIC1, m_static1);
 	DDX_Control(pDX, IDC_STATIC2, m_static2);
@@ -108,6 +109,7 @@ BOOL CArmor::OnInitDialog()
 		LoadListBox(m_armorlist, LoadArmorEntries(*Project));
 		LoadCombo(m_spellcast, LoadMagicEntries(*Project) + LoadAttackEntries(*Project));
 		m_spellcast.InsertString(0, "--None--");
+		LoadCombo(m_armortype, LoadArmorTypes(*Project));
 		LoadCaptions(classlists, LoadClassEntries(*Project));
 
 		cur = -1;
@@ -152,10 +154,10 @@ void CArmor::LoadOffsets()
 	ARMOR_BYTES = ReadDec(Project->ValuesPath, "ARMOR_BYTES");
 	ARMORPRICE_OFFSET = ReadHex(Project->ValuesPath, "ARMORPRICE_OFFSET");
 	ARMORPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "ARMORPERMISSIONS_OFFSET");
+	ARMORTYPE_OFFSET = ReadHex(Project->ValuesPath, "ARMORTYPE_OFFSET");
 
 	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
 	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
-
 }
 
 void CArmor::LoadRom()
@@ -170,7 +172,10 @@ void CArmor::LoadRom()
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.LoadAsmBin(BIN_ARMORDATA, ARMOR_OFFSET);
 		ser.LoadAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
-		ser.LoadInline(ASM_0E, { { asmlabel, LUT_ARMORPERMISSIONS,{ ARMORPERMISSIONS_OFFSET } } });
+		ser.LoadInline(ASM_0E, {
+			{ asmlabel, "lut_ArmorTypes",{ ARMORTYPE_OFFSET } },
+			{ asmlabel, LUT_ARMORPERMISSIONS,{ ARMORPERMISSIONS_OFFSET } },
+			});
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
@@ -188,7 +193,10 @@ void CArmor::SaveRom()
 		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.SaveAsmBin(BIN_ARMORDATA, ARMOR_OFFSET);
 		ser.SaveAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
-		ser.SaveInline(ASM_0E, { { asmlabel, LUT_ARMORPERMISSIONS,{ ARMORPERMISSIONS_OFFSET } } });
+		ser.SaveInline(ASM_0E, {
+			{ asmlabel, "lut_ArmorTypes",{ ARMORTYPE_OFFSET } },
+			{ asmlabel, LUT_ARMORPERMISSIONS,{ ARMORPERMISSIONS_OFFSET } }
+			});
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
@@ -220,6 +228,9 @@ void CArmor::LoadValues()
 	temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
 	text.Format("%d",temp);
 	m_price.SetWindowText(text);
+
+	offset = ARMORTYPE_OFFSET + cur;
+	m_armortype.SetCurSel(Project->ROM[offset]);
 
 	offset = ARMORPERMISSIONS_OFFSET + (cur << 1);
 	temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
@@ -255,6 +266,10 @@ void CArmor::StoreValues()
 	temp = StringToInt(text); if(temp > 0xFFFF) temp = 0xFFFF;
 	Project->ROM[offset] = temp & 0xFF;
 	Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+
+	offset = ARMORTYPE_OFFSET + cur;
+	temp = m_armortype.GetCurSel();
+	Project->ROM[offset] = (BYTE)temp;
 	
 	//N.B. - the check associates class 0 with the highest bit, and equips if flags are cleared.
 	//	Therefore, loop the classes in reverse order, then bitwise-flip the value.
