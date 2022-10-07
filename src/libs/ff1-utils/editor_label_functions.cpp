@@ -166,6 +166,7 @@ namespace Editorlabels
 	dataintnodevector LoadAilEffectLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "AILEFFECTLABELS", showindex); }
 	dataintnodevector LoadElementLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "ELEMENTLABELS", showindex); }
 	dataintnodevector LoadEnemyCategoryLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "ENEMYCATEGORYLABELS", showindex); }
+	dataintnodevector LoadArmorTypes(CFFHacksterProject& proj, bool showindex) { return LoadIniLabels(proj, "ARMORTYPELABELS", showindex); }
 
 	dataintnodevector LoadSMTeleportLabels(CFFHacksterProject & proj, bool showindex)
 	{
@@ -258,6 +259,7 @@ namespace Editorlabels
 	dataintnode LoadAilEffectLabel(CFFHacksterProject & proj, int index, bool showindex) { return LoadIniLabel(proj, "AILEFFECTLABELS", index, showindex); }
 	dataintnode LoadElementLabel(CFFHacksterProject & proj, int index, bool showindex) { return LoadIniLabel(proj, "ELEMENTLABELS", index, showindex); }
 	dataintnode LoadEnemyCategoryLabel(CFFHacksterProject & proj, int index, bool showindex) { return LoadIniLabel(proj, "ENEMYCATEGORYLABELS", index, showindex); }
+	dataintnode LoadArmorTypeLabel(CFFHacksterProject& proj, int index, bool showindex) { return LoadIniLabel(proj, "ARMORTYPELABELS", index, showindex); }
 
 	dataintnode LoadSMTeleportLabel(CFFHacksterProject & proj, int index, bool showindex)
 	{
@@ -325,6 +327,6 @@ namespace Editorlabels
 	void WriteAilEffectLabel(CFFHacksterProject & proj, int index, CString newvalue) { WriteIniLabel(proj, "AILEFFECTLABELS", index, newvalue); }
 	void WriteElementLabel(CFFHacksterProject & proj, int index, CString newvalue) { WriteIniLabel(proj, "ELEMENTLABELS", index, newvalue); }
 	void WriteEnemyCategoryLabel(CFFHacksterProject & proj, int index, CString newvalue) { WriteIniLabel(proj, "ENEMYCATEGORYLABELS", index, newvalue); }
-
+	void WriteArmorTypeLabel(CFFHacksterProject& proj, int index, CString newvalue) { WriteIniLabel(proj, "ARMORTYPELABELS", index, newvalue); }
 
 } // end namespace Editorlabels

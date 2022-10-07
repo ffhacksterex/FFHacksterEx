@@ -767,6 +767,11 @@ value=40
 desc=Number of armors
 type=uint8
 group=Inventory and Counts
+[ARMORTYPE_COUNT]
+value=4
+desc=Number of types of armor (e.g Body, Shield, etc.)
+type=uint8
+group=Inventory and Counts
 [GOLDITEM_COUNT]
 value=68
 desc=Number of gold items
@@ -857,6 +862,11 @@ group=Prices
 [ARMOR_OFFSET]
 value=0x30150
 desc=Description of ARMOR_OFFSET
+type=bword
+group=Inventory and Counts
+[ARMORTYPE_OFFSET]
+value=0x3BCE1
+desc=Table of armor type settings for all pieces of armor
 type=bword
 group=Inventory and Counts
 [ARMORPERMISSIONS_OFFSET]

@@ -48,6 +48,7 @@ protected:
 	CStrikeCheck	m_def1;
 	CClearEdit	m_def;
 	CComboBox	m_spellcast;
+	CComboBox	m_armortype;
 	CClearListBox	m_armorlist;
 	CClearStatic m_static1;
 	CClearStatic m_static2;
@@ -73,6 +74,7 @@ protected:
 	int ARMOR_BYTES = -1;
 	int ARMORPRICE_OFFSET = -1;
 	unsigned int ARMORPERMISSIONS_OFFSET = (unsigned int)-1;
+	unsigned int ARMORTYPE_OFFSET = (unsigned int)-1;
 
 	int BANK0A_OFFSET = -1;
 	int BINPRICEDATA_OFFSET = -1;
