@@ -183,6 +183,12 @@
     <ClInclude Include="SubEditDialogEx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ClearCheckBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ClearRadio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -333,6 +339,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SubEditDialogEx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ClearCheckBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ClearRadio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

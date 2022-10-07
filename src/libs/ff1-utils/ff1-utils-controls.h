@@ -7,6 +7,9 @@
 
 #include "ClearButton.h"
 
+#include "ClearCheckBox.h"
+#include "ClearRadio.h"
+
 #include "BorderedEdit.h"
 #include "ClearEdit.h"
 #include "InplaceEdit.h"
