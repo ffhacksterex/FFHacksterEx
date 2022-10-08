@@ -446,7 +446,7 @@ void CClasses::LoadOffsets()
 	ARMORPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "ARMORPERMISSIONS_OFFSET");
 	MAGIC_COUNT = ReadDec(Project->ValuesPath, "MAGIC_COUNT");
 	MAGICPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "MAGICPERMISSIONS_OFFSET");
-	SPELLLEVEL_COUNT = ReadHex(Project->ValuesPath, "SPELLLEVEL_COUNT", 8);
+	SPELLLEVEL_COUNT = ReadDec(Project->ValuesPath, "SPELLLEVEL_COUNT");
 }
 
 void CClasses::LoadRom()
