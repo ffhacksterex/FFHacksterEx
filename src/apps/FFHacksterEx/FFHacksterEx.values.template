@@ -817,6 +817,11 @@ value=256
 desc=Description of DIALOGUE_COUNT
 type=uint8
 group=Inventory and Counts
+[SPELLLEVEL_COUNT]
+value=8
+desc=Number of spell levels in the magic engine
+type=uint8
+group=Inventory and Counts
 [POTIONSTART_INDEX]
 value=24
 desc=0-based index iof the first potion item
