@@ -27,8 +27,12 @@ protected:
 	virtual void StoreValues();
 	virtual void PaintClient(CDC& dc);
 
-	CImageList m_graphics;
 	void ResetGraphicList();
+	void HandleWeaponListContextMenu(CWnd* pWnd, CPoint point);
+	void DoCopySwapName(bool swap, int srcitem, int dstitem);
+
+	int m_selitem = -1;
+	CImageList m_graphics;
 
 // Dialog Data
 	//{{AFX_DATA(CWeapon)
@@ -101,4 +105,5 @@ protected:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnSelchangeGfx();
 	afx_msg void OnEditgfx();
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 };
