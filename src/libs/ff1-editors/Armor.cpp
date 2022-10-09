@@ -302,8 +302,10 @@ void CArmor::HandleArmorListContextMenu(CWnd* pWnd, CPoint point)
 		bool swap = result.selcmd == ID_FFH_SWAP;
 		auto thisitem = result.thisindex;
 		auto & flags = result.flags;
-		CopySwapBytes(swap, Project->ROM, m_selitem, thisitem, ARMOR_OFFSET, ARMOR_BYTES, 0,
-			{ flags[1], flags[2], flags[3], flags[4] });
+		boolvector armorflags(ARMOR_BYTES);
+		std::copy_n(cbegin(flags) + 1, ARMOR_BYTES, begin(armorflags));
+
+		CopySwapBytes(swap, Project->ROM, m_selitem, thisitem, ARMOR_OFFSET, ARMOR_BYTES, 0, armorflags);
 		if (flags[0]) DoCopySwapName(swap, m_selitem, thisitem);
 		if (flags[5]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPRICE_OFFSET, 2, 0, 2);
 		if (flags[6]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPERMISSIONS_OFFSET, 2, 0, 2);
