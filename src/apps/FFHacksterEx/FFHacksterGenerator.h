@@ -30,7 +30,7 @@ private:
 	pair_result<CString> CreateEditorLabels(CString folder, CString newfilename, bool forcerecreation);
 
 	CString ExecuteActionResult(CString curaction, CString resultstring, CString AppIni); // filename or command
-	static pair_result<CString> UnzipAndOpenProject(CString pathname, CString dotextension);
+	static pair_result<CString> UnzipAndOpenProject(CString pathname, CString dotextension, const AppSettings * appstgs);
 	static CString BuildEditRomProjectPath(CString rompath);
 
 	pair_result<CString> DoCreateRomProject(const sProjectGeneratorValues & genvalues);

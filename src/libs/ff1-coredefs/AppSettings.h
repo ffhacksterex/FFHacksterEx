@@ -6,7 +6,8 @@
 #define MRULOWLIMIT 4
 #define MRUMAXLIMIT 25
 
-#define FOLDERPREF(as,name) ((as)->UseFolderPrefs ? ((as)->name) : "")
+#define FOLDERPREF(as,name) (((as) != nullptr) && ((as)->UseFolderPrefs) ? ((as)->name) : "")
+#define FOLDERPREF_OR(as,name,altpath) (((as) != nullptr) && ((as)->UseFolderPrefs) ? ((as)->name) : (altpath))
 
 struct sAppFolderPrefs
 {
