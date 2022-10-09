@@ -290,7 +290,7 @@ void CArmor::StoreValues()
 void CArmor::HandleArmorListContextMenu(CWnd* pWnd, CPoint point)
 {
 	using namespace copypaste_helpers;
-	auto optionnames = mfcstringvector{ "Name", "Absorb", "Evade", "Spell", "Resist", "Price", "Equip", "Armor Type" };
+	auto optionnames = mfcstringvector{ "Name", "Evade", "Absorb", "Resist", "Spell", "Price", "Equip", "Armor Type" };
 	auto result = InvokeCopySwap(m_armorlist, point, m_selitem, optionnames);
 	switch (result.selcmd) {
 	case ID_FFH_COPY:
