@@ -877,7 +877,8 @@ namespace Upgrades
 			return{ false, "Can't upgrade the values file because it can't be found" };
 
 		ImportStringsFromTemplates(projectini, stringsini, "ARMORTYPELABELS", "ARMORTYPE_COUNT");
-		ImportValuesFromTemplates(projectini, valuesini, { "ARMORTYPE_COUNT", "ARMORTYPE_OFFSET", "SPELLLEVEL_COUNT" });
+		ImportValuesFromTemplates(projectini, valuesini,
+			{ "ARMORTYPE_COUNT", "ARMORTYPE_OFFSET", "SPELLLEVEL_COUNT", "SPELLSPERLEVEL_COUNT" });
 		return { true, "" };
 	}
 

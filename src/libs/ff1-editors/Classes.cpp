@@ -448,6 +448,7 @@ void CClasses::LoadOffsets()
 	MAGIC_COUNT = ReadDec(Project->ValuesPath, "MAGIC_COUNT");
 	MAGICPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "MAGICPERMISSIONS_OFFSET");
 	SPELLLEVEL_COUNT = ReadDec(Project->ValuesPath, "SPELLLEVEL_COUNT");
+	SPELLSPERLEVEL_COUNT = ReadDec(Project->ValuesPath, "SPELLSPERLEVEL_COUNT");
 }
 
 void CClasses::LoadRom()
@@ -1664,7 +1665,7 @@ void CClasses::PasteUsables(int srcindex, int destindex, int flags)
 	if ((flags & PASTE_MAGICPERM) == PASTE_MAGICPERM) {
 		int SPELLSPERLEVEL_COUNT = 8;
 		copypaste_helpers::CopySwapBuffer(swapping, Project->ROM, srcindex, destindex,
-			(int)MAGICPERMISSIONS_OFFSET, SPELLSPERLEVEL_COUNT, 0, (int)SPELLLEVEL_COUNT);
+			MAGICPERMISSIONS_OFFSET, SPELLSPERLEVEL_COUNT, 0, SPELLLEVEL_COUNT);
 	}
 }
 
