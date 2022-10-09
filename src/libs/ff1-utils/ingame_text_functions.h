@@ -51,6 +51,7 @@ namespace Ingametext
 	dataintnode LoadPotionEntry(CFFHacksterProject & proj, int index, bool showindex = false);
 	dataintnode LoadWeaponEntry(CFFHacksterProject & proj, int index, bool showindex = false);
 
+	void PasteSwapStringBytes(bool swapping, CFFHacksterProject& proj, int context, int sourceindex, int destindex);
 	void SwapStringBytes(CFFHacksterProject& proj, int context, int sourceindex, int destindex);
 	void OverwriteStringBytes(CFFHacksterProject& proj, int context, int sourceindex, int destindex);
 

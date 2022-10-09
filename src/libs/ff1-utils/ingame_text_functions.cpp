@@ -513,7 +513,7 @@ namespace Ingametext
 		return LoadExpandedOneBasedEntry(address(proj.ROM), index, WEAPONTEXT_OFFSET, BASICTEXT_PTRADD, proj.GetTable(1), showindex);
 	}
 
-	void DoPasteSwapStringBytes(bool swapping, CFFHacksterProject& proj, int context, int sourceindex, int destindex)
+	void PasteSwapStringBytes(bool swapping, CFFHacksterProject& proj, int context, int sourceindex, int destindex)
 	{
 		if (context == INTROTEXT) {
 			return; //TODO - or throw? it's not applicable here
@@ -580,12 +580,12 @@ namespace Ingametext
 
 	void SwapStringBytes(CFFHacksterProject& proj, int context, int sourceindex, int destindex)
 	{
-		DoPasteSwapStringBytes(true, proj, context, sourceindex, destindex);
+		PasteSwapStringBytes(true, proj, context, sourceindex, destindex);
 	}
 
 	void OverwriteStringBytes(CFFHacksterProject& proj, int context, int sourceindex, int destindex)
 	{
-		DoPasteSwapStringBytes(false, proj, context, sourceindex, destindex);
+		PasteSwapStringBytes(false, proj, context, sourceindex, destindex);
 	}
 
 } // end namespace Ingametext
