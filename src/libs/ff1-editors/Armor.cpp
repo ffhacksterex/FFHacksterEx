@@ -315,61 +315,6 @@ void CArmor::HandleArmorListContextMenu(CWnd* pWnd, CPoint point)
 		if (!result.message.IsEmpty()) AfxMessageBox(result.message);
 		break;
 	}
-
-	//auto thisitem = Ui::ItemFromPoint(m_armorlist, point);
-	//if (thisitem == -1) return;
-
-	//CString thisname = Ui::GetItemText(m_armorlist, thisitem);
-	//CMenu menu;
-	//VERIFY(menu.CreatePopupMenu());
-	//menu.AppendMenu(MF_BYCOMMAND, ID_FFH_COPY, copypaste_helpers::BuildCopyPasteText(ID_FFH_COPY, thisname, ""));
-	//if (m_selitem != -1 && m_selitem != thisitem) {
-	//	CString selname = Ui::GetItemText(m_armorlist, m_selitem);
-	//	menu.AppendMenu(MF_BYCOMMAND, ID_FFH_PASTE, copypaste_helpers::BuildCopyPasteText(ID_FFH_PASTE, selname, thisname));
-	//	menu.AppendMenu(MF_BYCOMMAND, ID_FFH_SWAP, copypaste_helpers::BuildCopyPasteText(ID_FFH_SWAP, selname, thisname));
-	//}
-	//auto selcmd = menu.TrackPopupMenu(TPM_RETURNCMD | TPM_LEFTALIGN, point.x, point.y, pWnd);
-	//switch(selcmd) {
-	//case ID_FFH_COPY:
-	//	m_selitem = thisitem;
-	//	break;
-	//case ID_FFH_PASTE: 
-	//case ID_FFH_SWAP:
-	//{
-	//	std::vector<PasteTarget> options = {
-	//		{ "Name", false },
-	//		{ "Absorb", false },
-	//		{ "Evade", false },
-	//		{ "Spell", false },
-	//		{ "Resist", false },
-	//		{ "Price", false },
-	//		{ "Equip", false },
-	//		{ "Armor Type", false },
-	//	};
-	//	CDlgPasteTargets dlgtargets(this);
-	//	menu.GetMenuString(selcmd, dlgtargets.Title, MF_BYCOMMAND);
-	//	dlgtargets.SetTargets(options);
-	//	if (dlgtargets.DoModal() == IDOK) {
-	//		if (dlgtargets.IsAnyChecked()) {
-	//			bool swap = selcmd == ID_FFH_SWAP;
-	//			auto flags = dlgtargets.GetResults();
-
-	//			using namespace copypaste_helpers;
-	//			CopySwapBytes(swap, Project->ROM, m_selitem, thisitem, ARMOR_OFFSET, ARMOR_BYTES, 0,
-	//				{ flags[1], flags[2], flags[3], flags[4] });
-	//			if (flags[0]) DoCopySwapName(swap, m_selitem, thisitem);
-	//			if (flags[5]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPRICE_OFFSET, 2, 0, 2);
-	//			if (flags[6]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPERMISSIONS_OFFSET, 2, 0, 2);
-	//			if (flags[7]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORTYPE_OFFSET, 1, 0, 1);
-	//			LoadValues();
-	//		}
-	//		else {
-	//			AfxMessageBox("You must select at least one item for paste/swap to have an effect.");
-	//		}
-	//	}
-	//	break;
-	//}
-	//}
 }
 
 void CArmor::DoCopySwapName(bool swap, int srcitem, int dstitem)
