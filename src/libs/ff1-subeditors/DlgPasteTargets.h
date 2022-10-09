@@ -4,13 +4,7 @@
 #include <vector>
 #include "afxwin.h"
 #include <FFBaseDlg.h>
-
-struct PasteTarget
-{
-	CString caption;
-	bool checked;
-	CString warning;
-};
+#include <copypaste_helpers.h>
 
 // CDlgPasteTargets dialog
 
@@ -24,7 +18,9 @@ public:
 
 	CString Title;
 	void SetTargets(const std::vector<PasteTarget> & targets);
+	bool IsAnyChecked() const;
 	bool IsChecked(int index) const;
+	std::vector<bool> GetResults() const;
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -42,6 +38,7 @@ protected:
 
 	CToolTipCtrl m_tooltips;
 	CButton m_pastetarget1;
+	CButton m_checkall;
 
 	DECLARE_MESSAGE_MAP()
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -49,8 +46,5 @@ protected:
 	virtual void OnOK();
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnDestroy();
-public:
 	afx_msg void OnBnClickedCheckAll();
-protected:
-	CButton m_checkall;
 };

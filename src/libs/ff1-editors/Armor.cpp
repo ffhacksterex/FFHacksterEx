@@ -2,7 +2,6 @@
 //
 
 #include "stdafx.h"
-#include <iostream>
 #include "Armor.h"
 #include "AsmFiles.h"
 #include "collection_helpers.h"
@@ -16,7 +15,8 @@
 #include "io_functions.h"
 #include "string_functions.h"
 #include "ui_helpers.h"
-#include <fstream>
+#include "copypaste_helpers.h"
+#include <DlgPasteTargets.h>
 
 using namespace Ingametext;
 using namespace Ini;
@@ -85,6 +85,7 @@ void CArmor::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CArmor, BaseClass)
 	ON_LBN_SELCHANGE(IDC_ARMORLIST, OnSelchangeArmorlist)
 	ON_BN_CLICKED(IDC_SAVE, OnSave)
+	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 
@@ -127,6 +128,11 @@ BOOL CArmor::OnInitDialog()
 	}
 
 	return TRUE;
+}
+
+void CArmor::OnContextMenu(CWnd* pWnd, CPoint point)
+{
+	if (pWnd == &m_armorlist) HandleArmorListContextMenu(pWnd, point);
 }
 
 void CArmor::OnSelchangeArmorlist() 
@@ -279,4 +285,50 @@ void CArmor::StoreValues()
 	offset = ARMORPERMISSIONS_OFFSET + (cur << 1);
 	Project->ROM[offset] = temp & 0xFF;
 	Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+}
+
+void CArmor::HandleArmorListContextMenu(CWnd* pWnd, CPoint point)
+{
+	using namespace copypaste_helpers;
+	auto optionnames = mfcstringvector{ "Name", "Evade", "Absorb", "Resist", "Spell", "Price", "Equip", "Armor Type" };
+	auto result = InvokeCopySwap(m_armorlist, point, m_selitem, optionnames);
+	switch (result.selcmd) {
+	case ID_FFH_COPY:
+		m_selitem = result.copyindex;
+		break;
+	case ID_FFH_PASTE:
+	case ID_FFH_SWAP:
+	{
+		bool swap = result.selcmd == ID_FFH_SWAP;
+		auto thisitem = result.thisindex;
+		auto & flags = result.flags;
+		CopySwapBytes(swap, Project->ROM, m_selitem, thisitem, ARMOR_OFFSET, ARMOR_BYTES, 0,
+			{ flags[1], flags[2], flags[3], flags[4] });
+		if (flags[0]) DoCopySwapName(swap, m_selitem, thisitem);
+		if (flags[5]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPRICE_OFFSET, 2, 0, 2);
+		if (flags[6]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPERMISSIONS_OFFSET, 2, 0, 2);
+		if (flags[7]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORTYPE_OFFSET, 1, 0, 1);
+		LoadValues();
+		break;
+	}
+	default:
+		if (!result.message.IsEmpty()) AfxMessageBox(result.message);
+		break;
+	}
+}
+
+void CArmor::DoCopySwapName(bool swap, int srcitem, int dstitem)
+{
+	try {
+		Ingametext::PasteSwapStringBytes(swap, *Project, ARMOR, srcitem, dstitem);
+
+		CString srcname = LoadArmorEntry(*Project, srcitem+1).name.Trim();
+		CString dstname = LoadArmorEntry(*Project, dstitem+1).name.Trim();
+
+		// Now, reload the class names in the list box
+		Ui::ReplaceString(m_armorlist, srcitem, srcname);
+		Ui::ReplaceString(m_armorlist, dstitem, dstname);
+	} catch(std::exception & ex) {
+		AfxMessageBox(CString("Copy/Swap operation failed:\n") + ex.what());
+	}
 }

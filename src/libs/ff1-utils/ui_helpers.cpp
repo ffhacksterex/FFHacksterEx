@@ -305,6 +305,13 @@ namespace Ui
 		box.SetCurSel(prevsel);
 	}
 
+	CString GetItemText(CListBox& box, int index)
+	{
+		CString text;
+		box.GetText(index, text);
+		return text;
+	}
+
 	int FindIndexByData(CComboBox & box, DWORD_PTR data)
 	{
 		for (int i = 0; i < box.GetCount(); ++i) {
@@ -358,6 +365,15 @@ namespace Ui
 	{
 		int cursel = box.GetCurSel();
 		return cursel != CB_ERR ? box.GetItemData(cursel) : defvalue;
+	}
+
+	int ItemFromPoint(CListBox& box, CPoint mousepoint)
+	{
+		BOOL bOutside = FALSE;
+		CPoint point = mousepoint;
+		box.ScreenToClient(&point);
+		auto selindex = box.ItemFromPoint(point, bOutside);
+		return (selindex == LB_ERR) ? -1 : selindex;
 	}
 
 	int LoadCombo(CComboBox & combo, dataintnodevector dvec)

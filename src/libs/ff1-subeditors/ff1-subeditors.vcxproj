@@ -171,42 +171,11 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Backdrop.h" />
-    <ClInclude Include="BattlePalettes.h" />
-    <ClInclude Include="BattlePatternTables.h" />
-    <ClInclude Include="BattlePic.h" />
-    <ClInclude Include="DlgPopoutMap.h" />
-    <ClInclude Include="CSubDlgRenderMap.h" />
-    <ClInclude Include="CSubDlgRenderMapStatic.h" />
-    <ClInclude Include="FloatingMapDlg.h" />
-    <ClInclude Include="DrawingToolButton.h" />
-    <ClInclude Include="Coords.h" />
-    <ClInclude Include="CustomTool.h" />
-    <ClInclude Include="DlgEditIniValue.h" />
-    <ClInclude Include="DlgEditScalars.h" />
-    <ClInclude Include="DlgEditStrings.h" />
-    <ClInclude Include="DlgPasteTargets.h" />
-    <ClInclude Include="ICoordMap.h" />
-    <ClInclude Include="IMapEditor.h" />
-    <ClInclude Include="InplaceArrayEdit.h" />
-    <ClInclude Include="Loading.h" />
-    <ClInclude Include="Mapman.h" />
-    <ClInclude Include="MiniMap.h" />
-    <ClInclude Include="NESPalette.h" />
-    <ClInclude Include="NewLabel.h" />
-    <ClInclude Include="resource_subeditors.h" />
-    <ClInclude Include="sRenderMapState.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="TileEdit.h" />
-    <ClInclude Include="Tint.h" />
-    <ClInclude Include="WepMagGraphic.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Backdrop.cpp" />
     <ClCompile Include="BattlePalettes.cpp" />
     <ClCompile Include="BattlePatternTables.cpp" />
     <ClCompile Include="BattlePic.cpp" />
+    <ClCompile Include="copypaste_helpers.cpp" />
     <ClCompile Include="CSubDlgRenderMap.cpp" />
     <ClCompile Include="CSubDlgRenderMapStatic.cpp" />
     <ClCompile Include="FloatingMapDlg.cpp" />
@@ -259,6 +228,39 @@
     <Image Include="res\iconmonstr-tree-11-green-16.png" />
     <Image Include="res\iconmonstr-weather-94-16.png" />
     <Image Include="res\iconmonstr-weather-94-brown-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Backdrop.h" />
+    <ClInclude Include="BattlePalettes.h" />
+    <ClInclude Include="BattlePatternTables.h" />
+    <ClInclude Include="BattlePic.h" />
+    <ClInclude Include="Coords.h" />
+    <ClInclude Include="copypaste_helpers.h" />
+    <ClInclude Include="CSubDlgRenderMap.h" />
+    <ClInclude Include="CSubDlgRenderMapStatic.h" />
+    <ClInclude Include="CustomTool.h" />
+    <ClInclude Include="DlgEditIniValue.h" />
+    <ClInclude Include="DlgEditScalars.h" />
+    <ClInclude Include="DlgEditStrings.h" />
+    <ClInclude Include="DlgPasteTargets.h" />
+    <ClInclude Include="DlgPopoutMap.h" />
+    <ClInclude Include="DrawingToolButton.h" />
+    <ClInclude Include="FloatingMapDlg.h" />
+    <ClInclude Include="ICoordMap.h" />
+    <ClInclude Include="IMapEditor.h" />
+    <ClInclude Include="InplaceArrayEdit.h" />
+    <ClInclude Include="Loading.h" />
+    <ClInclude Include="Mapman.h" />
+    <ClInclude Include="MiniMap.h" />
+    <ClInclude Include="NESPalette.h" />
+    <ClInclude Include="NewLabel.h" />
+    <ClInclude Include="resource_subeditors.h" />
+    <ClInclude Include="sRenderMapState.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="TileEdit.h" />
+    <ClInclude Include="Tint.h" />
+    <ClInclude Include="WepMagGraphic.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -83,6 +83,8 @@ namespace Ui
 	void ReplaceString(CComboBox& box, int index, CString newstring);
 	void ReplaceString(CListBox& box, int index, CString newstring);
 
+	CString GetItemText(CListBox& box, int index);
+
 	int FindIndexByData(CComboBox & box, DWORD_PTR data);
 	int FindIndexByPrefix(CComboBox & box, int matchvalue);
 	DWORD_PTR GetSelectedItemData(CComboBox & box, DWORD_PTR defvalue = -1);
@@ -91,6 +93,8 @@ namespace Ui
 	void SelectFirstItem(CComboBox & box);
 	bool SelectItemByData(CComboBox & box, DWORD_PTR data);
 	DWORD_PTR GetSelectedItemData(CListBox & box, DWORD_PTR defvalue = -1);
+
+	int ItemFromPoint(CListBox& box, CPoint mousepoint);
 
 	int LoadCombo(CComboBox & combo, dataintnodevector dvec);
 	int LoadListBox(CListBox & list, dataintnodevector dvec);

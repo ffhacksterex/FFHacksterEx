@@ -6,6 +6,7 @@
 #include "afxdialogex.h"
 #include "imaging_helpers.h"
 #include "ui_helpers.h"
+#include <algorithm>
 
 using namespace Imaging;
 using namespace Ui;
@@ -28,9 +29,19 @@ void CDlgPasteTargets::SetTargets(const std::vector<PasteTarget>& targets)
 	m_targets = targets;
 }
 
+bool CDlgPasteTargets::IsAnyChecked() const
+{
+	return std::any_of(cbegin(m_checked), cend(m_checked), [](auto c) { return c == true; });
+}
+
 bool CDlgPasteTargets::IsChecked(int index) const
 {
 	return index < (int)m_checked.size() ? m_checked[index] : false;
+}
+
+std::vector<bool> CDlgPasteTargets::GetResults() const
+{
+	return m_checked;
 }
 
 std::vector<CButton*> CDlgPasteTargets::GetChecks()

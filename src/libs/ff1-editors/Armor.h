@@ -16,11 +16,16 @@ public:
 	int cur;
 
 protected:
+	int m_selitem = -1;
+
 	virtual void LoadOffsets();
 	virtual void LoadRom();
 	virtual void SaveRom();
 	virtual void LoadValues();
 	virtual void StoreValues();
+
+	void HandleArmorListContextMenu(CWnd* pWnd, CPoint point);
+	void DoCopySwapName(bool swap, int srcitem, int dstitem);
 
 // Dialog Data
 	enum { IDD = IDD_ARMOR };
@@ -89,4 +94,5 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 	afx_msg void OnSelchangeArmorlist();
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 };

@@ -7,8 +7,9 @@
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{64557154-9132-4855-869e-ec44424d4afe}</UniqueIdentifier>
+      <Extensions>h;hpp</Extensions>
     </Filter>
-    <Filter Include="Header Files\Resource Files">
+    <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
@@ -125,33 +126,33 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ff1-coredefs.rc">
-      <Filter>Header Files\Resource Files</Filter>
+      <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\iconmonstr-x-mark-2-24.png">
-      <Filter>Header Files\Resource Files</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\drawingtools.bmp">
-      <Filter>Header Files\Resource Files</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\advdrawi.bmp">
-      <Filter>Header Files\Resource Files</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\iconmonstr-minus-2-24.png">
-      <Filter>Header Files\Resource Files</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\iconmonstr-help-1-24.png">
-      <Filter>Header Files\Resource Files</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\iconmonstr-info-6-24.png">
-      <Filter>Header Files\Resource Files</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\iconmonstr-gear-3-24.png">
-      <Filter>Header Files\Resource Files</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\iconmonstr-book-27-24.png">
-      <Filter>Header Files\Resource Files</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
