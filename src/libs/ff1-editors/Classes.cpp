@@ -4,6 +4,7 @@
 #include "Classes.h"
 #include "AsmFiles.h"
 #include "collection_helpers.h"
+#include <copypaste_helpers.h>
 #include "DRAW_STRUCT.h"
 #include "FFHacksterProject.h"
 #include "GameSerializer.h"
@@ -1661,11 +1662,9 @@ void CClasses::PasteUsables(int srcindex, int destindex, int flags)
 			12, 0, ARMOR_COUNT);
 	}
 	if ((flags & PASTE_MAGICPERM) == PASTE_MAGICPERM) {
-		CopySwapBits16(swapping, MAGICPERMISSIONS_OFFSET, srcindex, destindex,
-			8, 0, MAGIC_COUNT);
-		size_t srcoffset = MAGICPERMISSIONS_OFFSET + (size_t(srcindex) * 8);
-		size_t dstoffset = MAGICPERMISSIONS_OFFSET + (size_t(destindex) * 8);
-		CopySwapBytes(swapping, srcoffset, dstoffset, 0, SPELLLEVEL_COUNT);
+		int SPELLSPERLEVEL_COUNT = 8;
+		copypaste_helpers::CopySwapBuffer(swapping, Project->ROM, srcindex, destindex,
+			(int)MAGICPERMISSIONS_OFFSET, SPELLSPERLEVEL_COUNT, 0, (int)SPELLLEVEL_COUNT);
 	}
 }
 
