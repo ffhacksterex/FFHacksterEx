@@ -5,6 +5,7 @@
 #include "Weapon.h"
 #include "FFHacksterProject.h"
 #include "collection_helpers.h"
+#include <copypaste_helpers.h>
 #include "draw_functions.h"
 #include "editor_label_functions.h"
 #include "general_functions.h"
@@ -95,6 +96,7 @@ BEGIN_MESSAGE_MAP(CWeapon, BaseClass)
 	ON_CBN_SELCHANGE(IDC_GFX, OnSelchangeGfx)
 	ON_BN_CLICKED(IDC_SAVE, OnSave)
 	ON_BN_CLICKED(IDC_EDITGFX, OnEditgfx)
+	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 
@@ -382,6 +384,55 @@ void CWeapon::ResetGraphicList()
 	InvalidateRect(rcGraphic,0);
 }
 
+void CWeapon::HandleWeaponListContextMenu(CWnd* pWnd, CPoint point)
+{
+	using namespace copypaste_helpers;
+	auto optionnames = mfcstringvector{ "Name", "Hit%", "Damage", "Critical%", "Spell", "Element",
+		"Category", "Graphic", "Palette", "Price", "Equip" };
+	auto result = InvokeCopySwap(m_weaponlist, point, m_selitem, optionnames);
+	switch (result.selcmd) {
+	case ID_FFH_COPY:
+		m_selitem = result.copyindex;
+		break;
+	case ID_FFH_PASTE:
+	case ID_FFH_SWAP:
+	{
+		bool swap = result.selcmd == ID_FFH_SWAP;
+		auto thisitem = result.thisindex;
+		auto& flags = result.flags;
+		boolvector wepflags(WEAPON_BYTES);
+		std::copy_n(cbegin(flags) + 1, WEAPON_BYTES, begin(wepflags));
+
+		CopySwapBytes(swap, Project->ROM, m_selitem, thisitem, WEAPON_OFFSET, WEAPON_BYTES, 0, wepflags);
+		if (flags[0]) DoCopySwapName(swap, m_selitem, thisitem);
+		if (flags[9]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, WEAPONPRICE_OFFSET, 2, 0, 2);
+		if (flags[10]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, WEAPONPERMISSIONS_OFFSET, 2, 0, 2);
+		LoadValues();
+		break;
+	}
+	default:
+		if (!result.message.IsEmpty()) AfxMessageBox(result.message);
+		break;
+	}
+}
+
+void CWeapon::DoCopySwapName(bool swap, int srcitem, int dstitem)
+{
+	try {
+		Ingametext::PasteSwapStringBytes(swap, *Project, WEAPONS, srcitem, dstitem);
+
+		CString srcname = LoadWeaponEntry(*Project, srcitem + 1).name.Trim();
+		CString dstname = LoadWeaponEntry(*Project, dstitem + 1).name.Trim();
+
+		// Now, reload the class names in the list box
+		Ui::ReplaceString(m_weaponlist, srcitem, srcname);
+		Ui::ReplaceString(m_weaponlist, dstitem, dstname);
+	}
+	catch (std::exception& ex) {
+		AfxMessageBox(CString("Copy/Swap operation failed:\n") + ex.what());
+	}
+}
+
 void CWeapon::OnSelchangeWeaponlist() 
 {
 	if(cur != -1) StoreValues();
@@ -425,4 +476,9 @@ void CWeapon::OnEditgfx()
 	dlg.DoModal();
 	InvalidateRect(rcPalette,0);
 	ResetGraphicList();
+}
+
+void CWeapon::OnContextMenu(CWnd* pWnd, CPoint point)
+{
+	if (pWnd == &m_weaponlist) HandleWeaponListContextMenu(pWnd, point);
 }
