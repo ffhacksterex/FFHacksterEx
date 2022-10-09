@@ -372,7 +372,7 @@ pair_result<CString> CFFHacksterGenerator::UnzipProject()
 		{
 			// Attempt to extract the project archive.
 			// On success, returns a command that will open the extracted project.
-			auto ret = UnzipAndOpenProject(pathname, ziptypes[index]);
+			auto ret = UnzipAndOpenProject(pathname, ziptypes[index], AppStgs);
 			if (ret) return ret;
 
 			if (!ret.value.IsEmpty()) AfxMessageBox(ret.value);
@@ -561,7 +561,7 @@ CString CFFHacksterGenerator::ExecuteActionResult(CString curaction, CString res
 	return nextaction;
 }
 
-pair_result<CString> CFFHacksterGenerator::UnzipAndOpenProject(CString pathname, CString dotextension)
+pair_result<CString> CFFHacksterGenerator::UnzipAndOpenProject(CString pathname, CString dotextension, const AppSettings* appstgs)
 {
 	CString ext = dotextension;
 	ext.MakeLower();
@@ -575,7 +575,7 @@ pair_result<CString> CFFHacksterGenerator::UnzipAndOpenProject(CString pathname,
 	pick.Title = "Extract Project Archive";
 	pick.Blurb = "Specify a parent folder and a name for the new project.\n"
 		"The project will be created as a subdirectory with that name inside the parent folder.";
-	pick.StartInFolder = Paths::GetDirectoryPath(pathname);
+	pick.StartInFolder = FOLDERPREF_OR(appstgs, PrefProjectParentFolder, Paths::GetDirectoryPath(pathname));
 
 	const auto& destfolder = pick.DestFolderPath;
 	if (pick.DoModal() != IDOK)
