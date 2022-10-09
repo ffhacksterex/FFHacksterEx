@@ -114,8 +114,9 @@ protected:
 	size_t ARMOR_COUNT = (size_t)-1;
 	size_t ARMORPERMISSIONS_OFFSET = (size_t)-1;
 	size_t MAGIC_COUNT = (size_t)-1;
-	size_t MAGICPERMISSIONS_OFFSET = (size_t)-1;
-	size_t SPELLLEVEL_COUNT = (size_t)-1;
+	int MAGICPERMISSIONS_OFFSET = -1;
+	int SPELLLEVEL_COUNT = -1;
+	int SPELLSPERLEVEL_COUNT = -1;
 
 	// Battle sprite offsets
 	unsigned int CHARBATTLEPALETTE_ASSIGNMENT1 = (unsigned int)-1; // bank 0C
