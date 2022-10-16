@@ -310,11 +310,14 @@ void CArmor::HandleArmorListContextMenu(CWnd* pWnd, CPoint point)
 		if (flags[5]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPRICE_OFFSET, 2, 0, 2);
 		if (flags[6]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPERMISSIONS_OFFSET, 2, 0, 2);
 		if (flags[7]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORTYPE_OFFSET, 1, 0, 1);
+
+		m_armorlist.SetCurSel(cur = thisitem);
 		LoadValues();
 		break;
 	}
 	default:
-		if (!result.message.IsEmpty()) AfxMessageBox(result.message);
+		if (!result.message.IsEmpty())
+			throw std::runtime_error((LPCSTR)result.message);
 		break;
 	}
 }
@@ -331,6 +334,6 @@ void CArmor::DoCopySwapName(bool swap, int srcitem, int dstitem)
 		Ui::ReplaceString(m_armorlist, srcitem, srcname);
 		Ui::ReplaceString(m_armorlist, dstitem, dstname);
 	} catch(std::exception & ex) {
-		AfxMessageBox(CString("Copy/Swap operation failed:\n") + ex.what());
+		throw std::runtime_error("Copy/Swap operation failed: " + std::string(ex.what()));
 	}
 }

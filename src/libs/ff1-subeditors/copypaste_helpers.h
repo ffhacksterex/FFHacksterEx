@@ -22,8 +22,10 @@ namespace copypaste_helpers
 		int baseoffset, int recwidth, int start, std::vector<bool> flags);
 	void CopySwapBuffer(bool swap, std::vector<unsigned char>& rom, int srcindex, int dstindex,
 		int baseoffset, int recwidth, int start, int bytecount);
-	void CopySwapPermissions(bool swap, std::vector<unsigned char>& rom, size_t srcindex, size_t destindex,
+	void CopySwapItemPermissions(bool swap, std::vector<unsigned char>& rom, size_t srcindex, size_t destindex,
 		size_t baseoffset, size_t bits, size_t start, size_t count);
+	void CopySwapSpellPermissions(bool swap, std::vector<unsigned char>& rom, size_t srcindex, size_t destindex,
+		size_t baseoffset, size_t bits, int recwidth, size_t start, size_t count);
 
 	struct sCopySwapResult
 	{
