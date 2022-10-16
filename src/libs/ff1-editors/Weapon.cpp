@@ -407,11 +407,14 @@ void CWeapon::HandleWeaponListContextMenu(CWnd* pWnd, CPoint point)
 		if (flags[0]) DoCopySwapName(swap, m_selitem, thisitem);
 		if (flags[9]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, WEAPONPRICE_OFFSET, 2, 0, 2);
 		if (flags[10]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, WEAPONPERMISSIONS_OFFSET, 2, 0, 2);
+
+		m_weaponlist.SetCurSel(cur = thisitem);
 		LoadValues();
 		break;
 	}
 	default:
-		if (!result.message.IsEmpty()) AfxMessageBox(result.message);
+		if (!result.message.IsEmpty())
+			throw std::runtime_error((LPCSTR)result.message);
 		break;
 	}
 }
@@ -429,7 +432,7 @@ void CWeapon::DoCopySwapName(bool swap, int srcitem, int dstitem)
 		Ui::ReplaceString(m_weaponlist, dstitem, dstname);
 	}
 	catch (std::exception& ex) {
-		AfxMessageBox(CString("Copy/Swap operation failed:\n") + ex.what());
+		throw std::runtime_error("Copy/Swap operation failed: " + std::string(ex.what()));
 	}
 }
 

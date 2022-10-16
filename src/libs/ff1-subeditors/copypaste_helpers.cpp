@@ -3,6 +3,7 @@
 #include <ui_helpers.h>
 #include "DlgPasteTargets.h"
 #include <algorithm>
+#include <string>
 
 namespace copypaste_helpers
 {
@@ -70,7 +71,7 @@ namespace copypaste_helpers
 		}
 	}
 
-	void CopySwapPermissions(bool swap, std::vector<unsigned char>& rom, size_t srcindex, size_t destindex,
+	void CopySwapItemPermissions(bool swap, std::vector<unsigned char>& rom, size_t srcindex, size_t destindex,
 		size_t baseoffset, size_t bits, size_t start, size_t count)
 	{
 		const unsigned short valuemask = (1 << bits) - 1;
@@ -110,6 +111,68 @@ namespace copypaste_helpers
 			auto newoctet = (unsigned short)(~invoct & valuemask);
 			rom[offset] = newoctet & 0xFF;
 			if (bits > 8) rom[offset + 1] = (newoctet >> 8) & 0xFF;
+		}
+	}
+
+	namespace {
+		// spell slots are 0 = cure thru 63 = nuke
+		// spell order is msb for white 1, lsb for black 8
+
+		void DoCopySwapSpellPermissions(bool swap, unsigned char& src, size_t srcmask,
+			unsigned char& dst, size_t dstmask)
+		{
+			// get masks for the bits we want to isolate
+			auto srcon = src & srcmask;
+			auto dston = dst & dstmask;
+
+			if (swap) {
+				// remove srcmask from src
+				// set srcmask on src if dston was set
+				src &= ~srcmask;
+				src |= dston ? srcmask : 0;
+			}
+
+			// remove dstmask from dst
+			// set dstmask on dst if srcon was set
+			dst &= ~dstmask;
+			dst |= srcon ? dstmask : 0;
+		}
+
+		size_t makeSpellMask(size_t index, size_t bits)
+		{
+			if (bits == 0 || (bits % 8))
+				throw std::domain_error("makeSpellMask param bits value (" + std::to_string(bits) + ") must be a nonzero multiple of 8");
+			return 1ll << ((bits - 1) - (index % bits));
+		}
+	}
+
+	//N.B. - this function currently only supports 8 bit values.
+	//		it's stubbed out for now, add suport for 16-bit when it's actually needed.
+	void CopySwapSpellPermissions(bool swap, std::vector<unsigned char>& rom, size_t srcindex, size_t destindex,
+									size_t baseoffset, size_t bits, int recwidth, size_t start, size_t count)
+	{
+		if (bits != 8)
+			throw std::domain_error(__FUNCTION__ " only supports 8-bit values, not " + std::to_string(bits) + ".");
+
+		// Remember, we're pasting/swapping the users of the spells, and each class keeps track
+		// of that in its magic permissions list.
+		// Weapons/armor stored the users as a field in the weapon/armor data itself, whereas
+		// each class stores a list of bits dictating the spells it can use.
+
+		// We need to swap the bits within the relevant byte/s for each class's magic perms list.
+		// The spell perms being swapped could be in the same byte.
+
+		size_t srcmask = makeSpellMask(srcindex, bits);    // mask for the source bit
+		size_t dstmask = makeSpellMask(destindex, bits);   // mask for the dest bit
+		auto srcbi = srcindex / bits;                      // index of the permission byte where srcmask is applied
+		auto dstbi = destindex / bits;                     // index the permission byte where dstmask is applied
+
+		for (size_t i = 0, step = start; i < count; ++i, step += recwidth) {
+			auto srcoff = baseoffset + srcbi + step;
+			auto dstoff = baseoffset + dstbi + step;
+			unsigned char& src = rom[srcoff];
+			unsigned char& dst = rom[dstoff];
+			DoCopySwapSpellPermissions(swap, src, srcmask, dst, dstmask);
 		}
 	}
 

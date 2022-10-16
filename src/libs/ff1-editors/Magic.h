@@ -47,9 +47,10 @@ protected:
 
 	void ChangeOutBattles(bool);
 
-	void CopySpell(int classindex);
+	//void HandleMagicListContextMenu(CWnd* pWnd, CPoint point);
+
 	void HandleMagicListContextMenu(CWnd* pWnd, CPoint point);
-	void PasteSpell(int srcindex, int destindex, int flags);
+	void DoCopySwapName(bool swap, int srcitem, int dstitem);
 
 	bool haltwrite;
 	std::vector<int> m_oobmagicoffsets;
@@ -65,6 +66,7 @@ protected:
 	int BATTLEMESSAGETEXT_START = -1;
 	int NOTHINGHAPPENS_OFFSET = -1;
 	unsigned int MAGICPERMISSIONS_OFFSET = (unsigned int)-1;
+	unsigned int SPELLLEVEL_COUNT = (unsigned int)-1;
 	unsigned int BATTLEMESSAGE_OFFSET = (unsigned int)-1;
 	int WEAPONMAGICGRAPHIC_OFFSET = -1;
 

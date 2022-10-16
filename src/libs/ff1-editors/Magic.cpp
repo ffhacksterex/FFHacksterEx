@@ -307,6 +307,7 @@ void CMagic::LoadOffsets()
 	BATTLEMESSAGETEXT_START = ReadHex(Project->ValuesPath, "BATTLEMESSAGETEXT_START");
 	NOTHINGHAPPENS_OFFSET = ReadHex(Project->ValuesPath, "NOTHINGHAPPENS_OFFSET");
 	MAGICPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "MAGICPERMISSIONS_OFFSET");
+	SPELLLEVEL_COUNT = ReadDec(Project->ValuesPath, "SPELLLEVEL_COUNT");
 	BATTLEMESSAGE_OFFSET = ReadHex(Project->ValuesPath, "BATTLEMESSAGE_OFFSET");
 	WEAPONMAGICGRAPHIC_OFFSET = ReadHex(Project->ValuesPath, "WEAPONMAGICGRAPHIC_OFFSET");
 
@@ -902,133 +903,63 @@ void CMagic::ChangeOutBattles(bool minmax)
 	Project->ROM[m_oobmagicranges[temp][minmax]] = (BYTE)value;
 }
 
-void CMagic::CopySpell(int classindex)
+void CMagic::HandleMagicListContextMenu(CWnd* pWnd, CPoint point)
 {
-	m_copiedspell = classindex;
-}
+	using namespace copypaste_helpers;
 
-void CMagic::HandleMagicListContextMenu(CWnd * pWnd, CPoint point)
-{
-	CPoint listpoint = point;
-	BOOL bOutside = FALSE;
-	m_magiclist.ScreenToClient(&listpoint);
-	auto selspell = m_magiclist.ItemFromPoint(listpoint, bOutside);
-	if (selspell == LB_ERR) return;
+	CMagicEditorSettings stgs(*Project);
+	auto optionnames = mfcstringvector{ "Name", "Accuracy", "Effectivity", "Element", "Target", "Effect",
+		"Graphic", "Palette", stgs.Byte7Name, "Price", "Spell Permissions" };
+	auto result = InvokeCopySwap(m_magiclist, point, m_copiedspell, optionnames);
+	switch (result.selcmd) {
+	case ID_FFH_COPY:
+		m_copiedspell = result.copyindex;
+		break;
+	case ID_FFH_PASTE:
+	case ID_FFH_SWAP:
+	{
+		bool swap = result.selcmd == ID_FFH_SWAP;
+		auto thisitem = result.thisindex;
+		auto& flags = result.flags;
+		boolvector magflags(MAGIC_BYTES);
+		std::copy_n(cbegin(flags) + 1, MAGIC_BYTES, begin(magflags));
 
-	auto BuildPasteText = [](CString op, CString srcspellname, CString destspellname) {
-		if (!op.IsEmpty()) op += " ";
-		CString cs;
-		cs.Format("Paste %sfrom %s to %s", (LPCSTR)op, (LPCSTR)srcspellname, (LPCSTR)destspellname);
-		return cs;
-	};
+		CopySwapBytes(swap, Project->ROM, m_copiedspell, thisitem, MAGIC_OFFSET, MAGIC_BYTES, 0, magflags);
+		if (flags[0]) DoCopySwapName(swap, m_copiedspell, thisitem);
+		if (flags[9]) CopySwapBuffer(swap, Project->ROM, m_copiedspell, thisitem, MAGICPRICE_OFFSET, 2, 0, 2);
+		if (flags[10]) CopySwapSpellPermissions(swap, Project->ROM, m_copiedspell, thisitem,
+			MAGICPERMISSIONS_OFFSET, 8, SPELLLEVEL_COUNT, 0, CLASS_COUNT);
 
-	CString strcopiedspell;
-	CString strselected;
-	m_magiclist.GetText(selspell, strselected);
-	m_magicmenu.AppendMenu(MF_STRING, MAGIC_COPY, "&Copy " + strselected);
-	if (m_copiedspell != -1 && m_copiedspell != (int)selspell) {
-		// if pasting, the clicked index is actually the destination
-		m_magiclist.GetText(m_copiedspell, strcopiedspell);
-		m_magicmenu.AppendMenu(MF_STRING, MAGIC_PASTE, "&" + BuildPasteText("", strcopiedspell, strselected) + "...");
-	}
-
-	auto selop = m_magicmenu.TrackPopupMenu(TPM_RETURNCMD | TPM_LEFTALIGN, point.x, point.y, pWnd);
-	if (selop != 0) {
-		if (selop == MAGIC_COPY) {
-			CopySpell(selspell);
-		}
-		if (selop == MAGIC_PASTE) {
-			ASSERT(m_copiedspell != -1);
-
-			CMagicEditorSettings stgs(*Project);
-			CString strdestclass;
-			m_magiclist.GetText(selspell, strdestclass);
-			auto targets = std::vector<PasteTarget>{
-				{ "Accuracy", true },
-				{ "Effectivity", true },
-				{ "Elements", true },
-				{ "Targeting", true },
-				{ "Effect", true },
-				{ "Weapon graphic", true },
-				{ "Weapon palette", true },
-				{ stgs.Byte7Name, true },
-				{ "Battle Message", true },
-				{ "Price", true },
-				{ "Permissions", true },
-			};
-			CDlgPasteTargets dlg(this);
-			dlg.Title = BuildPasteText("", strcopiedspell, strselected);
-			dlg.SetTargets(targets);
-			if (dlg.DoModal() == IDOK) {
-				unsigned long flags = 0;
-				for (auto st = 0u; st < targets.size(); ++st) {
-					auto val = (dlg.IsChecked(st) ? 1 : 0) << st;
-					flags |= val;
-				}
-				PasteSpell(m_copiedspell, selspell, flags);
-			}
-		}
-	}
-}
-
-void CMagic::PasteSpell(int srcindex, int destindex, int flags)
-{
-	int srcoffset = MAGIC_OFFSET + (MAGIC_BYTES * srcindex);
-	int dstoffset = MAGIC_OFFSET + (MAGIC_BYTES * destindex);
-	if (flags & PASTE_ACCURACY)
-		Project->ROM[dstoffset] = Project->ROM[srcoffset];
-	if (flags & PASTE_EFFECTIVITY)
-		Project->ROM[dstoffset+1] = Project->ROM[srcoffset+1];
-	if (flags & PASTE_ELEMENTS)
-		Project->ROM[dstoffset+2] = Project->ROM[srcoffset+2];
-	if (flags & PASTE_TARGETING)
-		Project->ROM[dstoffset+3] = Project->ROM[srcoffset+3];
-	if (flags & PASTE_EFFECT)
-		Project->ROM[dstoffset+4] = Project->ROM[srcoffset+4];
-	if (flags & PASTE_WEAPONGFX)
-		Project->ROM[dstoffset+5] = Project->ROM[srcoffset+5];
-	if (flags & PASTE_WEAPONPAL)
-		Project->ROM[dstoffset+6] = Project->ROM[srcoffset+6];
-	if (flags & PASTE_BYTE7)
-		Project->ROM[dstoffset+7] = Project->ROM[srcoffset+7];
-
-	if (flags & PASTE_PRICE) {
-		int srcprice = MAGICPRICE_OFFSET + (srcindex << 1);
-		int dstprice = MAGICPRICE_OFFSET + (destindex << 1);
-		Project->ROM[dstprice] = Project->ROM[srcprice];
-		Project->ROM[dstprice + 1] = Project->ROM[srcprice + 1];
-	}
-
-	if (flags & PASTE_BTLMSG) {
-		Project->ROM[BATTLEMESSAGE_OFFSET + destindex] = Project->ROM[BATTLEMESSAGE_OFFSET + srcindex];
-	}
-
-	if (flags & PASTE_PERMISSIONS) {
-		// Get the source and destination spell permisssions indices
-		int srcperms = (int)((srcindex >> 3) + MAGICPERMISSIONS_OFFSET);
-		int dstperms = (int)((destindex >> 3) + MAGICPERMISSIONS_OFFSET);
-
-		BYTE srcmask = 1 << (7 - (srcindex & 7));                         // used to isolate the bit we want to copy from the source byte
-		BYTE dstmask = 1 << (7 - (destindex & 7));                        // used to isolate the bit we want to overwrite in the dest byte
-		BYTE invmask = ~dstmask;                                          // used to isolate the bits we PRESERVE in the dest byte
-
-		for (int i = 0; i <= 0x58; i += 0x08) {
-			Project->ROM[dstperms + i] = (Project->ROM[dstperms + i] & invmask) | (((Project->ROM[srcperms + i] & srcmask) != 0) ? dstmask : 0);
-
-			//N.B. - the one-liner above copies the state of the source bit to the destination bit.
-			//       the only difference between this and the code in LoadRom/SaveRom is that this code isn't translating
-			//       the bits to check boxes. It does the following steps in one line:
-
-			//bool on = (Project->ROM[srcperms + i] & srcmask) != 0;           // is the source bit set? if so, this class can't cast the spell
-			//BYTE destmask = Project->ROM[dstperms + i] & invmask;            // these are the actual bits we will preserve
-			//BYTE destadd = on ? dstmask : 0;                              // if the source bit is set, turn on the dest bit
-			//BYTE newdestbyte = destmask | destadd;                        // now combine the preserved bits with the destadd and save them to ROM
-			//Project->ROM[dstperms + i] = newdestbyte;                        // save as the new dest byte in ROM
-		}
-	}
-
-	if (destindex == cur) {
+		m_magiclist.SetCurSel(cur = thisitem);
 		LoadValues();
+
+		//TODO - tie this to a dismissable option, it'll get annoying pretty quickly.
+		// If we here, no exception was thrown, so alert the user to the OOB spell limitation.
+		if (flags[10])
+			AfxMessageBox("Currently, out-of-battle spells are neither pasted not swapped.\nThose must be handled manually.");
+		break;
+	}
+	default:
+		if (!result.message.IsEmpty())
+			throw std::runtime_error((LPCSTR)result.message);
+		break;
+	}
+}
+
+void CMagic::DoCopySwapName(bool swap, int srcitem, int dstitem)
+{
+	try {
+		Ingametext::PasteSwapStringBytes(swap, *Project, STDMAGIC, srcitem, dstitem);
+
+		CString srcname = LoadMagicEntry(*Project, srcitem + 1).name.Trim();
+		CString dstname = LoadMagicEntry(*Project, dstitem + 1).name.Trim();
+
+		// Now, reload the class names in the list box
+		Ui::ReplaceString(m_magiclist, srcitem, srcname);
+		Ui::ReplaceString(m_magiclist, dstitem, dstname);
+	}
+	catch (std::exception& ex) {
+		throw std::runtime_error("Copy/Swap operation failed: " + std::string(ex.what()));
 	}
 }
 
@@ -1062,9 +993,6 @@ void CMagic::OnBnClickedClassesSettings()
 
 void CMagic::OnContextMenu(CWnd* pWnd, CPoint point)
 {
-	m_magicmenu.DestroyMenu();
-	if (!m_magicmenu.CreatePopupMenu()) return;
-
 	if (pWnd == &m_magiclist) {
 		RedrawScope redraw(this);
 		HandleMagicListContextMenu(pWnd, point);
