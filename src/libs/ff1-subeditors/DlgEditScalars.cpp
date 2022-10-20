@@ -54,7 +54,8 @@ BEGIN_MESSAGE_MAP(CDlgEditScalars, CFFBaseDlg)
 	ON_COMMAND(ID_ACCELERATOR_F2, &CDlgEditScalars::OnAcceleratorF2)
 	ON_BN_CLICKED(IDC_SCALARS_BUTTON_ADD, &CDlgEditScalars::OnClickAdd)
 	ON_BN_CLICKED(IDC_SCALARS_BUTTON_DEL, &CDlgEditScalars::OnClickDelete)
-	ON_BN_CLICKED(IDC_SCALARS_BUTTON_REVERT, &CDlgEditScalars::OnClickRevert)
+	// see ff1-coredefs/FFHacksterProject.cpp RevertValues definition for more info
+	//ON_BN_CLICKED(IDC_SCALARS_BUTTON_REVERT, &CDlgEditScalars::OnClickRevert)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SCALARS_LISTELEMENTS, &CDlgEditScalars::OnCustomdrawScalarsListelements)
 	ON_BN_CLICKED(IDC_CHECK_SHOWHIDDEN, &CDlgEditScalars::OnBnClickedCheckShowhidden)
 END_MESSAGE_MAP()
@@ -810,26 +811,28 @@ void CDlgEditScalars::OnClickDelete()
 	}
 }
 
-void CDlgEditScalars::OnClickRevert()
-{
-	auto modalresult = AfxMessageBox("Do you really want to revert all values to their initial states?\n"
-		"You will lose all customizations you've made to them.", MB_OKCANCEL | MB_ICONQUESTION);
-	if (modalresult == IDOK) {
-		try {
-			auto result = m_proj->RevertValues();
-			if (!result) AfxMessageBox("The attempt to revert the project values failed:\n" + result.value, MB_ICONERROR);
-			else {
-				m_curindex = -1;
-				m_listgroups.SetCurSel(m_curindex);
-				Reload();
-			}
-		}
-		catch (std::exception& ex) {
-			AfxMessageBox(ex.what());
-			EndDialog(IDABORT);
-		}
-	}
-}
+// see ff1-coredefs/FFHacksterProject.cpp RevertValues definition for more info
+
+//void CDlgEditScalars::OnClickRevert()
+//{
+//	auto modalresult = AfxMessageBox("Do you really want to revert all values to their initial states?\n"
+//		"You will lose all customizations you've made to them.", MB_OKCANCEL | MB_ICONQUESTION);
+//	if (modalresult == IDOK) {
+//		try {
+//			auto result = m_proj->RevertValues();
+//			if (!result) AfxMessageBox("The attempt to revert the project values failed:\n" + result.value, MB_ICONERROR);
+//			else {
+//				m_curindex = -1;
+//				m_listgroups.SetCurSel(m_curindex);
+//				Reload();
+//			}
+//		}
+//		catch (std::exception& ex) {
+//			AfxMessageBox(ex.what());
+//			EndDialog(IDABORT);
+//		}
+//	}
+//}
 
 void CDlgEditScalars::OnCustomdrawScalarsListelements(NMHDR* pNMHDR, LRESULT* pResult)
 {

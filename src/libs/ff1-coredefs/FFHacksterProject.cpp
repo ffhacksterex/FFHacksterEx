@@ -596,7 +596,8 @@ pair_result<CString> CFFHacksterProject::Revert()
 	}
 
 	// Now revert the values file as well
-	return RevertValues();
+	//return RevertValues(); // see ff1-coredefs/FFHacksterProject.cpp RevertValues definition for more info
+	return { true, "" };
 }
 
 pair_result<CString> CFFHacksterProject::Compile()
@@ -666,32 +667,36 @@ bool CFFHacksterProject::Publish()
 	return Paths::FileCopy(WorkRomPath, PublishRomPath);
 }
 
-pair_result<CString> CFFHacksterProject::RevertValues()
-{
-	//N.B. - ROM and ASM values files are unified into one file (previously were romvals and asmvals).
-	auto srcfile = GetIniFilePath(FFHFILE_RevertValuesPath);
-	if (!Paths::FileExists(srcfile))
-		srcfile = Paths::Combine({ Paths::GetProgramFolder(), "FFHacksterEx.values.template" });
-	if (!Paths::FileExists(srcfile))
-		return pair_result<CString>(false, "Unable to locate a values reversion or template source file.");
+//DEVNOTE - Removed RevertValues() for now, will re-evaluate later.
+// Since upgrades weren't being tracked, reversion to a clean copy wipes out all new content.
+// For now, we'll limit reversion to a clean copy of the ROM/ASM used to create the project.
 
-	auto destfile = GetIniFilePath(FFHFILE_ValuesPath);
-	if (!Paths::FileCopy(srcfile, destfile))
-		return pair_result<CString>(false, "Unable to revert the values because the file copy failed.\nNo changes were made.");
-	Io::MakeWritable(destfile);
-
-	// If a temp file is being used, update that as well.
-	const auto & tempfile = this->ValuesPath;
-	if (tempfile != destfile) {
-		if (!Paths::FileCopy(srcfile, tempfile))
-			THROWEXCEPTION(std::runtime_error,
-				"The original values file reverted,\nbut the working copy failed to revert due to an internal error.\n"
-				"Restart the values editor to load the reverted values.");
-		Io::MakeWritable(tempfile);
-	}
-
-	return pair_result<CString>(true, "Revert succeeded.");
-}
+//pair_result<CString> CFFHacksterProject::RevertValues()
+//{
+//	//N.B. - ROM and ASM values files are unified into one file (previously were romvals and asmvals).
+//	auto srcfile = GetIniFilePath(FFHFILE_RevertValuesPath);
+//	if (!Paths::FileExists(srcfile))
+//		srcfile = Paths::Combine({ Paths::GetProgramFolder(), "FFHacksterEx.values.template" });
+//	if (!Paths::FileExists(srcfile))
+//		return pair_result<CString>(false, "Unable to locate a values reversion or template source file.");
+//
+//	auto destfile = GetIniFilePath(FFHFILE_ValuesPath);
+//	if (!Paths::FileCopy(srcfile, destfile))
+//		return pair_result<CString>(false, "Unable to revert the values because the file copy failed.\nNo changes were made.");
+//	Io::MakeWritable(destfile);
+//
+//	// If a temp file is being used, update that as well.
+//	const auto & tempfile = this->ValuesPath;
+//	if (tempfile != destfile) {
+//		if (!Paths::FileCopy(srcfile, tempfile))
+//			THROWEXCEPTION(std::runtime_error,
+//				"The original values file reverted,\nbut the working copy failed to revert due to an internal error.\n"
+//				"Restart the values editor to load the reverted values.");
+//		Io::MakeWritable(tempfile);
+//	}
+//
+//	return pair_result<CString>(true, "Revert succeeded.");
+//}
 
 bool CFFHacksterProject::LoadVariablesAndConstants(IProgress * progress)
 {
