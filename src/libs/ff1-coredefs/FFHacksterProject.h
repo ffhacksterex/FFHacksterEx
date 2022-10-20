@@ -58,7 +58,7 @@ public:
 	pair_result<CString> Revert();
 	pair_result<CString> Compile();
 	bool Publish();
-	pair_result<CString> RevertValues();
+	//pair_result<CString> RevertValues(); //TODO - REMOVED FOR NOW, See CPP DEFINITION for more info
 	bool LoadVariablesAndConstants(IProgress * progress = nullptr);
 	bool UpdateVarsAndConstants();
 

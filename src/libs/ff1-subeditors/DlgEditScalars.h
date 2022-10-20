@@ -106,7 +106,7 @@ protected:
 	afx_msg void OnAcceleratorF2();
 	afx_msg void OnClickAdd();
 	afx_msg void OnClickDelete();
-	afx_msg void OnClickRevert();
+	//afx_msg void OnClickRevert(); // see ff1-coredefs/FFHacksterProject.cpp RevertValues definition for more info
 	afx_msg void OnCustomdrawScalarsListelements(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnBnClickedCheckShowhidden();
 };
