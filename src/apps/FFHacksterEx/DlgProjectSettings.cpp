@@ -117,11 +117,13 @@ BOOL CDlgProjectSettings::OnInitDialog()
 	CString projtype(m_proj->ProjectTypeName);
 	projtype.MakeUpper();
 	projtype += " Project";
+	CString version;
+	version.Format(" (file version %d)", m_proj->Version);
 
 	//N.B. since project is being used live, a call to m_proj->LoadProjectSettings() doesn't happen here.
 	//		If that starts causing problems, add it, but be sure to understand what that function does first.
 
-	m_statProjtype.SetWindowText(projtype);
+	m_statProjtype.SetWindowText(projtype + version);
 	m_editPublishPath.SetWindowText(m_proj->PublishRomPath);
 	m_addlmodfolderedit.SetWindowText(m_proj->AdditionalModulesFolder);
 	if (m_proj->IsAsm()) {

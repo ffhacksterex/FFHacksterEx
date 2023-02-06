@@ -193,7 +193,7 @@ IDD_PROJECTSETTINGS DIALOGEX 0, 0, 402, 271
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_BORDER
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT           "Project Type",IDC_PROJSET_STATIC_PROJTYPE,7,33,85,18,0,WS_EX_TRANSPARENT
+    LTEXT           "Project Type",IDC_PROJSET_STATIC_PROJTYPE,7,33,388,18,0,WS_EX_TRANSPARENT
     LTEXT           "Select a new reversion (Clean Copy) file\nThe selected file will be imported into the project and overwrite the current reversion file.\nThe reversion file is used to revert the project with the main window's Revert command.",IDC_STATIC1,7,55,356,25,0,WS_EX_TRANSPARENT
     CONTROL         "Select",IDC_PROJSET_BUTTON_REVERTPATH,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,82,40,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
     CONTROL         "Clear",IDC_PROJSET_BUTTON_REVERTCLEAR,"Button",BS_OWNERDRAW | BS_CENTER | BS_VCENTER | BS_FLAT | WS_TABSTOP,7,97,40,14,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
@@ -325,8 +325,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION FFHEX_FILE_VERSION_NUMBER
- PRODUCTVERSION FFHEX_PROD_VERSION_NUMBER
+ FILEVERSION 0,9,8,1
+ PRODUCTVERSION 0,9,8,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -341,14 +341,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", DD_COMPANY_TEXT
+            VALUE "CompanyName", "DigitalDreamers.org - Esselle Jaye"
             VALUE "FileDescription", "FFHacksterEx - an extension of FFHackster for experimental ROM hacking"
-            VALUE "FileVersion", FFHEX_FILE_VERSION_TEXT
+            VALUE "FileVersion", "0,9,8,1"
             VALUE "InternalName", "FFHacksterEx"
-            VALUE "LegalCopyright", FFHEX_COPYRIGHT_TEXT
+            VALUE "LegalCopyright", "Copyright 2022 Esselle Jaye - MIT/Expat license"
             VALUE "OriginalFilename", "FFHacksterEx.EXE"
             VALUE "ProductName", "FFHacksterEx"
-            VALUE "ProductVersion", FFHEX_PROD_VERSION_TEXT
+            VALUE "ProductVersion", "0,9,8,1"
         END
     END
     BLOCK "VarFileInfo"
@@ -625,7 +625,7 @@ BEGIN
     IDS_PROGRAMCAPTION      "FFHacksterEX"
     IDS_PROGRAMSUBTITLE     "An experimental extension to FFHackster"
     IDS_ASMDLL_DEFAULT      "ff1asm-disch.dll"
-    IDS_RELEASETEXT         FFHEX_RELEASE_TEXT
+    IDS_RELEASETEXT         "October 2022"
     IDD_DLG_NEWROM          "IDD_DLG_NEWROM"
 END
 
