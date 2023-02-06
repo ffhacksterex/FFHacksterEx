@@ -43,9 +43,9 @@ protected:
 	CClearButton m_exebrowsebutton;
 	CClearButton m_clearmrubutton;
 	CClearButton m_clearinvalidmrubutton;
-	CClearButton m_enforceasmcompatcheck;
-	CClearButton m_warnasmcompatcheck;
-	CClearButton m_usefolderprefscheck;
+	CClearCheckBox m_enforceasmcompatcheck;
+	CClearCheckBox m_warnasmcompatcheck;
+	CClearCheckBox m_usefolderprefscheck;
 	CClearStatic m_exestatic;
 	CClearEdit m_editRunExe;
 	CClearEdit m_cmdparamsedit;
