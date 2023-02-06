@@ -679,7 +679,7 @@ BOOL CFFHacksterDlg::OnInitDialog()
 
 		auto loadresult = LoadProject(m_proj, ProjectFile, &progress);
 		if (!loadresult) {
-			AfxMessageBox(loadresult.value, MB_ICONERROR);
+			if (!loadresult.value.IsEmpty()) AfxMessageBox(loadresult.value, MB_ICONERROR);
 			EndDialog(IDABORT);
 			return FALSE;
 		}

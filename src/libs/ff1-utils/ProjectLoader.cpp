@@ -20,6 +20,7 @@
 #include <type_support.h>
 #include <upgrade_functions.h>
 #include "ui_prompts.h"
+#include "DlgPromptProjectBackup.h"
 #include "FilePathRemover.h"
 #include <fstream>
 #include <filesystem>
@@ -33,7 +34,7 @@ using namespace Types;
 using namespace Ui;
 
 
-ProjectLoader::ProjectLoader(CFFHacksterProject & proj)
+ProjectLoader::ProjectLoader(CFFHacksterProject& proj)
 	: Project(proj)
 {
 }
@@ -42,7 +43,7 @@ ProjectLoader::~ProjectLoader()
 {
 }
 
-pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress * progress)
+pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress* progress)
 {
 	CWaitCursor wait;
 	// Perform project upgrades if needed.
@@ -50,30 +51,42 @@ pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress * progre
 		if (progress) progress->AddSteps(1);
 		if (progress) progress->StepAndProgressText("Loading Project...");
 		if (Upgrades::NeedsConversion(projectpath)) {
-			// Ask to upgrade
-			auto answer = AfxMessageBox("Are you sure you want to upgrade this project?\nBe sure to back it up before attemping to upgrade.", MB_OKCANCEL | MB_DEFBUTTON2);
-			if (answer != IDOK) return{ false, "You declined to upgrade at this time." };
+			if (this->Project.AppSettings == nullptr)
+				return{ false, "Can't upgrade without valid app settings specified." };
 
-			if (progress) progress->SetProgressText("Upgrading Project...");
+			// Prompt to either skip making a backup or pick a backup folder.
+			// CDlgPromptProjectBackup auto-generates the filename.
+			auto startdir = FOLDERPREF(Project.AppSettings, PrefArchiveFolder);
+			if (!Paths::DirExists(startdir)) startdir = Paths::GetParentDirectory(projectpath);
 
-			// Ask for a folder to create a backup
-			auto zipbackfolder = Ui::PromptForFolder(nullptr, "Select a folder to hold the project backup file",
-				Paths::GetParentDirectory(projectpath));
-			if (!zipbackfolder) return{ false, "You declined to upgrade at this time.\nA backup must be created before upgrading." };
+			CDlgPromptProjectBackup dlgup(AfxGetMainWnd());
+			dlgup.AppStgs = Project.AppSettings;
+			dlgup.ProjectFilePath = projectpath;
+			dlgup.Filter = "Project archives (*.ff1zip)|*.ff1zip||";
+			dlgup.StartInFolder = startdir;
 
-			// Create a zipped backup file
-			//auto dt = COleDateTime::GetCurrentTime().Format("%Y-%m-%d@%H-%M-%S.zip");
-			auto dt = ".backup.zip";
-			CString backstem;
-			backstem.Format("%s.v%d.%s", Paths::GetFileStem(projectpath),
-				CFFHacksterProject::ReadProjectVersion(projectpath), dt);
-			auto zipbackfile = Paths::Combine({ zipbackfolder, backstem });
-			if (!Io::Zip(zipbackfile, Paths::GetDirectoryPath(projectpath), true))
-				return { false, "Failed to create a backup at\n" + zipbackfile + "." };
+			auto canup = dlgup.DoModal();
+			if (canup == IDCANCEL) return { false, "" };
+			if (canup != IDOK) return { false, "Upgrade failed due to an unknown UI error." };
 
-			// Process the upgrade.
-			// If the upgrade passes, fails, then we don't need the backup since the project didn't change.
-			Io::FilePathRemover zipcleanup(zipbackfile);
+			if (Paths::FileExists(dlgup.BackupFilePath)) {
+				canup = AfxMessageBox("OK to backup to existing file " + dlgup.BackupFilePath + "?",
+					MB_YESNO | MB_DEFBUTTON1 | MB_ICONQUESTION);
+				if (canup != IDYES)
+					return { false, "" };
+			}
+
+			if (!dlgup.BackupFilePath.IsEmpty()) {
+				CString projfolder = Paths::GetDirectoryPath(projectpath);
+				if (!Io::Zip(dlgup.BackupFilePath, projfolder, true)) {
+					return{ false, "Upgrade failure: couldn't make the requested backup." };
+				}
+			}
+
+			// If the upgrade passes, then we don't need the backup anymore.
+			// If it wasn't specified, the blank string is ignored.
+			Io::FilePathRemover zipcleanup(dlgup.BackupFilePath);
+
 			auto result = Upgrades::UpgradeProject(projectpath);
 			if (!result)
 				return{ false, result.value };
@@ -109,14 +122,12 @@ pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress * progre
 				return AfxMessageBox("The selected file is not recognized as an FF1 assembly DLL."), false;
 
 			auto warnasm = Project.ShouldWarnAssemblyDllMismatch();
-			//if (Project.AppSettings->EnforceAssemblyDllCompatibility || Project.AppSettings->WarnAssemblyDllCompatibility)
 			if (Project.AppSettings->EnforceAssemblyDllCompatibility || warnasm)
 			{
 				auto asmresult = asmdll_impl::IsDirDllCompatible(Project.GetContentFolder(), asmdllpath);
 				if (!asmresult) {
 					if (Project.AppSettings->EnforceAssemblyDllCompatibility)
 						return AfxMessageBox("Can't use the selected assembly:\n" + asmresult.value + "."), false;
-					//else if (Project.AppSettings->WarnAssemblyDllCompatibility)
 					else if (warnasm)
 						AfxMessageBox("Warning:\n" + asmresult.value + "\n\n"
 							"You can suppress this warning either app-wide (App Settings)\nor per-project (Project Settings).");
@@ -140,7 +151,6 @@ pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress * progre
 				asmdllpath = selresult.value;
 			else
 				asmdllpath = "";
-				//return { false, "Can't load an assembly project without an assembly DLL" };
 			asmchanged = true;
 		}
 
@@ -174,11 +184,6 @@ pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress * progre
 		bool loadedvars = Project.LoadVariablesAndConstants(progress);
 		if (!loadedvars) msg = "Failed to load variables and constants.";
 	}
-
-	//TODO - moved this call before assembly-specific loading.
-	//if (msg.IsEmpty()) {
-	//	Project.LoadEditorSettings();
-	//}
 
 	if (msg.IsEmpty())
 		msg = Project.LoadCartData();
