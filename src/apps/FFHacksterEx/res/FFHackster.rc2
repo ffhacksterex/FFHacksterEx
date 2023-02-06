@@ -16,4 +16,41 @@
 #include "ff1-subeditors.rc"
 #include "ff1-editors.rc"
 
+
 /////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION FFHEX_FILE_VERSION_NUMBER
+ PRODUCTVERSION FFHEX_PROD_VERSION_NUMBER
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", DD_COMPANY_TEXT
+            VALUE "FileDescription", "FFHacksterEx - an extension of FFHackster for experimental ROM hacking"
+            VALUE "FileVersion", FFHEX_FILE_VERSION_TEXT
+            VALUE "InternalName", "FFHacksterEx"
+            VALUE "LegalCopyright", FFHEX_COPYRIGHT_TEXT
+            VALUE "OriginalFilename", "FFHacksterEx.EXE"
+            VALUE "ProductName", "FFHacksterEx"
+            VALUE "ProductVersion", FFHEX_PROD_VERSION_TEXT
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
