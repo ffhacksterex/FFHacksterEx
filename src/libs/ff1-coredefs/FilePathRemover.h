@@ -3,7 +3,7 @@
 namespace Io {
 
 	//REFACTOR - implement copy ctor/oper= and refcounting to allow these to
-	//		be passed to and from functions and to exist in collections.
+	//		be passed returned from factory functions and to exist in collections.
 	//		I see use cases where these can be passed along with data and
 	//		remove the related files once the lifetime expires.
 	//		That would also allow factories to create these, and if we

@@ -189,6 +189,9 @@
     <ClInclude Include="ClearRadio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DlgPromptProjectBackup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -345,6 +348,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ClearRadio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgPromptProjectBackup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -178,6 +178,7 @@
     <ClInclude Include="BrowseForFolderDialog.h" />
     <ClInclude Include="ClearCheckBox.h" />
     <ClInclude Include="ClearRadio.h" />
+    <ClInclude Include="DlgPromptProjectBackup.h" />
     <ClInclude Include="OffscreenDC.h" />
     <ClInclude Include="SimpleImageButton.h" />
     <ClInclude Include="DlgPickDestinationFile.h" />
@@ -237,6 +238,7 @@
     <ClCompile Include="BrowseForFolderDialog.cpp" />
     <ClCompile Include="ClearCheckBox.cpp" />
     <ClCompile Include="ClearRadio.cpp" />
+    <ClCompile Include="DlgPromptProjectBackup.cpp" />
     <ClCompile Include="OffscreenDC.cpp" />
     <ClCompile Include="SimpleImageButton.cpp" />
     <ClCompile Include="DlgPickDestinationFile.cpp" />
