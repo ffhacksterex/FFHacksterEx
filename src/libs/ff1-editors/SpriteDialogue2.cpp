@@ -272,7 +272,7 @@ void CSpriteDialogue2::LoadAsmTalkData(GameSerializer & ser)
 		}
 	}
 
-	// Build the known handler list from the INI, since it's how the game
+	// Build the known handler list from the INI, since it's how the editor
 	// knows what to read and where to read it in both ROM and ASM.
 	EnaureSynchedHandlerTables();
 	EnsureValidSpriteHandlers();
@@ -810,8 +810,7 @@ std::pair<CString, int> CSpriteDialogue2::GetElementValue(int elementindex, int 
 		bool hardcoded = marker.Find("hc") == 0; // starts with "hc" if hardcoded
 		if (hardcoded) {
 			// If hardcoded AND the itemref is below the items address, then it's really a map sprite.
-			// Map sprites can't be parameterized: params are 1 byte each, and the single-byte range would overlap with that of param items.
-			int itemref = hardcoded ? Read16(bankaddr + hex(inputvalue)) : ReadParam(dec(inputvalue));
+			int itemref = Read16(bankaddr + hex(inputvalue));
 			if (itemref < m_itemsaddr)
 				return DoLoadEntry16(LoadMapSpriteEntry, marker, inputvalue);
 		}

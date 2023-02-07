@@ -75,9 +75,7 @@ std::string dialogue_file::read_marker(std::string tag)
 
 int dialogue_file::read_elem_index(std::string tag)
 {
-	//TODO - use the paramindex member instead
 	auto e = dialogue_helpers::ReadElement(m_filepath, m_routine.c_str(), tag.c_str());
-	//return atol(e.value);
 	return e.paramindex;
 }
 
@@ -252,7 +250,7 @@ namespace disch_functions
 			if (is_cond_match(line, truepart)) fanfare = ASM_TRUE;
 			if (is_cond_match(line, falsepart)) fanfare = ASM_FALSE;
 
-			int bits = dlgfile.read_bits(marker); //dlgfile.read_bits(tag); //get_element_bits(marker);
+			int bits = dlgfile.read_bits(marker);
 			elements.push_back({ marker, tag, std::to_string(fanfare), bits, elemcomment });
 			return 1;
 		}
@@ -264,7 +262,7 @@ namespace disch_functions
 				if (match.size() != 2)
 					THROWEXCEPTION(std::runtime_error, "didn't find marker name on line: " + fullline);
 
-				int bits = dlgfile.read_bits(marker); //dlgfile.read_bits(tag); //get_element_bits(marker);
+				int bits = dlgfile.read_bits(marker);
 				elements.push_back({ marker, tag, match[1].str(), bits, elemcomment }); // could be an int value or a constant
 				return 1;
 			}
@@ -273,7 +271,7 @@ namespace disch_functions
 				if (paramindex == -1)
 					THROWEXCEPTION(std::runtime_error, "unable to get param index from tag " + tag + " on line: " + fullline);
 
-				int bits = dlgfile.read_bits(marker); //int bits = dlgfile.read_bits(tag);
+				int bits = dlgfile.read_bits(marker);
 				elements.push_back({ marker, tag, std::to_string(paramindex), bits, elemcomment }); // could be an int value or a constant
 				return 1;
 			}

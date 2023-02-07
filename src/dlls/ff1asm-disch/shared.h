@@ -8,7 +8,8 @@ namespace disch_functions
 	namespace shared
 	{
 		const std::regex rx_opval_hardcode{ "\\s*\\:?\\s*" RX_OPCODE "\\s+\\#?(" RX_VAL0RVAR ")\\s*" };
-		const std::regex rx_opval_parameter{ "\\s*\\:?\\s*" RX_OPCODE "\\s+" RX_VAR "\\s*\\+?\\s*([0-3]?)\\s*" };
+		//TODO: unused, remove?
+		//const std::regex rx_opval_parameter{ "\\s*\\:?\\s*" RX_OPCODE "\\s+" RX_VAR "\\s*\\+?\\s*([0-3]?)\\s*" };
 
 		bool IsUncommentedDataRow(std::string line, std::string prefix);
 

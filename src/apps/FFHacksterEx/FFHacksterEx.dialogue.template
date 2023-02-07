@@ -1,85 +1,134 @@
 ;; Dialogue Handler Notes:
+;;
+;; **** FOR SAFETY, MAKE A BACKUP BEFORE MODIFYING THIS FILE ****
+;;
+;; Take great care when modifying this file, as it's easy to corrupt
+;; the ROM by using bad values here.
+;; Take special care with the hcfanfare value type;
+;; see the notes for it in the VALUETYPES section.
+;;
 ;; INI file writes do not preserve comments, so do not put comments
 ;; on the same line as content, they won't be kept in sync with the data.
 ;;
-;; Since INI section names will be retrieved for writing,
-;; they don't have to be generic or numbered, so use the key
-;; names as the section names.
-;;
-;; all element offsets are relative to the bankaddr of the
-;; routine that owns them, ***NOT*** the base bankaddr/ptradd!
+;; We use the routine names from the assembly as the section names.
+;; For ASM projects, the handler names in the source must match those in this file.
 
-;; Take special care with hcfanfare, see the notes for it in the
-;; VALUETYPES section.
-
-;; Format:
+;; === FORMAT ===
 ;; [Key]
-;; desc = Description shown in the sprite editor's routine dropdown combo box
-;; bankaddr = address of the actual routine in ROM
-;; elemN = valuetype | offset from bankaddr | label to display in sprite editor list
+;; desc=<description>
+;; bankaddr=<bankaddress>
+;; elemN=<valuetype>|<bankaddr>|<paramindex>|<comment>
 
-;;    offset from bankaddr specifies how many bytes into the routine the
-;;      value in question is found. add this amount to bankaddr to
-;;      to get the position in bank - address form (e.g.$9296).
-;;      to get the absolute ROM address, add the PTRADD value for the bank.
-;;     in this case, it's bank E, so add 0x30010 TO 0x9296.
+;; Example:
+;;   [Example_Routine]
+;;   desc=Example
+;;   bankaddr=0x9297
+;;   elem0=hcobj|0x1|-1|hardcoded object ID to check
+;;   elem1=text|0x8|1|index of param holding text ID to display
 
-;;    valuetypes dictate how to interpret 'offset from bankaddr'.
-;;        for parameter data, these are indexes into the 4-byte param data stored
-;;          for the sprite in question.
-;;          the offset values are in the range 0-3, and are used to index
-;;          into the param data for the object (i.e. params[offset])
+;; Fields:
+;;   description:
+;;     A description used in the UI.
+;;   bankaddress:
+;;     The BANK address (not ROM offset) of the routine
+;;   elemN:
+;;     A list of one or more entries, one line each.
+;;     Each entry defines a location in the routine whose value can be edited,
+;;     as well as a description for the UI to provide additional context.
+;;     Composed of the following fields:
+;;       valuetype:
+;;         Dictates how the other fields in the element are interpreted.
+;;         See below for more details.
+;;       routineoffset:
+;;         Applies to hardcoded elements.
+;;         This is the offset from start of the routine to the byte to edit.
+;;       paramindex:
+;;         Applies to parametrized (non-hardcoded) elements.
+;;         Index of the sprite/object param to edit.
+;;       comment:
+;;         A string to provide some additional notes or context to the user.
+
+;; Value Types:
+;;    The element's valuetype dictate how to interpret routineoffset and paramindex.
+;;    For hardcoded types:
+;;      routineoffset is the offset from the start of the routine to the byte to edit.
+;;      paramindex is ignored (and by convention is set to -1).
+;;    For parameterized types:
+;;      paramindex is the index of the object/sprite param to edit.
+;;      routineoffset identifies the byte that specifies in ROM the param to use,
+;;      but this is informational only; it's in a form that can't be directly used,
+;;      hence the presence of the paramindex field in this element.
+;;
+;; Parameters:
+;;    Each sprite/object has a 4-byte buffer used to hold parameter data.
+;;    For parameterized values, the paramindex specifies slot in this buffer
+;;    will be edited by the element.
+;;    Indexes range from 0 - 3.
+;;    Note that paramindex is used for both ROM and ASM. The disassembly files
+;;    provided by Disch uses the convention tmp+N, where N is the param index.
+;;    However, other disassemblies (or an edit of Disch's) might not use that
+;;    convention, so the paramindex is used to ensure a known value is always available.
+;;    NOTE:
+;;    The above means that the assembly file containing the talk routines is
+;;    tethered to this file, and both must be kept in sync to keep the dialogue
+;;    editor functional for ASM projects.
+
+;; Value Type definitions:
+;;    Parameterized types:
 ;;        ________________________________________________
 ;;        TYPE           MEANING OF BYTE AT PARAMS[OFFSET]
 ;;
-;;        text:          index of dialog text (pointer table)
+;;        text:          index of dialog text pointer table entry
 ;;        spr:           index of a sprite
-;;        obj:           same as spr (visibility change)
-;;        event:         same as spr (event flag check)
+;;        obj:           same as spr - semantically this is often a visibility change
+;;        event:         same as spr - semantically this is often an event flag check
 ;;        battle:        index of a battle
-;;        item:          index of item, added to(unsram + $20)
+;;        item:          index of item, add to the base address [unsram + $20] to get the item
 ;;        weapon:        index of a weapon
 ;;        armor:         index of an armor
 
-;;        these with hc on the front are hardcoded into the routine.
-;;          that makes these routines difficult or impossible to reuse.
+;;    Hardcoded types:
+;;        These with "hc"" on the front are hardcoded into routines.
+;;        That makes these routines difficult or impossible to reuse.
 ;;        ________________________________________________
 ;;        TYPE           MEANING OF BYTE(S) AT OFFSET
 ;;
-;;        hctext:        1-byte index of dialog text (pointer table)
+;;        hctext:        1-byte index of dialog text pointer table entry
 ;;        hcspr:         1-byte sprite index
-;;        hcobj:         1-byte sprite index (visibility change)
-;;        hcevent:       1-byte sprite index (event flag check)
+;;        hcobj:         1-byte sprite index - semantically a visibility change
+;;        hcevent:       1-byte sprite index - semantically an event flag check
 ;;        hcbattle:      1-byte battle index
 ;;        hcweapon:      1-byte weapon index
 ;;        hcarmor:       1-byte armor index (NOT CURRENTLY USED)
-;;        hcnntele:      1-byte, index of NN teleport
-;;        hcnotele:      1-byte, index of NO teleport
+;;        hcnntele:      1-byte, index of NN teleport (between standard/indoor maps)
+;;        hcnotele:      1-byte, index of NO teleport (from indoor to outside/world map)
 ;;        hcuint8:       1-byte decimal value
 ;;        hcbyte:        1-byte hex value
-;;        hcitem:        2-byte address of item (includes unsram + $20)
+;;        hcitem:        2-byte ADDRESS of item (e.g. $6032, which is unsram + $32)
 ;;        hcmap:         2-byte overworld map object (canal, bridge, etc)
 ;;        hcitemorcanoe: 2-byte item or canoe
 ;;        hcitemormap:   2-byte item or OW map object
-;;        hcfanfare:     2-byte value to increment the 'snd' register or ignore it:
-;;                           E6 7D (play)
-;;                           EA EA (don't)
-;;                           ***NOTE***
-;;                           the offset hare is to the INC instruction,
-;;                           not the opcode after it!
-;;							 e.g.
-;;                               hcfanfare|0x17|-1|play fanfare (bridge now built)
-;;                           means that offset 0x17 refers to the INC instruction,
-;;                           since we're writing both the INC instruction (E6)
-;;                           and the opcode (7D, the address of 'snd').
-;;                           Turning it off rite EA (no op) to both bytes.
-;;                           Don't forget this, or you'll corrupt the ROM!!!!!
-
+;;        hcfanfare:     2-byte value to increment the 'snd' register or ignore it
+;;                           E6 7D (increment snd register)
+;;                           EA EA (don't increment)
+;;                       NOTE:
+;;                         hcfanfare has a key difference regarding the routineoffset.
+;;                         The offset here is to the instruction,
+;;                         ***NOT*** the value after it!
+;;
+;;                          e.g. consider this element:
+;;                            hcfanfare|0x17|-1|play fanfare (bridge now built)
+;;
+;;                          It means that offset 0x17 refers to the INC instruction (E6),
+;;                          not the value after it (7D) like other value types.
+;;                          We write both the INC instruction (E6)
+;;                          and the opcode (7D, the address of 'snd').
+;;                          Writing EA (no-op) to both bytes prevents the increment from happening.
+;;    >>>>>>>>>>>>>>>>> *** Don't forget this, or you'll corrupt the ROM!!!!! ***
 
 
 ;; These are the value types used by the dialogue handler definitions below.
-;; The parser has to ignore this section.
-;; I'd rather make this an exclusion and keep these in the same file as the handlers.
+;; The parser currently ignores this section, as it is informational.
 ;; The format is:
 ;;   key=bits|description
 ;; e.g.
@@ -115,14 +164,6 @@ hcnotele=8|Hardcoded In-to-Out Teleport ID
 hcbyte=8|Hardcoded hexadecimal byte value
 hcint8=8|Hardcoded decimal byte value
 hcuint8=8|Hardcoded decimal byte value
-
-
-;;REMINDER:
-;; for hcfanfare, the offset is to the byte with the instruction,
-;; not the opcode. See above in VALUETYPES for more info.
-;; Be careful when modofying it, as referencing the offset to the
-;; opcode instead of the INC instruction will potentially corrupt
-;; the ROM!!!!!
 
 
 [Label_TalkJumpTable]
