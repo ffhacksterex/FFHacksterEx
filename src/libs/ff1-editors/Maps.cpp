@@ -318,15 +318,19 @@ BOOL CMaps::OnInitDialog()
 
 		mousedown = 0;
 		IF_NOHANDLE(redpen).CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+		IF_NOHANDLE(toolBrush).CreateSolidBrush(RGB(128, 64, 255));
 		IF_NOHANDLE(m_sprites).Create(16, 16, ILC_COLOR16 + ILC_MASK, 16, 0);
 
 		m_penbutton.SetCheck(BST_CHECKED);
 		cur_tool = m_penbutton.GetToolIndex();
 
+		auto maxes = calc_scroll_maximums();
+		m_hscroll.SetScrollRange(0, maxes.cx);
+		m_vscroll.SetScrollRange(0, maxes.cy);
 		ScrollOffset.x = 0;
 		ScrollOffset.y = 0;
-		m_hscroll.SetScrollRange(0, 48);
-		m_vscroll.SetScrollRange(0, 48);
+		ScrollOffset.x = 0;
+		ScrollOffset.y = 0;
 
 		CRect rcpos;
 		GetControlRect(&m_tilestatic, &rcpos);
@@ -377,9 +381,7 @@ BOOL CMaps::OnInitDialog()
 		m_maplist.SetCurSel(0);
 
 		m_toolbuttons = {&m_penbutton, &m_blockbutton, &m_custom1button, &m_custom2button};
-		if (m_mapdlg.Create(IDD_FLOATING_MAP, this)) {
-			init_popout_map_window();
-		}
+		init_popout_map_window();
 
 		if (BootToTeleportFollowup) {
 			m_maplist.SetCurSel(cart->TeleportFollowup[cart->curFollowup][0]);
@@ -408,14 +410,14 @@ BOOL CMaps::PreTranslateMessage(MSG* pMsg)
 	if (pMsg->message == WM_KEYDOWN) {
 		switch(pMsg->wParam) {
 		case VK_F6:
-			if (m_popoutcreated && m_mapdlg.IsWindowVisible()) {
-				m_mapdlg.SetActiveWindow();
+			if (m_popoutcreated && m_popoutmap.IsWindowVisible()) {
+				m_popoutmap.SetActiveWindow();
 				return TRUE;
 			}
 			break;
 		case VK_F7:
 			if (m_popoutcreated) {
-				bool in = m_mapdlg.IsWindowVisible() == TRUE;
+				bool in = m_popoutmap.IsWindowVisible() == TRUE;
 				PopMapDialog(in);
 				return TRUE;
 			}
@@ -426,8 +428,8 @@ BOOL CMaps::PreTranslateMessage(MSG* pMsg)
 
 void CMaps::OnCancel()
 {
-	if (m_popoutcreated && m_mapdlg.IsWindowVisible()) {
-		m_mapdlg.PostMessage(WM_KEYDOWN, VK_ESCAPE);
+	if (m_popoutcreated && m_popoutmap.IsWindowVisible()) {
+		m_popoutmap.PostMessage(WM_KEYDOWN, VK_ESCAPE);
 		return;
 	}
 	CEditorWithBackground::OnCancel();
@@ -545,7 +547,7 @@ void CMaps::LoadValues()
 
 	OnSelchangeSpriteList();
 
-	//load the domains
+	//load the battle formations (from domain data).
 	offset = BATTLEDOMAIN_OFFSET + 0x200 + (cur_map << 3);
 	m_battle1.SetCurSel(cart->ROM[offset] & 0x7F); m_formation1.SetCheck(cart->ROM[offset] & 0x80); offset += 1;
 	m_battle2.SetCurSel(cart->ROM[offset] & 0x7F); m_formation2.SetCheck(cart->ROM[offset] & 0x80); offset += 1;
@@ -761,107 +763,7 @@ void CMaps::StoreTileData()
 void CMaps::OnPaint()
 {
 	CPaintDC dc(this);
-	CPen* origpen = dc.SelectObject(&redpen);
-	int coX, coY, tile, coy, cox;
-	CPoint pt;
-	bool room = m_showrooms.GetCheck() == 1;
-
-	//Draw the Tiles on the screen
-	for(coY = 0, tile = 0, pt.y = rcTiles.top; coY < 0x08; coY++, pt.y += 16){
-	for(coX = 0, pt.x = rcTiles.left; coX < 0x10; coX++, pt.x += 16, tile++)
-			cart->GetStandardTiles(cur_map,room).Draw(&dc,tile,pt,ILD_NORMAL);}
-	pt.x = ((cur_tile & 0x0F) << 4) + rcTiles.left;
-	pt.y = (cur_tile & 0xF0) + rcTiles.top;
-	dc.MoveTo(pt); pt.x += 15;
-	dc.LineTo(pt); pt.y += 15;
-	dc.LineTo(pt); pt.x -= 15;
-	dc.LineTo(pt); pt.y -= 15;
-	dc.LineTo(pt);
-
-	//Draw the map
-	for(coY = 0, pt.y = rcMap.top, coy = ScrollOffset.y; coY < 0x10; coY++, pt.y += 16, coy++){
-	for(coX = 0, pt.x = rcMap.left, cox = ScrollOffset.x; coX < 0x10; coX++, pt.x += 16, cox++)
-			cart->GetStandardTiles(cur_map,room).Draw(&dc,DecompressedMap[coy][cox],pt,ILD_NORMAL);}
-	CRect rcTemp = rcToolRect; rcTemp.NormalizeRect(); rcTemp.bottom += 1; rcTemp.right += 1;
-	CPoint copt;
-	if(mousedown == 1){
-		switch(cur_tool){
-		case 0: break;
-		case 1:{			//fill
-			coY = rcTemp.top - ScrollOffset.y; coX = rcTemp.left - ScrollOffset.x;
-			copt.y = rcTemp.bottom - ScrollOffset.y; copt.x = rcTemp.right - ScrollOffset.x;
-			tile = coX;
-			for(; coY < copt.y; coY++){
-			for(coX = tile; coX < copt.x; coX++){
-					pt.x = rcMap.left + (coX << 4); pt.y = rcMap.top + (coY << 4);
-					cart->GetStandardTiles(cur_map,room).Draw(&dc,cur_tile,pt,ILD_NORMAL);}}
-		}break;
-		default:{
-			CBrush br; br.CreateSolidBrush(RGB(128,64,255));
-			rcTemp.left = ((rcTemp.left - ScrollOffset.x) << 4) + rcMap.left;
-			rcTemp.right = ((rcTemp.right - ScrollOffset.x) << 4) + rcMap.left;
-			rcTemp.top = ((rcTemp.top - ScrollOffset.y) << 4) + rcMap.top;
-			rcTemp.bottom = ((rcTemp.bottom - ScrollOffset.y) << 4) + rcMap.top;
-			dc.FillRect(rcTemp,&br);
-			br.DeleteObject();
-		}break;
-		}
-	}
-	if(cart->ShowLastClick){
-		pt.x = ((ptLastClick.x - ScrollOffset.x) << 4) + rcMap.left;
-		pt.y = ((ptLastClick.y - ScrollOffset.y) << 4) + rcMap.top;
-		if(PtInRect(rcMap,pt)){
-			dc.MoveTo(pt); pt.x += 15;
-			dc.LineTo(pt); pt.y += 15;
-			dc.LineTo(pt); pt.x -= 15;
-			dc.LineTo(pt); pt.y -= 15;
-			dc.LineTo(pt);}
-	}
-
-	//Draw the sprites
-	CRect rcscreen(0,0,16,16); // tile coords, not pixels
-	for(coX = 0; coX < MAPSPRITE_COUNT; coX++){
-		if(!Sprite_Value[coX]) continue;
-		if(room != Sprite_InRoom[coX]) continue;
-
-		// The map only shows a 16 tile x 16 tile area,
-		// so if the sprite's tile coords aren't within
-		// that area, don't display it.
-		pt.x = Sprite_Coords[coX].x - ScrollOffset.x;
-		pt.y = Sprite_Coords[coX].y - ScrollOffset.y;
-		if(!PtInRect(rcscreen,pt)) continue;
-
-		pt.x = (pt.x << 4) + rcMap.left;
-		pt.y = (pt.y << 4) + rcMap.top;
-		m_sprites.Draw(&dc,cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[coX]],pt,ILD_TRANSPARENT);
-	}
-
-	//Draw the palettes
-	CBrush br;
-	CRect rc(0, 0, 16, 16);
-	rc.top = rcPalettes.top; rc.bottom = rc.top + 16;
-	for(coY = 0; coY < 2; coY++,rc.top += 16, rc.bottom += 16){
-		rc.left = rcPalettes.left; rc.right = rc.left + 16;
-		for(coX = 0; coX < 16; coX++, rc.left += 16, rc.right += 16){
-			br.CreateSolidBrush(cart->Palette[0][MapPalette[coY][0][coX]]);
-			dc.FillRect(rc,&br);
-			br.DeleteObject();}}
-	rc = rcPalettes2; rc.right = rc.left + 16; rc.bottom = rc.top + 16;
-	for(coX = 0; coX < 8; coX++, rc.left += 16, rc.right += 16){
-		if(!(coX & 3)) continue;
-		br.CreateSolidBrush(cart->Palette[0][SpritePalette[0][coX]]);
-		dc.FillRect(rc,&br);
-		br.DeleteObject();}
-	rc = rcPalettes2; rc.right = rc.left + 16; rc.bottom = rc.top + 16;
-	rc.top += 16; rc.bottom += 16;
-	for(coX = 0; coX < 8; coX++, rc.left += 16, rc.right += 16){
-		br.CreateSolidBrush(cart->Palette[0][ControlPalette[coX]]);
-		dc.FillRect(rc,&br);
-		br.DeleteObject();}
-
-	dc.SelectObject(origpen);
-
-	m_banner.Render(dc, 8, 8);
+	handle_paint(dc);
 }
 
 void CMaps::OnSelchangeMaplist()
@@ -898,38 +800,12 @@ void CMaps::OnShowrooms()
 
 void CMaps::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	UNREFERENCED_PARAMETER(pScrollBar);
-
-	switch (nSBCode) {
-	case 0: ScrollOffset.x -= 1 * Ui::MultiplyIf(8); break;
-	case 1: ScrollOffset.x += 1 * Ui::MultiplyIf(8); break;
-	case 2: ScrollOffset.x -= 16 * Ui::MultiplyIf(2); break;
-	case 3: ScrollOffset.x += 16 * Ui::MultiplyIf(2); break;
-	case 5: ScrollOffset.x = nPos; break;
-	}
-	if (ScrollOffset.x < 0) ScrollOffset.x = 0;
-	if (ScrollOffset.x > 48) ScrollOffset.x = 48;
-
-	m_hscroll.SetScrollPos(ScrollOffset.x);
-	invalidate_maps();
+	handle_hscroll(nSBCode, nPos, pScrollBar);
 }
 
 void CMaps::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	UNREFERENCED_PARAMETER(pScrollBar);
-
-	switch (nSBCode) {
-	case 0: ScrollOffset.y -= 1 * Ui::MultiplyIf(8); break;
-	case 1: ScrollOffset.y += 1 * Ui::MultiplyIf(8); break;
-	case 2: ScrollOffset.y -= 16 * Ui::MultiplyIf(1); break;
-	case 3: ScrollOffset.y += 16 * Ui::MultiplyIf(1); break;
-	case 5: ScrollOffset.y = nPos; break;
-	}
-	if (ScrollOffset.y < 0) ScrollOffset.y = 0;
-	if (ScrollOffset.y > 48) ScrollOffset.y = 48;
-
-	m_vscroll.SetScrollPos(ScrollOffset.y);
-	invalidate_maps();
+	handle_vscroll(nSBCode, nPos, pScrollBar);
 }
 
 void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
@@ -1007,7 +883,7 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 
 void CMaps::OnLButtonUp(UINT nFlags, CPoint pt)
 {
-	HandleLButtonUp(nFlags, pt);
+	HandleLButtonUp(nFlags, fix_map_point(pt));
 	mousedown = 0;
 }
 
@@ -1049,15 +925,13 @@ void CMaps::OnRButtonDown(UINT nFlags, CPoint pt)
 		OnLButtonDown(nFlags, pt);
 	}
 	else if (PtInRect(rcMap, pt)) {
-		pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		HandleRButtonDown(nFlags, pt);
+		HandleRButtonDown(nFlags, fix_map_point(pt));
 	}
 }
 
 void CMaps::OnRButtonUp(UINT nFlags, CPoint point)
 {
-	HandleRButtonUp(nFlags, point);
+	HandleRButtonUp(nFlags, fix_map_point(point));
 	mousedown = 0;
 }
 
@@ -1067,10 +941,7 @@ void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
 
 	int ref = -1;
 	if (PtInRect(rcMap, pt)) {
-		pt.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		pt.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		HandleRButtonDblClk(nFlags, pt);
-		//ref = DecompressedMap[pt.y][pt.x];
+		HandleRButtonDblClk(nFlags, fix_map_point(pt));
 	}
 	else if(PtInRect(rcTiles,pt)){
 		pt.x = (pt.x - rcTiles.left) >> 4;
@@ -1114,10 +985,7 @@ void CMaps::OnMouseMove(UINT nFlags, CPoint pt)
 
 	CString text = "";
 	if (PtInRect(rcMap, pt)) {
-		CPoint newhover;
-		newhover.x = ((pt.x - rcMap.left) >> 4) + ScrollOffset.x;
-		newhover.y = ((pt.y - rcMap.top) >> 4) + ScrollOffset.y;
-		HandleMouseMove(nFlags, newhover);
+		HandleMouseMove(nFlags, fix_map_point(pt));
 	}
 	else {
 		if (ptHover.x != -1) {
@@ -1340,8 +1208,8 @@ void CMaps::UpdateClick(CPoint pt)
 CPoint CMaps::fix_map_point(CPoint point)
 {
 	CPoint fixedpt;
-	fixedpt.x = ((point.x - rcMap.left) >> 4) + ScrollOffset.x;
-	fixedpt.y = ((point.y - rcMap.top) >> 4) + ScrollOffset.y;
+	fixedpt.x = ((point.x - rcMap.left) + ScrollOffset.x) / m_displaytilecounts.cx;
+	fixedpt.y = ((point.y - rcMap.top) + ScrollOffset.y) / m_displaytilecounts.cy;
 	return fixedpt;
 }
 
@@ -1541,12 +1409,32 @@ void CMaps::UpdateTeleportLabel(int arid, bool NNTele)
 
 void CMaps::DoHScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 {
-	OnHScroll(nSBCode, nPos, pScrollBar);
+	if (m_popoutcreated)
+	{
+		//N.B. - minimap subtracts 8 in an attempt to center the viewpoint
+		// For now, we workaround that by adding back the 8 that was subtracted
+		// and let the popout map handle centering directly.
+		int iPos = ((INT)nPos);
+		int newval = (iPos + 8) * 100 / 255; // convert to percentage
+		m_popoutmap.ScrollByPercentage(SB_HORZ, newval);
+	}
+	handle_hscroll(nSBCode, nPos * m_tiledims.cx, pScrollBar);
 }
 
 void CMaps::DoVScroll(UINT nSBCode, UINT nPos, CScrollBar * pScrollBar)
 {
-	OnVScroll(nSBCode, nPos, pScrollBar);
+	if (m_popoutcreated) {
+		//N.B. - see the note in OnVHScroll, similar logic here.
+		int iPos = ((INT)nPos);
+		int newval = (iPos + 8) * 100 / 255;
+		m_popoutmap.ScrollByPercentage(SB_VERT, newval);
+	}
+	handle_vscroll(nSBCode, nPos * m_tiledims.cy, pScrollBar);
+}
+
+void CMaps::SendKeydown(WPARAM wparam, LPARAM lparam)
+{
+	this->PostMessage(WM_KEYDOWN, wparam, lparam);
 }
 
 //DEVNOTE - for the HandleXXXX button methods,
@@ -1778,7 +1666,7 @@ void CMaps::HandleRButtonDown(UINT nFlags, CPoint pt)
 			m_blockbutton.GetDlgCtrlID());
 		cur_tool = m_blockbutton.GetToolIndex();
 		m_customtool.EnableWindow(FALSE);
-		m_mapdlg.UpdateControls();
+		m_popoutmap.UpdateControls();
 	}
 
 	//if they clicked on a sprite... adjust the Sprite Editor accordingly
@@ -1797,7 +1685,7 @@ void CMaps::HandleRButtonUp(UINT nFlags, CPoint point)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 	UNREFERENCED_PARAMETER(point);
-	// Currently, right btn up does nothing on the map.
+	// By default, does nothing on the map, pass fix_map_point(point) to any handler
 }
 
 void CMaps::HandleRButtonDblClk(UINT nFlags, CPoint pt)
@@ -1848,6 +1736,12 @@ void CMaps::HandleMouseMove(UINT nFlags, CPoint newhover)
 	}
 }
 
+void CMaps::HandleAfterScroll(CPoint scrolloffset, CRect displayarea)
+{
+	UNREFERENCED_PARAMETER(scrolloffset);
+	UNREFERENCED_PARAMETER(displayarea);
+}
+
 void CMaps::HandleMapImport()
 {
 	OnMapImport();
@@ -1866,6 +1760,26 @@ bool CMaps::HandleCustomizeTool()
 	dlg.tool = cur_tool - 2 + (cur_tileset << 1);
 	auto result = dlg.DoModal();
 	return result == IDOK;
+}
+
+void CMaps::RenderMapEx(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims)
+{
+	paint_map_elements(dc, displayarea, scrolloff, tiledims);
+}
+
+int CMaps::GetCurrentToolIndex() const
+{
+	return cur_tool;
+}
+
+void CMaps::SetMouseDown(int imousedown)
+{
+	mousedown = imousedown;
+}
+
+int CMaps::GetMouseDown() const
+{
+	return mousedown;
 }
 
 void CMaps::DoViewcoords()
@@ -1963,39 +1877,16 @@ void CMaps::TeleportHere(int mapindex, int x, int y)
 
 void CMaps::init_popout_map_window()
 {
-	//TODO - replace with CDlgPopoutMap if possible
-	//	CFloatingMapDlg duplicates drawing,
-	//	CDlgPopoutMap can use CMaps to do the drawing instead.
-
-	std::vector<sMapDlgButton> buttons(m_toolbuttons.size());
-	std::transform(cbegin(m_toolbuttons), cend(m_toolbuttons), begin(buttons),
-		[](const CDrawingToolButton* srcbtn) { return srcbtn->GetSpec(); });
-
-	sRenderMapState state;
-	state.pmousedown = &mousedown;
-	state.project = Project;
-	state.owner = this;
-	state.showrooms = &m_showingrooms;
-	state.ptLastClick = &ptLastClick;
-	state.rcToolRect = &rcToolRect;
-	state.cur_map = &cur_map;
-	state.cur_tile = &cur_tile;
-	state.cur_tool = &cur_tool;
-	state.DecompressedMap = &(DecompressedMap[0][0]);
-	state.mapdims = { 64,64 };
-	state.tiledims = { 16,16 };
-
-	state.m_sprites = &m_sprites;
-	state.Sprite_Coords = &Sprite_Coords;
-	state.Sprite_InRoom = &Sprite_InRoom;
-	state.Sprite_StandStill = &Sprite_StandStill;
-	state.Sprite_Value = &Sprite_Value;
-	state.SPRITE_COUNT = MAPSPRITE_COUNT;
-	state.SPRITE_PICASSIGNMENT = MAPSPRITE_PICASSIGNMENT;
-
-	if (m_mapdlg.Init(state, buttons)) {
+	//TODO - tile dims are hardcoded as 16 x 16 here
+	if (m_popoutmap.CreateModeless(this, m_mapdims, { 16,16 }, this))
+	{
+		std::vector<sMapDlgButton> buttons(m_toolbuttons.size());
+		std::transform(cbegin(m_toolbuttons), cend(m_toolbuttons), begin(buttons),
+			[](const CDrawingToolButton* srcbtn) { return srcbtn->GetSpec(); });
+		VERIFY(m_popoutmap.SetButtons(buttons));
 		m_popoutcreated = true;
-	} else {
+	}
+	else {
 		AfxMessageBox(_T("Unable to initialize the popout map window."));
 		m_popoutbutton.EnableWindow(FALSE);
 	}
@@ -2003,19 +1894,9 @@ void CMaps::init_popout_map_window()
 
 void CMaps::PopMapDialog(bool in)
 {
-	// If shrinking, hide the shrink button to ensure we can't invoke
-	//   it while hidden using the keyboard.
-	// Show/Hide the map dialog
-	// Shrink/Grow the main dialog to hide/show the map panel
-	// Slide the relevant controls left/right
-
-	m_popoutbutton.EnableWindow(in ? 1 : 0);
-	if (in) {
-		m_popoutbutton.SetFocus();
-	}
-	else {
-		m_mapdlg.PostMessage(WM_SETFOCUS); //DEVNOTE - don't use SetFocus()/SendMessage for this
-	}
+	// Show/Hide the popout map dialog
+	// Shrink/Grow the main dialog to hide/show the its embedded map area
+	// Slide the relevant controls left/right as required
 
 	auto rc = Ui::GetControlRect(&m_mappanel);
 	int diff = rc.Width() * (in ? -1 : 1);
@@ -2034,11 +1915,21 @@ void CMaps::PopMapDialog(bool in)
 				left + diff + GetSystemMetrics(SM_CXSIZEFRAME),
 				dlgrc.bottom + GetSystemMetrics(SM_CYSIZEFRAME)
 			};
-			m_mapdlg.MoveWindow(poprc);
+			m_popoutmap.MoveWindow(poprc);
 		}
-		m_mapdlg.UpdateControls();
+		m_popoutmap.UpdateControls();
 	}
-	m_mapdlg.ShowWindow(in ? SW_HIDE : SW_SHOW);
+
+	m_popoutmap.ShowWindow(in ? SW_HIDE : SW_SHOW);
+	m_popoutbutton.EnableWindow(in ? 1 : 0);
+
+	sync_map_positions(in);
+	if (in) {
+		m_popoutbutton.SetFocus();
+	}
+	else {
+		m_popoutmap.PostMessage(WM_SETFOCUS); //DEVNOTE - don't use SetFocus()/SendMessage for this
+	}
 
 	std::vector<UINT> ids{ IDHELPBOOK, IDCANCEL2, IDC_SAVE, IDOK, IDCANCEL };
 	int slide = -diff;
@@ -2048,10 +1939,270 @@ void CMaps::PopMapDialog(bool in)
 	}
 }
 
+CSize CMaps::calc_scroll_maximums()
+{
+	//TODO - screen tile counts (cols and rows) are hardcoded as 16 x 16 here
+	return { (m_mapdims.cx - 16) * m_tiledims.cx, (m_mapdims.cy - 16) * m_tiledims.cy };
+}
+
+CSize CMaps::get_scroll_limits()
+{
+	return CSize{
+		m_hscroll.GetScrollLimit(),
+		m_vscroll.GetScrollLimit()
+	};
+}
+
+CRect CMaps::get_display_area()
+{
+	return rcMap;
+}
+
 void CMaps::invalidate_maps()
 {
 	InvalidateRect(rcMap, 0);
-	m_mapdlg.InvalidateMap();
+	m_popoutmap.InvalidateMap();
+}
+
+void CMaps::handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	UNREFERENCED_PARAMETER(pScrollBar);
+
+	switch (nSBCode) {
+	case SB_LINELEFT: ScrollOffset.x -= 1 * Ui::MultiplyIf(8); break;
+	case SB_LINERIGHT: ScrollOffset.x += 1 * Ui::MultiplyIf(8); break;
+	case SB_PAGELEFT: ScrollOffset.x -= 16 * Ui::MultiplyIf(2); break;
+	case SB_PAGERIGHT: ScrollOffset.x += 16 * Ui::MultiplyIf(2); break;
+	case SB_THUMBTRACK: ScrollOffset.x = nPos; break;
+	}
+	auto maxes = calc_scroll_maximums();
+	if (ScrollOffset.x < 0) ScrollOffset.x = 0;
+	if (ScrollOffset.x > maxes.cy) ScrollOffset.x = maxes.cy;
+
+	m_hscroll.SetScrollPos(ScrollOffset.x);
+	invalidate_maps();
+}
+
+void CMaps::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	UNREFERENCED_PARAMETER(pScrollBar);
+
+	switch (nSBCode) {
+	case SB_LINEUP: ScrollOffset.y -= 1 * Ui::MultiplyIf(8); break;
+	case SB_LINEDOWN: ScrollOffset.y += 1 * Ui::MultiplyIf(8); break;
+	case SB_PAGEUP: ScrollOffset.y -= 16 * Ui::MultiplyIf(1); break;
+	case SB_PAGEDOWN: ScrollOffset.y += 16 * Ui::MultiplyIf(1); break;
+	case SB_THUMBTRACK: ScrollOffset.y = nPos; break;
+	}
+	auto maxes = calc_scroll_maximums();
+	if (ScrollOffset.y < 0) ScrollOffset.y = 0;
+	if (ScrollOffset.y > maxes.cy) ScrollOffset.y = maxes.cy;
+
+	m_vscroll.SetScrollPos(ScrollOffset.y);
+	invalidate_maps();
+}
+
+void CMaps::handle_paint(CDC& dc)
+{
+	CPen* origpen = dc.SelectObject(&redpen);
+	int coX, coY, tile, coy, cox;
+	CPoint pt;
+	bool room = m_showrooms.GetCheck() == 1;
+
+	//Draw the Source Tiles on the screen (8 rows of 16 tiles)
+	for(coY = 0, tile = 0, pt.y = rcTiles.top; coY < 0x08; coY++, pt.y += 16){
+	for(coX = 0, pt.x = rcTiles.left; coX < 0x10; coX++, pt.x += 16, tile++)
+			cart->GetStandardTiles(cur_map,room).Draw(&dc,tile,pt,ILD_NORMAL);}
+	pt.x = ((cur_tile & 0x0F) << 4) + rcTiles.left;
+	pt.y = (cur_tile & 0xF0) + rcTiles.top;
+	dc.MoveTo(pt); pt.x += 15;
+	dc.LineTo(pt); pt.y += 15;
+	dc.LineTo(pt); pt.x -= 15;
+	dc.LineTo(pt); pt.y -= 15;
+	dc.LineTo(pt);
+
+	{
+		// Draw the map elements (map, sprites, last click rect).
+		CSize tiledims = { 16,16 };
+		CPoint scrolloff = ScrollOffset;
+		CDC compat;
+		compat.CreateCompatibleDC(&dc);
+		CBitmap bmp;
+		bmp.CreateCompatibleBitmap(&dc, rcMap.Width() + tiledims.cx, rcMap.Height() + tiledims.cy);
+		auto oldbmp = compat.SelectObject(&bmp);
+		CRect client = { 0,0,rcMap.Width() + tiledims.cx, rcMap.Height() };
+		compat.FillSolidRect(client, RGB(255, 255, 255));
+		paint_map_elements(compat, rcMap, scrolloff, tiledims);
+
+		// Draw the bitmap to the window's display area.
+		// To ensure we only draw to that area, set it as the clip region.
+		CRgn rgn;
+		rgn.CreateRectRgn(rcMap.left, rcMap.top, rcMap.right, rcMap.bottom);
+		compat.SelectClipRgn(&rgn);
+
+		auto save = dc.SaveDC();
+		dc.BitBlt(rcMap.left, rcMap.top, rcMap.Width(), rcMap.Height(),
+			&compat,
+			0, 0,
+			SRCCOPY);
+		dc.RestoreDC(save);
+		compat.SelectObject(oldbmp);
+	}
+
+	//Draw the palettes
+	CBrush br;
+	CRect rc(0, 0, 16, 16);
+	rc.top = rcPalettes.top; rc.bottom = rc.top + 16;
+	for(coY = 0; coY < 2; coY++,rc.top += 16, rc.bottom += 16){
+		rc.left = rcPalettes.left; rc.right = rc.left + 16;
+		for(coX = 0; coX < 16; coX++, rc.left += 16, rc.right += 16){
+			br.CreateSolidBrush(cart->Palette[0][MapPalette[coY][0][coX]]);
+			dc.FillRect(rc,&br);
+			br.DeleteObject();}}
+	rc = rcPalettes2; rc.right = rc.left + 16; rc.bottom = rc.top + 16;
+	for(coX = 0; coX < 8; coX++, rc.left += 16, rc.right += 16){
+		if(!(coX & 3)) continue;
+		br.CreateSolidBrush(cart->Palette[0][SpritePalette[0][coX]]);
+		dc.FillRect(rc,&br);
+		br.DeleteObject();}
+	rc = rcPalettes2; rc.right = rc.left + 16; rc.bottom = rc.top + 16;
+	rc.top += 16; rc.bottom += 16;
+	for(coX = 0; coX < 8; coX++, rc.left += 16, rc.right += 16){
+		br.CreateSolidBrush(cart->Palette[0][ControlPalette[coX]]);
+		dc.FillRect(rc,&br);
+		br.DeleteObject();}
+
+	dc.SelectObject(origpen);
+	m_banner.Render(dc, 8, 8);
+}
+
+void CMaps::paint_map_elements(CDC& dc, CRect displayrect, CPoint scrolloff, CSize tiledims)
+{
+	ASSERT(tiledims.cx > 0);
+	ASSERT(tiledims.cy > 0);
+	if (tiledims.cx <= 0 || tiledims.cy <= 0) return;
+
+	CRect displayarea = { 0, 0, displayrect.Width(), displayrect.Height() };
+	CSize gridvis = { displayarea.Width() / tiledims.cx, displayarea.Height() / tiledims.cy };
+	CPoint gridanchor = { scrolloff.x / tiledims.cx, scrolloff.y / tiledims.cy };
+	int coX, coY, tile;
+	CPoint pt;
+	CPoint copt;
+	CRect rcTemp = rcToolRect;
+	rcTemp.NormalizeRect(); rcTemp.right += 1; rcTemp.bottom += 1;
+
+	// If we aren't aligned on a tile boundary, then the first col/row is partially drawn.
+	// Back up the start of drawing to accomodate this.
+	CPoint tileoff = { scrolloff.x % tiledims.cx, scrolloff.y % tiledims.cy };
+	displayarea.left -= tileoff.x;
+	displayarea.top -= tileoff.y;
+	if (tileoff.x) ++gridvis.cx;
+	if (tileoff.y) ++gridvis.cy;
+
+	// If not at the right col or bottom row, overdraw by 1 tile.
+	// This enables cheap partial tile rendering; the clipping region will clean it up.
+	if ((gridanchor.x + gridvis.cx) < m_mapdims.cx)
+		++gridvis.cx;
+	if ((gridanchor.y + gridvis.cy) < m_mapdims.cy)
+		++gridvis.cy;
+
+	bool room = m_showrooms.GetCheck() == 1;
+	copt = gridanchor;
+	for (coY = 0, pt.y = displayarea.top; coY < gridvis.cy; coY++, pt.y += tiledims.cy, copt.y += 1) {
+		for (coX = 0, pt.x = displayarea.left, copt.x = gridanchor.x; coX < gridvis.cx; coX++, pt.x += tiledims.cx, copt.x += 1) {
+			if (!(mousedown && cur_tool && PtInRect(rcTemp, copt))) {
+				cart->GetStandardTiles(cur_map, room).Draw(&dc, DecompressedMap[copt.y][copt.x], pt, ILD_NORMAL);
+			}
+		}
+	}
+
+	if (mousedown) {
+		switch (cur_tool) {
+		case 0: break;
+		case 1: {			//fill
+			coY = rcTemp.top - gridanchor.y;
+			coX = rcTemp.left - gridanchor.x;
+			copt.y = rcTemp.bottom - gridanchor.y;
+			copt.x = rcTemp.right - gridanchor.x;
+			tile = coX;
+			for (; coY < copt.y; coY++) {
+				for (coX = tile; coX < copt.x; coX++) {
+					pt.x = displayarea.left + (coX << 4); pt.y = displayarea.top + (coY << 4);
+					cart->m_overworldtiles.Draw(&dc, cur_tile, pt, ILD_NORMAL);
+				}
+			}
+		}break;
+		default: {
+			// rcTemp is in map coords, translate to pixels
+			auto& br = toolBrush;
+			rcTemp.left = ((rcTemp.left - gridanchor.x) * tiledims.cx) + displayarea.left;
+			rcTemp.right = ((rcTemp.right - gridanchor.x) * tiledims.cx) + displayarea.left;
+			rcTemp.top = ((rcTemp.top - gridanchor.y) * tiledims.cy) + displayarea.top;
+			rcTemp.bottom = ((rcTemp.bottom - gridanchor.y) * tiledims.cy) + displayarea.top;
+			dc.FillRect(rcTemp, &br);
+		}break;
+		}
+	}
+
+	// Draw the sprites
+	CRect rcscreen(0,0,16,16); // tile coords, not pixels
+	for(coX = 0; coX < MAPSPRITE_COUNT; coX++){
+		// Draw the sprite if it's defined, matches the current room setting, and is in the display rect.
+		if(!Sprite_Value[coX]) continue;
+		if(room != Sprite_InRoom[coX]) continue;
+
+		pt.x = ((Sprite_Coords[coX].x - gridanchor.x) * tiledims.cx) + displayarea.left;
+		pt.y = ((Sprite_Coords[coX].y - gridanchor.y) * tiledims.cy) + displayarea.top;
+		if(!PtInRect(displayarea, pt)) continue;
+
+		m_sprites.Draw(&dc,cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[coX]],pt,ILD_TRANSPARENT);
+	}
+
+	if (cart->ShowLastClick) {
+		// Draw the rect with our pen if it's in the display rect.
+		pt.x = ((ptLastClick.x - gridanchor.x) * tiledims.cx) + displayarea.left;
+		pt.y = ((ptLastClick.y - gridanchor.y) * tiledims.cy) + displayarea.top;
+		if (PtInRect(displayarea, pt)) {
+			auto oldpen = dc.SelectObject(&redpen);
+			dc.MoveTo(pt); pt.x += tiledims.cx;
+			dc.LineTo(pt); pt.y += tiledims.cy;
+			dc.LineTo(pt); pt.x -= tiledims.cx;
+			dc.LineTo(pt); pt.y -= tiledims.cy;
+			dc.LineTo(pt);
+			dc.SelectObject(oldpen);
+		}
+	}
+}
+
+void CMaps::sync_map_positions(bool popin)
+{
+	ASSERT(m_popoutcreated);
+	if (!m_popoutcreated) return;
+
+	auto embpos = ScrollOffset;
+	auto poppos = m_popoutmap.GetScrollOffset();
+	auto emblim = get_scroll_limits();
+	auto poplim = m_popoutmap.GetScrollLimits();
+	if (popin) {
+		ASSERT(!m_popoutmap.IsWindowVisible());
+		// popout map to embedded
+		POINTF newoff = {
+			poppos.x * emblim.cx / (float)poplim.cx,
+			poppos.y * emblim.cy / (float)poplim.cy
+		};
+		handle_hscroll(SB_THUMBTRACK, (int)std::round(newoff.x), nullptr);
+		handle_vscroll(SB_THUMBTRACK, (int)std::round(newoff.y), nullptr);
+	}
+	else {
+		ASSERT(m_popoutmap.IsWindowVisible());
+		// embedded map to popout
+		POINTF newoff = {
+			embpos.x * poplim.cx / (float)emblim.cx,
+			embpos.y * poplim.cy / (float)emblim.cy
+		};
+		m_popoutmap.ScrollToPos(SB_HORZ, (int)std::round(newoff.x), ForceCenteringOnMapSwitch);
+		m_popoutmap.ScrollToPos(SB_VERT, (int)std::round(newoff.y), ForceCenteringOnMapSwitch);
+	}
 }
 
 void CMaps::OnBnClickedButtonPopout()
