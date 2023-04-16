@@ -33,6 +33,7 @@ namespace Editors
 
 namespace Maps {
 
+	//DEVNOTE - currently uses hardcoded dimensions of 64 cols x 64 rows
 	void DecompressMap(CFFHacksterProject& proj, int mapindex, int mapbase, int ptradd, BYTE DecompressedMap[0x40][0x40])
 	{
 		//memset(DecompressedMap, 0, 0x40 * 0x40 * sizeof(DecompressedMap[0]));
