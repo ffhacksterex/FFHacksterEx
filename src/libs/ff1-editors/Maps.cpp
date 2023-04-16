@@ -2005,7 +2005,7 @@ void CMaps::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 void CMaps::handle_paint(CDC& dc)
 {
 	CPen* origpen = dc.SelectObject(&redpen);
-	int coX, coY, tile, coy, cox;
+	int coX = -1, coY = -1, tile = -1;
 	CPoint pt;
 	bool room = m_showrooms.GetCheck() == 1;
 

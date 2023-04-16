@@ -176,9 +176,6 @@
     <ClCompile Include="BattlePatternTables.cpp" />
     <ClCompile Include="BattlePic.cpp" />
     <ClCompile Include="copypaste_helpers.cpp" />
-    <ClCompile Include="CSubDlgRenderMap.cpp" />
-    <ClCompile Include="CSubDlgRenderMapStatic.cpp" />
-    <ClCompile Include="FloatingMapDlg.cpp" />
     <ClCompile Include="DrawingToolButton.cpp" />
     <ClCompile Include="Coords.cpp" />
     <ClCompile Include="CustomTool.cpp" />
@@ -236,8 +233,6 @@
     <ClInclude Include="BattlePic.h" />
     <ClInclude Include="Coords.h" />
     <ClInclude Include="copypaste_helpers.h" />
-    <ClInclude Include="CSubDlgRenderMap.h" />
-    <ClInclude Include="CSubDlgRenderMapStatic.h" />
     <ClInclude Include="CustomTool.h" />
     <ClInclude Include="DlgEditIniValue.h" />
     <ClInclude Include="DlgEditScalars.h" />
@@ -245,7 +240,6 @@
     <ClInclude Include="DlgPasteTargets.h" />
     <ClInclude Include="DlgPopoutMap.h" />
     <ClInclude Include="DrawingToolButton.h" />
-    <ClInclude Include="FloatingMapDlg.h" />
     <ClInclude Include="ICoordMap.h" />
     <ClInclude Include="IMapEditor.h" />
     <ClInclude Include="InplaceArrayEdit.h" />
