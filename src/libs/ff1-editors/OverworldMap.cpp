@@ -1832,11 +1832,13 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayrect, CPoint scroll
 		pt.x = ((ptLastClick.x - gridanchor.x) * tiledims.cx) + displayarea.left;
 		pt.y = ((ptLastClick.y - gridanchor.y) * tiledims.cy) + displayarea.top;
 		if (PtInRect(displayarea, pt)) {
+			auto oldpen = dc.SelectObject(&redpen);
 			dc.MoveTo(pt); pt.x += tiledims.cx;
 			dc.LineTo(pt); pt.y += tiledims.cy;
 			dc.LineTo(pt); pt.x -= tiledims.cx;
 			dc.LineTo(pt); pt.y -= tiledims.cy;
 			dc.LineTo(pt);
+			dc.SelectObject(oldpen);
 		}
 	}
 	if (cart->DrawDomainGrid) {
