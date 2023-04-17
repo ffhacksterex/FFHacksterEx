@@ -192,5 +192,5 @@ namespace Ui
 	LRESULT SendBnClickedToParent(CWnd* wnd);
 	LRESULT SendLbnSelchangeToParent(CWnd* wnd);
 
-	int MultiplyIf(int multiplier);
+	int MultiplyIf(bool condition, int multiplier);
 }

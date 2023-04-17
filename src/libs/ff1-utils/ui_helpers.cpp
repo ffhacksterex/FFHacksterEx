@@ -549,6 +549,7 @@ namespace Ui
 
 		int curpos = pwnd->GetScrollPos(nBar);
 		int limit = pwnd->GetScrollLimit(nBar);
+		bool controlDown = IsKeyDown(VK_CONTROL);
 		switch (nSBCode)
 		{
 		case SB_LEFT:
@@ -560,23 +561,23 @@ namespace Ui
 		case SB_ENDSCROLL:
 			break;
 		case SB_LINELEFT:
-			curpos -= 1 * Ui::MultiplyIf(arrowmultiplier);
+			curpos -= 1 * Ui::MultiplyIf(controlDown, arrowmultiplier);
 			break;
 		case SB_LINERIGHT:
-			curpos += 1 * Ui::MultiplyIf(arrowmultiplier);
+			curpos += 1 * Ui::MultiplyIf(controlDown, arrowmultiplier);
 			break;
 		case SB_PAGELEFT:
 		{
 			SCROLLINFO info;
 			pwnd->GetScrollInfo(nBar, &info, SIF_ALL);
-			curpos -= (int)info.nPage * Ui::MultiplyIf(pagemultiplier);
+			curpos -= (int)info.nPage * Ui::MultiplyIf(controlDown, pagemultiplier);
 		}
 		break;
 		case SB_PAGERIGHT:
 		{
 			SCROLLINFO info;
 			pwnd->GetScrollInfo(nBar, &info, SIF_ALL);
-			curpos += (int)info.nPage * Ui::MultiplyIf(pagemultiplier);
+			curpos += (int)info.nPage * Ui::MultiplyIf(controlDown, pagemultiplier);
 		}
 		break;
 		case SB_THUMBPOSITION:
@@ -641,6 +642,7 @@ namespace Ui
 
 		int curpos = bar->GetScrollPos();
 		int limit = bar->GetScrollLimit();
+		bool controlDown = IsKeyDown(VK_CONTROL);
 		switch (nSBCode)
 		{
 		case SB_LEFT:
@@ -652,23 +654,23 @@ namespace Ui
 		case SB_ENDSCROLL:
 			break;
 		case SB_LINELEFT:
-			curpos -= 1 * Ui::MultiplyIf(arrowmultiplier);
+			curpos -= 1 * Ui::MultiplyIf(controlDown, arrowmultiplier);
 			break;
 		case SB_LINERIGHT:
-			curpos += 1 * Ui::MultiplyIf(arrowmultiplier);
+			curpos += 1 * Ui::MultiplyIf(controlDown, arrowmultiplier);
 			break;
 		case SB_PAGELEFT:
 		{
 			SCROLLINFO info;
 			bar->GetScrollInfo(&info, SIF_ALL);
-			curpos -= (int)info.nPage * Ui::MultiplyIf(pagemultiplier);
+			curpos -= (int)info.nPage * Ui::MultiplyIf(controlDown, pagemultiplier);
 		}
 		break;
 		case SB_PAGERIGHT:
 		{
 			SCROLLINFO info;
 			bar->GetScrollInfo(&info, SIF_ALL);
-			curpos += (int)info.nPage * Ui::MultiplyIf(pagemultiplier);
+			curpos += (int)info.nPage * Ui::MultiplyIf(controlDown, pagemultiplier);
 		}
 		break;
 		case SB_THUMBPOSITION:
@@ -1218,9 +1220,9 @@ namespace Ui
 		return SendNotificationToParent(wnd, LBN_SELCHANGE);
 	}
 
-	int MultiplyIf(int multiplier)
+	int MultiplyIf(bool condition, int multiplier)
 	{
-		return IsKeyDown(VK_CONTROL) ? multiplier : 1;
+		return condition ? multiplier : 1;
 	}
 
 } // end namespace Ui
