@@ -449,7 +449,7 @@ void COverworldMap::HandleRButtonUp(UINT nFlags, CPoint point)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 	UNREFERENCED_PARAMETER(point);
-	// By default, does nothing on the map
+	// By default, does nothing on the map, pass fix_map_point(point) to any handler
 }
 
 void COverworldMap::HandleRButtonDblClk(UINT nFlags, CPoint point)
@@ -1050,15 +1050,31 @@ void COverworldMap::InitBackdrops()
 	dummy.DeleteObject();
 }
 
-void COverworldMap::OnPaint() 
+void COverworldMap::build_domain_rects()
 {
-	CPaintDC dc(this);
-	handle_paint(dc);
+	// We'll store the domain rectangles.
+	// The popout map can display more than one domain
+	// if it's large enough.
+	m_domainrects.clear();
+	CSize sizeofdomain = {
+		m_mapsize.cx / m_domaincounts.cx * m_tiledims.cx,
+		m_mapsize.cy / m_domaincounts.cy * m_tiledims.cy
+	};
+	for (int row = 0; row < m_domaincounts.cy; ++row)
+	{
+		CRect rcdomain{ 0, row * sizeofdomain.cy, sizeofdomain.cx, sizeofdomain.cy };
+		for (int col = 0; col < m_domaincounts.cx; ++col)
+		{
+			m_domainrects.push_back(rcdomain);
+			rcdomain.OffsetRect(sizeofdomain.cx, 0);
+		}
+	}
 }
 
-void COverworldMap::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
+void COverworldMap::invalidate_maps()
 {
-	handle_hscroll(nSBCode, nPos, pScrollBar);
+	InvalidateRect(rcMap, 0);
+	m_popoutmap.InvalidateMap();
 }
 
 void COverworldMap::handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -1087,32 +1103,6 @@ void COverworldMap::handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 	invalidate_maps();
 }
 
-void COverworldMap::build_domain_rects()
-{
-	// We'll store the domain rectangles.
-	// The popout map can display more than one domain
-	// if it's large enough.
-	m_domainrects.clear();
-	CSize sizeofdomain = {
-		m_mapsize.cx / m_domaincounts.cx * m_tiledims.cx,
-		m_mapsize.cy / m_domaincounts.cy * m_tiledims.cy
-	};
-	for (int row = 0; row < m_domaincounts.cy; ++row)
-	{
-		CRect rcdomain{ 0, row * sizeofdomain.cy, sizeofdomain.cx, sizeofdomain.cy };
-		for (int col = 0; col < m_domaincounts.cx; ++col)
-		{
-			m_domainrects.push_back(rcdomain);
-			rcdomain.OffsetRect(sizeofdomain.cx, 0);
-		}
-	}
-}
-
-void COverworldMap::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
-{
-	handle_vscroll(nSBCode, nPos, pScrollBar);
-}
-
 void COverworldMap::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	UNREFERENCED_PARAMETER(pScrollBar);
@@ -1139,10 +1129,20 @@ void COverworldMap::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 	invalidate_maps();
 }
 
-void COverworldMap::invalidate_maps()
+void COverworldMap::OnPaint()
 {
-	InvalidateRect(rcMap, 0);
-	m_popoutmap.InvalidateMap();
+	CPaintDC dc(this);
+	handle_paint(dc);
+}
+
+void COverworldMap::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	handle_hscroll(nSBCode, nPos, pScrollBar);
+}
+
+void COverworldMap::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	handle_vscroll(nSBCode, nPos, pScrollBar);
 }
 
 void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
@@ -1184,6 +1184,37 @@ void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
 	}
 }
 
+void COverworldMap::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	HandleLButtonUp(nFlags, fix_map_point(point));
+	mousedown = 0;
+}
+
+void COverworldMap::OnLButtonDblClk(UINT nFlags, CPoint pt)
+{
+	UNREFERENCED_PARAMETER(nFlags);
+
+	if (PtInRect(rcTiles, pt)) {
+		CTileEdit dlg;
+		dlg.Invoker = CTileEdit::Overworld;
+		dlg.cart = cart;
+		dlg.tileset = 0;
+		dlg.tile = (BYTE)cur_tile;
+		dlg.pal[0] = palette[0];
+		OnSave();
+		if (dlg.DoModal() == IDOK) {
+			minimap.PalAssign[cur_tile] = cart->ROM[OVERWORLDPALETTE_ASSIGNMENT + cur_tile] & 3;
+			if (m_minimap.GetCheck()) minimap.UpdateAll();
+			cart->m_overworldtiles.DeleteImageList();
+			cart->OK_overworldtiles = 0;
+			ReloadGraphics();
+			InvalidateRect(rcPalette, 0);
+			InvalidateRect(rcTiles, 0);
+			invalidate_maps();
+		}
+	}
+}
+
 void COverworldMap::OnRButtonDown(UINT nFlags, CPoint pt)
 {
 	mousedown = 0;
@@ -1195,14 +1226,28 @@ void COverworldMap::OnRButtonDown(UINT nFlags, CPoint pt)
 	}
 }
 
-void COverworldMap::OnEditlabel()
+void COverworldMap::OnRButtonUp(UINT nFlags, CPoint point)
 {
-	int temp = m_backdroplist.GetCurSel();
-	ChangeLabel(*cart, -1, LoadBackdropLabel(*cart, temp), WriteBackdropLabel, temp, nullptr, &m_backdroplist);
+	HandleRButtonUp(nFlags, fix_map_point(point));
+	mousedown = (BYTE)0;
 }
 
-void COverworldMap::OnSelchangeBackdrop() 
-{InvalidateRect(rcBackdrop);}
+void COverworldMap::OnRButtonDblClk(UINT nFlags, CPoint pt)
+{
+	int ref = -1;
+	if (PtInRect(rcMap, pt)) {
+		HandleRButtonDblClk(nFlags, fix_map_point(pt));
+	}
+	else if (PtInRect(rcTiles, pt)) {
+		pt.x = (pt.x - rcTiles.left) >> 4;
+		pt.y = (pt.y - rcTiles.top) & 0xF0;
+		ref = pt.x + pt.y;
+	}
+
+	if (ref != -1) {
+		apply_tile_tint(ref);
+	}
+}
 
 void COverworldMap::OnMouseMove(UINT nFlags, CPoint pt)
 {
@@ -1217,6 +1262,15 @@ void COverworldMap::OnMouseMove(UINT nFlags, CPoint pt)
 		}
 	}
 }
+
+void COverworldMap::OnEditlabel()
+{
+	int temp = m_backdroplist.GetCurSel();
+	ChangeLabel(*cart, -1, LoadBackdropLabel(*cart, temp), WriteBackdropLabel, temp, nullptr, &m_backdroplist);
+}
+
+void COverworldMap::OnSelchangeBackdrop() 
+{InvalidateRect(rcBackdrop);}
 
 void COverworldMap::UpdateClick(CPoint pt)
 {
@@ -1372,12 +1426,6 @@ void COverworldMap::OnTeleport()
 	m_teleportbox.ShowWindow(teleport);
 }
 
-void COverworldMap::OnLButtonUp(UINT nFlags, CPoint point)
-{
-	HandleLButtonUp(nFlags, fix_map_point(point));
-	mousedown = 0;
-}
-
 void COverworldMap::OnFindKAB() 
 {
 	kab = 0;
@@ -1476,23 +1524,6 @@ void COverworldMap::CompressMap()
 		cart->ROM[co + OVERWORLDPALETTE_OFFSET] = palette[0][co];
 }
 
-void COverworldMap::OnRButtonDblClk(UINT nFlags, CPoint pt)
-{
-	int ref = -1;
-	if (PtInRect(rcMap, pt)) {
-		HandleRButtonDblClk(nFlags, fix_map_point(pt));
-	}
-	else if (PtInRect(rcTiles, pt)) {
-		pt.x = (pt.x - rcTiles.left) >> 4;
-		pt.y = (pt.y - rcTiles.top) & 0xF0;
-		ref = pt.x + pt.y;
-	}
-
-	if (ref != -1) {
-		apply_tile_tint(ref);
-	}
-}
-
 void COverworldMap::OnEditgraphics()
 {
 	CBackdrop dlg;
@@ -1505,31 +1536,6 @@ void COverworldMap::OnEditgraphics()
 		m_backdrop.DeleteImageList();
 		InitBackdrops();
 		InvalidateRect(nullptr, 0);
-	}
-}
-
-void COverworldMap::OnLButtonDblClk(UINT nFlags, CPoint pt)
-{
-	UNREFERENCED_PARAMETER(nFlags);
-
-	if(PtInRect(rcTiles,pt)){
-		CTileEdit dlg;
-		dlg.Invoker = CTileEdit::Overworld;
-		dlg.cart = cart;
-		dlg.tileset = 0;
-		dlg.tile = (BYTE)cur_tile;
-		dlg.pal[0] = palette[0];
-		OnSave();
-		if(dlg.DoModal() == IDOK){
-			minimap.PalAssign[cur_tile] = cart->ROM[OVERWORLDPALETTE_ASSIGNMENT + cur_tile] & 3;
-			if(m_minimap.GetCheck()) minimap.UpdateAll();
-			cart->m_overworldtiles.DeleteImageList();
-			cart->OK_overworldtiles = 0;
-			ReloadGraphics();
-			InvalidateRect(rcPalette,0);
-			InvalidateRect(rcTiles,0);
-			invalidate_maps();
-		}
 	}
 }
 
@@ -1627,7 +1633,7 @@ void COverworldMap::PopMapDialog(bool in)
 CPoint COverworldMap::fix_map_point(CPoint point)
 {
 	CPoint fixedpt;
-	fixedpt.x = ((point.x - rcMap.left) + ScrollOffset.x) / 16;
+	fixedpt.x = ((point.x - rcMap.left) + ScrollOffset.x) / 16; //TODO - display tile dims are hardcoded here as 16x16
 	fixedpt.y = ((point.y - rcMap.top) + ScrollOffset.y) / 16;
 	return fixedpt;
 }
@@ -1692,7 +1698,7 @@ void COverworldMap::handle_paint(CDC& dc)
 	int coX, coY, tile;
 	CPoint pt;
 
-	//Draw the Tiles on the screen
+	//Draw the Source Tiles on the screen (8 rows of 16 tiles)
 	for (coY = 0, tile = 0, pt.y = rcTiles.top; coY < 0x08; coY++, pt.y += 16) {
 		for (coX = 0, pt.x = rcTiles.left; coX < 0x10; coX++, pt.x += 16, tile++)
 			cart->m_overworldtiles.Draw(&dc, tile, pt, ILD_NORMAL);
@@ -1826,11 +1832,13 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayrect, CPoint scroll
 		pt.x = ((ptLastClick.x - gridanchor.x) * tiledims.cx) + displayarea.left;
 		pt.y = ((ptLastClick.y - gridanchor.y) * tiledims.cy) + displayarea.top;
 		if (PtInRect(displayarea, pt)) {
+			auto oldpen = dc.SelectObject(&redpen);
 			dc.MoveTo(pt); pt.x += tiledims.cx;
 			dc.LineTo(pt); pt.y += tiledims.cy;
 			dc.LineTo(pt); pt.x -= tiledims.cx;
 			dc.LineTo(pt); pt.y -= tiledims.cy;
 			dc.LineTo(pt);
+			dc.SelectObject(oldpen);
 		}
 	}
 	if (cart->DrawDomainGrid) {
@@ -1966,12 +1974,6 @@ void COverworldMap::OnChangeMiscy()
 	if(number > 0xFF) number = 0xFF;
 	misccoords[m_misccoords.GetCurSel()].y = number;
 	invalidate_maps();
-}
-
-void COverworldMap::OnRButtonUp(UINT nFlags, CPoint point)
-{
-	HandleRButtonUp(nFlags, fix_map_point(point));
-	mousedown = (BYTE)0;
 }
 
 void COverworldMap::OnMapExport() 

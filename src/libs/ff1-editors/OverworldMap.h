@@ -7,7 +7,6 @@
 #include <vector>
 #include "afxwin.h"
 #include <DrawingToolButton.h>
-#include <DrawingToolButton.h>
 #include <DlgPopoutMap.h>
 class CFFHacksterProject;
 
@@ -134,7 +133,7 @@ protected:
 	void handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	void handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	void handle_paint(CDC& dc);
-	void paint_map_elements(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims);
+	void paint_map_elements(CDC& dc, CRect displayrect, CPoint scrolloff, CSize tiledims);
 	void sync_map_positions(bool popin);
 
 	// Dialog Data
@@ -260,9 +259,9 @@ protected:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);
-	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnEditlabel();
 	afx_msg void OnSelchangeBackdrop();

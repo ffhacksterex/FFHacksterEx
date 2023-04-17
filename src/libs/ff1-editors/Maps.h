@@ -8,7 +8,7 @@
 #include "afxwin.h"
 #include <SimpleImageButton.h>
 #include <DrawingToolButton.h>
-#include <FloatingMapDlg.h>
+#include <DlgPopoutMap.h>
 class CFFHacksterProject;
 class CEntriesLoader;
 
@@ -26,6 +26,7 @@ public:
 	enum CancelContext { Coords };
 
 	bool BootToTeleportFollowup;
+	bool ForceCenteringOnMapSwitch = false; //N.B. - for now, this is always false
 	CEntriesLoader* Enloader = nullptr;
 
 	// Inherited via ICoordMap
@@ -36,6 +37,7 @@ public:
 	virtual void TeleportHere(int mapindex, int x, int y) override;
 	virtual void DoHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	virtual void DoVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	virtual void SendKeydown(WPARAM wparam, LPARAM lparam); //--
 
 	// Inherited from IMapEditor
 	virtual void HandleLButtonDown(UINT nFlags, CPoint point);
@@ -45,9 +47,14 @@ public:
 	virtual void HandleRButtonUp(UINT nFlags, CPoint pt);
 	virtual void HandleRButtonDblClk(UINT nFlags, CPoint point);
 	virtual void HandleMouseMove(UINT nFlags, CPoint newhover);
+	virtual void HandleAfterScroll(CPoint scrolloffset, CRect displayarea); //-
 	virtual void HandleMapImport();
 	virtual void HandleMapExport();
 	virtual bool HandleCustomizeTool();
+	virtual void RenderMapEx(CDC& dc, CRect displayarea, CPoint scrolloff, CSize tiledims); //-
+	virtual int GetCurrentToolIndex() const; //-
+	virtual void SetMouseDown(int imousedown); //-
+	virtual int GetMouseDown() const; //-
 
 protected:
 	virtual void LoadOffsets();
@@ -79,12 +86,16 @@ protected:
 	bool m_popoutcreated = false;
 	std::vector<CDrawingToolButton*> m_toolbuttons;
 
+	CSubBanner m_banner;
+	CDlgPopoutMap m_popoutmap;
+	CPoint ptHover;
 	CPoint ptLastClick;
 	CButton	m_viewcoords;
 	
 	BYTE DecompressedMap[0x40][0x40];
 	CImageList m_sprites;
 	CPen redpen;
+	CBrush toolBrush;
 	CRect rcTiles;
 	CRect rcMap;
 	CRect rcPalettes;
@@ -97,8 +108,10 @@ protected:
 	std::vector<short> Sprite_Value; // MAPSPRITE_COUNT;
 
 	int kab;
+	CSize m_mapdims = { 64,64 };            // number of cols and rows on the map //TODO - rename to m_maptilesize?
+	CSize m_tiledims = { 16,16 };           // size in pixels of each tile
+	CSize m_displaytilecounts = { 16, 16 }; // number of tile cols and rows in the embedded map
 
-	CPoint ptHover;
 	void UpdateClick(CPoint);
 	CPoint fix_map_point(CPoint point);
 
@@ -116,13 +129,23 @@ protected:
 	void UpdateTileData();
 	void UpdatePics();
 
-	void init_popout_map_window();
-	void PopMapDialog(bool in);
-	void invalidate_maps();
-
 	BYTE MapPalette[2][4][4];
 	BYTE SpritePalette[2][4];
 	BYTE ControlPalette[8];
+
+	void init_popout_map_window();
+	void PopMapDialog(bool in);
+	
+	CSize calc_scroll_maximums();
+	CSize get_scroll_limits();
+	CRect get_display_area();
+	void invalidate_maps();
+
+	void handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	void handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	void handle_paint(CDC& dc);
+	void paint_map_elements(CDC& dc, CRect displayrect, CPoint scrolloff, CSize tiledims);
+	void sync_map_positions(bool popin);
 
 	// Dialog Data
 	enum { IDD = IDD_MAPS_NEW };
@@ -195,9 +218,6 @@ protected:
 	CSimpleImageButton m_popoutbutton{ IDB_PNG_SCREEENSIZE_INCREASE };
 	CCloseButton m_closebutton;
 	CHelpbookButton m_helpbookbutton;
-
-	CSubBanner m_banner;
-	CFloatingMapDlg m_mapdlg;
 
 	int ITEMPRICE_OFFSET = -1;
 	int MAPSPRITEPATTERNTABLE_COUNT = -1;

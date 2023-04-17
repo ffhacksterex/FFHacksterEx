@@ -81,15 +81,6 @@
     <ClCompile Include="DrawingToolButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FloatingMapDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSubDlgRenderMap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSubDlgRenderMapStatic.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sRenderMapState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -155,12 +146,6 @@
     <ClInclude Include="Coords.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSubDlgRenderMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CSubDlgRenderMapStatic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CustomTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -180,9 +165,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DrawingToolButton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FloatingMapDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ICoordMap.h">
