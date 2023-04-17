@@ -1081,11 +1081,12 @@ void COverworldMap::handle_hscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 {
 	UNREFERENCED_PARAMETER(pScrollBar);
 
+	bool controlDown = IsKeyDown(VK_CONTROL);
 	switch (nSBCode) {
-	case SB_LINELEFT: ScrollOffset.x -= 1 * Ui::MultiplyIf(8); break;
-	case SB_LINERIGHT: ScrollOffset.x += 1 * Ui::MultiplyIf(8); break;
-	case SB_PAGELEFT: ScrollOffset.x -= 16 * Ui::MultiplyIf(2); break;
-	case SB_PAGERIGHT: ScrollOffset.x += 16 * Ui::MultiplyIf(2); break;
+	case SB_LINELEFT: ScrollOffset.x -= 1 * Ui::MultiplyIf(controlDown, 8); break;
+	case SB_LINERIGHT: ScrollOffset.x += 1 * Ui::MultiplyIf(controlDown, 8); break;
+	case SB_PAGELEFT: ScrollOffset.x -= 16 * Ui::MultiplyIf(controlDown, 2); break;
+	case SB_PAGERIGHT: ScrollOffset.x += 16 * Ui::MultiplyIf(controlDown, 2); break;
 	case SB_THUMBTRACK: ScrollOffset.x = nPos; break;
 	}
 	auto maxes = calc_scroll_maximums();
@@ -1107,11 +1108,12 @@ void COverworldMap::handle_vscroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollB
 {
 	UNREFERENCED_PARAMETER(pScrollBar);
 
+	bool controlDown = IsKeyDown(VK_CONTROL);
 	switch (nSBCode) {
-	case SB_LINEUP: ScrollOffset.y -= 1 * Ui::MultiplyIf(8); break;
-	case SB_LINEDOWN: ScrollOffset.y += 1 * Ui::MultiplyIf(8); break;
-	case SB_PAGEUP: ScrollOffset.y -= 16 * Ui::MultiplyIf(2); break;
-	case SB_PAGEDOWN: ScrollOffset.y += 16 * Ui::MultiplyIf(2); break;
+	case SB_LINEUP: ScrollOffset.y -= 1 * Ui::MultiplyIf(controlDown, 8); break;
+	case SB_LINEDOWN: ScrollOffset.y += 1 * Ui::MultiplyIf(controlDown, 8); break;
+	case SB_PAGEUP: ScrollOffset.y -= 16 * Ui::MultiplyIf(controlDown, 2); break;
+	case SB_PAGEDOWN: ScrollOffset.y += 16 * Ui::MultiplyIf(controlDown, 2); break;
 	case SB_THUMBTRACK: ScrollOffset.y = nPos; break;
 	}
 	auto maxes = calc_scroll_maximums();
