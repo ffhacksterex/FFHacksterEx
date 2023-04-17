@@ -102,8 +102,6 @@ pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress* progres
 			return result;
 	}
 
-	Project.LoadSharedSettings();
-
 	CString msg;
 	if (Project.IsAsm()) {
 		// For assembly projects, the DLL might not exist (if the project was copied or files were moved around).
@@ -185,8 +183,10 @@ pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress* progres
 		if (!loadedvars) msg = "Failed to load variables and constants.";
 	}
 
-	if (msg.IsEmpty())
+	if (msg.IsEmpty()) {
 		msg = Project.LoadCartData();
+		Project.LoadSharedSettings();
+	}
 
 	return pair_result<CString>(msg.IsEmpty(), msg);
 }
