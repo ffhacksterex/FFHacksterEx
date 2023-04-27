@@ -188,6 +188,7 @@
     <ClCompile Include="DirPathRemover.cpp" />
     <ClCompile Include="draw_functions.cpp" />
     <ClCompile Include="Editors2.cpp" />
+    <ClCompile Include="FFH2Project.cpp" />
     <ClCompile Include="FFHacksterProject.cpp" />
     <ClCompile Include="FilePathRemover.cpp" />
     <ClCompile Include="FilePathRestorer.cpp" />
@@ -217,7 +218,9 @@
     <ClCompile Include="stream_ops.cpp" />
     <ClCompile Include="string_functions.cpp" />
     <ClCompile Include="type_support.cpp" />
+    <ClCompile Include="Upgrades_ini.cpp" />
     <ClCompile Include="upgrade_functions.cpp" />
+    <ClCompile Include="upgrade_ini_to_json.cpp" />
     <ClCompile Include="vector_types.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -250,6 +253,8 @@
     <ClInclude Include="EditorInterop.h" />
     <ClInclude Include="Editors2.h" />
     <ClInclude Include="EditorSettingsSerializer.h" />
+    <ClInclude Include="FFH2Project.h" />
+    <ClInclude Include="FFH2Project_IniToJson_Defs.hpp" />
     <ClInclude Include="FFHacksterProject.h" />
     <ClInclude Include="FilePathRemover.h" />
     <ClInclude Include="FilePathRestorer.h" />
@@ -267,6 +272,10 @@
     <ClInclude Include="LoadLibraryHandleScope.h" />
     <ClInclude Include="logging_functions.h" />
     <ClInclude Include="map_types.h" />
+    <ClInclude Include="nlohmann\nlohmann-fifo_map.hpp" />
+    <ClInclude Include="nlohmann\nlohmann-integration.hpp" />
+    <ClInclude Include="nlohmann\nlohmann-json.hpp" />
+    <ClInclude Include="nlohmann\nlohmann-json_fwd.hpp" />
     <ClInclude Include="outputdebugbuf.h" />
     <ClInclude Include="pair_result.h" />
     <ClInclude Include="path_functions.h" />
@@ -284,6 +293,7 @@
     <ClInclude Include="string_functions.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="type_support.h" />
+    <ClInclude Include="Upgrades_ini.h" />
     <ClInclude Include="upgrade_functions.h" />
     <ClInclude Include="vector_types.h" />
     <ClInclude Include="window_messages.h" />
