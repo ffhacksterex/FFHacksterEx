@@ -677,24 +677,26 @@ BOOL CFFHacksterDlg::OnInitDialog()
 
 		m_proj.AppSettings = AppStgs;
 
-		auto loadresult = LoadProject(m_proj, ProjectFile, &progress);
+		auto loadresult = LoadProject(m_prj2, m_proj, ProjectFile, &progress);
 		if (!loadresult) {
 			if (!loadresult.value.IsEmpty()) AfxMessageBox(loadresult.value, MB_ICONERROR);
 			EndDialog(IDABORT);
 			return FALSE;
 		}
 
+		ProjectFile = m_prj2.ProjectPath.c_str();
+
 		m_loader.Init();
 	}
 	catch (std::exception & ex) {
 		CString msg;
-		msg.Format("An unexpected exception while loading the project.\n%s\n\nThe operation cannot continue.", ex.what());
+		msg.Format("Encounted an error while loading the project.\n%s\n\nThe operation cannot continue.", ex.what());
 		AfxMessageBox(msg, MB_ICONERROR);
 		EndDialog(IDABORT);
 		return FALSE;
 	}
 	catch (...) {
-		AfxMessageBox("An unexpected exception while loading the project.\nThe operation cannot continue.", MB_ICONERROR);
+		AfxMessageBox("An unknown exception occurred while loading the project.\nThe operation cannot continue.", MB_ICONERROR);
 		EndDialog(IDABORT);
 		return FALSE;
 	}
@@ -781,7 +783,7 @@ void CFFHacksterDlg::OnCancel()
 		if (result == IDNO) return;
 	}
 
-	SaveProject(m_proj);
+	SaveProject(m_prj2, m_proj);
 
 	BaseClass::OnCancel();
 }
@@ -1321,7 +1323,7 @@ void CFFHacksterDlg::OnArchiveProject()
 		return;
 	}
 
-	if (!SaveProject(m_proj)) {
+	if (!SaveProject(m_prj2, m_proj)) {
 		auto result = AfxMessageBox("Failed to save the project.\nDo you want to archive it now anyway?", MB_OKCANCEL | MB_DEFBUTTON2 | MB_ICONQUESTION);
 		if (result != IDOK) return;
 	}

@@ -180,6 +180,7 @@
     <ClInclude Include="ClearRadio.h" />
     <ClInclude Include="DlgPromptProjectBackup.h" />
     <ClInclude Include="OffscreenDC.h" />
+    <ClInclude Include="ProjectLoader_ini.h" />
     <ClInclude Include="SimpleImageButton.h" />
     <ClInclude Include="DlgPickDestinationFile.h" />
     <ClInclude Include="CloseButton.h" />
@@ -240,6 +241,7 @@
     <ClCompile Include="ClearRadio.cpp" />
     <ClCompile Include="DlgPromptProjectBackup.cpp" />
     <ClCompile Include="OffscreenDC.cpp" />
+    <ClCompile Include="ProjectLoader_ini.cpp" />
     <ClCompile Include="SimpleImageButton.cpp" />
     <ClCompile Include="DlgPickDestinationFile.cpp" />
     <ClCompile Include="CloseButton.cpp" />

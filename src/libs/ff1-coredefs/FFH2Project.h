@@ -138,7 +138,12 @@ public:
 
 	void Load(CString filepath);
 
-	ProjectHeader ffheader; //TODO - rename to ffhHeader, might help for version scraping
+	// Non-serialized members (Runtime-only)
+	std::string ProjectPath;
+	std::string ProjectFolder;
+
+	// Serialized members
+	ProjectHeader ffheader;
 	ProjectInfo info;
 	ProjectStrings strings;
 	ProjectSession session;

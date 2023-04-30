@@ -25,14 +25,20 @@ namespace Upgrades
 
 	bool NeedsConversion(CString projectpath)
 	{
+		//TODO - do the following:
+		//	needs conversion if it's INI format, regardless of the version.
 		if (IsIniFormat(projectpath)) {
 			return Upgrades_ini::NeedsConversion(projectpath);
 		}
 		else {
+			//TODO - changethis to a JSON upgrade check once we start supporting JSON
 			//int curver = ExtractJsonVersion(projectpath);
 			//return (curver < CURRENT_SEMVER);
 			throw std::runtime_error("Project types other than INI are not currently supported.");
 		}
+
+		// So should look like this when done
+		// return IniFormat ? true : jsonNeedsCOnversion()
 	}
 
 	pair_result<CString> PrepareProjectUpgrade(CString projectini)
@@ -65,17 +71,33 @@ namespace Upgrades
 		return{ true, "" };
 	}
 
-	pair_result<CString> UpgradeProject(CString projectpath)
-	{
-		if (!Paths::FileExists(projectpath))
-			return{ false, "The project file can't be upgraded because it wasn't found" };
+	//pair_result<CString> UpgradeProject(CString projectpath)
+	//{
+	//	if (!Paths::FileExists(projectpath))
+	//		return{ false, "The project file can't be upgraded because it wasn't found" };
 
-		if (IsIniFormat(projectpath)) {
-			return Upgrades_ini::UpgradeProject(projectpath);
-		}
-		else {
-			throw std::runtime_error("Not implemented yet");
-		}
+	//	if (IsIniFormat(projectpath)) {
+	//		return Upgrades_ini::UpgradeProject(projectpath);
+	//	}
+	//	else {
+	//		throw std::runtime_error("Not implemented yet");
+	//	}
+	//}
+
+	[[deprecated]]
+	version_result UpgradeProject(CString projectpath)
+	{
+		throw std::runtime_error("Don't call " __FUNCTION__);
+		//if (!Paths::FileExists(projectpath))
+		//	return{ versionfailure, "The project file can't be upgraded because it wasn't found" };
+
+		//if (IsIniFormat(projectpath)) {
+		//	auto result = Upgrades_ini::UpgradeProject(projectpath);
+		//	return version_result{ result ? versionok : versionfailure, result.value };
+		//}
+		//else {
+		//	throw std::runtime_error("Not implemented yet");
+		//}
 	}
 
 } // end namespace Upgrades

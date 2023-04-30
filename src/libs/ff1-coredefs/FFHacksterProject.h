@@ -30,6 +30,7 @@ class AppSettings;
 class CFFHacksterProject
 {
 	friend class ProjectLoader;
+	friend class ProjectLoader_ini;
 public:
 	CFFHacksterProject();
 	~CFFHacksterProject();

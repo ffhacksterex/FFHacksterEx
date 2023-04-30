@@ -50,28 +50,18 @@ bool Upgrades_ini::NeedsConversion(CString projectpath)
 	return (curver < LAST_INI_VERSION);
 }
 
-pair_result<CString> Upgrades_ini::UpgradeProject(CString projectpath)
+void Upgrades_ini::Upgrade(std::string projectpath)
 {
 	// If the versions match, no conversion is needed, but newer files can't be supported.
-	int curver = CFFHacksterProject::ReadProjectVersion(projectpath);
+	int curver = CFFHacksterProject::ReadProjectVersion(projectpath.c_str());
 	if (curver == LAST_INI_VERSION)
-		return{ true, "" };
+		return; // no upgrade needed
 
 	if (curver > LAST_INI_VERSION) {
 		CString msg;
-		msg.Format("Version %d is newer than the latest version than this program can support (%d).", curver, LAST_INI_VERSION);
-		return{ false, msg };
+		msg.Format("INI project version %d is newer than %d,\nwhich is the latest version this program supports.", curver, LAST_INI_VERSION);
+		throw std::runtime_error((LPCSTR)msg);
 	}
-
-	// We need to convert, back up the project and restore if successful (wipe out the backup in any case).
-	CString projectfolder = Paths::GetDirectoryPath(projectpath);
-
-	auto prepresult = Upgrades::PrepareProjectUpgrade(projectpath);
-	if (!prepresult) return{ false, prepresult.value };
-
-	auto tempini = prepresult.value;
-	auto tempfolder = Paths::GetDirectoryPath(tempini);
-	DirPathRemover remover(tempfolder);
 
 	const auto DoProjectUpgrade = [](int oldver, int newver, CString projectfolder, CString projectini, auto func) -> pair_result<CString> {
 		auto verresult = PreConversionCheck(projectini, oldver, newver);
@@ -84,41 +74,35 @@ pair_result<CString> Upgrades_ini::UpgradeProject(CString projectpath)
 		return converesult;
 	};
 
-	auto errlogpath = Paths::Combine({ tempfolder, Paths::GetFileStem(projectpath) + ".upgrade-err.txt" });
+	CString projectini = projectpath.c_str();
+	auto projectfolder = Paths::GetDirectoryPath(projectini);
+	auto errlogpath = Paths::Combine({ projectfolder, Paths::GetFileStem(projectini) + ".upgrade-err.txt" });
 	if (Paths::FileExists(errlogpath)) Paths::FileDelete(errlogpath);
 
 	//N.B. - the initial alphas didn't have a version, so they'll return source version -1
-	auto upgresult = DoProjectUpgrade(-1, 1, tempfolder, tempini, UpgradeProject_none_to_1);
+	auto upgresult = DoProjectUpgrade(-1, 1, projectfolder, projectini, UpgradeProject_none_to_1);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(1, 2, tempfolder, tempini, UpgradeProject_1_to_2);
+		upgresult = DoProjectUpgrade(1, 2, projectfolder, projectini, UpgradeProject_1_to_2);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(2, 3, tempfolder, tempini, UpgradeProject_2_to_3);
+		upgresult = DoProjectUpgrade(2, 3, projectfolder, projectini, UpgradeProject_2_to_3);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(3, 4, tempfolder, tempini, UpgradeProject_3_to_4);
+		upgresult = DoProjectUpgrade(3, 4, projectfolder, projectini, UpgradeProject_3_to_4);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(4, 5, tempfolder, tempini, UpgradeProject_4_to_5);
+		upgresult = DoProjectUpgrade(4, 5, projectfolder, projectini, UpgradeProject_4_to_5);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(5, 6, tempfolder, tempini, UpgradeProject_5_to_6);
+		upgresult = DoProjectUpgrade(5, 6, projectfolder, projectini, UpgradeProject_5_to_6);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(6, 7, tempfolder, tempini, UpgradeProject_6_to_7);
+		upgresult = DoProjectUpgrade(6, 7, projectfolder, projectini, UpgradeProject_6_to_7);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(7, 8, tempfolder, tempini, UpgradeProject_7_to_8);
+		upgresult = DoProjectUpgrade(7, 8, projectfolder, projectini, UpgradeProject_7_to_8);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(8, 9, tempfolder, tempini, UpgradeProject_8_to_9);
+		upgresult = DoProjectUpgrade(8, 9, projectfolder, projectini, UpgradeProject_8_to_9);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(9, 10, tempfolder, tempini, UpgradeProject_9_to_10);
+		upgresult = DoProjectUpgrade(9, 10, projectfolder, projectini, UpgradeProject_9_to_10);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(10, 971, tempfolder, tempini, UpgradeProject_10_to_971);
+		upgresult = DoProjectUpgrade(10, 971, projectfolder, projectini, UpgradeProject_10_to_971);
 	if (upgresult)
-		upgresult = DoProjectUpgrade(971, 9810, tempfolder, tempini, UpgradeProject_971_to_9810);
-
-	if (Paths::FileExists(errlogpath))
-		Paths::FileMoveToFolder(errlogpath, projectfolder);
-
-	if (upgresult)
-		return Upgrades::CommitProjectUpgrade(projectfolder, tempfolder);
-
-	return{ false, upgresult.value };
+		upgresult = DoProjectUpgrade(971, 9810, projectfolder, projectini, UpgradeProject_971_to_9810);
 }
 
 // - MEMBER METHOD IMPLEMENTATION

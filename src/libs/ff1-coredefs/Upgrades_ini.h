@@ -7,7 +7,7 @@ class Upgrades_ini
 {
 public:
 	static bool NeedsConversion(CString projectpath);
-	static pair_result<CString> UpgradeProject(CString projectpath);
+	static void Upgrade(std::string projectpath);
 
 private:
 	static pair_result<CString> UpgradeProject_none_to_1(int oldver, int newver, CString projectfolder, CString projectini);
