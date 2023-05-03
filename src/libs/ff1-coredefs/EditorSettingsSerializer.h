@@ -2,6 +2,8 @@
 
 #include "Editors2.h"
 class CFFHacksterProject;
+struct ProjectEditorModuleEntry;
+class FFH2Project;
 
 namespace Editors2
 {
@@ -20,6 +22,8 @@ namespace Editors2
 
 		sEditorInfoVector ReadEditorInfo(CString name);
 
+		sEditorInfoVector ReadAllEditorInfos(FFH2Project & prj2);
+		[[deprecated]]
 		sEditorInfoVector ReadAllEditorInfos();
 		void WriteAllEditorInfos(const sEditorInfoVector & editors);
 
@@ -27,6 +31,8 @@ namespace Editors2
 		sEditorInfoVector BuildEditorFromIni(CString section);
 		CString DecodeModulePath(CString path);
 		CString EncodeModulePath(CString path);
+
+		sEditorInfoVector BuildEditorFromModuleEntry(ProjectEditorModuleEntry& entry);
 	};
 
 }

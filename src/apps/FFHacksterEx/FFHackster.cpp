@@ -104,7 +104,7 @@ CString CFFHacksterApp::GetIniitalAction()
 
 	switch (__argc) {
 	case 2:
-		if (Paths::FileExists(__argv[1])) {
+		if (Paths::FileExists((std::string)__argv[1])) {
 			// open|projectpath
 			action.Format("open|%s", __argv[1]);
 		}
@@ -115,7 +115,7 @@ CString CFFHacksterApp::GetIniitalAction()
 		break;
 
 	case 3:
-		if (Paths::FileExists(__argv[2])) {
+		if (Paths::FileExists((std::string)__argv[2])) {
 			action.Format("%s|%s", __argv[1], __argv[2]);
 		}
 		else {

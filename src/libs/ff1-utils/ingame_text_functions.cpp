@@ -1,15 +1,21 @@
 #include "stdafx.h"
 #include "ingame_text_functions.h"
-#include "FFHacksterProject.h"
+
+#include <DataValueAccessor.h>
+#include <FFHacksterProject.h>
+#include <FFH2Project.h>
+#include <FFHDataValue_dva.hpp>
+
 #include "general_functions.h"
 #include "ini_functions.h"
-#include "string_functions.h"
 #include "path_functions.h"
+#include "string_functions.h"
 #include "ui_helpers.h"
 
 using namespace Ini;
 using namespace Strings;
 using namespace Ui;
+using namespace ff1coredefs;
 
 namespace Ingametext
 {
@@ -179,6 +185,8 @@ namespace Ingametext
 		int DIALOGUE_PTRADD = ReadHex(proj.ValuesPath, "DIALOGUE_PTRADD");
 		return LoadExpandedZeroBasedEntry(address(proj.ROM), index, DIALOGUE_OFFSET, DIALOGUE_PTRADD, proj.GetTable(8), showindex, xform);
 	}
+
+	// CFFHackstrProject-based methods
 
 	dataintnodevector LoadArmorEntries(CFFHacksterProject & proj, bool showindex)
 	{
@@ -589,3 +597,259 @@ namespace Ingametext
 	}
 
 } // end namespace Ingametext
+
+namespace Ingametext // FFH2Project veersions
+{
+	// INTERNAL LOADING HELPERS
+	namespace {
+		dataintnodevector LoadExpandedZeroBasedEntriesEx(FFH2Project& proj,
+			std::string ptrname, std::string ptraddname, std::string startname, std::string countname,
+			int tableindex, bool showindex, StrXform xform = CStrIdentity)
+		{
+			DataValueAccessor d(proj);
+			unsigned char* buffer = address(proj.ROM);
+			int ptr = d.get<int>(ptrname);
+			int ptradd = d.get<int>(ptraddname);
+			int start = startname.empty() ? 0 : d.get<int>(startname);
+			int count = d.get<int>(countname);
+			const std::string* table = proj.GetTable(tableindex);
+
+			dataintnodevector dvec;
+			int offset, co;
+			BYTE temp;
+			CString text, temptext;
+
+			int last = start + count - 1;
+			for (co = start; co <= last; co++, ptr += 2) {
+				offset = buffer[ptr] + (buffer[ptr + 1] << 8) + ptradd;
+				text = "";
+				if (showindex) text.AppendFormat("%02X: ", co);
+
+				while (1) {
+					temp = buffer[offset];
+					if (!temp) break;
+					if (table[temp] == "") {
+						temptext.Format("{%02X}", temp);
+						text += temptext;
+					}
+					else text += table[temp].c_str();
+					offset += 1;
+				}
+				CString xformtext = xform(co, text);
+				dvec.push_back({ xformtext, co });
+			}
+
+			return dvec;
+		}
+
+		dataintnodevector LoadExpandedOneBasedEntriesEx(FFH2Project& proj,
+			std::string ptrname, std::string ptraddname, std::string startname, std::string countname,
+			int tableindex, bool showindex, StrXform xform = CStrIdentity)
+		{
+			DataValueAccessor d(proj);
+			unsigned char* buffer = address(proj.ROM);
+			int ptr = d.get<int>(ptrname);
+			int ptradd = d.get<int>(ptraddname);
+			int start = startname.empty() ? 0 : d.get<int>(startname);
+			int count = d.get<int>(countname);
+			const std::string* table = proj.GetTable(tableindex);
+
+			dataintnodevector dvec;
+			int offset, co;
+			BYTE temp;
+			CString text, temptext;
+
+			int last = start + count - 1;
+			for (co = start; co <= last; co++, ptr += 2) {
+				offset = buffer[ptr] + (buffer[ptr + 1] << 8) + ptradd;
+				text = "";
+				if (showindex) text.AppendFormat("%02X: ", co + 1);
+
+				while (1) {
+					temp = buffer[offset];
+					if (!temp) break;
+					if (table[temp] == "") {
+						temptext.Format("{%02X}", temp);
+						text += temptext;
+					}
+					else {
+						text += table[temp].c_str();
+					}
+					offset += 1;
+				}
+				CString xformtext = xform(co, text);
+				dvec.push_back({ xformtext, co + 1 });
+			}
+
+			return dvec;
+		}
+
+		// Weapons IDs start with 0 as None, 1 as Wooden Nunchuk, but weapon text strings start with  0 as Wooden Nunchuk.
+		// LoadExpandedZeroBasedEntries can't be used here because it will start the index at 0, we need it to start at 1.
+		// index has to be passed in the [0,39] range, not [1,40] (at least for now).
+		dataintnodevector LoadExpandedOneBasedEntries(FFH2Project& proj, int ptr, int ptradd, int start, int count,
+			int tableindex, bool showindex, StrXform xform = CStrIdentity)
+		{
+			unsigned char* buffer = address(proj.ROM);
+			const std::string* table = proj.GetTable(tableindex);
+
+			dataintnodevector dvec;
+			int offset, co;
+			BYTE temp;
+			CString text, temptext;
+
+			int last = start + count - 1;
+			for (co = start; co <= last; co++, ptr += 2) {
+				offset = buffer[ptr] + (buffer[ptr + 1] << 8) + ptradd;
+				text = "";
+				if (showindex) text.AppendFormat("%02X: ", co + 1);
+
+				while (1) {
+					temp = buffer[offset];
+					if (!temp) break;
+					if (table[temp] == "") {
+						temptext.Format("{%02X}", temp);
+						text += temptext;
+					}
+					else {
+						text += table[temp].c_str();
+					}
+					offset += 1;
+				}
+				CString xformtext = xform(co, text);
+				dvec.push_back({ xformtext, co + 1 });
+			}
+
+			return dvec;
+		}
+
+		// Pass the 1-based index to this function and it will handle the decrement and call to the underlying entries function.
+		datanode<int> LoadExpandedOneBasedEntry(FFH2Project& proj, int index,
+			std::string ptrname, std::string ptraddname,
+			int tableindex, bool showindex, StrXform xform = CStrIdentity
+			//unsigned char* buffer, int index, int ptr, int ptradd, CString table[], bool showindex, StrXform xform
+		)
+		{
+			DataValueAccessor d(proj);
+			int ptr = d.get<int>(ptrname);
+			int ptradd = d.get<int>(ptraddname);
+
+			ASSERT(index >= 0);
+			if (index >= 0) {
+				// decrement the 1-based index by 1 to account for the first entry actually being index 0 (there's no "None" entry)
+				// step forward by 'index' slots in the 2-byte/record pointer table
+				int textindex = index - 1;
+				auto indexedptr = ptr + (textindex * 2);
+				auto vec = LoadExpandedOneBasedEntries(proj, indexedptr, ptradd, textindex, 1, tableindex, showindex, xform);
+				if (!vec.empty()) return vec.front();
+			}
+			return{ "<!error!>", -1 };
+		}
+
+	} // end namespace (unnamed)
+
+	dataintnodevector LoadArmorEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadExpandedOneBasedEntriesEx(proj, "ARMORTEXT_OFFSET", "BASICTEXT_PTRADD", "", "ARMOR_COUNT", 2, showindex);
+	}
+
+	dataintnodevector LoadAttackEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadExpandedZeroBasedEntriesEx(proj, "ATTACKTEXT_OFFSET", "ATTACKTEXT_PTRADD", "", "ATTACK_COUNT", 6, showindex);
+	}
+
+	dataintnodevector LoadClassEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadExpandedZeroBasedEntriesEx(proj, "CLASSTEXT_OFFSET", "BASICTEXT_PTRADD", "", "CLASS_COUNT", 5, showindex);
+	}
+
+	dataintnodevector LoadMagicEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadExpandedZeroBasedEntriesEx(proj, "MAGICTEXT_OFFSET", "BASICTEXT_PTRADD", "", "MAGIC_COUNT", 4, showindex);
+	}
+
+
+	dataintnode LoadArmorEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		DataValueAccessor d(proj);
+		int ARMORTEXT_OFFSET = d.get<int>("ARMORTEXT_OFFSET");
+		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+		return LoadExpandedOneBasedEntry(proj, index, "ARMORTEXT_OFFSET", "BASICTEXT_PTRADD", 2, showindex);
+	}
+
+
+	void PasteSwapStringBytes(bool swapping, FFH2Project& proj, int context, int sourceindex, int destindex)
+	{
+		if (context == INTROTEXT) {
+			return; //TODO - or throw? it's not applicable here
+		}
+
+		DataValueAccessor d(proj);
+		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
+		int BASICTEXT_COUNT = d.get<int>("BASICTEXT_COUNT");
+		int ITEM_COUNT = d.get<int>("ITEM_COUNT");
+		int WEAPON_COUNT = d.get<int>("WEAPON_COUNT");
+		int ARMOR_COUNT = d.get<int>("ARMOR_COUNT");
+		int GOLDITEM_COUNT = d.get<int>("GOLDITEM_COUNT");
+		int MAGIC_COUNT = d.get<int>("MAGIC_COUNT");
+		int CLASS_COUNT = d.get<int>("CLASS_COUNT");
+		int INTROTEXT_OFFSET = d.get<int>("INTROTEXT_OFFSET"); // no pointer table, just a single complex string
+
+		// Set up the offsets
+		const int ptradd = BASICTEXT_PTRADD;
+		int ptroffset = BASICTEXT_OFFSET;
+		int count = ITEM_COUNT;
+		if (context < ENEMYATTACKS) {
+			if (context > 0) { ptroffset += count << 1; count = WEAPON_COUNT; }
+			if (context > 1) { ptroffset += count << 1; count = ARMOR_COUNT; }
+			if (context > 2) { ptroffset += count << 1; count = GOLDITEM_COUNT; }
+			if (context > 3) { ptroffset += count << 1; count = MAGIC_COUNT; }
+			if (context > 4) { ptroffset += count << 1; count = CLASS_COUNT; }
+		}
+		else {
+			CString fmt;
+			fmt.Format("Can't swap ingame text indexes %d and %d for unrecognized context %d.",
+				sourceindex, destindex, context);
+			throw std::runtime_error((LPCSTR)fmt);
+		}
+
+		const auto ReadBytes = [&](int index) {
+			std::vector<unsigned char> bytes;
+			size_t offset = (size_t)(ptroffset + (index << 1));
+			offset = (size_t)(proj.ROM[offset] + (proj.ROM[offset + 1] << 8) + ptradd);
+			for (; proj.ROM[offset]; ++offset)
+				bytes.push_back(proj.ROM[offset]);
+			return bytes;
+		};
+		const auto WriteBytes = [&](int index, const std::vector<unsigned char>& bytes) {
+			size_t offset = (size_t)(ptroffset + (index << 1));
+			offset = (size_t)(proj.ROM[offset] + (proj.ROM[offset + 1] << 8) + ptradd);
+			for (size_t i = 0; i < bytes.size(); ++i, ++offset)
+				proj.ROM[offset] = bytes[i];
+		};
+
+		auto srcbytes = ReadBytes(sourceindex);
+		auto dstbytes = ReadBytes(destindex);
+
+		ASSERT(srcbytes.size() == dstbytes.size());
+		if (srcbytes.size() != dstbytes.size())
+			throw std::runtime_error("Source and dest byte lengths don't match.");
+
+		// We always write srcbytes to the dest index.
+		// if swapping, also write dstbytes to the source.
+		if (swapping) WriteBytes(sourceindex, dstbytes);
+		WriteBytes(destindex, srcbytes);
+	}
+
+	void SwapStringBytes(FFH2Project& proj, int context, int sourceindex, int destindex)
+	{
+		PasteSwapStringBytes(true, proj, context, sourceindex, destindex);
+	}
+
+	void OverwriteStringBytes(FFH2Project& proj, int context, int sourceindex, int destindex)
+	{
+		PasteSwapStringBytes(false, proj, context, sourceindex, destindex);
+	}
+
+} // end namespace Ingametext // FFH2Project veersions

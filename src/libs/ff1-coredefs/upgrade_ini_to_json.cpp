@@ -7,6 +7,7 @@
 #include "upgrade_functions.h"
 #include "ini_functions.h"
 #include "path_functions.h"
+#include "string_conversions.hpp"
 #include "string_functions.h"
 #include "FFH2Project.h"
 #include "FFH2Project_IniToJson_Defs.hpp"
@@ -108,8 +109,15 @@ namespace Upgrades
 		p.data.palette = ReadBinary(palpath);
 
 		// Write out the object as JSON
-		auto ext = Paths::GetFileExtension(inipath);
-		auto newext = ext == ".ff1rom" ? ".ff1r" : (ext == ".ff1asm" ? ".ff1a" : (throw std::runtime_error("Bad extension")));
+		std::string ext = (LPCSTR)Paths::GetFileExtension(inipath);
+
+		//auto newext = ext == ".ff1rom" ? ".rom.ffh" : (ext == ".ff1asm" ? ".asm.ffh" :
+		//	(throw std::runtime_error("Unsupported old extension '" + ext + "'")));
+		CString newext;
+		if (ext == ".ff1rom") newext = ".rom.ffh";
+		else if (ext == ".ff1asm") newext = ".asm.ffh";
+		else throw std::runtime_error("Can't upgrade unsupported old extension '" + ext + "', expected .f1rom or .ff1asm");
+
 		std::string projectpath = (LPCSTR)Paths::ReplaceExtension(inipath, newext);
 
 		ojson j = p;
@@ -303,6 +311,7 @@ namespace {
 			if (exclusions.find(section) != cend(exclusions)) continue;
 
 			FFHDataValue& f = (p.values.entries[(LPCSTR)section] = {});
+			f.name = (LPCSTR)section;
 			f.desc = Ini::ReadIni(valpath, section, "desc", "");
 			f.label = Ini::ReadIni(valpath, section, "label", "");
 			f.group = Ini::ReadIni(valpath, section, "group", "");
@@ -415,15 +424,12 @@ namespace {
 		std::ifstream ifs((LPCSTR)tablepath);
 		while (ifs && ifs.good() && !ifs.eof()) {
 			std::string key, value;
-			std::getline(ifs, key, '=');
 
-			// The value might be blank, so only read if it's not whitespace
-			if (!isspace(ifs.peek())) {
-				ifs >> value;
-				auto index = strtoul(key.c_str(), nullptr, 16);
-				table[index] = value;
-			}
-			ifs >> std::ws;
+			// Space is a legit value (e.g. index 0xFF is a single space).
+			std::getline(ifs, key, '=');
+			std::getline(ifs, value);
+			auto index = strtoul(key.c_str(), nullptr, 16);
+			table[index] = value;
 		}
 	}
 

@@ -1,10 +1,16 @@
 #pragma once
+
+#define FFH2_PTR_CHECK(p) if ((p) != nullptr) throw std::runtime_error(__FUNCTION__ ": Switch editor\nfrom CFFHacksterProject\nto FFH2Project (Proj2)");
+
+#include "FFHSettingValue.h"
+#include "FFHDataValue.h"
 #include "pair_result.h"
 #include <string>
 #include <cstdint>
 #include <vector>
 #include <map>
 #include <array>
+class AppSettings;
 
 struct ProjectHeader
 {
@@ -49,13 +55,6 @@ enum ProjectEditorModuleEntryType
 	Editor = 0, Subeditor
 };
 
-struct FFHSettingValue
-{
-	std::string type;
-	std::string format;
-	std::string data;
-};
-
 struct ProjectEditorModuleEntry //TODO- rename, maybe ProjectExtensionEntry?
 {
 	std::string id;
@@ -69,18 +68,6 @@ struct ProjectEditorModules
 {
 	std::vector<std::string> order;
 	std::map<std::string, ProjectEditorModuleEntry> entries;
-};
-
-struct FFHDataValue {
-	std::string type;
-	std::string format;
-	std::string data;
-	std::string label;
-	std::string desc;
-	std::string group;
-	bool internal = false;
-	bool readonly = false;
-	bool hidden = false;
 };
 
 struct ProjectValues
@@ -130,18 +117,34 @@ struct ProjectDialogue
 	ProjectDialogueTalkHandlers handlers;
 };
 
+//TODO - not used yet
+//struct AsmFilePair
+//{
+//	std::string originalpath;
+//	std::string workingpath;
+//	bool keep = false; // by default, changes will not be kept
+//};
+//using AsmFileSet = std::map<std::string, AsmFilePair>; // maps shortname to filepath
+
 class FFH2Project
 {
 public:
 	FFH2Project();
 	~FFH2Project();
 
-	void Load(CString filepath);
+	void Load(std::string projectpath);
+	void Save(std::string altenateprojectpath = "");
 
 	// Non-serialized members (Runtime-only)
 	std::string ProjectPath;
 	std::string ProjectFolder;
+	std::string WorkRomPath;
+	AppSettings* AppSettings = nullptr;
 
+	std::vector<unsigned char> ROM;
+	//AsmFileSet AsmFiles; //TODO - not used yet
+
+	//TODO - make these a separate class, e.g. FFH2ProjectData? ROM and ASM files aren't serialized with it
 	// Serialized members
 	ProjectHeader ffheader;
 	ProjectInfo info;
@@ -151,4 +154,11 @@ public:
 	ProjectEditorModules modules;
 	ProjectValues values;
 	ProjectDialogue dialogue;
+
+	// Methods
+	bool IsRom() const;
+	bool IsAsm() const;
+	const std::string* GetTable(int index);
+	bool ClearROM();
+	void LoadROM();
 };

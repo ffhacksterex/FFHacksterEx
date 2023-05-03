@@ -12,6 +12,8 @@
 #include <ini_functions.h>
 #include <io_functions.h>
 #include <path_functions.h>
+#include <string_conversions.hpp>
+
 #include <upgrade_functions.h>
 #include <Upgrades_ini.h>
 
@@ -28,8 +30,8 @@ namespace fs = std::experimental;
 using namespace asmdll_impl;
 
 
-ProjectLoader::ProjectLoader(FFH2Project & prj2, CFFHacksterProject& proj)
-	: Project(proj), Proj2(prj2)
+ProjectLoader::ProjectLoader(FFH2Project & prj2, CFFHacksterProject& proj, AppSettings& appstgs)
+	: Project(proj), Proj2(prj2), Appstgs(appstgs)
 {
 }
 
@@ -39,16 +41,19 @@ ProjectLoader::~ProjectLoader()
 
 namespace {
 	bool IsUpgradeNeeded(std::string projectpath, bool isIni);
-	std::string HandleBackup(std::string projectpath, bool forceBackup);
+	std::string HandleBackup(std::string projectpath, AppSettings& appstgs, bool forceBackup);
 	std::string PrepareForUpgrade(std::string projectpath);
 	std::string UpgradeIniProject(std::string projectpath);
 	void UpgradeJsonProject(std::string projectpath);
 	void CommitUpgrade(std::string projectpath, std::string preppath);
-	FFH2Project LoadJsonProject(std::string projectpath);
+	FFH2Project LoadJsonProject(std::string projectpath, AppSettings& appstgs);
+	std::string ExtractJsonProjectVersion(std::string projectpath);
 }
 
 CString ProjectLoader::Load(CString projectpath, IProgress* progress)
 {
+	ASSERT(Paths::FileExists(projectpath));
+
 	CWaitCursor wait;
 	if (!Paths::FileExists(projectpath))
 		throw std::runtime_error("No project found at the selected path.");
@@ -58,10 +63,10 @@ CString ProjectLoader::Load(CString projectpath, IProgress* progress)
 	auto isIni = Upgrades::IsIniFormat(currentprojpath.c_str());
 	auto needUpgrade = IsUpgradeNeeded(currentprojpath, isIni);
 	if (needUpgrade) {
-		auto backuppath = HandleBackup(currentprojpath, isIni);
+		auto backuppath = HandleBackup(currentprojpath, Appstgs, isIni);
 		auto preppath = PrepareForUpgrade(currentprojpath);
 		Io::FilePathRemover backupremover(backuppath);
-		Io::DirPathRemover prepremover(Paths::GetDirectoryPath(preppath.c_str()));
+		Io::DirPathRemover prepremover(Paths::GetDirectoryPath(preppath));
 
 		//NOTE: if isIni, then set currentprojpath to the new JSON filename, which is in the same directory.
 		currentprojpath = !isIni ? preppath : UpgradeIniProject(preppath);
@@ -74,18 +79,23 @@ CString ProjectLoader::Load(CString projectpath, IProgress* progress)
 	// The commit above moves the JSON project file back to projectfolder,
 	// but we need to update the path accordinagly.
 	std::string newjsonpath = (LPCSTR)Paths::ReplaceFileName(projectpath, Paths::GetFileName(currentprojpath.c_str()));
-	Proj2 = LoadJsonProject(newjsonpath);
+	Proj2 = LoadJsonProject(newjsonpath, Appstgs);
 	
 	return Proj2.ProjectPath.c_str();
 }
 
 bool ProjectLoader::Save()
 {
-	std::ostringstream ostr;
-	ojson oj = Proj2;
-	ostr << oj.dump(2);
-	std::string s = ostr.str();
-	TRACE("\n\n====\n%s\n====\n\n", s.c_str());
+	//TODO - move to Proj2.Save
+	//--
+	//std::ostringstream ostr;
+	//ojson oj = Proj2;
+	//ostr << oj.dump(2);
+	//std::string s = ostr.str();
+	//TRACE("\n\n====\n%s\n====\n\n", s.c_str());
+	//--
+
+	Proj2.Save();
 	return true;
 }
 
@@ -120,15 +130,20 @@ pair_result<CString> ProjectLoader::IsProjectDllCompatible(CFFHacksterProject & 
 	return asmresult;
 }
 
-pair_result<CString> LoadProject(FFH2Project& prj2, CFFHacksterProject & proj, CString projectpath, IProgress * progress)
+pair_result<CString> LoadProject(FFH2Project& prj2, CFFHacksterProject & proj, CString projectpath, AppSettings& appstgs, IProgress * progress)
 {
-	ProjectLoader loader(prj2, proj);
+	ProjectLoader loader(prj2, proj, appstgs);
 	return{ true, loader.Load(projectpath, progress) };
 }
 
 bool SaveProject(FFH2Project& prj2, CFFHacksterProject & proj)
 {
-	ProjectLoader loader(prj2, proj);
+	ASSERT(prj2.AppSettings != nullptr);
+
+	if (prj2.AppSettings == nullptr)
+		throw std::runtime_error("Failed to save the project; app settings are inaccessible.");
+
+	ProjectLoader loader(prj2, proj, *prj2.AppSettings);
 	return loader.Save();
 }
 
@@ -142,16 +157,18 @@ namespace {
 			return true;
 		}
 		else {
-
+			//TODO - for now, no later version, eventually, call this:
+			//auto strver = ExtractJsonProjectVersion(projectpath)
+			return false;
 		}
-		throw std::runtime_error(__FUNCTION__ " not implemented yet");
+		//throw std::runtime_error(__FUNCTION__ " not implemented yet");
 	}
 
-	std::string HandleBackup(std::string projectpath, bool forceBackup)
+	std::string HandleBackup(std::string projectpath, AppSettings & appstgs, bool forceBackup)
 	{
 		// either ask for an upgrade or force the issue
 		//TODO - temporary, add appsettings to the FFH2Project or pass it in separately?
-		auto appstgs = AppSettings(AppSettings::GetAppSettingsPath());
+		//auto appstgs = AppSettings(AppSettings::GetAppSettingsPath());
 		CString startdir = FOLDERPREF(&appstgs, PrefArchiveFolder);
 		if (!Paths::DirExists(startdir)) startdir = Paths::GetParentDirectory(projectpath.c_str());
 
@@ -194,7 +211,8 @@ namespace {
 		} while (!done);
 
 		if (!backuppath.IsEmpty()) {
-			CString projfolder = Paths::GetDirectoryPath(projectpath.c_str());
+			//CString projfolder = Paths::GetDirectoryPath((CString)projectpath.c_str());
+			CString projfolder = tomfc(Paths::GetDirectoryPath(projectpath));
 			if (!Io::Zip(backuppath, projfolder, true))
 				throw std::runtime_error("Upgrade failure - couldn't make the requested backup.");
 		}
@@ -220,8 +238,79 @@ namespace {
 
 	void UpgradeJsonProject(std::string projectpath)
 	{
-		//throw std::runtime_error(__FUNCTION__ " not implemented yet");
+		////TODO - here's a test, scrape the ffheader object
+		//std::ifstream ifs(projectpath);
+		//std::string partialheader;
+		//size_t maxcount = 512;
+		//partialheader.reserve(maxcount);
+		//for (size_t st = 0; st < maxcount; ++st) partialheader.push_back(ifs.get());
 
+		////TODO - see if this can perform better
+		////std::regex rx(
+		////	".*\"ffheader\"\\s*:\\s*(\\{\\s*.+\\s*\\}).*"
+		////	, std::regex::ECMAScript
+		////);
+		////std::smatch m;
+		////if (!std::regex_match(partial, m, rx))
+		////	throw std::runtime_error("Unable to parse project version from ffheader (unrecognized file format).");
+		////
+		////if (!m[1].matched)
+		////	throw std::runtime_error("Unable to parse project version from ffheader (incorrect header format).")
+
+		////partial = m[1].str();
+		////auto oj = ojson::parse(partial);
+
+		////DEVNOTE - this relies on using nlohmann::ordered_json or a similar approach to keep ffheader as the first property
+		//auto head = partialheader.find("ffheader");
+		//auto hopen = head != std::string::npos ? partialheader.find("{", head) : head;
+		//auto hend = hopen != std::string::npos ? partialheader.find('}', hopen) : hopen;
+		//if (hopen == std::string::npos)
+		//	throw std::runtime_error("Cannot extract version from header.");
+
+		//auto newpartial = partialheader.substr(hopen, hend - hopen + 1);
+		//auto oj = ojson::parse(newpartial);
+		//auto v = oj["version"];
+		//std::string strver = v.get<std::string>();
+
+		auto strver = ExtractJsonProjectVersion(projectpath);
+		TRACE("JSON project version = %s\n", strver.c_str());
+
+		//TODO - add semantic comparison object, for now just return
+	}
+
+	void CommitUpgrade(std::string projectpath, std::string preppath)
+	{
+		auto projectfolder = tomfc(Paths::GetDirectoryPath(projectpath));
+		auto prepfolder = tomfc(Paths::GetDirectoryPath(preppath));
+		if (!Paths::DirShallowUpdate(prepfolder, projectfolder))
+			throw std::runtime_error("Unable to copy upgrade files back to the project");
+	}
+
+	FFH2Project LoadJsonProject(std::string projectpath, AppSettings& appstgs)
+	{
+		if (!Paths::FileExists(projectpath))
+			throw std::runtime_error("Cannot find the path to load:\n" + projectpath);
+
+		//TODO - replace this part with prj2.Load(projectpath)
+		//--
+		//CString csprojectpath = projectpath.c_str();
+		//ojson oj;
+		//std::ifstream ifs(projectpath);
+		//ifs >> oj;
+		//auto prj2 = oj.get<FFH2Project>();
+		//prj2.ProjectPath = projectpath;
+		//prj2.ProjectFolder = (LPCSTR)Paths::GetDirectoryPath(csprojectpath);
+		//--
+		FFH2Project prj2;
+		prj2.Load(projectpath);
+
+		// Set the appsettings as a member of the project
+		prj2.AppSettings = &appstgs;
+		return prj2;
+	}
+
+	std::string ExtractJsonProjectVersion(std::string projectpath)
+	{
 		//TODO - here's a test, scrape the ffheader object
 		std::ifstream ifs(projectpath);
 		std::string partialheader;
@@ -255,32 +344,7 @@ namespace {
 		auto oj = ojson::parse(newpartial);
 		auto v = oj["version"];
 		std::string strver = v.get<std::string>();
-		TRACE("JSON project version = %s\n", strver.c_str());
-
-		//TODO - add semantic comparison object, for now just return
-	}
-
-	void CommitUpgrade(std::string projectpath, std::string preppath)
-	{
-		auto projectfolder = Paths::GetDirectoryPath(projectpath.c_str());
-		auto prepfolder = Paths::GetDirectoryPath(preppath.c_str());
-		if (!Paths::DirShallowUpdate(prepfolder, projectfolder))
-			throw std::runtime_error("Unable to copy upgrade files back to the project");
-	}
-
-	FFH2Project LoadJsonProject(std::string projectpath)
-	{
-		if (!Paths::FileExists(projectpath.c_str()))
-			throw std::runtime_error("Cannot find the path to load:\n" + projectpath);
-
-		CString csprojectpath = projectpath.c_str();
-		ojson oj;
-		std::ifstream ifs(projectpath);
-		ifs >> oj;
-		auto prj2 = oj.get<FFH2Project>();
-		prj2.ProjectPath = projectpath;
-		prj2.ProjectFolder = (LPCSTR)Paths::GetDirectoryPath(csprojectpath);
-		return prj2;
+		return strver;
 	}
 
 } // end namespace (unnamed)

@@ -1,3 +1,5 @@
+//TODO - likely to be removed
+
 #include "stdafx.h"
 #include "ProjectLoader_ini.h"
 

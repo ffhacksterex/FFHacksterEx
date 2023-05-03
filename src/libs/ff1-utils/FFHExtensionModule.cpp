@@ -64,10 +64,10 @@ CString CFFHExtensionModule::Invoke(const EditorInterop * ei)
 			if (ei->projectini == nullptr) {
 				response = { EditErrCode::NoProject, "no project was specified" };
 			}
-			else if (!Paths::FileExists(ei->projectini)) {
+			else if (!Paths::FileExists((CString)ei->projectini)) {
 				response = { EditErrCode::NoProject, "couldn't find the project file '" + CString(ei->projectini) + "'" };
 			}
-			else if (!LoadProject(prj2, proj, ei->projectini)) {
+			else if (!LoadProject(prj2, proj, ei->projectini, m_appsettings)) {
 				response = { EditErrCode::NoProject, "failed to load the project" };
 			}
 			else {

@@ -2,6 +2,7 @@
 #include "EditorSettingsSerializer.h"
 #include "ini_functions.h"
 #include "path_functions.h"
+#include "FFH2Project.h"
 using namespace Ini;
 
 namespace Editors2
@@ -16,6 +17,23 @@ namespace Editors2
 	{
 	}
 
+	namespace {
+		CEditor GetDefaultEditor(CString name)
+		{
+			auto infos = GetDefaultEditorInfos();
+			auto itinfo = std::find_if(cbegin(infos), cend(infos), [name](const auto& info) { return info.name == name; });
+			if (itinfo != cend(infos))
+				return CEditor(*itinfo);
+
+			return CEditor({ false, name, "--" + name, EDITORLEVEL_MISSING, "Default editor not found" });
+		}
+
+		CEditor GetBadPathEditor(CString name, CString badeditorpath)
+		{
+			return CEditor({ false, name, "--" + name, badeditorpath, "Module not found" });
+		}
+	}
+
 	// Reas the info for a single editor, but for convenience returns it as an array.
 	// It either contains the item read or is empty on failure.
 	sEditorInfoVector EditorSettingsSerializer::ReadEditorInfo(CString name)
@@ -24,6 +42,45 @@ namespace Editors2
 		auto infos = BuildEditorFromIni(section);
 		ASSERT(infos.size() <= 1);
 		if (infos.size() > 1) infos.resize(1);
+		return infos;
+	}
+
+	sEditorInfoVector EditorSettingsSerializer::BuildEditorFromModuleEntry(ProjectEditorModuleEntry& entry)
+	{
+		sEditorInfoVector infos;
+		CString name = entry.slotName.c_str(); // ReadIni(EditorSettingsPath, section, "name", "");
+		if (name.IsEmpty())
+			throw std::runtime_error("Editor id '" + entry.id + "' cannot have an empty slot name.");
+
+		//// Normalize the path
+		auto modulepath = entry.sourcePath; //ReadIni(EditorSettingsPath, section, "modulepath", "");
+		if (Editors2::IsPathBuiltin(modulepath.c_str()))
+		{
+			infos.push_back(GetDefaultEditor(name).GetInfo());
+		}
+		else {
+			auto normalpath = DecodeModulePath(modulepath.c_str());
+			if (!Paths::FileExists(normalpath)) {
+				infos.push_back(GetBadPathEditor(name, normalpath).GetInfo());
+			}
+			else {
+				auto newinfos = GetEditorInfo(normalpath, name);
+				append(infos, newinfos);
+			}
+		}
+		return infos;
+	}
+
+	sEditorInfoVector EditorSettingsSerializer::ReadAllEditorInfos(FFH2Project& prj2)
+	{
+		sEditorInfoVector infos;
+		for (const auto& key : prj2.modules.order) {
+			auto it = prj2.modules.entries.find(key);
+			if (it == cend(prj2.modules.entries))
+				throw std::runtime_error("Unable to find editor module named " + key);
+
+			append(infos, BuildEditorFromModuleEntry(it->second));
+		}
 		return infos;
 	}
 
@@ -54,21 +111,6 @@ namespace Editors2
 			WriteIni(EditorSettingsPath, section, "name", editor.name);
 			WriteIni(EditorSettingsPath, section, "modulepath", EncodeModulePath(editor.modulepath));
 		}
-	}
-
-	CEditor GetDefaultEditor(CString name)
-	{
-		auto infos = GetDefaultEditorInfos();
-		auto itinfo = std::find_if(cbegin(infos), cend(infos), [name](const auto & info) { return info.name == name; });
-		if (itinfo != cend(infos))
-			return CEditor(*itinfo);
-
-		return CEditor({ false, name, "--" + name, EDITORLEVEL_MISSING, "Default editor not found" });
-	}
-
-	CEditor GetBadPathEditor(CString name, CString badeditorpath)
-	{
-		return CEditor({ false, name, "--" + name, badeditorpath, "Module not found" });
 	}
 
 	sEditorInfoVector EditorSettingsSerializer::BuildEditorFromIni(CString section)

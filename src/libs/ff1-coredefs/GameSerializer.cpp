@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "GameSerializer.h"
 #include "FFHacksterProject.h"
+#include "FFH2Project.h"
 #include "asmdll_impl.h"
 #include "collection_helpers.h"
 #include "dialogue_helpers.h"
@@ -13,6 +14,7 @@
 #include "path_functions.h"
 #include "regex_helpers.h"
 #include "std_assembly.h"
+#include "string_conversions.hpp"
 #include "string_functions.h"
 #include "type_support.h"
 #include "IProgress.h"
@@ -28,25 +30,24 @@ using namespace std_assembly::shared;
 using namespace Strings;
 
 
-std::string build_asm_path(CFFHacksterProject & proj, CString relfilename)
+std::string build_asm_path(FFH2Project& proj, std::string relfilename)
 {
 	if (!proj.IsAsm())
 		return std::string();
 
-	CString asmfile;
-	asmfile.Format("%s\\asm\\%s", (LPCSTR)proj.ProjectFolder, (LPCSTR)relfilename);
+	auto asmfile = Paths::Combine({ proj.ProjectFolder.c_str(), "asm", relfilename.c_str() });
 	return (LPCSTR)asmfile;
 }
 
-std::istream & open_asmstream(std::ifstream & ifs, CFFHacksterProject & proj, CString relfilename)
+std::istream& open_asmstream(std::ifstream& ifs, FFH2Project& proj, std::string relfilename)
 {
 	if (ifs.is_open()) ifs.close();
 
 	if (!proj.IsAsm())
-		THROWEXCEPTION(std::runtime_error, "Can't load ASM inline, project is actually of type " + std::string((LPCSTR)proj.ProjectTypeName));
+		THROWEXCEPTION(std::runtime_error, "Can't load ASM inline, project is actually of type " + proj.info.type);
 
 	auto asmfile = build_asm_path(proj, relfilename);
-	if (!Paths::FileExists(asmfile.c_str())) {
+	if (!Paths::FileExists(asmfile)) {
 		THROWEXCEPTION(std::runtime_error, "Can't load ASM inline, can't locate assembly file " + asmfile);
 	}
 
@@ -56,11 +57,55 @@ std::istream & open_asmstream(std::ifstream & ifs, CFFHacksterProject & proj, CS
 	return ifs;
 }
 
+// CFFHacksterProject versions below
+std::string build_asm_path(CFFHacksterProject & proj, CString relfilename)
+{
+	FFH2_PTR_CHECK(&proj);
+	if (!proj.IsAsm())
 
+		return std::string();
+
+	CString asmfile;
+	asmfile.Format("%s\\asm\\%s", (LPCSTR)proj.ProjectFolder, (LPCSTR)relfilename);
+	return (LPCSTR)asmfile;
+}
+
+std::istream & open_asmstream(std::ifstream & ifs, CFFHacksterProject & proj, CString relfilename)
+{
+	FFH2_PTR_CHECK(&proj);
+	if (ifs.is_open()) ifs.close();
+
+	if (!proj.IsAsm())
+		THROWEXCEPTION(std::runtime_error, "Can't load ASM inline, project is actually of type " + std::string((LPCSTR)proj.ProjectTypeName));
+
+	auto asmfile = build_asm_path(proj, relfilename);
+	if (!Paths::FileExists(asmfile)) {
+		THROWEXCEPTION(std::runtime_error, "Can't load ASM inline, can't locate assembly file " + asmfile);
+	}
+
+	if (!Io::open_file(asmfile.c_str(), ifs))
+		THROWEXCEPTION(std::runtime_error, "Can't load ASM inline, can't open the assembly file " + asmfile + " to load as inline assembly");
+
+	return ifs;
+}
+
+namespace {
+	CFFHacksterProject ffdummy;
+	FFH2Project ff2dummy;
+}
 
 GameSerializer::GameSerializer(CFFHacksterProject & proj, CWnd* mainwnd)
 	: m_proj(proj)
 	, MainWindow(mainwnd)
+	, m_prj2(ff2dummy)
+{
+	FFH2_PTR_CHECK(&proj);
+}
+
+GameSerializer::GameSerializer(FFH2Project& prj2, CWnd* mainwnd)
+	: m_proj(ffdummy)
+	, MainWindow(mainwnd)
+	, m_prj2(prj2)
 {
 }
 
@@ -70,11 +115,18 @@ GameSerializer::~GameSerializer()
 
 void GameSerializer::LoadAsmBin(CString relfilename, int offset, int expectedlength, bool allowzerolength)
 {
-	if (!m_proj.IsAsm())
-		throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+	bool is2 = (&m_prj2 != &ff2dummy);
+	bool isasm = is2 ? m_prj2.IsAsm() : m_proj.IsAsm();
+	CString projectfolder = is2 ? tomfc(m_prj2.ProjectFolder) : m_proj.ProjectFolder;
+	auto& rom = is2 ? m_prj2.ROM : m_proj.ROM;
+
+	//--
+	if (!isasm)
+		throw std::runtime_error("Cannot load assembly binary data into a non-assembly project.");
+		//throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm"); //TODO - update for FFH2Project
 
 	CString asmbin;
-	asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
+	asmbin.Format("%s\\asm\\%s", projectfolder, (LPCSTR)relfilename);
 
 	//QUICK-N-DIRTY METHOD
 	// create asmbuffer of length count * bytewidth
@@ -92,7 +144,33 @@ void GameSerializer::LoadAsmBin(CString relfilename, int offset, int expectedlen
 		THROWEXCEPTION(std::runtime_error, "Not allowed to read from zero-length source binary file " + std::string((LPCSTR)asmbin));
 
 	expcount = asmbuffer.size();
-	overwrite(m_proj.ROM, asmbuffer, offset, expcount);
+	overwrite(rom, asmbuffer, offset, expcount);
+	//--
+
+
+	//if (!m_proj.IsAsm())
+	//	throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+
+	//CString asmbin;
+	//asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
+
+	////QUICK-N-DIRTY METHOD
+	//// create asmbuffer of length count * bytewidth
+	//// read relfilename into asmbuffer
+	//// overwrite cart->ROM with asmbuffer statrting at offset
+	//bytevector asmbuffer;
+	//load_binary(asmbin, asmbuffer, allowzerolength);
+
+	//auto expcount = (size_t)expectedlength;
+	//if (expcount != -1 && asmbuffer.size() != expcount) {
+	//	THROWEXCEPTION(std::runtime_error,
+	//		"buffer size mismatch: expected " + std::to_string(expcount) + ", but found " + std::to_string(asmbuffer.size()) + " bytes.");
+	//}
+	//if (!allowzerolength && asmbuffer.empty())
+	//	THROWEXCEPTION(std::runtime_error, "Not allowed to read from zero-length source binary file " + std::string((LPCSTR)asmbin));
+
+	//expcount = asmbuffer.size();
+	//overwrite(m_proj.ROM, asmbuffer, offset, expcount);
 }
 
 void GameSerializer::LoadAsmBin(CString relfilename, int offset, bool allowzerolength)
@@ -102,36 +180,71 @@ void GameSerializer::LoadAsmBin(CString relfilename, int offset, bool allowzerol
 
 void GameSerializer::SaveAsmBin(CString relfilename, int offset, bool allowzerolength)
 {
-	if (!m_proj.IsAsm())
-		throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
-	if (!allowzerolength && m_proj.ROM.empty())
+	bool is2 = (&m_prj2 != &ff2dummy);
+	bool isasm = is2 ? m_prj2.IsAsm() : m_proj.IsAsm();
+	CString projectfolder = is2 ? tomfc(m_prj2.ProjectFolder) : m_proj.ProjectFolder;
+	const auto& rom = is2 ? m_prj2.ROM : m_proj.ROM;
+
+	if (!isasm)
+		throw std::runtime_error("Cannot write assembly binary data into a non-assembly project.");
+		//throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+
+	if (!allowzerolength && rom.empty())
 		THROWEXCEPTION(std::invalid_argument, "Can't write assembly binary data into a zero-byte ROM buffer at offset " + std::to_string(offset));
 
 	CString asmbin;
-	asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
+	asmbin.Format("%s\\asm\\%s", projectfolder, relfilename);
 	if (!Paths::FileExists(asmbin))
-		THROWEXCEPTION(std::runtime_error, "Can't write assembly binary data file " + std::string((LPCSTR)asmbin));
+		THROWEXCEPTION(std::runtime_error, "Can't write assembly binary data file " + tostd(asmbin));
 
 	// Write the same number of bytes as the size of the file (i.e. the write should't arbitrarily change the file size).
 	size_t filesize = Paths::FileSize(asmbin);
 	if (!allowzerolength && filesize == 0)
-		THROWEXCEPTION(std::runtime_error, "Not allowed to write to zero-length destination binary file " + std::string((LPCSTR)asmbin));
+		THROWEXCEPTION(std::runtime_error, "Not allowed to write to zero-length destination binary file " + tostd(asmbin));
 
 	bytevector asmbuffer(filesize, 0); 
-	overwrite(asmbuffer, m_proj.ROM, 0, filesize, offset);
+	overwrite(asmbuffer, rom, 0, filesize, offset);
 
 	save_binary(asmbin, asmbuffer);
+	//--
+
+
+	//if (!m_proj.IsAsm())
+	//	throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+	//if (!allowzerolength && m_proj.ROM.empty())
+	//	THROWEXCEPTION(std::invalid_argument, "Can't write assembly binary data into a zero-byte ROM buffer at offset " + std::to_string(offset));
+
+	//CString asmbin;
+	//asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
+	//if (!Paths::FileExists(asmbin))
+	//	THROWEXCEPTION(std::runtime_error, "Can't write assembly binary data file " + std::string((LPCSTR)asmbin));
+
+	//// Write the same number of bytes as the size of the file (i.e. the write should't arbitrarily change the file size).
+	//size_t filesize = Paths::FileSize(asmbin);
+	//if (!allowzerolength && filesize == 0)
+	//	THROWEXCEPTION(std::runtime_error, "Not allowed to write to zero-length destination binary file " + std::string((LPCSTR)asmbin));
+
+	//bytevector asmbuffer(filesize, 0); 
+	//overwrite(asmbuffer, m_proj.ROM, 0, filesize, offset);
+
+	//save_binary(asmbin, asmbuffer);
 }
 
 void GameSerializer::LoadAsmBinBuffer(bytevector & ROM, CString relfilename, int offset, bool allowzerolength)
 {
-	if (!m_proj.IsAsm())
-		throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+	bool is2 = (&m_prj2 != &ff2dummy);
+	bool isasm = is2 ? m_prj2.IsAsm() : m_proj.IsAsm();
+	CString projectfolder = is2 ? tomfc(m_prj2.ProjectFolder) : m_proj.ProjectFolder;
+
+	if (!isasm)
+		throw std::runtime_error("Cannot load assembly binary data into a non-assembly project.");
+		//throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+
 	if (!allowzerolength && ROM.empty())
 		THROWEXCEPTION(std::invalid_argument, "Can't load assembly binary data buffer into a zero-byte ROM buffer at offset " + std::to_string(offset));
 
 	CString asmbin;
-	asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
+	asmbin.Format("%s\\asm\\%s", projectfolder, relfilename);
 
 	//QUICK-N-DIRTY METHOD
 	// create asmbuffer of length count * bytewidth
@@ -140,33 +253,82 @@ void GameSerializer::LoadAsmBinBuffer(bytevector & ROM, CString relfilename, int
 	bytevector asmbuffer;
 	load_binary(asmbin, asmbuffer, allowzerolength);
 	if (!allowzerolength && asmbuffer.empty())
-		THROWEXCEPTION(std::runtime_error, "Not allowed to read from zero-length source binary file " + std::string((LPCSTR)asmbin));
+		THROWEXCEPTION(std::runtime_error, "Not allowed to read from zero-length source binary file " + tostd(asmbin));
 
 	auto expcount = asmbuffer.size();
 	overwrite(ROM, asmbuffer, offset, expcount);
+	//--
+
+
+	//if (!m_proj.IsAsm())
+	//	throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+	//if (!allowzerolength && ROM.empty())
+	//	THROWEXCEPTION(std::invalid_argument, "Can't load assembly binary data buffer into a zero-byte ROM buffer at offset " + std::to_string(offset));
+
+	//CString asmbin;
+	//asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
+
+	////QUICK-N-DIRTY METHOD
+	//// create asmbuffer of length count * bytewidth
+	//// read relfilename into asmbuffer
+	//// overwrite cart->ROM with asmbuffer statrting at offset
+	//bytevector asmbuffer;
+	//load_binary(asmbin, asmbuffer, allowzerolength);
+	//if (!allowzerolength && asmbuffer.empty())
+	//	THROWEXCEPTION(std::runtime_error, "Not allowed to read from zero-length source binary file " + std::string((LPCSTR)asmbin));
+
+	//auto expcount = asmbuffer.size();
+	//overwrite(ROM, asmbuffer, offset, expcount);
 }
 
 void GameSerializer::SaveAsmBinBuffer(const bytevector & ROM, CString relfilename, int offset, bool allowzerolength)
 {
-	if (!m_proj.IsAsm())
-		throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+	bool is2 = (&m_prj2 != &ff2dummy);
+	bool isasm = is2 ? m_prj2.IsAsm() : m_proj.IsAsm();
+	CString projectfolder = is2 ? tomfc(m_prj2.ProjectFolder) : m_proj.ProjectFolder;
+
+	if (!isasm)
+		throw std::runtime_error("Cannot write assembly binary data into a non-assembly project.");
+		//throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
 	if (!allowzerolength && ROM.empty())
 		THROWEXCEPTION(std::invalid_argument, "Can't write assembly binary data buffer into a zero-byte ROM buffer at offset " + std::to_string(offset));
 
 	CString asmbin;
-	asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
+	asmbin.Format("%s\\asm\\%s", projectfolder, relfilename);
 	if (!Paths::FileExists(asmbin))
-		THROWEXCEPTION(std::runtime_error, "Can't write assembly binary data file " + std::string((LPCSTR)asmbin));
+		THROWEXCEPTION(std::runtime_error, "Can't write assembly binary data file " + tostd(asmbin));
 
 	// Write the same number of bytes as the size of the file (i.e. the write should't arbitrarily change the file size).
 	size_t filesize = Paths::FileSize(asmbin);
 	if (!allowzerolength && filesize == 0)
-		THROWEXCEPTION(std::runtime_error, "Not allowed to write to zero-length destination binary file " + std::string((LPCSTR)asmbin));
+		THROWEXCEPTION(std::runtime_error, "Not allowed to write to zero-length destination binary file " + tostd(asmbin));
 
 	bytevector asmbuffer(filesize, 0);
 	overwrite(asmbuffer, ROM, 0, filesize, offset);
 
 	save_binary(asmbin, asmbuffer);
+	//--
+
+
+//	if (!m_proj.IsAsm())
+//		throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+//	if (!allowzerolength && ROM.empty())
+//		THROWEXCEPTION(std::invalid_argument, "Can't write assembly binary data buffer into a zero-byte ROM buffer at offset " + std::to_string(offset));
+//
+//	CString asmbin;
+//	asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
+//	if (!Paths::FileExists(asmbin))
+//		THROWEXCEPTION(std::runtime_error, "Can't write assembly binary data file " + std::string((LPCSTR)asmbin));
+//
+//	// Write the same number of bytes as the size of the file (i.e. the write should't arbitrarily change the file size).
+//	size_t filesize = Paths::FileSize(asmbin);
+//	if (!allowzerolength && filesize == 0)
+//		THROWEXCEPTION(std::runtime_error, "Not allowed to write to zero-length destination binary file " + std::string((LPCSTR)asmbin));
+//
+//	bytevector asmbuffer(filesize, 0);
+//	overwrite(asmbuffer, ROM, 0, filesize, offset);
+//
+//	save_binary(asmbin, asmbuffer);
 }
 
 void GameSerializer::LoadInline(CString relfilename, const asmsourcemappingvector & entries)

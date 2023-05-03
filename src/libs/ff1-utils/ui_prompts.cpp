@@ -112,8 +112,10 @@ namespace Ui
 
 	pair_result<CString> BrowseForProject(CWnd* parent, CString title, CString initialfileordir)
 	{
+		//TODO - put these in a resource and load from there, minimizes code changes
 		CString filter =
-			"FF1 Projects (*.ff1rom;*.ff1asm)|*.ff1rom;*.ff1asm|"
+			"FF1 Projects (*.ff1r,*.ff1rom,*.ff1asm)|*.ff1r;*.ff1rom;*.ff1asm|" //TODO - ff1r is temporary
+			"FF1 JSON Projects (*.ff1r)|*.ff1r|" //TODO - ff1r is temporary
 			"FF1 ROM Projects (*.ff1rom)|*.ff1rom|"
 			"FF1 Assembly Projects (*.ff1asm)|*.ff1asm|"
 			"|";

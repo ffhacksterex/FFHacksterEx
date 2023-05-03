@@ -103,7 +103,7 @@ bool CFFHacksterDlg::StartEditor()
 
 		Editors2::EditErrCode ec = Editors2::EditErrCode::Failure;
 		CString message;
-		std::tie(ec, message) = Editors2::ExtractResponse(editor.Edit(m_proj.ProjectPath, AllocBytes));
+		std::tie(ec, message) = Editors2::ExtractResponse(editor.Edit(m_prj2.ProjectPath.c_str(), AllocBytes));
 
 		bool success = Editors2::IsResponseSuccess(ec);
 		if (success) AfxMessageBox("The editor " + InitialEditorName + " failed.\n" + message);
@@ -134,7 +134,7 @@ bool CFFHacksterDlg::LoadEditorList(Editors2::CEditorVector & editors)
 	bool loaded = false;
 	try {
 		// Initialize the editors when they're loaded.
-		auto failures = InitializeExternalEditors(Editors, m_proj.ProjectPath);
+		auto failures = InitializeExternalEditors(Editors, m_prj2.ProjectPath.c_str());
 		if (!failures.empty()) {
 			AfxMessageBox("The following failures occurred while initializing external editors:\n-" + join(failures, "\n-")
 				+ "\nThe external editors will have to be selected menually.");
@@ -401,8 +401,8 @@ void CFFHacksterDlg::PaintClient(CDC & dc)
 		rctype.right = rcclient.right - rctype.left;
 		rctype.bottom = rctype.top + (height * 3);
 		dc.SetTextColor(m_mainbanner.End);
-		dc.SelectObject(&m_bannerfont);
-		dc.DrawText(m_proj.ProjectPath, &rctype, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
+		dc.SelectObject(&m_bannerfont);	
+		dc.DrawText(m_prj2.ProjectPath.c_str(), &rctype, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
 
 		dc.RestoreDC(dcstate);
 	}
@@ -528,7 +528,7 @@ char * CFFHacksterDlg::AllocBytes(int64_t length)
 
 void CFFHacksterDlg::InvokeEditor(const Editors2::CEditor & editor)
 {
-	auto message = editor.Edit(m_proj.ProjectPath, AllocBytes);
+	auto message = editor.Edit(m_prj2.ProjectPath.c_str(), AllocBytes);
 
 	if (message == "reload")
 		ReloadProject();
@@ -675,9 +675,7 @@ BOOL CFFHacksterDlg::OnInitDialog()
 		progress.StepAndProgressText("Finishing project pre-load setup...");
 		progress.SetWindowText("Loading project...");
 
-		m_proj.AppSettings = AppStgs;
-
-		auto loadresult = LoadProject(m_prj2, m_proj, ProjectFile, &progress);
+		auto loadresult = LoadProject(m_prj2, m_proj, ProjectFile, *AppStgs, &progress);
 		if (!loadresult) {
 			if (!loadresult.value.IsEmpty()) AfxMessageBox(loadresult.value, MB_ICONERROR);
 			EndDialog(IDABORT);
@@ -722,11 +720,10 @@ BOOL CFFHacksterDlg::OnInitDialog()
 		InitTooltips();
 		VERIFY(m_subdlgbuttons.CreateOverControl(&m_dynabuttonframe));
 
-		m_serializer.ProjectFolder = m_proj.ProjectFolder;
-		m_serializer.EditorSettingsPath = m_proj.EditorSettingsPath;
-		m_serializer.ProjectAdditionModulesFolder = m_proj.AdditionalModulesFolder;
+		m_serializer.ProjectFolder = m_prj2.ProjectFolder.c_str();
+		m_serializer.ProjectAdditionModulesFolder = m_prj2.info.additionalModulesPath.c_str();
 
-		Editors = CreateEditors(m_serializer.ReadAllEditorInfos());
+		Editors = CreateEditors(m_serializer.ReadAllEditorInfos(m_prj2));
 
 		if (!LoadEditorList(Editors)) {
 			AbortInitDialog(this, "Encountered an unrecoverable error while loading the editors list.");
@@ -738,7 +735,8 @@ BOOL CFFHacksterDlg::OnInitDialog()
 
 		progress.StepAndProgressText("Finishing project post-load setup...");
 
-		if (m_proj.IsRom()) {
+		if (m_prj2.IsRom())
+		{
 			CWnd * btncompile = GetDlgItem(IDC_FFH_BTN_COMPILE);
 			if (btncompile != nullptr) {
 				btncompile->ShowWindow(SW_HIDE);
@@ -896,7 +894,7 @@ void CFFHacksterDlg::GoToNewMapScreen(bool OV)
 void CFFHacksterDlg::OnArmor() 
 {
 	CArmor dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
@@ -1087,7 +1085,7 @@ void CFFHacksterDlg::OnNmRclickActionButton(UINT id, NMHDR * pNotify, LRESULT * 
 			
 			CPoint cursor;
 			GetCursorPos(&cursor);
-			edref.Rclick(m_proj.ProjectPath, AllocBytes, GetSafeHwnd(), cursor.x, cursor.y);
+			edref.Rclick(m_prj2.ProjectPath.c_str(), AllocBytes, GetSafeHwnd(), cursor.x, cursor.y);
 			*result = 1;
 		}
 	}
@@ -1189,7 +1187,7 @@ LRESULT CFFHacksterDlg::OnFfeditRclick(WPARAM wparam, LPARAM lparam)
 
 		CPoint cursor;
 		GetCursorPos(&cursor);
-		edref.Rclick(m_proj.ProjectPath, AllocBytes, GetSafeHwnd(), cursor.x, cursor.y);
+		edref.Rclick(m_prj2.ProjectPath.c_str(), AllocBytes, GetSafeHwnd(), cursor.x, cursor.y);
 	}
 	return 0;
 }
@@ -1304,7 +1302,8 @@ void CFFHacksterDlg::OnCloneProject()
 			AfxMessageBox(msg);
 		}
 		else {
-			auto ext = Paths::GetFileExtension(m_proj.ProjectPath);
+			auto ext = Paths::GetFileExtension(m_prj2.ProjectPath.c_str());
+
 			auto newprojectfile = Paths::Combine({ newdir, pick.DestFolderName + ext});
 			if (m_proj.Clone(newprojectfile)) {
 				AfxMessageBox("Cloned the project to folder\n" + Paths::GetDirectoryPath(newprojectfile) + ".");

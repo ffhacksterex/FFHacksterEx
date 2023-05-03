@@ -184,6 +184,7 @@
     <ClCompile Include="ci_support.cpp" />
     <ClCompile Include="collection_helpers.cpp" />
     <ClCompile Include="core_exceptions.cpp" />
+    <ClCompile Include="DataValueAccessor.cpp" />
     <ClCompile Include="dialogue_helpers.cpp" />
     <ClCompile Include="DirPathRemover.cpp" />
     <ClCompile Include="draw_functions.cpp" />
@@ -244,8 +245,11 @@
     <ClInclude Include="ci_support.h" />
     <ClInclude Include="collection_helpers.h" />
     <ClInclude Include="common_symbols.h" />
+    <ClInclude Include="conditional_build_symbols.h" />
+    <ClInclude Include="core_exceptions.h" />
     <ClInclude Include="DATA.h" />
     <ClInclude Include="datanode.h" />
+    <ClInclude Include="DataValueAccessor.h" />
     <ClInclude Include="dialogue_helpers.h" />
     <ClInclude Include="DirPathRemover.h" />
     <ClInclude Include="draw_functions.h" />
@@ -256,6 +260,9 @@
     <ClInclude Include="FFH2Project.h" />
     <ClInclude Include="FFH2Project_IniToJson_Defs.hpp" />
     <ClInclude Include="FFHacksterProject.h" />
+    <ClInclude Include="FFHDataValue.h" />
+    <ClInclude Include="FFHDataValue_dva.hpp" />
+    <ClInclude Include="FFHSettingValue.h" />
     <ClInclude Include="FilePathRemover.h" />
     <ClInclude Include="FilePathRestorer.h" />
     <ClInclude Include="FontStack.h" />
@@ -290,6 +297,7 @@
     <ClInclude Include="std_assembly.h" />
     <ClInclude Include="std_project_properties.h" />
     <ClInclude Include="stream_ops.h" />
+    <ClInclude Include="string_conversions.hpp" />
     <ClInclude Include="string_functions.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="type_support.h" />

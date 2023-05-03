@@ -49,6 +49,12 @@ namespace Paths
 		return fsys::exists(thepath) && IsFile(filepath);
 	}
 
+	bool FileExists(std::string filepath)
+	{
+		auto thepath = fsys::path(filepath);
+		return fsys::exists(thepath) && IsFile(filepath);
+	}
+
 	bool FileCopy(CString source, CString dest)
 	{
 		if (!IsFile(source)) return false;
@@ -407,6 +413,12 @@ namespace Paths
 		return fsys::is_regular_file((LPCSTR)pathname, ec);
 	}
 
+	bool IsFile(std::string pathname)
+	{
+		std::error_code ec;
+		return fsys::is_regular_file(pathname, ec);
+	}
+
 	bool IsDir(CString pathname)
 	{
 		std::error_code ec;
@@ -484,6 +496,12 @@ namespace Paths
 
 		auto str = RemoveTrailingSlash(thepath.remove_filename().u8string());
 		return str.c_str();
+	}
+
+	std::string GetDirectoryPath(std::string fullpath)
+	{
+		CString csfullpath = fullpath.c_str();
+		return (LPCSTR)GetDirectoryPath(csfullpath);
 	}
 
 	// Gets the parent directory of the folder specified by fullpath, whether it's a file or folder.

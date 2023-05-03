@@ -71,33 +71,4 @@ namespace Upgrades
 		return{ true, "" };
 	}
 
-	//pair_result<CString> UpgradeProject(CString projectpath)
-	//{
-	//	if (!Paths::FileExists(projectpath))
-	//		return{ false, "The project file can't be upgraded because it wasn't found" };
-
-	//	if (IsIniFormat(projectpath)) {
-	//		return Upgrades_ini::UpgradeProject(projectpath);
-	//	}
-	//	else {
-	//		throw std::runtime_error("Not implemented yet");
-	//	}
-	//}
-
-	[[deprecated]]
-	version_result UpgradeProject(CString projectpath)
-	{
-		throw std::runtime_error("Don't call " __FUNCTION__);
-		//if (!Paths::FileExists(projectpath))
-		//	return{ versionfailure, "The project file can't be upgraded because it wasn't found" };
-
-		//if (IsIniFormat(projectpath)) {
-		//	auto result = Upgrades_ini::UpgradeProject(projectpath);
-		//	return version_result{ result ? versionok : versionfailure, result.value };
-		//}
-		//else {
-		//	throw std::runtime_error("Not implemented yet");
-		//}
-	}
-
 } // end namespace Upgrades

@@ -2,7 +2,6 @@
 // Armor.h : header file
 
 #include <EditorWithBackground.h>
-class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
 // CArmor dialog

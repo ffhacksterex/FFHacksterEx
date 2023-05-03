@@ -132,6 +132,9 @@
     <ClCompile Include="Upgrades_ini.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DataValueAccessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ff1-coredefs.rc">
@@ -343,6 +346,27 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Upgrades_ini.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="string_conversions.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="conditional_build_symbols.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataValueAccessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FFHDataValue_dva.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FFHDataValue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FFHSettingValue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core_exceptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

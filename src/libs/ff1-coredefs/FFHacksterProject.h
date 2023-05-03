@@ -3,6 +3,8 @@
 #include "pair_result.h"
 #include "collection_helpers.h"
 #include <vector>
+#include "conditional_build_symbols.h"
+#include "core_exceptions.h"
 
 class IProgress;
 class AppSettings;
@@ -27,7 +29,7 @@ class AppSettings;
 #define FFHREFDIR_Publish          "publish"
 
 
-class CFFHacksterProject
+class mark_deprecated CFFHacksterProject
 {
 	friend class ProjectLoader;
 	friend class ProjectLoader_ini;
@@ -178,25 +180,4 @@ private:
 	CString LoadCartData();
 	void DeleteStandardTiles();
 	void LoadFinger();
-};
-
-
-class bad_ffhtype_exception : public std::exception
-{
-public:
-	bad_ffhtype_exception(std::string file, int line, std::string function, exceptop op, std::string projtypename, std::string additionalmsg = "");
-	virtual ~bad_ffhtype_exception();
-	virtual const char* what() const;
-private:
-	std::string m_message;
-};
-
-class wrongprojectype_exception : public std::exception
-{
-public:
-	wrongprojectype_exception(std::string file, int line, std::string function, CFFHacksterProject & proj, std::string expectedtype);
-	virtual ~wrongprojectype_exception();
-	virtual const char* what() const;
-private:
-	std::string m_message;
 };

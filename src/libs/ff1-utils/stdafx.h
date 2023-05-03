@@ -22,16 +22,11 @@
 #include <afxcontrolbars.h>
 #include <afxlinkctrl.h>
 #include <gdiplus.h>
-
 #include <string>
-
-#include "logging_functions.h"
 
 #include "shared_resids.h"
 #include "resource_coredefs.h"
 #include "resource_utils.h"
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxdlgs.h>
 #include <common_symbols.h>
+
+#include <logging_functions.h>
