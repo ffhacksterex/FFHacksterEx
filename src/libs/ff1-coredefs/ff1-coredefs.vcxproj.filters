@@ -369,5 +369,8 @@
     <ClInclude Include="core_exceptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="std_collections_dva.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

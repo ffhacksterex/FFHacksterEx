@@ -250,6 +250,7 @@
     <ClInclude Include="DATA.h" />
     <ClInclude Include="datanode.h" />
     <ClInclude Include="DataValueAccessor.h" />
+    <ClInclude Include="std_collections_dva.hpp" />
     <ClInclude Include="dialogue_helpers.h" />
     <ClInclude Include="DirPathRemover.h" />
     <ClInclude Include="draw_functions.h" />

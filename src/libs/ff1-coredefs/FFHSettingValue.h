@@ -4,6 +4,7 @@
 
 struct FFHSettingValue
 {
+	std::string name;
 	std::string type;
 	std::string format;
 	std::string data;

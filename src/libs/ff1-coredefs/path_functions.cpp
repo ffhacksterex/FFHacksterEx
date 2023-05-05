@@ -4,6 +4,7 @@
 #include "general_functions.h"
 #include "io_functions.h"
 #include "logging_functions.h"
+#include "string_conversions.hpp"
 #include "string_functions.h"
 #include <afxole.h>
 #include <afxdlgs.h>
@@ -446,17 +447,17 @@ namespace Paths
 
 	CString GetProgramFolder()
 	{
-		char szpath[_MAX_PATH] = { 0 };
-		GetModuleFileName(nullptr, szpath, _MAX_PATH);
-		std::string appfolder = fsys::path(szpath).parent_path().u8string();
-		return GetCanonicalPath(appfolder.c_str());
+		auto exepath = GetProgramExePath();
+		std::string appfolder = fsys::path((LPCSTR)exepath).parent_path().u8string();
+		return tomfc(appfolder);
 	}
 
 	CString GetProgramExePath()
 	{
 		char szpath[_MAX_PATH] = { 0 };
 		GetModuleFileName(nullptr, szpath, _MAX_PATH);
-		return GetCanonicalPath(szpath);
+		auto spath = GetCanonicalPath(szpath);
+		return spath;
 	}
 
 	// Gets the folder referenced by fullpath.
@@ -629,6 +630,11 @@ namespace Paths
 		auto ch = fullpath[fullpath.GetLength() - 1];
 		if (ch != '/' && ch != '\\') return fullpath + '\\';
 		return fullpath;
+	}
+
+	std::string AddTrailingSlash(std::string fullpath)
+	{
+		return tostd(AddTrailingSlash(tomfc(fullpath)));
 	}
 
 	CString RemoveExtension(CString filepath)

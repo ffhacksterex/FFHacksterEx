@@ -72,6 +72,7 @@ namespace Paths
 	CString ReplaceFileName(CString filepath, CString filename);
 
 	CString AddTrailingSlash(CString fullpath);
+	std::string AddTrailingSlash(std::string fullpath);
 
 	CString RemoveExtension(CString filepath);
 	CString RemoveTrailingSlash(CString fullpath);

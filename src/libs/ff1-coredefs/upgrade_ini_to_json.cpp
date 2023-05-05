@@ -86,6 +86,7 @@ namespace Upgrades
 		p.info.type = Ini::ReadIni(inipath, "PROJECT", "type", "");
 		p.info.publishTo = Ini::ReadIni(inipath, "REF", "publish", "");
 		p.info.additionalModulesPath = Ini::ReadIni(inipath, "REF", "addlmodpath", "");
+		p.info.asmdll = Ini::ReadIni(inipath, "REF", "asmdll", "");
 		ResolveWorkingFile(p, inipath, ("new - " + p.ffheader.name).c_str());
 
 		p.session.suppressWarnOnAssemblyMismatch = Ini::ReadIniBool(inipath, "SETTINGS", "SuppressWarnOnAssemblyMismatch", false);
@@ -253,6 +254,7 @@ namespace {
 					auto tmap = GetTypeMapping(initype);
 					auto formattedValue = FormatJsonValueForTypeEx((LPCSTR)key, tmap.type, tmap.format, value);
 					auto& s = (stg[(LPCSTR)key] = {});
+					s.name = (LPCSTR)key;
 					s.type = tmap.type;
 					s.format = tmap.format;
 					s.data = ojson::parse(formattedValue).dump(2);

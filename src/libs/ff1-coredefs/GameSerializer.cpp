@@ -4,6 +4,8 @@
 #include "FFH2Project.h"
 #include "asmdll_impl.h"
 #include "collection_helpers.h"
+#include "DataValueAccessor.h"
+#include "std_collections_dva.hpp"
 #include "dialogue_helpers.h"
 #include "general_functions.h"
 #include "ini_functions.h"
@@ -29,6 +31,10 @@ using namespace regex_helpers;
 using namespace std_assembly::shared;
 using namespace Strings;
 
+namespace {
+	CFFHacksterProject ffdummy;
+	FFH2Project ff2dummy;
+}
 
 std::string build_asm_path(FFH2Project& proj, std::string relfilename)
 {
@@ -89,11 +95,6 @@ std::istream & open_asmstream(std::ifstream & ifs, CFFHacksterProject & proj, CS
 	return ifs;
 }
 
-namespace {
-	CFFHacksterProject ffdummy;
-	FFH2Project ff2dummy;
-}
-
 GameSerializer::GameSerializer(CFFHacksterProject & proj, CWnd* mainwnd)
 	: m_proj(proj)
 	, MainWindow(mainwnd)
@@ -145,32 +146,6 @@ void GameSerializer::LoadAsmBin(CString relfilename, int offset, int expectedlen
 
 	expcount = asmbuffer.size();
 	overwrite(rom, asmbuffer, offset, expcount);
-	//--
-
-
-	//if (!m_proj.IsAsm())
-	//	throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
-
-	//CString asmbin;
-	//asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
-
-	////QUICK-N-DIRTY METHOD
-	//// create asmbuffer of length count * bytewidth
-	//// read relfilename into asmbuffer
-	//// overwrite cart->ROM with asmbuffer statrting at offset
-	//bytevector asmbuffer;
-	//load_binary(asmbin, asmbuffer, allowzerolength);
-
-	//auto expcount = (size_t)expectedlength;
-	//if (expcount != -1 && asmbuffer.size() != expcount) {
-	//	THROWEXCEPTION(std::runtime_error,
-	//		"buffer size mismatch: expected " + std::to_string(expcount) + ", but found " + std::to_string(asmbuffer.size()) + " bytes.");
-	//}
-	//if (!allowzerolength && asmbuffer.empty())
-	//	THROWEXCEPTION(std::runtime_error, "Not allowed to read from zero-length source binary file " + std::string((LPCSTR)asmbin));
-
-	//expcount = asmbuffer.size();
-	//overwrite(m_proj.ROM, asmbuffer, offset, expcount);
 }
 
 void GameSerializer::LoadAsmBin(CString relfilename, int offset, bool allowzerolength)
@@ -206,28 +181,6 @@ void GameSerializer::SaveAsmBin(CString relfilename, int offset, bool allowzerol
 	overwrite(asmbuffer, rom, 0, filesize, offset);
 
 	save_binary(asmbin, asmbuffer);
-	//--
-
-
-	//if (!m_proj.IsAsm())
-	//	throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
-	//if (!allowzerolength && m_proj.ROM.empty())
-	//	THROWEXCEPTION(std::invalid_argument, "Can't write assembly binary data into a zero-byte ROM buffer at offset " + std::to_string(offset));
-
-	//CString asmbin;
-	//asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
-	//if (!Paths::FileExists(asmbin))
-	//	THROWEXCEPTION(std::runtime_error, "Can't write assembly binary data file " + std::string((LPCSTR)asmbin));
-
-	//// Write the same number of bytes as the size of the file (i.e. the write should't arbitrarily change the file size).
-	//size_t filesize = Paths::FileSize(asmbin);
-	//if (!allowzerolength && filesize == 0)
-	//	THROWEXCEPTION(std::runtime_error, "Not allowed to write to zero-length destination binary file " + std::string((LPCSTR)asmbin));
-
-	//bytevector asmbuffer(filesize, 0); 
-	//overwrite(asmbuffer, m_proj.ROM, 0, filesize, offset);
-
-	//save_binary(asmbin, asmbuffer);
 }
 
 void GameSerializer::LoadAsmBinBuffer(bytevector & ROM, CString relfilename, int offset, bool allowzerolength)
@@ -238,7 +191,6 @@ void GameSerializer::LoadAsmBinBuffer(bytevector & ROM, CString relfilename, int
 
 	if (!isasm)
 		throw std::runtime_error("Cannot load assembly binary data into a non-assembly project.");
-		//throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
 
 	if (!allowzerolength && ROM.empty())
 		THROWEXCEPTION(std::invalid_argument, "Can't load assembly binary data buffer into a zero-byte ROM buffer at offset " + std::to_string(offset));
@@ -257,28 +209,6 @@ void GameSerializer::LoadAsmBinBuffer(bytevector & ROM, CString relfilename, int
 
 	auto expcount = asmbuffer.size();
 	overwrite(ROM, asmbuffer, offset, expcount);
-	//--
-
-
-	//if (!m_proj.IsAsm())
-	//	throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
-	//if (!allowzerolength && ROM.empty())
-	//	THROWEXCEPTION(std::invalid_argument, "Can't load assembly binary data buffer into a zero-byte ROM buffer at offset " + std::to_string(offset));
-
-	//CString asmbin;
-	//asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
-
-	////QUICK-N-DIRTY METHOD
-	//// create asmbuffer of length count * bytewidth
-	//// read relfilename into asmbuffer
-	//// overwrite cart->ROM with asmbuffer statrting at offset
-	//bytevector asmbuffer;
-	//load_binary(asmbin, asmbuffer, allowzerolength);
-	//if (!allowzerolength && asmbuffer.empty())
-	//	THROWEXCEPTION(std::runtime_error, "Not allowed to read from zero-length source binary file " + std::string((LPCSTR)asmbin));
-
-	//auto expcount = asmbuffer.size();
-	//overwrite(ROM, asmbuffer, offset, expcount);
 }
 
 void GameSerializer::SaveAsmBinBuffer(const bytevector & ROM, CString relfilename, int offset, bool allowzerolength)
@@ -289,7 +219,7 @@ void GameSerializer::SaveAsmBinBuffer(const bytevector & ROM, CString relfilenam
 
 	if (!isasm)
 		throw std::runtime_error("Cannot write assembly binary data into a non-assembly project.");
-		//throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
+
 	if (!allowzerolength && ROM.empty())
 		THROWEXCEPTION(std::invalid_argument, "Can't write assembly binary data buffer into a zero-byte ROM buffer at offset " + std::to_string(offset));
 
@@ -307,38 +237,21 @@ void GameSerializer::SaveAsmBinBuffer(const bytevector & ROM, CString relfilenam
 	overwrite(asmbuffer, ROM, 0, filesize, offset);
 
 	save_binary(asmbin, asmbuffer);
-	//--
-
-
-//	if (!m_proj.IsAsm())
-//		throw wrongprojectype_exception(EXCEPTIONPOINT, m_proj, "asm");
-//	if (!allowzerolength && ROM.empty())
-//		THROWEXCEPTION(std::invalid_argument, "Can't write assembly binary data buffer into a zero-byte ROM buffer at offset " + std::to_string(offset));
-//
-//	CString asmbin;
-//	asmbin.Format("%s\\asm\\%s", (LPCSTR)m_proj.ProjectFolder, (LPCSTR)relfilename);
-//	if (!Paths::FileExists(asmbin))
-//		THROWEXCEPTION(std::runtime_error, "Can't write assembly binary data file " + std::string((LPCSTR)asmbin));
-//
-//	// Write the same number of bytes as the size of the file (i.e. the write should't arbitrarily change the file size).
-//	size_t filesize = Paths::FileSize(asmbin);
-//	if (!allowzerolength && filesize == 0)
-//		THROWEXCEPTION(std::runtime_error, "Not allowed to write to zero-length destination binary file " + std::string((LPCSTR)asmbin));
-//
-//	bytevector asmbuffer(filesize, 0);
-//	overwrite(asmbuffer, ROM, 0, filesize, offset);
-//
-//	save_binary(asmbin, asmbuffer);
 }
 
 void GameSerializer::LoadInline(CString relfilename, const asmsourcemappingvector & entries)
 {
+	//TODO - remove CFFHacksterProject
+	bool is2 = (&m_prj2 != &ff2dummy);
+	auto& rom = is2 ? m_prj2.ROM : m_proj.ROM;
+	const CString& asmpath = is2 ? tomfc(m_prj2.info.asmdll) : m_proj.AsmDLLPath;
+
 	try {
-		LoadLibraryHandleScope hmodule(m_proj.AsmDLLPath);
+		LoadLibraryHandleScope hmodule(asmpath);
 		AsmDllModule asmdll(hmodule, m_proj, true, nullptr);
-		auto asmfile = build_asm_path(m_proj, relfilename);
-		if (!asmdll.GetRomDataFromAsm(asmfile.c_str(), m_proj.m_varmap, entries, m_proj.ROM))
-			THROWEXCEPTION(std::runtime_error, "the call to get ROM data from assembly source failed");
+		auto asmfile = is2 ? build_asm_path(m_prj2, (LPCSTR)relfilename) : build_asm_path(m_proj, relfilename);
+		if (!asmdll.GetRomDataFromAsm(asmfile.c_str(), m_proj.m_varmap, entries, rom))
+			THROWEXCEPTION(std::runtime_error, "Failed to get ROM data from assembly source [" + asmfile + "].");
 	}
 	catch (std::exception ex) {
 		ErrorHere << __FUNCTION__ " failed due to an exception: " << ex.what() << std::endl;
@@ -352,12 +265,18 @@ void GameSerializer::LoadInline(CString relfilename, const asmsourcemappingvecto
 
 void GameSerializer::SaveInline(CString relfilename, const asmsourcemappingvector & entries)
 {
+	bool is2 = (&m_prj2 != &ff2dummy);
+	auto& rom = is2 ? m_prj2.ROM : m_proj.ROM;
+	const CString& asmpath = is2 ? tomfc(m_prj2.info.asmdll) : m_proj.AsmDLLPath;
+
 	try {
-		LoadLibraryHandleScope hmodule(m_proj.AsmDLLPath);
-		AsmDllModule asmdll(hmodule, m_proj, true, nullptr);
-		auto asmfile = build_asm_path(m_proj, relfilename);
-		if (!asmdll.SetAsmFromRomData(asmfile.c_str(), m_proj.m_varmap, entries, m_proj.ROM))
-			THROWEXCEPTION(std::runtime_error, "the call to save ROM data to assembly source failed");
+		LoadLibraryHandleScope hmodule(asmpath);
+
+		AsmDllModule asmdll(hmodule, m_prj2, true, nullptr);
+
+		auto asmfile = is2 ? build_asm_path(m_prj2, (LPCSTR)relfilename) : build_asm_path(m_proj, relfilename);
+		if (!asmdll.SetAsmFromRomData(asmfile.c_str(), m_proj.m_varmap, entries, rom))
+			THROWEXCEPTION(std::runtime_error, "Failed to save ROM data to assembly source [" + asmfile + "].");
 	}
 	catch (std::exception ex) {
 		ErrorHere << __FUNCTION__ " failed due to an exception: " << ex.what() << std::endl;
@@ -492,6 +411,10 @@ bool GameSerializer::ReadAllVariables(CString projectpath, stdstrintmap & values
 
 	if (progress) progress->AddSteps(3);
 
+	//TODO - specify the filenames (constants, variables) in a value.
+	//		That lets the designer specify what inc files to parse, so projects
+	//		can add new ones without having to rebuild FFHEx.
+
 	const auto constinc = "constants.inc";
 	Step("Loading constants...");
 	if (!ReadVars(constinc, valuesmap))
@@ -509,27 +432,28 @@ bool GameSerializer::ReadAllVariables(CString projectpath, stdstrintmap & values
 stdstringset GameSerializer::read_varnames()
 {
 	stdstringset theset;
-	//RAM_NAMES
-	// read the RAM values
-	auto ramnames = ReadIni(m_proj.ValuesPath, "RAM_NAMES", "value", stdstringvector{});
-	for (const auto & name : ramnames) theset.insert(name);
 
-	//EDITOR_NAME_FILTER
+	// Read the ram values into the string set (specified  in RAM_NAMES)
+	ff1coredefs::DataValueAccessor d(m_prj2);
+	auto ramnames = d.get<std::vector<std::string>>("RAM_NAMES");
+	for (const auto& name : ramnames) theset.insert(name);
+
+	// Next, the editor names (in EDITOR_NAME_FILTER)
 	// read the names in each of the filters in the name filter
-	auto filters = ReadIni(m_proj.ValuesPath, "EDITOR_NAME_FILTER", "value", stdstringvector{});
-	for (const auto & filter : filters) {
-		auto strvalue = ReadIni(m_proj.ValuesPath, filter.c_str(), "value", "");
-		auto names = split(strvalue, " ");
-		for (const auto & name : names) theset.insert((LPCSTR)name);
+	auto filters = d.get<std::vector<std::string>>("EDITOR_NAME_FILTER");
+	for (const auto& filter : filters) {
+		// Get the names from each filter and add them to the set
+		auto names = d.get<std::vector<std::string>>(filter);
+		for (const auto& name : names) theset.insert(name);
 	}
 	return theset;
 }
 
 stdstringvector GameSerializer::read_prefixes()
 {
-	//PREFIX_FILTER
-	stdstringvector vec = ReadIni(m_proj.ValuesPath, "PREFIX_FILTER", "value", stdstringvector{});
-	return vec;
+	// Load in the prefix lists (from PREFIX_FILTER)
+	ff1coredefs::DataValueAccessor d(m_prj2);
+	return d.get<std::vector<std::string>>("PREFIX_FILTER");
 }
 
 bool GameSerializer::read_variables(std::string filepath, const stdstringset & nameset, const stdstringvector & prefixes, std::string numberformat, stdstrintmap & valuesmap)

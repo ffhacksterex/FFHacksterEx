@@ -6,8 +6,10 @@
 #include "io_functions.h"
 #include "logging_functions.h"
 #include "path_functions.h"
+#include "string_conversions.hpp"
 #include "string_functions.h"
 #include "FFHacksterProject.h"
+#include "FFH2Project.h"
 #include "LoadLibraryHandleScope.h"
 #include "FFHacksterProject.h"
 #include "FilePathRemover.h"
@@ -21,6 +23,11 @@ namespace fsys = std::filesystem;
 #else
 namespace fsys = std::experimental::filesystem;
 #endif
+
+namespace {
+	CFFHacksterProject ffdummy;
+	FFH2Project ff2dummy;
+}
 
 namespace asmdll_impl {
 
@@ -192,12 +199,25 @@ namespace asmdll_impl {
 		return local_coerceasmtype(projectpath, asmdllpath);
 	}
 
+	pair_result<CString> IsProjectDllCompatible(FFH2Project& proj)
+	{
+		if (!proj.IsAsm()) return { false, "This is not an Assembly project." };
+
+		auto dir = Paths::Combine({ tomfc(proj.ProjectFolder), "asm" });
+		return IsDirDllCompatible(dir, tomfc(proj.info.asmdll));
+	}
+
 	pair_result<CString> IsProjectDllCompatible(CFFHacksterProject& proj)
 	{
 		if (!proj.IsAsm()) return { false, "This is not an Assembly project." };
 
 		auto dir = Paths::Combine({ proj.ProjectFolder, "asm" });
 		return IsDirDllCompatible(dir, proj.AsmDLLPath);
+	}
+
+	pair_result<CString> CoerceAsmToDllCompatibility(FFH2Project& proj)
+	{
+		return CoerceAsmToDllCompatibility(tomfc(proj.ProjectPath), tomfc(proj.info.asmdll));
 	}
 
 	pair_result<CString> CoerceAsmToDllCompatibility(CFFHacksterProject& proj)
@@ -218,6 +238,13 @@ namespace asmdll_impl {
 			return { false, "Unable to retrieve asmtype to DLL return buffer." };
 
 		return { true, asmtype };
+	}
+
+	pair_result<CString> GetAsmDllType(FFH2Project& proj)
+	{
+		if (!proj.IsAsm()) return { false, "Can't get asmtype from a non-assembly project. " };
+
+		return GetAsmDllType(tomfc(proj.info.asmdll));
 	}
 
 	pair_result<CString> GetAsmDllType(CFFHacksterProject& proj)
@@ -292,10 +319,11 @@ namespace asmdll_impl {
 
 	// ################################################################
 
-	AsmDllModule::AsmDllModule(HMODULE module, CFFHacksterProject & proj, bool showerrors, CWnd * pwnd)
+	AsmDllModule::AsmDllModule(HMODULE module, FFH2Project& proj, bool showerrors, CWnd* pwnd)
 		: m_hwnd(NULL)
 		, m_showerrors(showerrors)
-		, m_proj(proj)
+		, m_proj(ffdummy)
+		, m_prj2(proj)
 	{
 		if (pwnd == nullptr) pwnd = AfxGetMainWnd();
 		if (pwnd != nullptr) m_hwnd = pwnd->GetSafeHwnd();
@@ -309,9 +337,34 @@ namespace asmdll_impl {
 		CString msg;
 		if (m_getasmtypefunc == nullptr) msg.AppendFormat(" " ASMFF1_GETASMTYPEFUNC_NAME);
 		if (m_loadfunc == nullptr) msg.AppendFormat(" " ASMFF1_LOADFUNC_NAME);
-		if (m_savefunc == nullptr) msg.AppendFormat(" " ASMFF1_LOADFUNC_NAME);
+		if (m_savefunc == nullptr) msg.AppendFormat(" " ASMFF1_SAVEFUNC_NAME);
 		if (!msg.IsEmpty()) {
-			msg.Insert(0, "asmdll module is the following functions:");
+			msg.Insert(0, "asmdll module is missing the following functions:");
+			throw asmdll_exception(EXCEPTIONPOINT, m_modulepath, msg);
+		}
+	}
+
+	AsmDllModule::AsmDllModule(HMODULE module, CFFHacksterProject & proj, bool showerrors, CWnd * pwnd)
+		: m_hwnd(NULL)
+		, m_showerrors(showerrors)
+		, m_proj(proj)
+		, m_prj2(ff2dummy)
+	{
+		if (pwnd == nullptr) pwnd = AfxGetMainWnd();
+		if (pwnd != nullptr) m_hwnd = pwnd->GetSafeHwnd();
+
+		m_modulepath = GetModulePath(module);
+
+		m_getasmtypefunc = (ASMFF1_GETASMTYPEFUNC)GetProcAddress(module, ASMFF1_GETASMTYPEFUNC_NAME);
+		m_loadfunc = (ASMFF1_LOADFUNC)GetProcAddress(module, ASMFF1_LOADFUNC_NAME);
+		m_savefunc = (ASMFF1_SAVEFUNC)GetProcAddress(module, ASMFF1_SAVEFUNC_NAME);
+
+		CString msg;
+		if (m_getasmtypefunc == nullptr) msg.AppendFormat(" " ASMFF1_GETASMTYPEFUNC_NAME);
+		if (m_loadfunc == nullptr) msg.AppendFormat(" " ASMFF1_LOADFUNC_NAME);
+		if (m_savefunc == nullptr) msg.AppendFormat(" " ASMFF1_SAVEFUNC_NAME);
+		if (!msg.IsEmpty()) {
+			msg.Insert(0, "asmdll module is missing the following functions:");
 			throw asmdll_exception(EXCEPTIONPOINT, m_modulepath, msg);
 		}
 	}

@@ -8,6 +8,7 @@
 #include <FFHacksterProject.h>
 #include <FFH2Project.h>
 #include <FilePathRemover.h>
+#include <GameSerializer.h>
 #include <IProgress.h>
 #include <ini_functions.h>
 #include <io_functions.h>
@@ -48,6 +49,7 @@ namespace {
 	void CommitUpgrade(std::string projectpath, std::string preppath);
 	FFH2Project LoadJsonProject(std::string projectpath, AppSettings& appstgs);
 	std::string ExtractJsonProjectVersion(std::string projectpath);
+	bool LoadVariablesAndConstants(FFH2Project& proj, IProgress* progress);
 }
 
 CString ProjectLoader::Load(CString projectpath, IProgress* progress)
@@ -80,21 +82,13 @@ CString ProjectLoader::Load(CString projectpath, IProgress* progress)
 	// but we need to update the path accordinagly.
 	std::string newjsonpath = (LPCSTR)Paths::ReplaceFileName(projectpath, Paths::GetFileName(currentprojpath.c_str()));
 	Proj2 = LoadJsonProject(newjsonpath, Appstgs);
+	LoadVariablesAndConstants(Proj2, progress);
 	
 	return Proj2.ProjectPath.c_str();
 }
 
 bool ProjectLoader::Save()
 {
-	//TODO - move to Proj2.Save
-	//--
-	//std::ostringstream ostr;
-	//ojson oj = Proj2;
-	//ostr << oj.dump(2);
-	//std::string s = ostr.str();
-	//TRACE("\n\n====\n%s\n====\n\n", s.c_str());
-	//--
-
 	Proj2.Save();
 	return true;
 }
@@ -238,40 +232,6 @@ namespace {
 
 	void UpgradeJsonProject(std::string projectpath)
 	{
-		////TODO - here's a test, scrape the ffheader object
-		//std::ifstream ifs(projectpath);
-		//std::string partialheader;
-		//size_t maxcount = 512;
-		//partialheader.reserve(maxcount);
-		//for (size_t st = 0; st < maxcount; ++st) partialheader.push_back(ifs.get());
-
-		////TODO - see if this can perform better
-		////std::regex rx(
-		////	".*\"ffheader\"\\s*:\\s*(\\{\\s*.+\\s*\\}).*"
-		////	, std::regex::ECMAScript
-		////);
-		////std::smatch m;
-		////if (!std::regex_match(partial, m, rx))
-		////	throw std::runtime_error("Unable to parse project version from ffheader (unrecognized file format).");
-		////
-		////if (!m[1].matched)
-		////	throw std::runtime_error("Unable to parse project version from ffheader (incorrect header format).")
-
-		////partial = m[1].str();
-		////auto oj = ojson::parse(partial);
-
-		////DEVNOTE - this relies on using nlohmann::ordered_json or a similar approach to keep ffheader as the first property
-		//auto head = partialheader.find("ffheader");
-		//auto hopen = head != std::string::npos ? partialheader.find("{", head) : head;
-		//auto hend = hopen != std::string::npos ? partialheader.find('}', hopen) : hopen;
-		//if (hopen == std::string::npos)
-		//	throw std::runtime_error("Cannot extract version from header.");
-
-		//auto newpartial = partialheader.substr(hopen, hend - hopen + 1);
-		//auto oj = ojson::parse(newpartial);
-		//auto v = oj["version"];
-		//std::string strver = v.get<std::string>();
-
 		auto strver = ExtractJsonProjectVersion(projectpath);
 		TRACE("JSON project version = %s\n", strver.c_str());
 
@@ -291,16 +251,6 @@ namespace {
 		if (!Paths::FileExists(projectpath))
 			throw std::runtime_error("Cannot find the path to load:\n" + projectpath);
 
-		//TODO - replace this part with prj2.Load(projectpath)
-		//--
-		//CString csprojectpath = projectpath.c_str();
-		//ojson oj;
-		//std::ifstream ifs(projectpath);
-		//ifs >> oj;
-		//auto prj2 = oj.get<FFH2Project>();
-		//prj2.ProjectPath = projectpath;
-		//prj2.ProjectFolder = (LPCSTR)Paths::GetDirectoryPath(csprojectpath);
-		//--
 		FFH2Project prj2;
 		prj2.Load(projectpath);
 
@@ -318,21 +268,6 @@ namespace {
 		partialheader.reserve(maxcount);
 		for (size_t st = 0; st < maxcount; ++st) partialheader.push_back(ifs.get());
 
-		//TODO - see if this can perform better
-		//std::regex rx(
-		//	".*\"ffheader\"\\s*:\\s*(\\{\\s*.+\\s*\\}).*"
-		//	, std::regex::ECMAScript
-		//);
-		//std::smatch m;
-		//if (!std::regex_match(partial, m, rx))
-		//	throw std::runtime_error("Unable to parse project version from ffheader (unrecognized file format).");
-		//
-		//if (!m[1].matched)
-		//	throw std::runtime_error("Unable to parse project version from ffheader (incorrect header format).")
-
-		//partial = m[1].str();
-		//auto oj = ojson::parse(partial);
-
 		//DEVNOTE - this relies on using nlohmann::ordered_json or a similar approach to keep ffheader as the first property
 		auto head = partialheader.find("ffheader");
 		auto hopen = head != std::string::npos ? partialheader.find("{", head) : head;
@@ -346,5 +281,23 @@ namespace {
 		std::string strver = v.get<std::string>();
 		return strver;
 	}
+
+	bool LoadVariablesAndConstants(FFH2Project & proj, IProgress* progress)
+	{
+		//TODO - add a progress step
+
+		// Load the variables and constants. If this fails, then many editors become unusable.
+		proj.m_varmap.clear();
+		if (proj.IsAsm()) {
+			GameSerializer gs(proj);
+			return gs.ReadAllVariables(tomfc(proj.ProjectFolder), proj.m_varmap, progress);
+		}
+		if (proj.IsRom()) {
+			return proj.UpdateVarsAndConstants();
+		}
+
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::initializing, "unknown project types can't load vars/constants");
+	}
+
 
 } // end namespace (unnamed)

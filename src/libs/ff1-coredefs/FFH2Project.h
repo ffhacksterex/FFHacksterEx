@@ -23,6 +23,7 @@ struct ProjectInfo
 {
 	std::string type;
 	std::string publishTo;
+	std::string asmdll;
 	std::string additionalModulesPath;
 	std::string cleanfile;
 	std::string workrom;
@@ -140,6 +141,7 @@ public:
 	std::string ProjectFolder;
 	std::string WorkRomPath;
 	AppSettings* AppSettings = nullptr;
+	std::map<std::string, int> m_varmap;
 
 	std::vector<unsigned char> ROM;
 	//AsmFileSet AsmFiles; //TODO - not used yet
@@ -161,4 +163,5 @@ public:
 	const std::string* GetTable(int index);
 	bool ClearROM();
 	void LoadROM();
+	bool UpdateVarsAndConstants();
 };
