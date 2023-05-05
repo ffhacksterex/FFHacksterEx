@@ -18,6 +18,7 @@
 #include <io_functions.h>
 #include <LoadLibraryHandleScope.h>
 #include <ram_value_functions.h>
+#include <string_conversions.hpp>
 #include <string_functions.h>
 #include <ui_helpers.h>
 #include <ui_prompts.h>
@@ -471,13 +472,13 @@ void CFFHacksterDlg::UpdateSharedDisplayProperties()
 CString CFFHacksterDlg::build_project_type_text()
 {
 	CString text = "Unknown project type";
-	if (m_proj.IsRom()) {
+	if (m_prj2.IsRom()) {
 		text = "ROM project";
 	}
-	else if (m_proj.IsAsm()) {
-		pair_result<CString> result = asmdll_impl::GetAsmDllVersion(m_proj.AsmDLLPath);
+	else if (m_prj2.IsAsm()) {
+		pair_result<CString> result = asmdll_impl::GetAsmDllVersion(tomfc(m_prj2.info.asmdll));
 		CString ver = result ? "v" + result.value : "Unknown version";
-		text.Format("Assembly (%s)", ver);
+		text.Format("Assembly project (%s)", ver);
 	}
 	return text;
 }
