@@ -4,14 +4,17 @@
 #include "stdafx.h"
 #include "Attack.h"
 #include "AsmFiles.h"
+#include <core_exceptions.h>
 #include "editor_label_functions.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
+#include <FFHDataValue_dva.hpp>
 #include "GameSerializer.h"
 #include "general_functions.h"
 #include "imaging_helpers.h"
 #include "ingame_text_functions.h"
 #include "ini_functions.h"
 #include "io_functions.h"
+#include <string_conversions.hpp>
 #include "string_functions.h"
 #include "ui_helpers.h"
 
@@ -89,9 +92,9 @@ BOOL CAttack::OnInitDialog()
 		this->LoadOffsets();
 		this->LoadRom();
 
-		LoadListBox(m_attacklist, LoadAttackEntries(*Project));
-		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, LoadElementLabels(*Project));
-		LoadCaptions(std::vector<CWnd*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 }, LoadAilEffectLabels(*Project));
+		LoadListBox(m_attacklist, LoadAttackEntries(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, LoadElementLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 }, LoadAilEffectLabels(*Proj2));
 
 		cur = -1;
 		m_attacklist.SetCurSel(0);
@@ -112,41 +115,42 @@ BOOL CAttack::OnInitDialog()
 
 void CAttack::LoadOffsets()
 {
-	ATTACK_OFFSET = ReadHex(Project->ValuesPath, "ATTACK_OFFSET");
-	ATTACK_BYTES = ReadDec(Project->ValuesPath, "ATTACK_BYTES");
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
-	MAGIC_OFFSET = ReadHex(Project->ValuesPath, "MAGIC_OFFSET");
+	ff1coredefs::DataValueAccessor d(*Proj2);
+	ATTACK_OFFSET = d.get<int>("ATTACK_OFFSET");
+	ATTACK_BYTES = d.get<int>("ATTACK_BYTES");
+	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");
+	MAGIC_OFFSET = d.get<int>("MAGIC_OFFSET");
 }
 
 void CAttack::LoadRom()
 {
-	Project->ClearROM();
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom()) {
+		load_binary(tomfc(Proj2->info.workrom), Proj2->ROM);
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.LoadAsmBin(BIN_MAGICDATA, MAGIC_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CAttack::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		save_binary(tomfc(Proj2->info.workrom), Proj2->ROM);
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.SaveAsmBin(BIN_MAGICDATA, MAGIC_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
@@ -156,16 +160,16 @@ void CAttack::LoadValues()
 	CString text;
 	int temp;
 
-	text.Format("%X", Project->ROM[offset]);
+	text.Format("%X", Proj2->ROM[offset]);
 	if (text.GetLength() == 1) text = "0" + text;
 	m_unknown.SetWindowText(text);
 
-	m_target.SetCheck(Project->ROM[offset + 3] == 1);
+	m_target.SetCheck(Proj2->ROM[offset + 3] == 1);
 
-	temp = Project->ROM[offset + 2];
+	temp = Proj2->ROM[offset + 2];
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 });
 
-	temp = Project->ROM[offset + 4];
+	temp = Proj2->ROM[offset + 4];
 	m_damagetext.ShowWindow(temp == 1);
 	m_damage.ShowWindow(temp == 1);
 	m_effectbox.ShowWindow(temp == 3);
@@ -181,11 +185,11 @@ void CAttack::LoadValues()
 	m_eff_effect.SetCheck(temp == 3);
 
 	if (temp == 1) {
-		text.Format("%d", Project->ROM[offset + 1]);
+		text.Format("%d", Proj2->ROM[offset + 1]);
 		m_damage.SetWindowText(text);
 	}
 	else {
-		temp = Project->ROM[offset + 1];
+		temp = Proj2->ROM[offset + 1];
 		SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 });
 	}
 }
@@ -198,7 +202,7 @@ void CAttack::StoreValues()
 
 	m_unknown.GetWindowText(text); temp = StringToInt_HEX(text);
 	if (temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset] = (BYTE)temp;
+	Proj2->ROM[offset] = (BYTE)temp;
 
 	temp = 0;
 	if (m_eff_damage.GetCheck()) {
@@ -208,17 +212,17 @@ void CAttack::StoreValues()
 	if (m_eff_effect.GetCheck()) {
 		temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 });
 	}
-	Project->ROM[offset + 1] = (BYTE)temp;
+	Proj2->ROM[offset + 1] = (BYTE)temp;
 
 	temp = 0;
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 });
-	Project->ROM[offset + 2] = (BYTE)temp;
+	Proj2->ROM[offset + 2] = (BYTE)temp;
 
-	Project->ROM[offset + 3] = (BYTE)(2 - m_target.GetCheck());
+	Proj2->ROM[offset + 3] = (BYTE)(2 - m_target.GetCheck());
 
 	temp = 1;
 	if (m_eff_effect.GetCheck()) temp = 3;
-	Project->ROM[offset + 4] = (BYTE)temp;
+	Proj2->ROM[offset + 4] = (BYTE)temp;
 }
 
 void CAttack::ChangeEffect(bool eff)
