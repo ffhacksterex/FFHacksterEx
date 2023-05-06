@@ -14,6 +14,7 @@ class CWnd;
 namespace Paths
 {
 	bool FileExists(CString filepath);
+	bool FileExists(std::string filepath);
 	bool FileCopy(CString source, CString dest);
 	bool FileCopyTo(CString source, CString destfolder);
 	bool FileCopyOrZeroByte(CString source, CString dest);
@@ -48,6 +49,7 @@ namespace Paths
 	std::vector<CString> GetFiles(CString folder, CString filefilters, bool recurse);
 
 	bool IsFile(CString pathname);
+	bool IsFile(std::string pathname);
 	bool IsDir(CString pathname);
 
 	CString GetModuleFilePath();
@@ -56,6 +58,7 @@ namespace Paths
 	CString GetProgramFolder();
 	CString GetProgramExePath();
 	CString GetDirectoryPath(CString fullpath);
+	std::string GetDirectoryPath(std::string fullpath);
 	CString GetParentDirectory(CString fullpath);
 	CString GetFileName(CString fullpath);
 	CString GetFileStem(CString fullpath);
@@ -69,6 +72,7 @@ namespace Paths
 	CString ReplaceFileName(CString filepath, CString filename);
 
 	CString AddTrailingSlash(CString fullpath);
+	std::string AddTrailingSlash(std::string fullpath);
 
 	CString RemoveExtension(CString filepath);
 	CString RemoveTrailingSlash(CString fullpath);

@@ -39,10 +39,8 @@
 #include "resource_editors.h"
 #include "resource.h"
 
-#include "logging_functions.h"
-
+#include <logging_functions.h>
 #include <ff1-utils-controls.h>
-#include <afxwin.h>
 
 #define DEF_PROGRAMCAPTION "FFHacksterEx"
 

@@ -5,6 +5,7 @@
 
 #include <Editors2.h>
 #include <FFHacksterProject.h>
+#include <FFH2Project.h>
 #include <IniOverrider.h>
 #include "StrikeCheck.h"
 #include "ProjectLoader.h"
@@ -58,14 +59,15 @@ CString CFFHExtensionModule::Invoke(const EditorInterop * ei)
 		}
 		else {
 			CFFHacksterProject proj;
+			FFH2Project prj2;
 			proj.AppSettings = &m_appsettings;
 			if (ei->projectini == nullptr) {
 				response = { EditErrCode::NoProject, "no project was specified" };
 			}
-			else if (!Paths::FileExists(ei->projectini)) {
+			else if (!Paths::FileExists((CString)ei->projectini)) {
 				response = { EditErrCode::NoProject, "couldn't find the project file '" + CString(ei->projectini) + "'" };
 			}
-			else if (!LoadProject(proj, ei->projectini)) {
+			else if (!LoadProject(prj2, proj, ei->projectini, m_appsettings)) {
 				response = { EditErrCode::NoProject, "failed to load the project" };
 			}
 			else {

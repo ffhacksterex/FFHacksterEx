@@ -9,6 +9,7 @@
 #include "std_assembly.h"
 #include "pair_result.h"
 class CFFHacksterProject;
+class FFH2Project;
 
 #define ASMDLL_COMPAT_DIR 0
 #define ASMDLL_COMPAT_ZIP 1
@@ -21,10 +22,13 @@ namespace asmdll_impl {
 	pair_result<CString> IsZipDllCompatible(CString zippath, CString asmdllpath);
 	pair_result<CString> IsDirDllCompatible(CString dirpath, CString asmdllpath);
 
+	pair_result<CString> IsProjectDllCompatible(FFH2Project& proj);
 	pair_result<CString> IsProjectDllCompatible(CFFHacksterProject& proj);
+	pair_result<CString> CoerceAsmToDllCompatibility(FFH2Project& proj);
 	pair_result<CString> CoerceAsmToDllCompatibility(CFFHacksterProject& proj);
 
 	pair_result<CString> GetAsmDllType(CString asmdllpath);
+	pair_result<CString> GetAsmDllType(FFH2Project& proj);
 	pair_result<CString> GetAsmDllType(CFFHacksterProject& proj);
 	pair_result<CString> GetAsmDllVersion(CString asmdllpath);
 
@@ -36,6 +40,7 @@ namespace asmdll_impl {
 	class AsmDllModule
 	{
 	public:
+		AsmDllModule(HMODULE module, FFH2Project & proj, bool showerrors = false, CWnd* pwnd = nullptr);
 		AsmDllModule(HMODULE module, CFFHacksterProject & proj, bool showerrors = false, CWnd * pwnd = nullptr);
 		~AsmDllModule();
 
@@ -48,6 +53,7 @@ namespace asmdll_impl {
 	private:
 		void EmitResult(int retcode, CString operation, CString message = "");
 
+		FFH2Project & m_prj2;
 		CFFHacksterProject & m_proj;
 		HWND m_hwnd;
 		CString m_modulepath;

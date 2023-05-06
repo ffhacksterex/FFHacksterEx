@@ -4,8 +4,10 @@
 #include "std_assembly.h"
 #include "general_functions.h"
 #include "ini_functions.h"
+#include <string_conversions.hpp>
 #include "type_support.h"
 #include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include <algorithm>
 
 using namespace Ini;
@@ -45,7 +47,6 @@ namespace Editorlabels
 			value.Append(ReadIni(stringsini, section, key, ""));
 
 			return value;
-
 		}
 
 		dataintnodevector LoadIniLabels(CFFHacksterProject & proj, CString section, bool showindex)
@@ -74,6 +75,17 @@ namespace Editorlabels
 			}
 
 			return labels;
+		}
+		
+		CString FormatLabel(const std::string & group, const std::string & value, int index, bool showindex)
+		{
+			CString key;
+			key.Format("%lu", index);
+
+			CString csvalue;
+			if (showindex) csvalue.Format("%02X: ", index);
+			csvalue.Append(value.c_str());
+			return csvalue;
 		}
 
 		dataintnode LoadIniLabel(CFFHacksterProject & proj, CString section, int index, bool showindex)
@@ -164,7 +176,9 @@ namespace Editorlabels
 	dataintnodevector LoadSpecialTileLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "SPECIALTILELABELS", showindex); }
 	dataintnodevector LoadMiscCoordLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "MISCCOORDLABELS", showindex); }
 	dataintnodevector LoadAilEffectLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "AILEFFECTLABELS", showindex); }
+
 	dataintnodevector LoadElementLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "ELEMENTLABELS", showindex); }
+
 	dataintnodevector LoadEnemyCategoryLabels(CFFHacksterProject & proj, bool showindex) { return LoadIniLabels(proj, "ENEMYCATEGORYLABELS", showindex); }
 	dataintnodevector LoadArmorTypes(CFFHacksterProject& proj, bool showindex) { return LoadIniLabels(proj, "ARMORTYPELABELS", showindex); }
 
@@ -329,4 +343,51 @@ namespace Editorlabels
 	void WriteEnemyCategoryLabel(CFFHacksterProject & proj, int index, CString newvalue) { WriteIniLabel(proj, "ENEMYCATEGORYLABELS", index, newvalue); }
 	void WriteArmorTypeLabel(CFFHacksterProject& proj, int index, CString newvalue) { WriteIniLabel(proj, "ARMORTYPELABELS", index, newvalue); }
 
-} // end namespace Editorlabels
+} // end namespace Editorlabels (CFFHacksterProject)
+
+
+
+namespace Editorlabels
+{
+	namespace {
+		dataintnodevector LoadLabels(FFH2Project& proj, CString section, bool showindex)
+		{
+			dataintnodevector labels;
+
+			std::string group = tostd(section);
+			auto it = proj.strings.entries.find(group);
+			if (it == cend(proj.strings.entries))
+				RAISEEXCEPTION(std::runtime_error, "Failed to load labels, unable to find label group '%s'.", group.c_str());
+
+			const auto& entries = it->second;
+			auto count = entries.size();
+			if (count < 1)
+				RAISEEXCEPTION(std::runtime_error, "No entires found for label group '%s'.", group.c_str());
+
+			for (auto index = 0; index < count; ++index) {
+				const auto& entry = entries[index];
+				auto label = FormatLabel(group, entry, index, showindex);
+				labels.push_back({ label, index });
+			}
+
+			//TODO - would have to introduce a mapping to do this count check, e.g. map [BATTLE_COUNT] => proj.strings.entries["battlelabels"]
+			//		then retrieve BATTLE_COUNT and check that it equals proj.strings.entries["battlelabels"].size()
+
+			//if (count != (int)labels.size()) {
+			//	RAISEEXCEPTION(std::runtime_error,
+			//		"count mismatch: group '%s' expects count %d, but read %d items", (LPCSTR)section, count, labels.size());
+			//}
+
+			return labels;
+		}
+	}
+
+	dataintnodevector LoadAilEffectLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "aileffectlabels", showindex); }
+	dataintnodevector LoadAILabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "ailabels", showindex); }
+	dataintnodevector LoadArmorTypes(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "armortypelabels", showindex); }
+	dataintnodevector LoadBackdropLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "backdroplabels", showindex); }
+	dataintnodevector LoadBattlePatternTableLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "patterntablelabels", showindex); }
+	dataintnodevector LoadElementLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "elementlabels", showindex); }
+	dataintnodevector LoadWepMagicLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "wepmaglabels", showindex); }
+
+} // end namespace Editorlabels (CFFH2Project)

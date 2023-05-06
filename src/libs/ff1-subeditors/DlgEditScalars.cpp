@@ -432,9 +432,11 @@ void CDlgEditScalars::StoreValues()
 
 CString CDlgEditScalars::PromptForImportFile(CWnd * parent)
 {
+	//TODO - put these in a resource and load from there, minimizes code changes
 	CFileDialog dlg(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | UiTemp::COMMON_OFN,
-		"Supported FF1 Values files (*.ff1rom;*.ff1asm,*.values)|*.ff1rom;*.ff1asm;*.values|"
-		"FF1 Projects (*.ff1rom;*.ff1asm)|*.ff1rom;*.ff1asm|"
+		"Supported FF1 Values files (.*ff1r,*.ff1rom;*.ff1asm,*.values)|*.ff1r;*.ff1rom;*.ff1asm;*.values|" //TODO - ff1r is temporary
+		"FF1 JSON Projects (*.ff1r)|*.ff1r|" //TODO - ff1r is temporary
+		"FF1 INI Projects (*.ff1rom;*.ff1asm)|*.ff1rom;*.ff1asm|"
 		"FF1 Values file (*.values)|*.values|"
 		"|", parent);
 

@@ -6,12 +6,11 @@
 class CListBox;
 class CComboBox;
 class CFFHacksterProject;
+class FFH2Project;
 
 namespace Editorlabels
 {
-	// ################################################################
-	// COLLECTION READERS
-
+	// CFFHacksterProject-based functions
 	dataintnodevector LoadOnScreenSpriteLabels(CFFHacksterProject & proj, bool showindex = false);
 
 	dataintnodevector LoadWepMagicLabels(CFFHacksterProject & proj, bool showindex = false);
@@ -33,7 +32,7 @@ namespace Editorlabels
 	dataintnodevector LoadSpecialTileLabels(CFFHacksterProject & proj, bool showindex = false);
 	dataintnodevector LoadMiscCoordLabels(CFFHacksterProject & proj, bool showindex = false);
 	dataintnodevector LoadAilEffectLabels(CFFHacksterProject & proj, bool showindex = false);
-	dataintnodevector LoadElementLabels(CFFHacksterProject & proj, bool showindex = false);
+	dataintnodevector LoadElementLabels(CFFHacksterProject & proj, bool showindex = false);	
 	dataintnodevector LoadEnemyCategoryLabels(CFFHacksterProject & proj, bool showindex = false);
 	dataintnodevector LoadArmorTypes(CFFHacksterProject& proj, bool showindex = false);
 
@@ -98,4 +97,18 @@ namespace Editorlabels
 	void WriteElementLabel(CFFHacksterProject & proj, int index, CString newvalue);
 	void WriteEnemyCategoryLabel(CFFHacksterProject & proj, int index, CString newvalue);
 	void WriteArmorTypeLabel(CFFHacksterProject& proj, int index, CString newvalue);
+}
+
+namespace Editorlabels
+{
+	// ################################################################
+	// COLLECTION READERS
+
+	dataintnodevector LoadAilEffectLabels(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadArmorTypes(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadAILabels(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadBackdropLabels(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadBattlePatternTableLabels(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadElementLabels(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadWepMagicLabels(FFH2Project& proj, bool showindex = false);
 }

@@ -5,6 +5,7 @@
 class CListBox;
 class CComboBox;
 class CFFHacksterProject;
+class FFH2Project;
 
 namespace Ingametext
 {
@@ -22,6 +23,7 @@ namespace Ingametext
 	dataintnodevector LoadTruncatedDialogueEntries(CFFHacksterProject & proj, int maxlength, bool showindex = false);
 	dataintnode LoadTruncatedDialogueEntry(CFFHacksterProject & proj, int index, int maxlength, bool showindex = false);
 
+	// CFFHackstrProject-based methods
 	dataintnodevector LoadArmorEntries(CFFHacksterProject & proj, bool showindex = false);
 	dataintnodevector LoadAttackEntries(CFFHacksterProject & proj, bool showindex = false);
 	dataintnodevector LoadBattleMessageEntries(CFFHacksterProject & proj, bool showindex = false);
@@ -63,3 +65,16 @@ namespace Ingametext
 	};
 
 } // end namespace Ingametext
+
+namespace Ingametext // FFH2Project versions
+{
+	dataintnodevector LoadArmorEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadAttackEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadClassEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadMagicEntries(FFH2Project& proj, bool showindex = false);
+
+	dataintnode LoadArmorEntry(FFH2Project& proj, int index, bool showindex = false);
+
+	void PasteSwapStringBytes(bool swapping, FFH2Project& proj, int context, int sourceindex, int destindex);
+
+} // end namespace Ingametext // FFH2Project versions

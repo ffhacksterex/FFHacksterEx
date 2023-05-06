@@ -10,6 +10,7 @@
 #include <DialogWithBackground.h>
 #include <afxlinkctrl.h>
 #include "SubDlgDynaButtons.h"
+#include <FFH2Project.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // CFFHacksterDlg dialog
@@ -29,6 +30,7 @@ public:
 	CString ExitAction;
 	CEntriesLoader m_loader;
 	CFFHacksterProject m_proj;
+	FFH2Project m_prj2;
 	Editors2::CEditorVector Editors;
 	Editors2::EditorSettingsSerializer m_serializer;
 

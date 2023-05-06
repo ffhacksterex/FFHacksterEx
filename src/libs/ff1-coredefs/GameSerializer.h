@@ -5,9 +5,11 @@
 #include "vector_types.h"
 #include <functional>
 class CFFHacksterProject;
+class FFH2Project;
 class IProgress;
 
-
+std::string build_asm_path(FFH2Project& proj, std::string relfilename);
+std::istream& open_asmstream(std::ifstream& ifs, FFH2Project& proj, std::string relfilename);
 std::string build_asm_path(CFFHacksterProject & proj, CString relfilename);
 std::istream & open_asmstream(std::ifstream & ifs, CFFHacksterProject & proj, CString relfilename);
 
@@ -16,6 +18,7 @@ class GameSerializer
 {
 public:
 	GameSerializer(CFFHacksterProject & proj, CWnd* mainwnd = nullptr);
+	GameSerializer(FFH2Project & prj2, CWnd* mainwnd = nullptr);
 	~GameSerializer();
 
 	CWnd * MainWindow;
@@ -52,4 +55,5 @@ private:
 	void DoWriteAsBytes(int hcoffset, stdstrintmap& valuesmap, const talkelement& elem);
 
 	CFFHacksterProject & m_proj;
+	FFH2Project & m_prj2;
 };

@@ -5,14 +5,17 @@
 #include "Armor.h"
 #include "AsmFiles.h"
 #include "collection_helpers.h"
-#include "editor_label_functions.h"
-#include "FFHacksterProject.h"
+#include <core_exceptions.h>
+#include <editor_label_functions.h>
+#include <FFH2Project.h>
+#include <FFHDataValue_dva.hpp>
 #include "GameSerializer.h"
 #include "general_functions.h"
 #include "imaging_helpers.h"
 #include "ingame_text_functions.h"
 #include "ini_functions.h"
 #include "io_functions.h"
+#include <string_conversions.hpp>
 #include "string_functions.h"
 #include "ui_helpers.h"
 #include "copypaste_helpers.h"
@@ -95,7 +98,7 @@ END_MESSAGE_MAP()
 BOOL CArmor::OnInitDialog() 
 {
 	BaseClass::OnInitDialog();
-	
+
 	try {
 		this->LoadOffsets();
 		this->LoadRom();
@@ -105,13 +108,13 @@ BOOL CArmor::OnInitDialog()
 			&m_use7,&m_use8,&m_use9,&m_use10,&m_use11,&m_use12 };
 		ASSERT(classlists.size() == (size_t)CLASS_COUNT);
 
-		LoadCaptions(std::vector<CWnd*>{ &m_def1, &m_def2, &m_def3, &m_def4, &m_def5, &m_def6, &m_def7, &m_def8 }, LoadElementLabels(*Project));
+		LoadCaptions(std::vector<CWnd*>{ &m_def1, & m_def2, & m_def3, & m_def4, & m_def5, & m_def6, & m_def7, & m_def8 }, LoadElementLabels(*Proj2));
 
-		LoadListBox(m_armorlist, LoadArmorEntries(*Project));
-		LoadCombo(m_spellcast, LoadMagicEntries(*Project) + LoadAttackEntries(*Project));
+		LoadListBox(m_armorlist, LoadArmorEntries(*Proj2));
+		LoadCombo(m_spellcast, LoadMagicEntries(*Proj2) + LoadAttackEntries(*Proj2));
 		m_spellcast.InsertString(0, "--None--");
-		LoadCombo(m_armortype, LoadArmorTypes(*Project));
-		LoadCaptions(classlists, LoadClassEntries(*Project));
+		LoadCombo(m_armortype, LoadArmorTypes(*Proj2));
+		LoadCaptions(classlists, LoadClassEntries(*Proj2));
 
 		cur = -1;
 		m_armorlist.SetCurSel(0);
@@ -146,34 +149,36 @@ void CArmor::OnSelchangeArmorlist()
 
 void CArmor::LoadOffsets()
 {
-	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
-	ARMORTEXT_OFFSET = ReadHex(Project->ValuesPath, "ARMORTEXT_OFFSET");
-	BASICTEXT_PTRADD = ReadHex(Project->ValuesPath, "BASICTEXT_PTRADD");
-	ARMOR_COUNT = ReadDec(Project->ValuesPath, "ARMOR_COUNT");
-	ATTACKTEXT_OFFSET = ReadHex(Project->ValuesPath, "ATTACKTEXT_OFFSET");
-	ATTACKTEXT_PTRADD = ReadHex(Project->ValuesPath, "ATTACKTEXT_PTRADD");
-	ATTACK_COUNT = ReadDec(Project->ValuesPath, "ATTACK_COUNT");
-	MAGICTEXT_OFFSET = ReadHex(Project->ValuesPath, "MAGICTEXT_OFFSET");
-	MAGIC_COUNT = ReadDec(Project->ValuesPath, "MAGIC_COUNT");
-	CLASSTEXT_OFFSET = ReadHex(Project->ValuesPath, "CLASSTEXT_OFFSET");
-	ARMOR_OFFSET = ReadHex(Project->ValuesPath, "ARMOR_OFFSET");
-	ARMOR_BYTES = ReadDec(Project->ValuesPath, "ARMOR_BYTES");
-	ARMORPRICE_OFFSET = ReadHex(Project->ValuesPath, "ARMORPRICE_OFFSET");
-	ARMORPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "ARMORPERMISSIONS_OFFSET");
-	ARMORTYPE_OFFSET = ReadHex(Project->ValuesPath, "ARMORTYPE_OFFSET");
-
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
-	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
+	ff1coredefs::DataValueAccessor d(*Proj2);
+	CLASS_COUNT = d.get<int>("CLASS_COUNT");
+	ARMORTEXT_OFFSET = d.get<int>("ARMORTEXT_OFFSET");
+	BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+	ARMOR_COUNT = d.get<int>("ARMOR_COUNT");
+	ATTACKTEXT_OFFSET = d.get<int>("ATTACKTEXT_OFFSET");
+	ATTACKTEXT_PTRADD = d.get<int>("ATTACKTEXT_PTRADD");
+	ATTACK_COUNT = d.get<int>("ATTACK_COUNT");
+	MAGICTEXT_OFFSET = d.get<int>("MAGICTEXT_OFFSET");
+	MAGIC_COUNT = d.get<int>("MAGIC_COUNT");
+	CLASSTEXT_OFFSET = d.get<int>("CLASSTEXT_OFFSET");
+	ARMOR_OFFSET = d.get<int>("ARMOR_OFFSET");
+	ARMOR_BYTES = d.get<int>("ARMOR_BYTES");
+	ARMORPRICE_OFFSET = d.get<int>("ARMORPRICE_OFFSET");
+	ARMORPERMISSIONS_OFFSET = d.get<int>("ARMORPERMISSIONS_OFFSET");
+	ARMORTYPE_OFFSET = d.get<int>("ARMORTYPE_OFFSET");
+	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");
+	BINPRICEDATA_OFFSET = d.get<int>("BINPRICEDATA_OFFSET");
 }
 
 void CArmor::LoadRom()
 {
-	Project->ClearROM();
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom())
+	{
+		Proj2->LoadROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm())
+	{
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.LoadAsmBin(BIN_ARMORDATA, ARMOR_OFFSET);
@@ -184,17 +189,18 @@ void CArmor::LoadRom()
 			});
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CArmor::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	//TODO - REPLACE
+	if (Proj2->IsRom()) {
+		save_binary(tomfc(Proj2->WorkRomPath), Proj2->ROM);
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.SaveAsmBin(BIN_ARMORDATA, ARMOR_OFFSET);
@@ -205,7 +211,7 @@ void CArmor::SaveRom()
 			});
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
@@ -214,32 +220,33 @@ void CArmor::LoadValues()
 	int offset = ARMOR_OFFSET + (ARMOR_BYTES * cur);
 	int temp;
 	CString text;
+	const auto& rom = Proj2->ROM;
 
-	temp = Project->ROM[offset];
+	temp = rom[offset];
 	text.Format("%d",temp);
 	m_evade.SetWindowText(text);
 
-	temp = Project->ROM[offset + 1];
+	temp = rom[offset + 1];
 	text.Format("%d",temp);
 	m_def.SetWindowText(text);
 
-	temp = Project->ROM[offset + 2];
+	temp = rom[offset + 2];
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_def1, &m_def2, &m_def3, &m_def4, &m_def5, &m_def6, &m_def7, &m_def8 });
 
-	temp = Project->ROM[offset + 3];
+	temp = rom[offset + 3];
 	if(temp >= 0x43) temp -= 0x02;
 	m_spellcast.SetCurSel(temp);
 
 	offset = ARMORPRICE_OFFSET + (cur << 1);
-	temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+	temp = rom[offset] + (rom[offset + 1] << 8);
 	text.Format("%d",temp);
 	m_price.SetWindowText(text);
 
 	offset = ARMORTYPE_OFFSET + cur;
-	m_armortype.SetCurSel(Project->ROM[offset]);
+	m_armortype.SetCurSel(rom[offset]);
 
 	offset = ARMORPERMISSIONS_OFFSET + (cur << 1);
-	temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+	temp = rom[offset] + (rom[offset + 1] << 8);
 	//N.B. - the check associates class 0 with the highest bit, and equips if flags are cleared.
 	//	Therefore, bitwise-flip the value, then loop the classes in reverse order.
 	temp = (~temp & 0xFFF);
@@ -251,31 +258,32 @@ void CArmor::StoreValues()
 	int offset = ARMOR_OFFSET + (ARMOR_BYTES * cur);
 	int temp;
 	CString text;
+	auto & rom = Proj2->ROM;
 
 	m_evade.GetWindowText(text);
 	temp = StringToInt(text); if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset] = (BYTE)temp;
+	rom[offset] = (BYTE)temp;
 
 	m_def.GetWindowText(text);
 	temp = StringToInt(text); if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 1] = (BYTE)temp;
+	rom[offset + 1] = (BYTE)temp;
 
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_def1, &m_def2, &m_def3, &m_def4, &m_def5, &m_def6, &m_def7, &m_def8 });
-	Project->ROM[offset + 2] = (BYTE)temp;
+	rom[offset + 2] = (BYTE)temp;
 
 	temp = m_spellcast.GetCurSel();
 	if(temp >= 0x41) temp += 0x02;
-	Project->ROM[offset + 3] = (BYTE)temp;
+	rom[offset + 3] = (BYTE)temp;
 
 	offset = ARMORPRICE_OFFSET + (cur << 1);
 	m_price.GetWindowText(text);
 	temp = StringToInt(text); if(temp > 0xFFFF) temp = 0xFFFF;
-	Project->ROM[offset] = temp & 0xFF;
-	Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+	rom[offset] = temp & 0xFF;
+	rom[offset + 1] = (BYTE)(temp >> 8);
 
 	offset = ARMORTYPE_OFFSET + cur;
 	temp = m_armortype.GetCurSel();
-	Project->ROM[offset] = (BYTE)temp;
+	rom[offset] = (BYTE)temp;
 	
 	//N.B. - the check associates class 0 with the highest bit, and equips if flags are cleared.
 	//	Therefore, loop the classes in reverse order, then bitwise-flip the value.
@@ -283,8 +291,8 @@ void CArmor::StoreValues()
 	temp = (~temp & 0xFFF);
 
 	offset = ARMORPERMISSIONS_OFFSET + (cur << 1);
-	Project->ROM[offset] = temp & 0xFF;
-	Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+	rom[offset] = temp & 0xFF;
+	rom[offset + 1] = (BYTE)(temp >> 8);
 }
 
 void CArmor::HandleArmorListContextMenu(CWnd* pWnd, CPoint point)
@@ -305,11 +313,12 @@ void CArmor::HandleArmorListContextMenu(CWnd* pWnd, CPoint point)
 		boolvector armorflags(ARMOR_BYTES);
 		std::copy_n(cbegin(flags) + 1, ARMOR_BYTES, begin(armorflags));
 
-		CopySwapBytes(swap, Project->ROM, m_selitem, thisitem, ARMOR_OFFSET, ARMOR_BYTES, 0, armorflags);
+		auto & rom = Proj2->ROM;
+		CopySwapBytes(swap, rom, m_selitem, thisitem, ARMOR_OFFSET, ARMOR_BYTES, 0, armorflags);
 		if (flags[0]) DoCopySwapName(swap, m_selitem, thisitem);
-		if (flags[5]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPRICE_OFFSET, 2, 0, 2);
-		if (flags[6]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORPERMISSIONS_OFFSET, 2, 0, 2);
-		if (flags[7]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, ARMORTYPE_OFFSET, 1, 0, 1);
+		if (flags[5]) CopySwapBuffer(swap, rom, m_selitem, thisitem, ARMORPRICE_OFFSET, 2, 0, 2);
+		if (flags[6]) CopySwapBuffer(swap, rom, m_selitem, thisitem, ARMORPERMISSIONS_OFFSET, 2, 0, 2);
+		if (flags[7]) CopySwapBuffer(swap, rom, m_selitem, thisitem, ARMORTYPE_OFFSET, 1, 0, 1);
 
 		m_armorlist.SetCurSel(cur = thisitem);
 		LoadValues();
@@ -325,10 +334,10 @@ void CArmor::HandleArmorListContextMenu(CWnd* pWnd, CPoint point)
 void CArmor::DoCopySwapName(bool swap, int srcitem, int dstitem)
 {
 	try {
-		Ingametext::PasteSwapStringBytes(swap, *Project, ARMOR, srcitem, dstitem);
+		Ingametext::PasteSwapStringBytes(swap, *Proj2, ARMOR, srcitem, dstitem);
 
-		CString srcname = LoadArmorEntry(*Project, srcitem+1).name.Trim();
-		CString dstname = LoadArmorEntry(*Project, dstitem+1).name.Trim();
+		CString srcname = LoadArmorEntry(*Proj2, srcitem + 1).name.Trim();
+		CString dstname = LoadArmorEntry(*Proj2, dstitem + 1).name.Trim();
 
 		// Now, reload the class names in the list box
 		Ui::ReplaceString(m_armorlist, srcitem, srcname);

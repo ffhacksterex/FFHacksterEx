@@ -1,41 +1,38 @@
-//REFACTOR
 #include "stdafx.h"
 #include "ProjectLoader.h"
-#include <FFHacksterProject.h>
 #include <AppSettings.h>
 #include <AsmFiles.h>
+#include <asmdll_impl.h>
 #include <DATA.h>
+#include <DirPathRemover.h>
+#include <FFHacksterProject.h>
+#include <FFH2Project.h>
+#include <FilePathRemover.h>
 #include <GameSerializer.h>
 #include <IProgress.h>
-
-#include <asmdll_impl.h>
-#include <assembly_types.h>
-#include <collection_helpers.h>
-#include <general_functions.h>
 #include <ini_functions.h>
-#include <interop_assembly_interface.h>
 #include <io_functions.h>
 #include <path_functions.h>
-#include <std_project_properties.h>
-#include <type_support.h>
+#include <string_conversions.hpp>
+
 #include <upgrade_functions.h>
-#include "ui_prompts.h"
+#include <Upgrades_ini.h>
+
 #include "DlgPromptProjectBackup.h"
-#include "FilePathRemover.h"
+#include "ProjectLoader_ini.h"
+#include "FFH2Project_IniToJson_Defs.hpp"
+
 #include <fstream>
 #include <filesystem>
-#include <ATLComTime.h>
+#include <regex>
 
 //STDFILESYS - see path_functions.cpp for more info
 namespace fs = std::experimental;
 using namespace asmdll_impl;
-using namespace Ini;
-using namespace Types;
-using namespace Ui;
 
 
-ProjectLoader::ProjectLoader(CFFHacksterProject& proj)
-	: Project(proj)
+ProjectLoader::ProjectLoader(FFH2Project & prj2, CFFHacksterProject& proj, AppSettings& appstgs)
+	: Project(proj), Proj2(prj2), Appstgs(appstgs)
 {
 }
 
@@ -43,168 +40,57 @@ ProjectLoader::~ProjectLoader()
 {
 }
 
-pair_result<CString> ProjectLoader::Load(CString projectpath, IProgress* progress)
+namespace {
+	bool IsUpgradeNeeded(std::string projectpath, bool isIni);
+	std::string HandleBackup(std::string projectpath, AppSettings& appstgs, bool forceBackup);
+	std::string PrepareForUpgrade(std::string projectpath);
+	std::string UpgradeIniProject(std::string projectpath);
+	void UpgradeJsonProject(std::string projectpath);
+	void CommitUpgrade(std::string projectpath, std::string preppath);
+	FFH2Project LoadJsonProject(std::string projectpath, AppSettings& appstgs);
+	std::string ExtractJsonProjectVersion(std::string projectpath);
+	bool LoadVariablesAndConstants(FFH2Project& proj, IProgress* progress);
+}
+
+CString ProjectLoader::Load(CString projectpath, IProgress* progress)
 {
+	ASSERT(Paths::FileExists(projectpath));
+
 	CWaitCursor wait;
-	// Perform project upgrades if needed.
-	{
-		if (progress) progress->AddSteps(1);
-		if (progress) progress->StepAndProgressText("Loading Project...");
-		if (Upgrades::NeedsConversion(projectpath)) {
-			if (this->Project.AppSettings == nullptr)
-				return{ false, "Can't upgrade without valid app settings specified." };
+	if (!Paths::FileExists(projectpath))
+		throw std::runtime_error("No project found at the selected path.");
 
-			// Prompt to either skip making a backup or pick a backup folder.
-			// CDlgPromptProjectBackup auto-generates the filename.
-			auto startdir = FOLDERPREF(Project.AppSettings, PrefArchiveFolder);
-			if (!Paths::DirExists(startdir)) startdir = Paths::GetParentDirectory(projectpath);
+	// Upgrade if needed; for INI files, backup prior to upgrade is mandatory.
+	std::string currentprojpath = (LPCSTR)projectpath;
+	auto isIni = Upgrades::IsIniFormat(currentprojpath.c_str());
+	auto needUpgrade = IsUpgradeNeeded(currentprojpath, isIni);
+	if (needUpgrade) {
+		auto backuppath = HandleBackup(currentprojpath, Appstgs, isIni);
+		auto preppath = PrepareForUpgrade(currentprojpath);
+		Io::FilePathRemover backupremover(backuppath);
+		Io::DirPathRemover prepremover(Paths::GetDirectoryPath(preppath));
 
-			CDlgPromptProjectBackup dlgup(AfxGetMainWnd());
-			dlgup.AppStgs = Project.AppSettings;
-			dlgup.ProjectFilePath = projectpath;
-			dlgup.Filter = "Project archives (*.ff1zip)|*.ff1zip||";
-			dlgup.StartInFolder = startdir;
-
-			auto canup = dlgup.DoModal();
-			if (canup == IDCANCEL) return { false, "" };
-			if (canup != IDOK) return { false, "Upgrade failed due to an unknown UI error." };
-
-			if (Paths::FileExists(dlgup.BackupFilePath)) {
-				canup = AfxMessageBox("OK to backup to existing file " + dlgup.BackupFilePath + "?",
-					MB_YESNO | MB_DEFBUTTON1 | MB_ICONQUESTION);
-				if (canup != IDYES)
-					return { false, "" };
-			}
-
-			if (!dlgup.BackupFilePath.IsEmpty()) {
-				CString projfolder = Paths::GetDirectoryPath(projectpath);
-				if (!Io::Zip(dlgup.BackupFilePath, projfolder, true)) {
-					return{ false, "Upgrade failure: couldn't make the requested backup." };
-				}
-			}
-
-			// If the upgrade passes, then we don't need the backup anymore.
-			// If it wasn't specified, the blank string is ignored.
-			Io::FilePathRemover zipcleanup(dlgup.BackupFilePath);
-
-			auto result = Upgrades::UpgradeProject(projectpath);
-			if (!result)
-				return{ false, result.value };
-
-			zipcleanup.Revoke(); // keep the backup file in case we want to roll back.
-		}
+		//NOTE: if isIni, then set currentprojpath to the new JSON filename, which is in the same directory.
+		currentprojpath = !isIni ? preppath : UpgradeIniProject(preppath);
+		UpgradeJsonProject(currentprojpath);
+		if (isIni)
+			backupremover.Revoke(); // keep the backup if INI forced us to create it.
+		CommitUpgrade((LPCSTR)projectpath, preppath);
 	}
 
-	// Load file references and verify the existence of the required files.
-	{
-		auto result = Project.LoadFileRefs(projectpath);
-		if (!result)
-			return result;
-	}
-
-	CString msg;
-	if (Project.IsAsm()) {
-		// For assembly projects, the DLL might not exist (if the project was copied or files were moved around).
-		// Prompt for a new DLL in that case, and block loading if one isn't selected.
-
-		// Loop as long as we haven't cancelled and don't have a valid DLL file.
-		// valid means:
-		// 1) file exists
-		// 2) is_ff1_asmdll is true
-		// 3) compatibility either matches or is not enforced
-
-		const auto IsAsmValid = [&](CString asmdllpath) {
-			if (!Paths::FileExists(asmdllpath))
-				return AfxMessageBox("No file found at the selected DLL path."), false;
-			if (!asmdll_impl::is_ff1_asmdll(asmdllpath))
-				return AfxMessageBox("The selected file is not recognized as an FF1 assembly DLL."), false;
-
-			auto warnasm = Project.ShouldWarnAssemblyDllMismatch();
-			if (Project.AppSettings->EnforceAssemblyDllCompatibility || warnasm)
-			{
-				auto asmresult = asmdll_impl::IsDirDllCompatible(Project.GetContentFolder(), asmdllpath);
-				if (!asmresult) {
-					if (Project.AppSettings->EnforceAssemblyDllCompatibility)
-						return AfxMessageBox("Can't use the selected assembly:\n" + asmresult.value + "."), false;
-					else if (warnasm)
-						AfxMessageBox("Warning:\n" + asmresult.value + "\n\n"
-							"You can suppress this warning either app-wide (App Settings)\nor per-project (Project Settings).");
-				}
-			}
-			return true;
-		};
-
-		auto asmdllpath = Project.AsmDLLPath;
-		auto asmchanged = false;
-
-		while (!IsAsmValid(asmdllpath)) {
-			// We can't proceed without a valid assembly DLL, so either prompt until we get one or abort when the user cancels.
-			INT_PTR choice = AfxMessageBox("Assembly projects require an assembly DLL.\nIf you don't select one now, "
-								"the project can't be opened.\n\nSelect an assembly DLL now?", MB_OKCANCEL | MB_ICONSTOP | MB_DEFBUTTON1);
-			if (choice == IDCANCEL)
-				return { false, "Can't load an assembly project without an assembly DLL" };
-
-			auto selresult = PromptForAsmDll(nullptr, Paths::GetProgramFolder());
-			if (selresult.result)
-				asmdllpath = selresult.value;
-			else
-				asmdllpath = "";
-			asmchanged = true;
-		}
-
-		if (asmchanged) {
-			Project.SetIniRefDir(FFHREFDIR_AsmDLLPath, asmdllpath);
-			Project.AsmDLLPath = asmdllpath;
-		}
-	}
-
-	if (msg.IsEmpty()) {
-		Project.ROMSize = hex(ReadIni(Project.ValuesPath, "ROM_SIZE", "value", "-0x1"));
-		if (Project.ROMSize == (decltype(Project.ROMSize))-1)
-			msg.Format("Could not read ROM_SIZE value, can't initialize ROM buffer.");
-		else if (Project.ROMSize == 0)
-			msg.Format("ROM_SIZE cannot be zero.");
-		else
-			Project.ROM.resize(Project.ROMSize);
-	}
-
-	if (msg.IsEmpty() && Project.IsRom()) {
-		try {
-			Io::load_binary(Project.WorkRomPath, Project.ROM);
-		}
-		catch (...) {
-			ErrorHere << "Unknown exception caught while trying to load ROM buffer (file " << (LPCSTR)Project.WorkRomPath << "." << std::endl;
-			msg.Format("An unknown exception was caught while loading the ROM buffer from'\n'%s.", (LPCSTR)Project.WorkRomPath);
-		}
-	}
-
-	if (msg.IsEmpty() && Project.IsAsm()) {
-		bool loadedvars = Project.LoadVariablesAndConstants(progress);
-		if (!loadedvars) msg = "Failed to load variables and constants.";
-	}
-
-	if (msg.IsEmpty()) {
-		msg = Project.LoadCartData();
-		Project.LoadSharedSettings();
-	}
-
-	return pair_result<CString>(msg.IsEmpty(), msg);
+	// The commit above moves the JSON project file back to projectfolder,
+	// but we need to update the path accordinagly.
+	std::string newjsonpath = (LPCSTR)Paths::ReplaceFileName(projectpath, Paths::GetFileName(currentprojpath.c_str()));
+	Proj2 = LoadJsonProject(newjsonpath, Appstgs);
+	LoadVariablesAndConstants(Proj2, progress);
+	
+	return Proj2.ProjectPath.c_str();
 }
 
 bool ProjectLoader::Save()
 {
-	CString msg;
-	bool saved = Project.SaveRefPaths();
-	if (!saved)
-		msg.AppendFormat("Failed to save ref paths.\n");
-
-	if (saved) {
-		Project.SaveSharedSettings();
-	}
-
-	if (!msg.IsEmpty())
-		AfxMessageBox("Failed to save project:\n" + msg);
-	return saved;
+	Proj2.Save();
+	return true;
 }
 
 //STATIC
@@ -238,14 +124,180 @@ pair_result<CString> ProjectLoader::IsProjectDllCompatible(CFFHacksterProject & 
 	return asmresult;
 }
 
-pair_result<CString> LoadProject(CFFHacksterProject & proj, CString projectpath, IProgress * progress)
+pair_result<CString> LoadProject(FFH2Project& prj2, CFFHacksterProject & proj, CString projectpath, AppSettings& appstgs, IProgress * progress)
 {
-	ProjectLoader loader(proj);
-	return loader.Load(projectpath, progress);
+	ProjectLoader loader(prj2, proj, appstgs);
+	return{ true, loader.Load(projectpath, progress) };
 }
 
-bool SaveProject(CFFHacksterProject & proj)
+bool SaveProject(FFH2Project& prj2, CFFHacksterProject & proj)
 {
-	ProjectLoader loader(proj);
+	ASSERT(prj2.AppSettings != nullptr);
+
+	if (prj2.AppSettings == nullptr)
+		throw std::runtime_error("Failed to save the project; app settings are inaccessible.");
+
+	ProjectLoader loader(prj2, proj, *prj2.AppSettings);
 	return loader.Save();
 }
+
+// === NEW IMPLEMENTATION
+namespace {
+
+	bool IsUpgradeNeeded(std::string projectpath, bool isIni)
+	{
+		if (isIni) {
+			// We'll treat all INI files as needing conversion.
+			return true;
+		}
+		else {
+			//TODO - for now, no later version, eventually, call this:
+			//auto strver = ExtractJsonProjectVersion(projectpath)
+			return false;
+		}
+		//throw std::runtime_error(__FUNCTION__ " not implemented yet");
+	}
+
+	std::string HandleBackup(std::string projectpath, AppSettings & appstgs, bool forceBackup)
+	{
+		// either ask for an upgrade or force the issue
+		//TODO - temporary, add appsettings to the FFH2Project or pass it in separately?
+		//auto appstgs = AppSettings(AppSettings::GetAppSettingsPath());
+		CString startdir = FOLDERPREF(&appstgs, PrefArchiveFolder);
+		if (!Paths::DirExists(startdir)) startdir = Paths::GetParentDirectory(projectpath.c_str());
+
+		//TODO - consider the forced backup to be an autonamed zip placed in the project folder.
+		//		Display the filename to the user.
+		//		Place a cleanup button on the project settings folder to allow its removal later.
+
+		auto done = false;
+		CString backuppath;
+		do {
+			CDlgPromptProjectBackup dlgup(AfxGetMainWnd());
+			dlgup.AppStgs = &appstgs;
+			dlgup.ProjectFilePath = projectpath.c_str();
+			dlgup.Filter = "Project archives (*.ff1zip)|*.ff1zip||";
+			dlgup.StartInFolder = startdir;
+
+			backuppath.Empty();
+			auto canup = dlgup.DoModal();
+			backuppath = dlgup.BackupFilePath;
+
+			if (Paths::FileExists(backuppath)) {
+				// Ask again if overwriting an existing backup isn't OK with the user
+				auto ask = AfxMessageBox("OK to backup to existing file " + dlgup.BackupFilePath + "?\n",
+					MB_YESNO | MB_DEFBUTTON1 | MB_ICONQUESTION);
+				if (ask != IDYES) done = false;
+			}
+			else if (backuppath.IsEmpty() && !forceBackup) {
+				done = true;
+			}
+			else if (backuppath.IsEmpty() && forceBackup) {
+				// If forcing, then throw if the user tries to skip the backup altogether.
+				auto ask = AfxMessageBox("A backup is required in this scenario, selcting No will cancel the process.",
+					MB_YESNO | MB_DEFBUTTON1 | MB_ICONSTOP);
+				if (ask != IDYES) throw std::runtime_error("Upgrade cannot continue without a backup.");
+			}
+			else {
+				// the file doesn't exist and the path is not empty (must be a new filepath).
+				done = true;
+			}
+		} while (!done);
+
+		if (!backuppath.IsEmpty()) {
+			//CString projfolder = Paths::GetDirectoryPath((CString)projectpath.c_str());
+			CString projfolder = tomfc(Paths::GetDirectoryPath(projectpath));
+			if (!Io::Zip(backuppath, projfolder, true))
+				throw std::runtime_error("Upgrade failure - couldn't make the requested backup.");
+		}
+
+		return (LPCSTR)backuppath;
+	}
+
+	std::string PrepareForUpgrade(std::string projectpath)
+	{
+		auto result = Upgrades::PrepareProjectUpgrade(projectpath.c_str());
+		if (!result)
+			throw std::runtime_error(result.value); // on failure, it's an error message
+
+		return (LPCSTR)result.value; // on success, it's the newly created temp folder
+	}
+
+	std::string UpgradeIniProject(std::string projectpath)
+	{
+		Upgrades_ini::Upgrade(projectpath);
+		auto jsonpath = Upgrades::IniToJson(projectpath.c_str());
+		return jsonpath;
+	}
+
+	void UpgradeJsonProject(std::string projectpath)
+	{
+		auto strver = ExtractJsonProjectVersion(projectpath);
+		TRACE("JSON project version = %s\n", strver.c_str());
+
+		//TODO - add semantic comparison object, for now just return
+	}
+
+	void CommitUpgrade(std::string projectpath, std::string preppath)
+	{
+		auto projectfolder = tomfc(Paths::GetDirectoryPath(projectpath));
+		auto prepfolder = tomfc(Paths::GetDirectoryPath(preppath));
+		if (!Paths::DirShallowUpdate(prepfolder, projectfolder))
+			throw std::runtime_error("Unable to copy upgrade files back to the project");
+	}
+
+	FFH2Project LoadJsonProject(std::string projectpath, AppSettings& appstgs)
+	{
+		if (!Paths::FileExists(projectpath))
+			throw std::runtime_error("Cannot find the path to load:\n" + projectpath);
+
+		FFH2Project prj2;
+		prj2.Load(projectpath);
+
+		// Set the appsettings as a member of the project
+		prj2.AppSettings = &appstgs;
+		return prj2;
+	}
+
+	std::string ExtractJsonProjectVersion(std::string projectpath)
+	{
+		//TODO - here's a test, scrape the ffheader object
+		std::ifstream ifs(projectpath);
+		std::string partialheader;
+		size_t maxcount = 512;
+		partialheader.reserve(maxcount);
+		for (size_t st = 0; st < maxcount; ++st) partialheader.push_back(ifs.get());
+
+		//DEVNOTE - this relies on using nlohmann::ordered_json or a similar approach to keep ffheader as the first property
+		auto head = partialheader.find("ffheader");
+		auto hopen = head != std::string::npos ? partialheader.find("{", head) : head;
+		auto hend = hopen != std::string::npos ? partialheader.find('}', hopen) : hopen;
+		if (hopen == std::string::npos)
+			throw std::runtime_error("Cannot extract version from header.");
+
+		auto newpartial = partialheader.substr(hopen, hend - hopen + 1);
+		auto oj = ojson::parse(newpartial);
+		auto v = oj["version"];
+		std::string strver = v.get<std::string>();
+		return strver;
+	}
+
+	bool LoadVariablesAndConstants(FFH2Project & proj, IProgress* progress)
+	{
+		//TODO - add a progress step
+
+		// Load the variables and constants. If this fails, then many editors become unusable.
+		proj.m_varmap.clear();
+		if (proj.IsAsm()) {
+			GameSerializer gs(proj);
+			return gs.ReadAllVariables(tomfc(proj.ProjectFolder), proj.m_varmap, progress);
+		}
+		if (proj.IsRom()) {
+			return proj.UpdateVarsAndConstants();
+		}
+
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::initializing, "unknown project types can't load vars/constants");
+	}
+
+
+} // end namespace (unnamed)

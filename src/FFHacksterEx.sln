@@ -8,6 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		compat.props = compat.props
 		txt\License-7zip.txt = txt\License-7zip.txt
 		txt\License-iconmonstr.txt = txt\License-iconmonstr.txt
+		txt\License-nlohmann-json.txt = txt\License-nlohmann-json.txt
 		txt\License.txt = txt\License.txt
 		txt\Readme-for-devs.txt = txt\Readme-for-devs.txt
 	EndProjectSection

@@ -157,7 +157,7 @@ namespace Io
 
 		auto length = (size_t)ifs.tellg();
 		if (length == 0 && allowzerolength)
-			THROWEXCEPTION(std::runtime_error, "Rejecting read of aero-length assembly binary file " + std::string((LPCSTR)filepath));
+			THROWEXCEPTION(std::runtime_error, "Rejecting read of zero-length assembly binary file " + std::string((LPCSTR)filepath));
 
 		vec.resize(length);
 		ifs.seekg(0);
@@ -430,8 +430,8 @@ namespace Io
 
 	bool CommitTempfile(std::string tempfile, std::string livefile)
 	{
-		auto * szsource = tempfile.c_str();
-		auto * szdest = livefile.c_str();
+		CString szsource = tempfile.c_str();
+		CString szdest = livefile.c_str();
 		if (!Paths::FileExists(szsource)) return false;
 
 		bool copied = Paths::FileCopy(szsource, szdest);

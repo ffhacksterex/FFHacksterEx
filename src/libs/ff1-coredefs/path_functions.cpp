@@ -4,6 +4,7 @@
 #include "general_functions.h"
 #include "io_functions.h"
 #include "logging_functions.h"
+#include "string_conversions.hpp"
 #include "string_functions.h"
 #include <afxole.h>
 #include <afxdlgs.h>
@@ -46,6 +47,12 @@ namespace Paths
 	bool FileExists(CString filepath)
 	{
 		auto thepath = fsys::path((LPCSTR)filepath);
+		return fsys::exists(thepath) && IsFile(filepath);
+	}
+
+	bool FileExists(std::string filepath)
+	{
+		auto thepath = fsys::path(filepath);
 		return fsys::exists(thepath) && IsFile(filepath);
 	}
 
@@ -407,6 +414,12 @@ namespace Paths
 		return fsys::is_regular_file((LPCSTR)pathname, ec);
 	}
 
+	bool IsFile(std::string pathname)
+	{
+		std::error_code ec;
+		return fsys::is_regular_file(pathname, ec);
+	}
+
 	bool IsDir(CString pathname)
 	{
 		std::error_code ec;
@@ -434,17 +447,17 @@ namespace Paths
 
 	CString GetProgramFolder()
 	{
-		char szpath[_MAX_PATH] = { 0 };
-		GetModuleFileName(nullptr, szpath, _MAX_PATH);
-		std::string appfolder = fsys::path(szpath).parent_path().u8string();
-		return GetCanonicalPath(appfolder.c_str());
+		auto exepath = GetProgramExePath();
+		std::string appfolder = fsys::path((LPCSTR)exepath).parent_path().u8string();
+		return tomfc(appfolder);
 	}
 
 	CString GetProgramExePath()
 	{
 		char szpath[_MAX_PATH] = { 0 };
 		GetModuleFileName(nullptr, szpath, _MAX_PATH);
-		return GetCanonicalPath(szpath);
+		auto spath = GetCanonicalPath(szpath);
+		return spath;
 	}
 
 	// Gets the folder referenced by fullpath.
@@ -484,6 +497,12 @@ namespace Paths
 
 		auto str = RemoveTrailingSlash(thepath.remove_filename().u8string());
 		return str.c_str();
+	}
+
+	std::string GetDirectoryPath(std::string fullpath)
+	{
+		CString csfullpath = fullpath.c_str();
+		return (LPCSTR)GetDirectoryPath(csfullpath);
 	}
 
 	// Gets the parent directory of the folder specified by fullpath, whether it's a file or folder.
@@ -611,6 +630,11 @@ namespace Paths
 		auto ch = fullpath[fullpath.GetLength() - 1];
 		if (ch != '/' && ch != '\\') return fullpath + '\\';
 		return fullpath;
+	}
+
+	std::string AddTrailingSlash(std::string fullpath)
+	{
+		return tostd(AddTrailingSlash(tomfc(fullpath)));
 	}
 
 	CString RemoveExtension(CString filepath)

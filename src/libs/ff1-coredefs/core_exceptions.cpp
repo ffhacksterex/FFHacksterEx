@@ -1,5 +1,7 @@
 #include "stdafx.h"
+#include "core_exceptions.h"
 #include "FFHacksterProject.h"
+#include "FFH2Project.h"
 #include "std_assembly.h"
 
 // ################################################################
@@ -34,6 +36,15 @@ wrongprojectype_exception::wrongprojectype_exception(std::string file, int line,
 	TRACEEXCEPTIONPOINT(*this, file, line, function);
 
 	m_message = "Wrong project type: expected " + expectedtype + ", but the project is " + std::string((LPCSTR)proj.ProjectTypeName);
+
+	LogMsg << m_message << std::endl;
+}
+
+wrongprojectype_exception::wrongprojectype_exception(std::string file, int line, std::string function, FFH2Project& proj, std::string expectedtype)
+{
+	TRACEEXCEPTIONPOINT(*this, file, line, function);
+
+	m_message = "Wrong project type: expected " + expectedtype + ", but the project is " + proj.info.type;
 
 	LogMsg << m_message << std::endl;
 }

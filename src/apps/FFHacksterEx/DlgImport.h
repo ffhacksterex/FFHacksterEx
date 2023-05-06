@@ -2,6 +2,7 @@
 #include "afxwin.h"
 
 class CFFHacksterProject;
+class FFH2Project;
 
 // CDlgImport dialog
 
@@ -14,6 +15,7 @@ public:
 	virtual ~CDlgImport();
 
 	CFFHacksterProject* Project = nullptr;
+	FFH2Project* Proj2 = nullptr;
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

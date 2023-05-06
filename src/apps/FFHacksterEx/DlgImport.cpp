@@ -5,6 +5,7 @@
 #include "DlgImport.h"
 #include "afxdialogex.h"
 #include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "path_functions.h"
@@ -82,6 +83,8 @@ BOOL CDlgImport::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	if (Project == nullptr)
+		return AbortInitDialog(this, "An INI project must be specified before anything can be imported into it.");
+	if (Proj2 == nullptr)
 		return AbortInitDialog(this, "A project must be specified before anything can be imported into it.");
 
 	OnBnClickedCheckDat();
@@ -102,7 +105,7 @@ void CDlgImport::OnOK()
 		auto datfile = GetControlText(m_datedit);
 		if (Paths::FileExists(datfile)) {
 			Project->ImportHacksterDAT(datfile);
-			if (!SaveProject(*Project)) {
+			if (!SaveProject(*Proj2 , *Project)) {
 				errmsg.AppendFormat("The DAT file was imported, but it could not be saved: the changes will be lost.\n", (LPCSTR)datfile);
 			}
 		}
