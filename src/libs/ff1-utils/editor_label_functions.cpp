@@ -386,6 +386,7 @@ namespace Editorlabels
 	dataintnodevector LoadAILabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "ailabels", showindex); }
 	dataintnodevector LoadArmorTypes(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "armortypelabels", showindex); }
 	dataintnodevector LoadBackdropLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "backdroplabels", showindex); }
+	dataintnodevector LoadBattleLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "battlelabels", showindex); }
 	dataintnodevector LoadBattlePatternTableLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "patterntablelabels", showindex); }
 	dataintnodevector LoadElementLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "elementlabels", showindex); }
 	dataintnodevector LoadWepMagicLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "wepmaglabels", showindex); }

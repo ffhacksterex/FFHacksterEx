@@ -2,6 +2,7 @@
 
 struct DRAW_STRUCT;
 class CFFHacksterProject;
+class FFH2Project;
 struct DRAW_STRUCT;
 
 BYTE Draw_ButtonDown(DRAW_STRUCT* draw, CPoint pt, bool rbutton);
@@ -21,4 +22,5 @@ void Draw_ExportToBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* pal, CS
 void Draw_ImportFromBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* palette, CString initialfile = "");
 
 void DrawTile(CDC* dc, int tX, int tY, CFFHacksterProject* cart, int offset, BYTE* palette, BYTE tint = 0);
+void DrawTile(CDC* dc, int tX, int tY, FFH2Project* proj, int offset, BYTE* palette, BYTE tint = 0);
 void DrawTileScale(CDC* dc, int tX, int tY, CFFHacksterProject* cart, int offset, BYTE* palette, int scale, BYTE tint = 0);

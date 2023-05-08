@@ -45,12 +45,6 @@ struct ProjectSession
 	std::vector<std::vector<std::int8_t>> smartTools;
 };
 
-struct ProjectData
-{
-	std::vector<unsigned char> palette;
-	std::array<std::array<std::string, 256>, 2> tables;
-};
-
 enum ProjectEditorModuleEntryType
 {
 	Editor = 0, Subeditor
@@ -127,6 +121,8 @@ struct ProjectDialogue
 //};
 //using AsmFileSet = std::map<std::string, AsmFilePair>; // maps shortname to filepath
 
+using nespalettearrays = std::array<std::array<unsigned long, 65>, 9>; //DEVNOTE - use unsigned long instead of COLORREF here?
+
 class FFH2Project
 {
 public:
@@ -152,7 +148,8 @@ public:
 	ProjectInfo info;
 	ProjectStrings strings;
 	ProjectSession session;
-	ProjectData data;
+	nespalettearrays palette;
+	std::array<std::array<std::string, 256>, 2> tables;
 	ProjectEditorModules modules;
 	ProjectValues values;
 	ProjectDialogue dialogue;

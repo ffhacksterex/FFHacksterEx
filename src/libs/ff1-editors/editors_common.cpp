@@ -33,13 +33,18 @@ namespace Editors
 
 namespace Maps {
 
-	//DEVNOTE - currently uses hardcoded dimensions of 64 cols x 64 rows
 	void DecompressMap(CFFHacksterProject& proj, int mapindex, int mapbase, int ptradd, BYTE DecompressedMap[0x40][0x40])
+	{
+		DecompressMap(proj.ROM, mapindex, mapbase, ptradd, DecompressedMap);
+	}
+
+	//DEVNOTE - currently uses hardcoded dimensions of 64 cols x 64 rows
+	void DecompressMap(std::vector<unsigned char>& rom, int mapindex, int mapbase, int ptradd, BYTE DecompressedMap[0x40][0x40])
 	{
 		//memset(DecompressedMap, 0, 0x40 * 0x40 * sizeof(DecompressedMap[0]));
 
 		auto offset = mapbase + (mapindex << 1);
-		offset = proj.ROM[offset] + (proj.ROM[offset + 1] << 8) + ptradd;
+		offset = rom[offset] + (rom[offset + 1] << 8) + ptradd;
 		int ThisRun, RunLength;
 		BYTE temp;
 		int coY, coX;
@@ -49,13 +54,13 @@ namespace Maps {
 		for (coY = 0; coY < 64 && !stop; coY++) {
 			for (coX = 0; coX < 64 && !stop; coX++) {
 				if (!RunLength) {
-					temp = proj.ROM[offset];
+					temp = rom[offset];
 					if (temp == 0xFF) stop = 1;
 					if (temp < 0x80) {
 						RunLength = 1; ThisRun = temp; offset += 1;
 					}
 					else {
-						RunLength = proj.ROM[offset + 1];
+						RunLength = rom[offset + 1];
 						ThisRun = temp - 0x80;
 						offset += 2;
 						if (RunLength == 0xFF) stop = 1;

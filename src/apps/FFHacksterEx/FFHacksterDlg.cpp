@@ -909,7 +909,7 @@ void CFFHacksterDlg::OnAttack()
 void CFFHacksterDlg::OnBattle()
 {
 	CBattle dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 

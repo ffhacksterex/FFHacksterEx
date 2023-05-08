@@ -5,7 +5,10 @@
 #include "Battle.h"
 
 #include "AsmFiles.h"
+#include <DataValueAccessor.h>
+#include <FFHDataValue_dva.hpp>
 #include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "GameSerializer.h"
 
 #include <editor_label_functions.h>
@@ -14,6 +17,7 @@
 #include "ingame_text_functions.h"
 #include "ini_functions.h"
 #include "io_functions.h"
+#include <string_conversions.hpp>
 #include "ui_helpers.h"
 
 #include "collection_helpers.h"
@@ -190,18 +194,18 @@ BOOL CBattle::OnInitDialog()
 
 		SetRedraw(FALSE);
 
-		auto BattleLabels = get_names(LoadBattleLabels(*Project));
-		auto BattlePatternTableLabels = get_names(LoadBattlePatternTableLabels(*Project));
+		auto BattleLabels = get_names(LoadBattleLabels(*Proj2));
+		auto BattlePatternTableLabels = get_names(LoadBattlePatternTableLabels(*Proj2));
 
 		int co;
 		for (co = 0; co < BATTLE_COUNT; co++)
 			m_battlelist.InsertString(co, BattleLabels[co]);
 		for (co = 0; co < BATTLEPATTERNTABLE_COUNT; co++)
 			m_patterntables.InsertString(co, BattlePatternTableLabels[co]);
-		LoadCombo(m_enemy1, LoadEnemyEntries(*Project));
-		LoadCombo(m_enemy2, LoadEnemyEntries(*Project));
-		LoadCombo(m_enemy3, LoadEnemyEntries(*Project));
-		LoadCombo(m_enemy4, LoadEnemyEntries(*Project));
+		LoadCombo(m_enemy1, LoadEnemyEntries(*Proj2));
+		LoadCombo(m_enemy2, LoadEnemyEntries(*Proj2));
+		LoadCombo(m_enemy3, LoadEnemyEntries(*Proj2));
+		LoadCombo(m_enemy4, LoadEnemyEntries(*Proj2));
 
 		CRect rcpos;
 		rcPal[0].SetRect(0, 0, 48, 16);
@@ -222,12 +226,12 @@ BOOL CBattle::OnInitDialog()
 			rcPreview.OffsetRect(8, size.cy);
 		}
 
-		CBattleEditorSettings stgs(*Project);
+		CBattleEditorSettings stgs(*Proj2);
 		m_usagedataon = stgs.ViewUsage;
 		if (m_usagedataon) {
 			try {
 				CWaitCursor wait;
-				m_usedata.SetProject(*Project);
+				m_usedata.SetProject(*Proj2);
 				if (m_dlgdatalist.CreateModeless(this)) {
 					// Put the modeless toward the right edge.
 					//DEVNOTE - ran into some oddities with positioning, I'll deal with this later if it causes problems.
@@ -309,7 +313,7 @@ void CBattle::ReloadGraphics()
 		mDC.SelectObject(&bmp);
 
 		temp = BATTLEPALETTE_OFFSET + (pal[paletteassignment[bigco]] << 2);
-		for(co = 0; co < 4; co++) colors[co] = Project->ROM[temp + co];
+		for(co = 0; co < 4; co++) colors[co] = Proj2->ROM[temp + co];
 
 		temp = BATTLEPATTERNTABLE_OFFSET + (m_patterntables.GetCurSel() << 11) + 0x120;
 		if(picassignment[bigco] > 0) temp += 0x100;
@@ -318,7 +322,7 @@ void CBattle::ReloadGraphics()
 
 		for(coY = 0; coY < size; coY++){
 		for(coX = 0; coX < size; coX++, temp += 16)
-			DrawTile(&mDC,coX << 3,coY << 3,Project,temp,colors);
+			DrawTile(&mDC,coX << 3,coY << 3,Proj2,temp,colors);
 		}
 
 		mDC.SelectObject(&dummy);
@@ -350,9 +354,9 @@ void CBattle::LoadFiendChaosPic(int pattern_off,int palette_off,bool chaos)
 	//0 palette is the battle background.  Let's just make this green because it's different depending upon location
 		0x0F,0x0A,0x1A,0x2A,
 	//1 palette is enemy's first loaded palette
-		Project->ROM[offset],Project->ROM[offset + 1],Project->ROM[offset + 2],Project->ROM[offset + 3],
+		Proj2->ROM[offset],Proj2->ROM[offset + 1],Proj2->ROM[offset + 2],Proj2->ROM[offset + 3],
 	//2 palette is enemy's second loaded palette
-		Project->ROM[ref],Project->ROM[ref + 1],Project->ROM[ref + 2],Project->ROM[ref + 3],
+		Proj2->ROM[ref],Proj2->ROM[ref + 1],Proj2->ROM[ref + 2],Proj2->ROM[ref + 3],
 	//3 palette is the greyscale for the border...
 	 0x0F,0x00,0x0F,0x30};
 
@@ -361,7 +365,7 @@ void CBattle::LoadFiendChaosPic(int pattern_off,int palette_off,bool chaos)
 	int temp;
 	for(coY = 0, co = 0; coY < 8; coY += 2){
 	for(coX = 0; coX < 8; coX += 2, co++){
-		temp = Project->ROM[palette_off + co];
+		temp = Proj2->ROM[palette_off + co];
 		PAL_ASS[coY + 1][coX + 1] = (temp >> 6) & 3;
 		PAL_ASS[coY + 1][coX] = (temp >> 4) & 3;
 		PAL_ASS[coY][coX + 1] = (temp >> 2) & 3;
@@ -372,11 +376,11 @@ void CBattle::LoadFiendChaosPic(int pattern_off,int palette_off,bool chaos)
 	ref = BATTLEPATTERNTABLE_OFFSET + (m_patterntables.GetCurSel() << 11);
 	for(coY = 0; coY < height; coY++){
 	for(coX = 0; coX < width; coX++, co++){
-		offset = (Project->ROM[co] << 4) + ref;
+		offset = (Proj2->ROM[co] << 4) + ref;
 		palY = (coY >> 1) + 1;
 		palX = (coX >> 1) + 1;
 		if(!chaos){ palY += 1; palX += 1;}
-		DrawTile(&mDC,coX << 3,coY << 3,Project,offset,pixel[PAL_ASS[palY][palX]]);
+		DrawTile(&mDC,coX << 3,coY << 3,Proj2,offset,pixel[PAL_ASS[palY][palX]]);
 	}}
 
 	mDC.DeleteDC();
@@ -386,21 +390,7 @@ void CBattle::LoadFiendChaosPic(int pattern_off,int palette_off,bool chaos)
 
 void CBattle::LoadOffsets()
 {
-	BATTLE_COUNT = ReadDec(Project->ValuesPath, "BATTLE_COUNT");
-	BATTLE_OFFSET = ReadHex(Project->ValuesPath, "BATTLE_OFFSET");
-	BATTLE_BYTES = ReadHex(Project->ValuesPath, "BATTLE_BYTES");
-	BATTLEPATTERNTABLE_COUNT = ReadDec(Project->ValuesPath, "BATTLEPATTERNTABLE_COUNT");
-	ENEMYTEXT_OFFSET = ReadHex(Project->ValuesPath, "ENEMYTEXT_OFFSET");
-	ENEMYTEXT_PTRADD = ReadHex(Project->ValuesPath, "ENEMYTEXT_PTRADD");
-	ENEMY_COUNT = ReadDec(Project->ValuesPath, "ENEMY_COUNT");
-	CHAOSDRAW_TABLE = ReadHex(Project->ValuesPath, "CHAOSDRAW_TABLE");
-	CHAOSPALETTE_TABLE = ReadHex(Project->ValuesPath, "CHAOSPALETTE_TABLE");
-	FIENDDRAW_SHIFT = ReadHex(Project->ValuesPath, "FIENDDRAW_SHIFT");
-	FIENDDRAW_TABLE = ReadHex(Project->ValuesPath, "FIENDDRAW_TABLE");
-	FIENDPALETTE_TABLE = ReadHex(Project->ValuesPath, "FIENDPALETTE_TABLE");
-	BATTLEPALETTE_OFFSET = ReadHex(Project->ValuesPath, "BATTLEPALETTE_OFFSET");
-	BATTLEPATTERNTABLE_OFFSET = ReadHex(Project->ValuesPath, "BATTLEPATTERNTABLE_OFFSET");
-	TRANSPARENTCOLOR = ReadRgb(Project->ValuesPath, "TRANSPARENTCOLOR");
+	ff1coredefs::DataValueAccessor d(*Proj2);
 
 	//TODO - Label sizes are currently unspecified since they are now freeform text
 	//	In the old FFHackster.DAT:
@@ -409,30 +399,55 @@ void CBattle::LoadOffsets()
 	BATTLELABEL_SIZE = -1;
 	BATTLEPATTERNTABLELABEL_SIZE = -1;
 
-	BANK_SIZE = ReadHex(Project->ValuesPath, "BANK_SIZE");
-	BANK07_OFFSET = ReadHex(Project->ValuesPath, "BANK07_OFFSET");
-	BANK08_OFFSET = ReadHex(Project->ValuesPath, "BANK08_OFFSET");
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
-	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
-	BINFIENDTSA_OFFSET = ReadHex(Project->ValuesPath, "BINFIENDTSA_OFFSET");
-	BINCHAOSTSA_OFFSET = ReadHex(Project->ValuesPath, "BINCHAOSTSA_OFFSET");
-	BINBATTLEPALETTES_OFFSET = ReadHex(Project->ValuesPath, "BINBATTLEPALETTES_OFFSET");
-	BINBATTLEFORMATIONS_OFFSET = ReadHex(Project->ValuesPath, "BINBATTLEFORMATIONS_OFFSET");
-	BINENEMYNAMES_OFFSET = ReadHex(Project->ValuesPath, "BINENEMYNAMES_OFFSET");
+	BATTLE_COUNT = d.get<int>("BATTLE_COUNT");
+	BATTLE_OFFSET = d.get<int>("BATTLE_OFFSET");
+	BATTLE_BYTES = d.get<int>("BATTLE_BYTES");
+	BATTLEPATTERNTABLE_COUNT = d.get<int>("BATTLEPATTERNTABLE_COUNT");
+	ENEMYTEXT_OFFSET = d.get<int>("ENEMYTEXT_OFFSET");
+	ENEMYTEXT_PTRADD = d.get<int>("ENEMYTEXT_PTRADD");
+	ENEMY_COUNT = d.get<int>("ENEMY_COUNT");
+	CHAOSDRAW_TABLE = d.get<int>("CHAOSDRAW_TABLE");
+	CHAOSPALETTE_TABLE = d.get<int>("CHAOSPALETTE_TABLE");
+	FIENDDRAW_SHIFT = d.get<int>("FIENDDRAW_SHIFT");
+	FIENDDRAW_TABLE = d.get<int>("FIENDDRAW_TABLE");
+	FIENDPALETTE_TABLE = d.get<int>("FIENDPALETTE_TABLE");
+	BATTLEPALETTE_OFFSET = d.get<int>("BATTLEPALETTE_OFFSET");
+	BATTLEPATTERNTABLE_OFFSET = d.get<int>("BATTLEPATTERNTABLE_OFFSET");
+	TRANSPARENTCOLOR = d.get<int>("TRANSPARENTCOLOR");
+
+	BANK_SIZE = d.get<int>("BANK_SIZE");
+	BANK07_OFFSET = d.get<int>("BANK07_OFFSET");
+	BANK08_OFFSET = d.get<int>("BANK08_OFFSET");
+	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");
+	BINPRICEDATA_OFFSET = d.get<int>("BINPRICEDATA_OFFSET");
+	BINFIENDTSA_OFFSET = d.get<int>("BINFIENDTSA_OFFSET");
+	BINCHAOSTSA_OFFSET = d.get<int>("BINCHAOSTSA_OFFSET");
+	BINBATTLEPALETTES_OFFSET = d.get<int>("BINBATTLEPALETTES_OFFSET");
+	BINBATTLEFORMATIONS_OFFSET = d.get<int>("BINBATTLEFORMATIONS_OFFSET");
+	BINENEMYNAMES_OFFSET = d.get<int>("BINENEMYNAMES_OFFSET");
 
 	// used by subeditors
-	BANK00_OFFSET = ReadHex(Project->ValuesPath, "BANK00_OFFSET");
+	BANK00_OFFSET = d.get<int>("BANK00_OFFSET");
+
+	// Used by Usage Data (read-only)
+	BANK04_OFFSET = d.get<int>("BANK04_OFFSET");
+	BANK05_OFFSET = d.get<int>("BANK05_OFFSET");
+	BANK06_OFFSET = d.get<int>("BANK06_OFFSET");
+	ENEMY_OFFSET = d.get<int>("ENEMY_OFFSET");
+	BATTLEDOMAIN_OFFSET = d.get<int>("BATTLEDOMAIN_OFFSET");
+	BATTLEPROBABILITY_OFFSET = d.get<int>("BATTLEPROBABILITY_OFFSET");
+	TALKROUTINEDATA_OFFSET = d.get<int>("TALKROUTINEDATA_OFFSET");
 }
 
 void CBattle::LoadRom()
 {
-	Project->ClearROM();
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom()) {
+		load_binary(tomfc(Proj2->info.workrom), Proj2->ROM);
 	}
-	else if (Project->IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		CWaitCursor wait;
-		GameSerializer ser(*Project);
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.LoadAsmBin(BANK_07, BANK07_OFFSET);
 		ser.LoadAsmBin(BANK_08, BANK08_OFFSET);
@@ -446,35 +461,28 @@ void CBattle::LoadRom()
 
 		if (m_usagedataon) {
 			// Used by EnemyBattleUsageData (read-only)
-			auto BANK04_OFFSET = ReadHex(Project->ValuesPath, "BANK04_OFFSET");
-			auto BANK05_OFFSET = ReadHex(Project->ValuesPath, "BANK05_OFFSET");
-			auto BANK06_OFFSET = ReadHex(Project->ValuesPath, "BANK06_OFFSET");
-			auto ENEMY_OFFSET = ReadHex(Project->ValuesPath, "ENEMY_OFFSET");
-			auto BATTLEDOMAIN_OFFSET = ReadHex(Project->ValuesPath, "BATTLEDOMAIN_OFFSET");
-			unsigned int BATTLEPROBABILITY_OFFSET = ReadHex(Project->ValuesPath, "BATTLEPROBABILITY_OFFSET");
-			auto TALKROUTINEDATA_OFFSET = Ini::ReadHex(Project->ValuesPath, "TALKROUTINEDATA_OFFSET");
 			ser.LoadAsmBin(BANK_04, BANK04_OFFSET);
 			ser.LoadAsmBin(BANK_05, BANK05_OFFSET);
 			ser.LoadAsmBin(BANK_06, BANK06_OFFSET);
 			ser.LoadAsmBin(BIN_BATTLEDOMAINDATA, BATTLEDOMAIN_OFFSET);
 			ser.LoadAsmBin(BIN_OBJECTDATA, TALKROUTINEDATA_OFFSET);
 			ser.LoadAsmBin(BIN_ENEMYDATA, ENEMY_OFFSET);
-			ser.LoadInline(ASM_0F, { { asmlabel, "lut_FormationWeight", { BATTLEPROBABILITY_OFFSET } } });
+			ser.LoadInline(ASM_0F, { { asmlabel, "lut_FormationWeight", { (unsigned int)BATTLEPROBABILITY_OFFSET } } });
 			ser.PreloadTalkAsmData(ASM_0E);
 		}
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CBattle::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		save_binary(tomfc(Proj2->info.workrom), Proj2->ROM);
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.SaveAsmBin(BANK_07, BANK07_OFFSET);
 		ser.SaveAsmBin(BANK_08, BANK08_OFFSET);
@@ -488,7 +496,7 @@ void CBattle::SaveRom()
 		ser.LoadAsmBin(BANK_00, BANK00_OFFSET); // used by subeditors
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
@@ -571,7 +579,6 @@ bool CBattle::UpdateUsageData(int btlindex)
 	auto ok = false;
 	try {
 		m_usedata.Reset();
-		//ok = m_usedata.UpdateBattleUseData(btlindex);
 		const auto includer = [](int keyindex, int battleindex) -> bool {
 			auto battleid = (battleindex & 0x7F);
 			if (keyindex == battleid)
@@ -635,49 +642,49 @@ void CBattle::LoadValues()
 	int temp;
 	CString text;
 
-	temp = Project->ROM[offset];
+	temp = Proj2->ROM[offset];
 	UpdateBattleType(temp >> 4,0);
 	m_patterntables.SetCurSel(temp & 0x0F);
 
 	//the bits in byte 2 are reversed!  Dammit!
 	temp = 0;
 	for(int co = 1, co2 = 128; co <= 128; co <<= 1, co2 >>= 1)
-		if(Project->ROM[offset + 1] & co2) temp |= co;
+		if(Proj2->ROM[offset + 1] & co2) temp |= co;
 	UpdatePicAssignment(-1,temp,0);
 
-	m_enemy1.SetCurSel(Project->ROM[offset + 2]);
-	m_enemy2.SetCurSel(Project->ROM[offset + 3]);
-	m_enemy3.SetCurSel(Project->ROM[offset + 4]);
-	m_enemy4.SetCurSel(Project->ROM[offset + 5]);
+	m_enemy1.SetCurSel(Proj2->ROM[offset + 2]);
+	m_enemy2.SetCurSel(Proj2->ROM[offset + 3]);
+	m_enemy3.SetCurSel(Proj2->ROM[offset + 4]);
+	m_enemy4.SetCurSel(Proj2->ROM[offset + 5]);
 
-	temp = Project->ROM[offset + 6 + (form * 8)];
+	temp = Proj2->ROM[offset + 6 + (form * 8)];
 	qtymin[0] = temp >> 4; qtymax[0] = temp & 0x0F;
 	text.Format("%d",qtymin[0]); m_qtymin_1.SetWindowText(text);
 	text.Format("%d",qtymax[0]); m_qtymax_1.SetWindowText(text);
 	
-	temp = Project->ROM[offset + 7 + (form * 8)];
+	temp = Proj2->ROM[offset + 7 + (form * 8)];
 	qtymin[1] = temp >> 4; qtymax[1] = temp & 0x0F;
 	text.Format("%d",qtymin[1]); m_qtymin_2.SetWindowText(text);
 	text.Format("%d",qtymax[1]); m_qtymax_2.SetWindowText(text);
 
 	if(!form){
-		temp = Project->ROM[offset + 8];
+		temp = Proj2->ROM[offset + 8];
 		qtymin[2] = temp >> 4; qtymax[2] = temp & 0x0F;
 		text.Format("%d",qtymin[2]); m_qtymin_3.SetWindowText(text);
 		text.Format("%d",qtymax[2]); m_qtymax_3.SetWindowText(text);
 		
-		temp = Project->ROM[offset + 9];
+		temp = Proj2->ROM[offset + 9];
 		qtymin[3] = temp >> 4; qtymax[3] = temp & 0x0F;
 		text.Format("%d",qtymin[3]); m_qtymin_4.SetWindowText(text);
 		text.Format("%d",qtymax[3]); m_qtymax_4.SetWindowText(text);}
 
-	pal[0] = Project->ROM[offset + 10];
-	pal[1] = Project->ROM[offset + 11];
+	pal[0] = Proj2->ROM[offset + 10];
+	pal[1] = Proj2->ROM[offset + 11];
 
-	text.Format("%d",Project->ROM[offset + 12]);
+	text.Format("%d",Proj2->ROM[offset + 12]);
 	m_suprised.SetWindowText(text);
 
-	temp = Project->ROM[offset + 13];
+	temp = Proj2->ROM[offset + 13];
 	UpdatePaletteAssignment(-1,temp >> 4,0);
 	m_norun.SetCheck(temp & 1);
 
@@ -693,36 +700,36 @@ void CBattle::StoreValues()
 	int co, co2;
 	CString text;
 
-	Project->ROM[offset] = (BYTE)((battletype << 4) + m_patterntables.GetCurSel());
+	Proj2->ROM[offset] = (BYTE)((battletype << 4) + m_patterntables.GetCurSel());
 
 	//Remember..these bits are reversed!
 	temp = 0;
 	for(co = 0; co < 4; co++){
 		temp <<= 2; temp += picassignment[co];}
-	Project->ROM[offset + 1] = 0;
+	Proj2->ROM[offset + 1] = 0;
 	for(co = 1, co2 = 128; co <= 128; co <<= 1, co2 >>= 1)	//reversed!
-		if(temp & co2) Project->ROM[offset + 1] |= co;
+		if(temp & co2) Proj2->ROM[offset + 1] |= co;
 
-	Project->ROM[offset + 2] = (BYTE)m_enemy1.GetCurSel();
-	Project->ROM[offset + 3] = (BYTE)m_enemy2.GetCurSel();
-	Project->ROM[offset + 4] = (BYTE)m_enemy3.GetCurSel();
-	Project->ROM[offset + 5] = (BYTE)m_enemy4.GetCurSel();
+	Proj2->ROM[offset + 2] = (BYTE)m_enemy1.GetCurSel();
+	Proj2->ROM[offset + 3] = (BYTE)m_enemy2.GetCurSel();
+	Proj2->ROM[offset + 4] = (BYTE)m_enemy3.GetCurSel();
+	Proj2->ROM[offset + 5] = (BYTE)m_enemy4.GetCurSel();
 
-	Project->ROM[offset + 6 + (form * 8)] = (BYTE)((qtymin[0] << 4) + qtymax[0]);
-	Project->ROM[offset + 7 + (form * 8)] = (BYTE)((qtymin[1] << 4) + qtymax[1]);
+	Proj2->ROM[offset + 6 + (form * 8)] = (BYTE)((qtymin[0] << 4) + qtymax[0]);
+	Proj2->ROM[offset + 7 + (form * 8)] = (BYTE)((qtymin[1] << 4) + qtymax[1]);
 	if (!form) {
-		Project->ROM[offset + 8] = (BYTE)((qtymin[2] << 4) + qtymax[2]);
-		Project->ROM[offset + 9] = (BYTE)((qtymin[3] << 4) + qtymax[3]);
+		Proj2->ROM[offset + 8] = (BYTE)((qtymin[2] << 4) + qtymax[2]);
+		Proj2->ROM[offset + 9] = (BYTE)((qtymin[3] << 4) + qtymax[3]);
 	}
 
-	Project->ROM[offset + 10] = (BYTE)pal[0];
-	Project->ROM[offset + 11] = (BYTE)pal[1];
+	Proj2->ROM[offset + 10] = (BYTE)pal[0];
+	Proj2->ROM[offset + 11] = (BYTE)pal[1];
 
 	m_suprised.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 12] = (BYTE)temp;
+	Proj2->ROM[offset + 12] = (BYTE)temp;
 
-	Project->ROM[offset + 13] =
+	Proj2->ROM[offset + 13] =
 		(paletteassignment[0] << 7) +
 		(paletteassignment[1] << 6) +
 		(paletteassignment[2] << 5) +
@@ -751,7 +758,7 @@ void CBattle::PaintClient(CDC & dc)
 		rc = rcPal[co]; rc.right = rc.left + 16;
 		for (co2 = 1; co2 < 4; co2++, rc.left += 16, rc.right += 16) {
 			//REFACTOR - would FillSolidRect() be a cleaner option here?
-			br.CreateSolidBrush(Project->Palette[0][Project->ROM[
+			br.CreateSolidBrush(Proj2->palette[0][Proj2->ROM[
 				BATTLEPALETTE_OFFSET + (pal[co] << 2) + co2]]);
 			dc.FillRect(rc, &br);
 			br.DeleteObject();
@@ -998,62 +1005,66 @@ void CBattle::OnPicd4()
 
 void CBattle::OnEditbatlabel() 
 {
-	int temp = m_battlelist.GetCurSel();
-	ChangeLabel(*Project, BATTLELABEL_SIZE, LoadBattleLabel(*Project, temp), WriteBattleLabel, temp, &m_battlelist, nullptr);
+	//TODO - restore when FFH2Project is ready
+	//int temp = m_battlelist.GetCurSel();
+	//ChangeLabel(*Proj2, BATTLELABEL_SIZE, LoadBattleLabel(*Proj2, temp), WriteBattleLabel, temp, &m_battlelist, nullptr);
 }
 
 void CBattle::OnEditpatlabel() 
 {
-	int temp = m_patterntables.GetCurSel();
-	ChangeLabel(*Project, BATTLEPATTERNTABLELABEL_SIZE, LoadBattlePatternTableLabel(*Project, temp), WriteBattlePatternTableLabel, temp, nullptr,&m_patterntables);
+	//TODO - restore when FFH2Project is ready
+	//int temp = m_patterntables.GetCurSel();
+	//ChangeLabel(*Proj2, BATTLEPATTERNTABLELABEL_SIZE, LoadBattlePatternTableLabel(*Proj2, temp), WriteBattlePatternTableLabel, temp, nullptr,&m_patterntables);
 }
 
 void CBattle::OnLButtonDown(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
-	int coX;
-	for(int co = 0; co < 2; co++){
-		if(PtInRect(rcPal[co],pt)){
-			coX = (pt.x - rcPal[co].left) >> 4;
-			CNESPalette dlg;
-			dlg.cart = Project;
-			dlg.color = &Project->ROM[BATTLEPALETTE_OFFSET + (pal[co] << 2) + coX + 1];
-			if(dlg.DoModal() == IDOK){
-				ReloadGraphics();
-				InvalidateRect(rcPreview,0);
-				InvalidateRect(rcPal[0],0);
-				InvalidateRect(rcPal[1],0);}
-		}
-	}
-	HandleLbuttonDrag(this);
+	//int coX;
+	//for(int co = 0; co < 2; co++){
+	//	if(PtInRect(rcPal[co],pt)){
+	//		coX = (pt.x - rcPal[co].left) >> 4;
+	//		CNESPalette dlg;
+	//		dlg.cart = Proj2;
+	//		dlg.color = &Proj2->ROM[BATTLEPALETTE_OFFSET + (pal[co] << 2) + coX + 1];
+	//		if(dlg.DoModal() == IDOK){
+	//			ReloadGraphics();
+	//			InvalidateRect(rcPreview,0);
+	//			InvalidateRect(rcPal[0],0);
+	//			InvalidateRect(rcPal[1],0);}
+	//	}
+	//}
+	//HandleLbuttonDrag(this);
 }
  
 
 void CBattle::OnChangepal1()
 {
-	CBattlePalettes dlg;
-	dlg.oldpal = pal[0];
-	dlg.Project = Project;
-	if(dlg.DoModal() == IDOK){
-		pal[0] = dlg.newpal;
-		ReloadGraphics();
-		UpdatePalettes();
-		InvalidateRect(rcPreview,0);
-	}
+	//TODO - palette
+	//CBattlePalettes dlg;
+	//dlg.oldpal = pal[0];
+	//dlg.Proj2 = Proj2;
+	//if(dlg.DoModal() == IDOK){
+	//	pal[0] = dlg.newpal;
+	//	ReloadGraphics();
+	//	UpdatePalettes();
+	//	InvalidateRect(rcPreview,0);
+	//}
 }
 
 void CBattle::OnChangepal2()
 {
-	CBattlePalettes dlg;
-	dlg.oldpal = pal[1];
-	dlg.Project = Project;
-	if(dlg.DoModal() == IDOK){
-		pal[1] = dlg.newpal;
-		ReloadGraphics();
-		UpdatePalettes();
-		InvalidateRect(rcPreview,0);
-	}
+	//TODO - palette
+	//CBattlePalettes dlg;
+	//dlg.oldpal = pal[1];
+	//dlg.Proj2 = Proj2;
+	//if(dlg.DoModal() == IDOK){
+	//	pal[1] = dlg.newpal;
+	//	ReloadGraphics();
+	//	UpdatePalettes();
+	//	InvalidateRect(rcPreview,0);
+	//}
 }
 
 void CBattle::OnEditgraphic()
@@ -1061,42 +1072,46 @@ void CBattle::OnEditgraphic()
 	StoreValues();
 	SaveRom();
 
-	CBattlePatternTables dlg;
-	dlg.cart = Project;
-	dlg.patterntable = BYTE(m_patterntables.GetCurSel());
-	if(battletype < 3) dlg.view = 0;
-	if(battletype == 4) dlg.view = 5;
-	if(battletype == 3){
-		BYTE temp[4] = {1,3,2,4};
-		dlg.view = temp[picassignment[0]];
-	}
-	dlg.palvalues[0] = (BYTE)pal[0];
-	dlg.palvalues[1] = (BYTE)pal[1];
+	//TODO - palette
 
-	dlg.DoModal();
-	
-	ReloadGraphics();
-	InvalidateRect(rcPreview,0);
-	UpdatePalettes();
+	//CBattlePatternTables dlg;
+	//dlg.cart = Proj2;
+	//dlg.patterntable = BYTE(m_patterntables.GetCurSel());
+	//if(battletype < 3) dlg.view = 0;
+	//if(battletype == 4) dlg.view = 5;
+	//if(battletype == 3){
+	//	BYTE temp[4] = {1,3,2,4};
+	//	dlg.view = temp[picassignment[0]];
+	//}
+	//dlg.palvalues[0] = (BYTE)pal[0];
+	//dlg.palvalues[1] = (BYTE)pal[1];
+
+	//dlg.DoModal();
+	//
+	//ReloadGraphics();
+	//InvalidateRect(rcPreview,0);
+	//UpdatePalettes();
 }
 
 void CBattle::OnBnClickedBattleSettings()
 {
-	// Don't change the View Usage setting now, let the user know that it will change on reload.
-	CBattleEditorSettings stgs(*Project);
-	bool wasViewUsage = stgs.ViewUsage;
+	//TODO - settings dlg
 
-	CBattleEditorSettingsDlg dlg(this);
-	dlg.Project = Project;
-	if (dlg.DoModal() == IDOK) {
-		stgs.Read();
-		if (!wasViewUsage && stgs.ViewUsage) {
-			AfxMessageBox("View Usage will be available when you restart the editor.");
-		}
-		else if (wasViewUsage && !stgs.ViewUsage) {
-			AfxMessageBox("View Usage will be hidden when you restart the editor.");
-		}
-	}
+	//// Don't change the View Usage setting now, let the user know that it will change on reload.
+	//CBattleEditorSettings stgs(*Proj2);
+	//bool wasViewUsage = stgs.ViewUsage;
+
+	//CBattleEditorSettingsDlg dlg(this);
+	//dlg.Proj2 = Proj2;
+	//if (dlg.DoModal() == IDOK) {
+	//	stgs.Read();
+	//	if (!wasViewUsage && stgs.ViewUsage) {
+	//		AfxMessageBox("View Usage will be available when you restart the editor.");
+	//	}
+	//	else if (wasViewUsage && !stgs.ViewUsage) {
+	//		AfxMessageBox("View Usage will be hidden when you restart the editor.");
+	//	}
+	//}
 }
 
 void CBattle::OnBnClickedViewUsage()

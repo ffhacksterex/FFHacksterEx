@@ -748,6 +748,8 @@ namespace Ingametext // FFH2Project veersions
 
 	} // end namespace (unnamed)
 
+	// LABEL LISTS
+
 	dataintnodevector LoadArmorEntries(FFH2Project& proj, bool showindex)
 	{
 		return LoadExpandedOneBasedEntriesEx(proj, "ARMORTEXT_OFFSET", "BASICTEXT_PTRADD", "", "ARMOR_COUNT", 2, showindex);
@@ -763,11 +765,18 @@ namespace Ingametext // FFH2Project veersions
 		return LoadExpandedZeroBasedEntriesEx(proj, "CLASSTEXT_OFFSET", "BASICTEXT_PTRADD", "", "CLASS_COUNT", 5, showindex);
 	}
 
+	dataintnodevector LoadEnemyEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadExpandedZeroBasedEntriesEx(proj, "ENEMYTEXT_OFFSET", "ENEMYTEXT_PTRADD", "", "ENEMY_COUNT", 7, showindex);
+	}
+
 	dataintnodevector LoadMagicEntries(FFH2Project& proj, bool showindex)
 	{
 		return LoadExpandedZeroBasedEntriesEx(proj, "MAGICTEXT_OFFSET", "BASICTEXT_PTRADD", "", "MAGIC_COUNT", 4, showindex);
 	}
 
+
+	// SINGLE ENTRIES
 
 	dataintnode LoadArmorEntry(FFH2Project& proj, int index, bool showindex)
 	{

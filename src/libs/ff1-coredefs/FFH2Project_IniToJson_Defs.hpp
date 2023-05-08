@@ -34,7 +34,6 @@ EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectSession,
 	showLastClick, drawDomainGrid, tintVariant,
 	tintTiles, smartTools);
 
-EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectData, palette, tables);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectEditorModuleEntry, id, slotName, sourcePath, type, settings);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectEditorModules, order, entries);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectValues, entries);
@@ -44,7 +43,7 @@ EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogueElement, type, hexo
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogueTalkHandler, desc, bankaddr, elements);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogueTalkHandlers, order, entries);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogue, valueTypes, labels, handlers);
-EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, FFH2Project, ffheader, info, strings, session, data, modules, values, dialogue);
+EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, FFH2Project, ffheader, info, strings, session, palette, tables, modules, values, dialogue);
 
 
 //=== Unordered macro declarations
@@ -56,7 +55,6 @@ EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectSession,
 	showLastClick, drawDomainGrid, tintVariant,
 	tintTiles, smartTools);
 
-EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectData, palette, tables);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectEditorModuleEntry, id, slotName, sourcePath, type, settings);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectEditorModules, order, entries);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectValues, entries);
@@ -66,5 +64,5 @@ EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectDialogueElement, type, hexo
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectDialogueTalkHandler, desc, bankaddr, elements);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectDialogueTalkHandlers, order, entries);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectDialogue, valueTypes, labels, handlers);
-EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, FFH2Project, ffheader, info, strings, session, data, modules, values, dialogue);
+EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, FFH2Project, ffheader, info, strings, session, palette, tables, modules, values, dialogue);
 

@@ -42,11 +42,13 @@ namespace {
 	void ResolveWorkingFile(FFH2Project& p, CString inipath, CString newprojectname);
 	void ResolveStrings(CString inipath, FFH2Project& p);
 	void ResolveEditorSettings(CString inipath, FFH2Project& p);
-	void ResolveValuesSettings(CString inipath, FFH2Project& p);
+	void ResolveValues(CString inipath, FFH2Project& p);
 	void ResolveDialogueSettings(CString inipath, FFH2Project& p);
 
 	CString GetSubfilePath(CString inipath, CString key);
 	void ReadTable(CString tablepath, std::array<std::string, 256>& table);
+	void ReadPalette(CString palpath, nespalettearrays & palette, CString inipath);
+
 	bytevector ReadBinary(CString palpath);
 	std::vector<std::vector<std::int8_t>> ConvertBytes(CString inipath, CString section, CString key, int rows, int cols);
 
@@ -99,21 +101,18 @@ namespace Upgrades
 
 		ResolveStrings(inipath, p);
 		ResolveEditorSettings(inipath, p);
-		ResolveValuesSettings(inipath, p);
+		ResolveValues(inipath, p);
 		ResolveDialogueSettings(inipath, p);
 
 		auto stdtblpath = GetSubfilePath(inipath, "stdtable");
-		ReadTable(stdtblpath, p.data.tables[0]);
+		ReadTable(stdtblpath, p.tables[0]);
 		auto dtetblpath = GetSubfilePath(inipath, "dtetable");
-		ReadTable(dtetblpath, p.data.tables[1]);
+		ReadTable(dtetblpath, p.tables[1]);
 		auto palpath = GetSubfilePath(inipath, "nespal");
-		p.data.palette = ReadBinary(palpath);
+		ReadPalette(palpath, p.palette, inipath);
 
 		// Write out the object as JSON
 		std::string ext = (LPCSTR)Paths::GetFileExtension(inipath);
-
-		//auto newext = ext == ".ff1rom" ? ".rom.ffh" : (ext == ".ff1asm" ? ".asm.ffh" :
-		//	(throw std::runtime_error("Unsupported old extension '" + ext + "'")));
 		CString newext;
 		if (ext == ".ff1rom") newext = ".rom.ffh";
 		else if (ext == ".ff1asm") newext = ".asm.ffh";
@@ -273,7 +272,7 @@ namespace {
 		}
 	}
 
-	void ResolveValuesSettings(CString inipath, FFH2Project& p)
+	void ResolveValues(CString inipath, FFH2Project& p)
 	{
 		auto valpath = GetSubfilePath(inipath, "values");
 
@@ -433,6 +432,28 @@ namespace {
 			auto index = strtoul(key.c_str(), nullptr, 16);
 			table[index] = value;
 		}
+	}
+
+	void ReadPalette(CString palpath, nespalettearrays& palette, CString inipath)
+	{
+		auto valpath = GetSubfilePath(inipath, "values");
+		const int DEFTRANSPARENTCOLOR = 0xFF00FF;
+		const int DEFTRANSPARENTCOLORREPLACEMENT = 0xE600E6;
+		int TRANSPARENTCOLOR = Ini::ReadRgb(valpath, "TRANSPARENTCOLOR", DEFTRANSPARENTCOLOR);
+		int TRANSPARENTCOLORREPLACEMENT = Ini::ReadRgb(valpath, "TRANSPARENTCOLORREPLACEMENT", DEFTRANSPARENTCOLORREPLACEMENT);
+
+		// The destination palatte is a fixed size 2d array (and NOT a jagged array).
+		auto pal = ReadBinary(palpath);
+		int co1, co;
+		BYTE rgb[3] = {0};
+		for (co = 0, co1 = 0; co < 64; co++, co1 += 3) {
+			rgb[0] = pal[co1]; rgb[1] = pal[co1 + 1]; rgb[2] = pal[co1 + 2];
+			palette[0][co] = RGB(rgb[0], rgb[1], rgb[2]);
+			if (palette[0][co] == (COLORREF)TRANSPARENTCOLOR)
+				palette[0][co] = TRANSPARENTCOLORREPLACEMENT;
+		}
+		for (co = 0; co < 9; co++)
+			palette[co][0x40] = TRANSPARENTCOLOR;
 	}
 
 	bytevector ReadBinary(CString palpath)

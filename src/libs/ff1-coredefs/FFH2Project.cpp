@@ -290,7 +290,7 @@ const std::string* FFH2Project::GetTable(int index)
 	if (index < 0 || index >= (int)session.textViewInDTE.size())
 		throw std::runtime_error("Can't find a text table with index '" + std::to_string(index) + "'.");
 
-	return data.tables[session.textViewInDTE[index]].data();
+	return tables[session.textViewInDTE[index]].data();
 }
 
 bool FFH2Project::ClearROM()

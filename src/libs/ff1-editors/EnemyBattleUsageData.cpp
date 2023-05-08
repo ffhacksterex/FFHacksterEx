@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "EnemyBattleUsageData.h"
+#include <FFHDataValue_dva.hpp>
 #include <FFHacksterProject.h>
+#include <FFH2Project.h>
 #include "ini_functions.h"
 #include "common_symbols.h"
 #include "editor_label_functions.h"
@@ -10,6 +12,9 @@
 #include <dialogue_helpers.h>
 
 namespace {
+	CFFHacksterProject ffdummy;
+	FFH2Project ff2dummy;
+
 	CString DefBattleFormatter(CFFHacksterProject& proj, const sUseData& u);
 	CString DefEnemyFormatter(CFFHacksterProject& proj, const sUseData& u);
 }
@@ -24,6 +29,7 @@ EnemyBattleUsageData::~EnemyBattleUsageData()
 
 void EnemyBattleUsageData::SetProject(CFFHacksterProject& proj)
 {
+	Proj2 = &ff2dummy;
 	Project = &proj;
 	Clear();
 
@@ -45,10 +51,50 @@ void EnemyBattleUsageData::SetProject(CFFHacksterProject& proj)
 	TILESET_TILEDATA = Ini::ReadHex(Project->ValuesPath, "TILESET_TILEDATA");
 	TILESET_COUNT = Ini::ReadDec(Project->ValuesPath, "TILESET_COUNT");
 
+	bool is2 = (Proj2 != &ff2dummy);
+	const auto& rom = is2 ? Proj2->ROM : Project->ROM;
+
 	m_probabilities.resize(8, 0); //TODO - currently no INI value to make this configurable
 	auto offset = BATTLEPROBABILITY_OFFSET;
 	for (auto i = 0; i < 64; i++)
-		m_probabilities[Project->ROM[offset + i]] += 1;
+		m_probabilities[rom[offset + i]] += 1;
+
+	MapTalkRoutines();
+	MapSpikedSquares();
+}
+
+void EnemyBattleUsageData::SetProject(FFH2Project& proj)
+{
+	Project = &ffdummy;
+	Proj2 = &proj;
+	Clear();
+
+	ff1coredefs::DataValueAccessor d(*Proj2);
+	BANK_SIZE = d.get<int>("BANK_SIZE");
+	MAP_COUNT = d.get<int>("MAP_COUNT");
+	MAP_OFFSET = d.get<int>("MAP_OFFSET");
+	MAP_PTRADD = d.get<int>("MAP_PTRADD");
+	MAPTILESET_ASSIGNMENT = d.get<int>("MAPTILESET_ASSIGNMENT");
+	BATTLEDOMAIN_OFFSET = d.get<int>("BATTLEDOMAIN_OFFSET");
+	BATTLEPROBABILITY_OFFSET = d.get<int>("BATTLEPROBABILITY_OFFSET");
+	BATTLE_OFFSET = d.get<int>("BATTLE_OFFSET");
+	BATTLE_BYTES = d.get<int>("BATTLE_BYTES");
+	SPRITE_COUNT = d.get<int>("SPRITE_COUNT");
+	TALKROUTINEPTRTABLE_OFFSET = d.get<int>("TALKROUTINEPTRTABLE_OFFSET");
+	TALKROUTINEPTRTABLE_BYTES = d.get<int>("TALKROUTINEPTRTABLE_BYTES");
+	TALKROUTINEPTRTABLE_PTRADD = d.get<int>("TALKROUTINEPTRTABLE_PTRADD");
+	TALKROUTINEDATA_OFFSET = d.get<int>("TALKROUTINEDATA_OFFSET");
+	TALKROUTINEDATA_BYTES = d.get<int>("TALKROUTINEDATA_BYTES");
+	TILESET_TILEDATA = d.get<int>("TILESET_TILEDATA");
+	TILESET_COUNT = d.get<int>("TILESET_COUNT");
+
+	bool is2 = (Proj2 != &ff2dummy);
+	const auto& rom = is2 ? Proj2->ROM : Project->ROM;
+
+	m_probabilities.resize(8, 0); //TODO - currently no INI value to make this configurable
+	auto offset = BATTLEPROBABILITY_OFFSET;
+	for (auto i = 0; i < 64; i++)
+		m_probabilities[rom[offset + i]] += 1;
 
 	MapTalkRoutines();
 	MapSpikedSquares();
@@ -73,7 +119,7 @@ void EnemyBattleUsageData::Reset(bool keepProbabilities)
 
 bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder includer, EnemyUsageDataFormatter formatter)
 {
-	if (Project == nullptr) {
+	if (Project == nullptr && Proj2 == nullptr) {
 		ErrorHere << "Can't generate use data without a project." << std::endl;
 		throw std::runtime_error("Can't generate use data without a project.");
 	}
@@ -86,6 +132,9 @@ bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder in
 		throw std::runtime_error("Can't generate use data without an formatter.");
 	}
 
+	bool is2 = (Proj2 != &ff2dummy);
+	const auto& rom = is2 ? Proj2->ROM : Project->ROM;
+
 	// Overworld domain random encounters
 	for (auto dom = 0; dom < 64; ++dom) {
 		auto y = dom / 8;
@@ -93,7 +142,7 @@ bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder in
 		auto ref = (y << 3) + x;
 		ref = BATTLEDOMAIN_OFFSET + (ref << 3);
 		for (auto co = 0; co < 8; ++co) {
-			const auto rawbattleid = Project->ROM[ref + co];
+			const auto rawbattleid = rom[ref + co];
 			// INCLUSION CONDITION
 			if (includer(keyindex, rawbattleid)) {
 				const auto battle = (rawbattleid & 0x7F);
@@ -108,6 +157,7 @@ bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder in
 				u.chance = m_probabilities[co];
 				m_usedata.push_back(u);
 				// TEXT FORMATTER
+				//TODO - while it compiles, m_usedatarefs must change to FFH2Project before this will ctually work
 				m_usedatarefs.push_back({ formatter(*Project, m_usedata.back()), (int)m_usedata.size() - 1 });
 			}
 		}
@@ -117,7 +167,7 @@ bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder in
 	for (auto imap = 0; imap < MAP_COUNT; ++imap) {
 		auto offset = BATTLEDOMAIN_OFFSET + 0x200 + (imap << 3);
 		for (auto co = 0; co < 8; ++co, ++offset) {
-			const auto rawbattleid = Project->ROM[offset];
+			const auto rawbattleid = rom[offset];
 			// INCLUSION CONDITION
 			if (includer(keyindex, rawbattleid)) {
 				const auto battle = (rawbattleid & 0x7F);
@@ -162,7 +212,7 @@ bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder in
 	// Dialogue-initiated battles (Standard map)
 	for (auto isp = 0; isp < SPRITE_COUNT; ++isp) {
 		int romoffset = TALKROUTINEPTRTABLE_OFFSET + (isp * TALKROUTINEPTRTABLE_BYTES);
-		int bankaddr = Project->ROM[romoffset] + (Project->ROM[romoffset + 1] << 8);
+		int bankaddr = rom[romoffset] + (rom[romoffset + 1] << 8);
 		auto iter = m_talkmap.find(bankaddr);
 		if (iter != cend(m_talkmap)) {
 			const auto& routine = iter->second;
@@ -173,7 +223,7 @@ bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder in
 				//TODO - change to map a delem instead of the components of parts
 				if (elem.type == "battle") {
 					auto offset = TALKROUTINEDATA_OFFSET + (isp * 4) + elem.param;
-					rawbattleid = Project->ROM[offset];
+					rawbattleid = rom[offset];
 				}
 				else if (elem.type == "hcbattle") {
 					rawbattleid = elem.resolvedValue;
@@ -198,6 +248,11 @@ bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder in
 	return true;
 }
 
+bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder includer, EnemyUsageDataFormatter2 formatter)
+{
+	return false;
+}
+
 void EnemyBattleUsageData::UpdateTileset(int tilesetindex)
 {
 	ReindexTileset(tilesetindex);
@@ -205,8 +260,11 @@ void EnemyBattleUsageData::UpdateTileset(int tilesetindex)
 
 void EnemyBattleUsageData::UpdateMapSpikedSquaresForTileset(int tilesetindex)
 {
+	bool is2 = (Proj2 != &ff2dummy);
+	const auto& rom = is2 ? Proj2->ROM : Project->ROM;
+
 	for (auto imap = 0; imap < MAP_COUNT; ++imap) {
-		auto iset = Project->ROM[MAPTILESET_ASSIGNMENT + imap];
+		auto iset = rom[MAPTILESET_ASSIGNMENT + imap];
 		if (iset == tilesetindex)
 			UpdateMapSpikedSquares(imap);
 	}
@@ -218,6 +276,9 @@ void EnemyBattleUsageData::MapTalkRoutines()
 	//	routine data for our purposes is the offset to all hcbattles
 	//	and param data for all battles (non-hardcoded).
 	//	While there we can look up the param and fill in the battle value.
+
+	bool is2 = (Proj2 != &ff2dummy);
+	const auto& rom = is2 ? Proj2->ROM : Project->ROM;
 
 	auto skiplabels = std::vector<CString>{ "VALUETYPES", "Label_TalkJumpTable", "Label_EndParsingMarker" };
 	auto ini = Project->GetIniFilePath(FFHFILE_DialoguePath);
@@ -262,7 +323,7 @@ void EnemyBattleUsageData::MapTalkRoutines()
 				// We can't resolve parameterized until we loop through the sprites.
 				if (hardcoded) {
 					auto offset = TALKROUTINEPTRTABLE_PTRADD + bankaddr + elem.param;
-					elem.resolvedValue = Project->ROM[offset];
+					elem.resolvedValue = rom[offset];
 				}
 				routine.elements.push_back(elem);
 			}
@@ -292,18 +353,24 @@ void EnemyBattleUsageData::MapSpikedSquares()
 
 int EnemyBattleUsageData::ReadBankAddr(int ptrtbloffset, int ptrwidth, int index)
 {
+	bool is2 = (Proj2 != &ff2dummy);
+	const auto& rom = is2 ? Proj2->ROM : Project->ROM;
+
 	int romoffset = ptrtbloffset + (index * ptrwidth);
-	int value = Project->ROM[romoffset] + (Project->ROM[romoffset + 1] << 8);
+	int value = rom[romoffset] + (rom[romoffset + 1] << 8);
 	return value;
 }
 
 void EnemyBattleUsageData::ReindexTileset(int tileset)
 {
+	bool is2 = (Proj2 != &ff2dummy);
+	const auto& rom = is2 ? Proj2->ROM : Project->ROM;
+
 	std::map<int, int> tile_battlemap;
 	for (auto itile = 0; itile < 128; ++itile) {
 		auto offset = TILESET_TILEDATA + (tileset << 8) + (itile << 1);
-		BYTE temp = Project->ROM[offset];
-		BYTE byte2 = Project->ROM[offset + 1];
+		BYTE temp = rom[offset];
+		BYTE byte2 = rom[offset + 1];
 		if (temp == 0x0A && byte2 < 0x80) {
 			auto btlid = byte2;
 			tile_battlemap[itile] = btlid;
@@ -314,8 +381,11 @@ void EnemyBattleUsageData::ReindexTileset(int tileset)
 
 void EnemyBattleUsageData::UpdateMapSpikedSquares(int mapindex)
 {
+	bool is2 = (Proj2 != &ff2dummy);
+	auto& rom = is2 ? Proj2->ROM : Project->ROM;
+
 	// If there are no spiked squares on the tileset, then skip any map tied to it.
-	auto iset = Project->ROM[MAPTILESET_ASSIGNMENT + mapindex];
+	auto iset = rom[MAPTILESET_ASSIGNMENT + mapindex];
 	auto& tset = m_tset_tileindexmap[iset];
 	if (tset.empty())
 		return;
@@ -323,7 +393,7 @@ void EnemyBattleUsageData::UpdateMapSpikedSquares(int mapindex)
 	// We have to decompress the map or the coords will never be correct.
 	// Then walk through the decompressed map and snag tiles mapped to our battle.
 	BYTE DecompressedMap[0x40][0x40] = { 0 };
-	Maps::DecompressMap(*Project, mapindex, MAP_OFFSET, MAP_PTRADD, DecompressedMap);
+	Maps::DecompressMap(rom, mapindex, MAP_OFFSET, MAP_PTRADD, DecompressedMap);
 
 	spikedsquarevector vspikes;
 	for (auto r = 0; r < 64; ++r) {

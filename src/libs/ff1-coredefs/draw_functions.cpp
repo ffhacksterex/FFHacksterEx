@@ -2,6 +2,7 @@
 #include "draw_functions.h"
 #include "FFHacksterProject.h"
 #include "DRAW_STRUCT.h"
+#include "FFH2Project.h"
 #include "common_symbols.h" //TODO - only added for UiTemp::COMMON_OFN
 #include "path_functions.h"
 
@@ -434,4 +435,23 @@ void Draw_ImportFromBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* palet
 	}
 
 	fclose(file);
+}
+
+
+
+
+
+// === FFH2Project versions
+
+void DrawTile(CDC* dc, int tX, int tY, FFH2Project* proj, int offset, BYTE* palette, BYTE tint)
+{
+	BYTE pixel[2][2] = { 0,2,1,3 };
+	BYTE coX, coY, line;
+	for (coY = 0; coY < 8; coY++, tX -= 8, tY++, offset++) {
+		for (coX = 0, line = 0x80; coX < 8; coX++, tX++, line >>= 1) {
+			dc->SetPixelV(tX, tY, proj->palette[tint][palette[pixel
+				[(proj->ROM[offset] & line) != 0]
+			[(proj->ROM[offset + 8] & line) != 0]]]);
+		}
+	}
 }
