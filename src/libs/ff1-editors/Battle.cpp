@@ -1042,30 +1042,28 @@ void CBattle::OnLButtonDown(UINT nFlags, CPoint pt)
 
 void CBattle::OnChangepal1()
 {
-	//TODO - palette
-	//CBattlePalettes dlg;
-	//dlg.oldpal = pal[0];
-	//dlg.Proj2 = Proj2;
-	//if(dlg.DoModal() == IDOK){
-	//	pal[0] = dlg.newpal;
-	//	ReloadGraphics();
-	//	UpdatePalettes();
-	//	InvalidateRect(rcPreview,0);
-	//}
+	CBattlePalettes dlg;
+	dlg.oldpal = pal[0];
+	dlg.Proj2 = Proj2;
+	if(dlg.DoModal() == IDOK){
+		pal[0] = dlg.newpal;
+		ReloadGraphics();
+		UpdatePalettes();
+		InvalidateRect(rcPreview,0);
+	}
 }
 
 void CBattle::OnChangepal2()
 {
-	//TODO - palette
-	//CBattlePalettes dlg;
-	//dlg.oldpal = pal[1];
-	//dlg.Proj2 = Proj2;
-	//if(dlg.DoModal() == IDOK){
-	//	pal[1] = dlg.newpal;
-	//	ReloadGraphics();
-	//	UpdatePalettes();
-	//	InvalidateRect(rcPreview,0);
-	//}
+	CBattlePalettes dlg;
+	dlg.oldpal = pal[1];
+	dlg.Proj2 = Proj2;
+	if(dlg.DoModal() == IDOK){
+		pal[1] = dlg.newpal;
+		ReloadGraphics();
+		UpdatePalettes();
+		InvalidateRect(rcPreview,0);
+	}
 }
 
 void CBattle::OnEditgraphic()

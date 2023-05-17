@@ -4,7 +4,9 @@
 #include "stdafx.h"
 #include "resource_subeditors.h"
 #include "BattlePalettes.h"
-#include "FFHacksterProject.h"
+#include <DataValueAccessor.h>
+#include <dva_primitives.h>
+#include <FFH2Project.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "string_functions.h"
@@ -48,7 +50,11 @@ BOOL CBattlePalettes::OnInitDialog()
 {
 	CFFBaseDlg::OnInitDialog();
 
-	BATTLEPALETTE_OFFSET = ReadHex(Project->ValuesPath, "BATTLEPALETTE_OFFSET");
+	SWITCH_OLDFFH_PTR_CHECK(Project);
+	MUST_SPECIFY_PROJECT(Proj2, "BattlePalettes subeditor");
+
+	ffh::fda::DataValueAccessor d(*Proj2);
+	BATTLEPALETTE_OFFSET = d.get<int>("BATTLEPALETTE_OFFSET");
 
 	drawrect.left = 30;
 	drawrect.top = 75;
@@ -90,14 +96,14 @@ void CBattlePalettes::OnPaint()
 	for(coY = 0; coY < 8; coY++, rc.top += 16, rc.bottom += 16, rc.left = drawrect.left,rc.right = rc.left + 16){
 	for(coX = 0; coX < 8; coX++, co += 4, rc.left += 16, rc.right += 16){
 		for(co2 = 1; co2 < 4; co2++, rc.left += 16, rc.right += 16){
-			br.CreateSolidBrush(Project->Palette[0][Project->ROM[co + co2]]);
+			br.CreateSolidBrush(Proj2->palette[0][Proj2->ROM[co + co2]]);
 			dc.FillRect(rc,&br);
 			br.DeleteObject();
 		}
 	}}
 
 	CPoint pt = FindCurPoint();
-	Project->Finger.Draw(&dc,0,pt,ILD_TRANSPARENT);
+	Proj2->Finger.Draw(&dc,0,pt,ILD_TRANSPARENT);
 
 	rc.left = rcOldPal.left;
 	rc.top = rcOldPal.top;
@@ -105,7 +111,7 @@ void CBattlePalettes::OnPaint()
 	rc.bottom = rc.top + 16;
 	co = BATTLEPALETTE_OFFSET + 1 + (oldpal << 2);
 	for(co2 = 0; co2 < 3; co2++, co++, rc.left += 16, rc.right += 16){
-		br.CreateSolidBrush(Project->Palette[0][Project->ROM[co]]);
+		br.CreateSolidBrush(Proj2->palette[0][Proj2->ROM[co]]);
 		dc.FillRect(rc,&br);
 		br.DeleteObject();}
 
@@ -115,7 +121,7 @@ void CBattlePalettes::OnPaint()
 	rc.bottom = rc.top + 16;
 	co = BATTLEPALETTE_OFFSET + 1 + (newpal << 2);
 	for(co2 = 0; co2 < 3; co2++, co++, rc.left += 16, rc.right += 16){
-		br.CreateSolidBrush(Project->Palette[0][Project->ROM[co]]);
+		br.CreateSolidBrush(Proj2->palette[0][Proj2->ROM[co]]);
 		dc.FillRect(rc,&br);
 		br.DeleteObject();}
 }

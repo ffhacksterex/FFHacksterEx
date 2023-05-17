@@ -5,7 +5,7 @@
 //#define STOP_USING_CFFHACKSTERPROJ throw std::runtime_error(__FILE__ "(" + std::to_string(__LINE__) + "): " __FUNCTION__ " - switch to using FFH2Project")
 //#define MUST_SPECIFY_PROJECT(ed) std::runtime_error(std::string(ed) + " must specify a project.")
 
-#define MUST_SPECIFY_PROJECT(Proj,ed) if (Proj == nullptr) std::runtime_error(std::string(ed) + " must specify a project.")
+#define MUST_SPECIFY_PROJECT(proj,edName) if (proj == nullptr) std::runtime_error(std::string(edName) + " must specify a project.")
 
 
 #include "FFHSettingValue.h"
