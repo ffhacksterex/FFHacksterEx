@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "EnemyBattleUsageData.h"
-#include <FFHDataValue_dva.hpp>
+#include <DataValueAccessor.h>
 #include <FFHacksterProject.h>
 #include <FFH2Project.h>
+#include <dva_primitives.h>
 #include "ini_functions.h"
 #include "common_symbols.h"
 #include "editor_label_functions.h"
@@ -10,6 +11,8 @@
 #include <collection_helpers.h>
 #include <string_functions.h>
 #include <dialogue_helpers.h>
+
+using ffh::fda::DataValueAccessor;
 
 namespace {
 	CFFHacksterProject ffdummy;
@@ -69,7 +72,7 @@ void EnemyBattleUsageData::SetProject(FFH2Project& proj)
 	Proj2 = &proj;
 	Clear();
 
-	ff1coredefs::DataValueAccessor d(*Proj2);
+	DataValueAccessor d(*Proj2);
 	BANK_SIZE = d.get<int>("BANK_SIZE");
 	MAP_COUNT = d.get<int>("MAP_COUNT");
 	MAP_OFFSET = d.get<int>("MAP_OFFSET");

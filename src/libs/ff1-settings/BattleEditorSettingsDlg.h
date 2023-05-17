@@ -3,18 +3,19 @@
 #include "resource_settings.h"
 #include <FFBaseDlg.h>
 class CFFHacksterProject;
+class FFH2Project;
 
 // CBattleEditorSettingsDlg dialog
 
 class CBattleEditorSettingsDlg : public CFFBaseDlg
 {
 	DECLARE_DYNAMIC(CBattleEditorSettingsDlg)
-
 public:
 	CBattleEditorSettingsDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~CBattleEditorSettingsDlg();
 
 	CFFHacksterProject* Project;
+	FFH2Project* Proj2;
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

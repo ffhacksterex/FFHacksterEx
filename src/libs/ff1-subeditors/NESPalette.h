@@ -10,6 +10,7 @@
 #include "resource_subeditors.h"
 #include <FFBaseDlg.h>
 class CFFHacksterProject;
+class FFH2Project;
 
 /////////////////////////////////////////////////////////////////////////////
 // CNESPalette dialog
@@ -19,6 +20,7 @@ class CNESPalette : public CFFBaseDlg
 // Construction
 public:
 	CFFHacksterProject* cart = nullptr;
+	FFH2Project* Proj2 = nullptr;
 	CRect rcPalette;
 	BYTE* color;
 	CNESPalette(CWnd* pParent = nullptr);   // standard constructor

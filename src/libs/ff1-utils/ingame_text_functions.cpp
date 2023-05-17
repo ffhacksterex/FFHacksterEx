@@ -4,8 +4,8 @@
 #include <DataValueAccessor.h>
 #include <FFHacksterProject.h>
 #include <FFH2Project.h>
-#include <FFHDataValue_dva.hpp>
 
+#include <dva_primitives.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "path_functions.h"
@@ -15,7 +15,7 @@
 using namespace Ini;
 using namespace Strings;
 using namespace Ui;
-using namespace ff1coredefs;
+using ffh::fda::DataValueAccessor;
 
 namespace Ingametext
 {

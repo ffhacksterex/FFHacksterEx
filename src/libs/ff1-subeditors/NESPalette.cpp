@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "NESPalette.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -37,6 +37,8 @@ END_MESSAGE_MAP()
 BOOL CNESPalette::OnInitDialog() 
 {
 	CFFBaseDlg::OnInitDialog();
+
+	SWITCH_OLDFFH_PTR_CHECK(cart);
 	
 	rcPalette.SetRect(12,40,12 + 256,40 + 64);
 	
@@ -56,7 +58,7 @@ void CNESPalette::OnPaint()
 	int coY, coX, co = 0;
 	for(coY = 0; coY < 4; coY++, rc.top += 16, rc.bottom += 16){
 		for(coX = 0; coX < 16; coX++, co++, rc.left += 16, rc.right += 16){
-			br.CreateSolidBrush(cart->Palette[0][co]);
+			br.CreateSolidBrush(Proj2->palette[0][co]);
 			dc.FillRect(rc,&br);
 			br.DeleteObject();}
 		rc.left = rcPalette.left;
@@ -68,7 +70,7 @@ void CNESPalette::OnPaint()
 
 	rc.SetRect(85,10,85 + 16,26);
 	co = *color;
-	br.CreateSolidBrush(cart->Palette[0][co]);
+	br.CreateSolidBrush(Proj2->palette[0][co]);
 	dc.FillRect(rc,&br);
 	br.DeleteObject();
 

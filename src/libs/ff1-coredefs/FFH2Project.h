@@ -1,9 +1,16 @@
 #pragma once
 
-#define FFH2_PTR_CHECK(p) if ((p) != nullptr) throw std::runtime_error(__FUNCTION__ ": Switch editor\nfrom CFFHacksterProject\nto FFH2Project (Proj2)");
+#define SWITCH_OLDFFH_PTR_CHECK(p) if ((p) != nullptr) throw std::runtime_error(__FUNCTION__ ": Switch editor\nfrom CFFHacksterProject\nto FFH2Project (Proj2)");
+
+//#define STOP_USING_CFFHACKSTERPROJ throw std::runtime_error(__FILE__ "(" + std::to_string(__LINE__) + "): " __FUNCTION__ " - switch to using FFH2Project")
+//#define MUST_SPECIFY_PROJECT(ed) std::runtime_error(std::string(ed) + " must specify a project.")
+
+#define MUST_SPECIFY_PROJECT(Proj,ed) if (Proj == nullptr) std::runtime_error(std::string(ed) + " must specify a project.")
+
 
 #include "FFHSettingValue.h"
 #include "FFHDataValue.h"
+#include "FFHImages.h"
 #include "pair_result.h"
 #include <string>
 #include <cstdint>
@@ -123,6 +130,19 @@ struct ProjectDialogue
 
 using nespalettearrays = std::array<std::array<unsigned long, 65>, 9>; //DEVNOTE - use unsigned long instead of COLORREF here?
 
+//struct FFHImages
+//{
+//public:
+//	FFHImages();
+//	~FFHImages();
+//	FFHImages(const FFHImages& rhs);
+//	FFHImages& operator=(const FFHImages& rhs);
+//
+//	operator CImageList& ();
+//
+//	std::unique_ptr<CImageList> images;
+//};
+
 class FFH2Project
 {
 public:
@@ -138,6 +158,11 @@ public:
 	std::string WorkRomPath;
 	AppSettings* AppSettings = nullptr;
 	std::map<std::string, int> m_varmap;
+	//TODO - wrap/hide these if possible
+	//--
+	FFHImages Finger; //TODO - either move this out or add a copy ctor...
+	std::vector<CImageList*> m_vstandardtiles;
+	//--
 
 	std::vector<unsigned char> ROM;
 	//AsmFileSet AsmFiles; //TODO - not used yet
@@ -161,4 +186,8 @@ public:
 	bool ClearROM();
 	void LoadROM();
 	bool UpdateVarsAndConstants();
+
+private:
+	void LoadFinger();
+	void DeleteStandardTiles();
 };

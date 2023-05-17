@@ -2,8 +2,9 @@
 
 #include <string>
 
+//TODO - rename to FFHValue
 struct FFHDataValue {
-	std::string name; // unserialized
+	std::string name;
 	std::string type;
 	std::string format;
 	std::string data;

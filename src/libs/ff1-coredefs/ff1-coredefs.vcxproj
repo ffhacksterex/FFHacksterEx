@@ -188,9 +188,12 @@
     <ClCompile Include="dialogue_helpers.cpp" />
     <ClCompile Include="DirPathRemover.cpp" />
     <ClCompile Include="draw_functions.cpp" />
+    <ClCompile Include="dva_primitives.cpp" />
+    <ClCompile Include="dva_std_collections.cpp" />
     <ClCompile Include="Editors2.cpp" />
     <ClCompile Include="FFH2Project.cpp" />
     <ClCompile Include="FFHacksterProject.cpp" />
+    <ClCompile Include="FFHImages.cpp" />
     <ClCompile Include="FilePathRemover.cpp" />
     <ClCompile Include="FilePathRestorer.cpp" />
     <ClCompile Include="GameSerializer.cpp" />
@@ -208,6 +211,7 @@
     <ClCompile Include="ResourceHandleScope.cpp" />
     <ClCompile Include="EditorSettingsSerializer.cpp" />
     <ClCompile Include="SetResourceHandleScope.cpp" />
+    <ClCompile Include="SettingValueAccessor.cpp" />
     <ClCompile Include="set_types.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -218,6 +222,7 @@
     <ClCompile Include="std_assembly.cpp" />
     <ClCompile Include="stream_ops.cpp" />
     <ClCompile Include="string_functions.cpp" />
+    <ClCompile Include="sva_primitives.cpp" />
     <ClCompile Include="type_support.cpp" />
     <ClCompile Include="Upgrades_ini.cpp" />
     <ClCompile Include="upgrade_functions.cpp" />
@@ -243,6 +248,7 @@
     <ClInclude Include="AsmFiles.h" />
     <ClInclude Include="assembly_types.h" />
     <ClInclude Include="ci_support.h" />
+    <ClInclude Include="cnv_std_collections.h" />
     <ClInclude Include="collection_helpers.h" />
     <ClInclude Include="common_symbols.h" />
     <ClInclude Include="conditional_build_symbols.h" />
@@ -250,7 +256,10 @@
     <ClInclude Include="DATA.h" />
     <ClInclude Include="datanode.h" />
     <ClInclude Include="DataValueAccessor.h" />
-    <ClInclude Include="std_collections_dva.hpp" />
+    <ClInclude Include="dva_primitives.h" />
+    <ClInclude Include="dva_std_collections.h" />
+    <ClInclude Include="FFHImages.h" />
+    <ClInclude Include="SettingValueAccessor.h" />
     <ClInclude Include="dialogue_helpers.h" />
     <ClInclude Include="DirPathRemover.h" />
     <ClInclude Include="draw_functions.h" />
@@ -262,7 +271,6 @@
     <ClInclude Include="FFH2Project_IniToJson_Defs.hpp" />
     <ClInclude Include="FFHacksterProject.h" />
     <ClInclude Include="FFHDataValue.h" />
-    <ClInclude Include="FFHDataValue_dva.hpp" />
     <ClInclude Include="FFHSettingValue.h" />
     <ClInclude Include="FilePathRemover.h" />
     <ClInclude Include="FilePathRestorer.h" />
@@ -300,6 +308,7 @@
     <ClInclude Include="stream_ops.h" />
     <ClInclude Include="string_conversions.hpp" />
     <ClInclude Include="string_functions.h" />
+    <ClInclude Include="sva_primitives.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="type_support.h" />
     <ClInclude Include="Upgrades_ini.h" />

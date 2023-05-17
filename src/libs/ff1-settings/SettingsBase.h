@@ -22,4 +22,5 @@ protected:
 	CString m_sectionname;
 	CFFHacksterProject& m_proj;
 	FFH2Project& m_prj2;
+	bool m_is2 = false;
 };

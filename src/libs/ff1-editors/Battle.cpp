@@ -6,7 +6,7 @@
 
 #include "AsmFiles.h"
 #include <DataValueAccessor.h>
-#include <FFHDataValue_dva.hpp>
+#include <dva_primitives.h>
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
 #include "GameSerializer.h"
@@ -36,6 +36,7 @@ using namespace Ingametext;
 using namespace Ini;
 using namespace Io;
 using namespace Ui;
+using ffh::fda::DataValueAccessor;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -390,7 +391,7 @@ void CBattle::LoadFiendChaosPic(int pattern_off,int palette_off,bool chaos)
 
 void CBattle::LoadOffsets()
 {
-	ff1coredefs::DataValueAccessor d(*Proj2);
+	DataValueAccessor d(*Proj2);
 
 	//TODO - Label sizes are currently unspecified since they are now freeform text
 	//	In the old FFHackster.DAT:
@@ -443,7 +444,7 @@ void CBattle::LoadRom()
 {
 	Proj2->ClearROM();
 	if (Proj2->IsRom()) {
-		load_binary(tomfc(Proj2->info.workrom), Proj2->ROM);
+		Proj2->LoadROM();
 	}
 	else if (Proj2->IsAsm()) {
 		CWaitCursor wait;
@@ -1021,21 +1022,21 @@ void CBattle::OnLButtonDown(UINT nFlags, CPoint pt)
 {
 	UNREFERENCED_PARAMETER(nFlags);
 
-	//int coX;
-	//for(int co = 0; co < 2; co++){
-	//	if(PtInRect(rcPal[co],pt)){
-	//		coX = (pt.x - rcPal[co].left) >> 4;
-	//		CNESPalette dlg;
-	//		dlg.cart = Proj2;
-	//		dlg.color = &Proj2->ROM[BATTLEPALETTE_OFFSET + (pal[co] << 2) + coX + 1];
-	//		if(dlg.DoModal() == IDOK){
-	//			ReloadGraphics();
-	//			InvalidateRect(rcPreview,0);
-	//			InvalidateRect(rcPal[0],0);
-	//			InvalidateRect(rcPal[1],0);}
-	//	}
-	//}
-	//HandleLbuttonDrag(this);
+	int coX;
+	for(int co = 0; co < 2; co++){
+		if(PtInRect(rcPal[co],pt)){
+			coX = (pt.x - rcPal[co].left) >> 4;
+			CNESPalette dlg;
+			dlg.Proj2 = Proj2;
+			dlg.color = &Proj2->ROM[BATTLEPALETTE_OFFSET + (pal[co] << 2) + coX + 1];
+			if(dlg.DoModal() == IDOK){
+				ReloadGraphics();
+				InvalidateRect(rcPreview,0);
+				InvalidateRect(rcPal[0],0);
+				InvalidateRect(rcPal[1],0);}
+		}
+	}
+	HandleLbuttonDrag(this);
 }
  
 
@@ -1072,46 +1073,42 @@ void CBattle::OnEditgraphic()
 	StoreValues();
 	SaveRom();
 
-	//TODO - palette
+	CBattlePatternTables dlg;
+	dlg.Proj2 = Proj2;
+	dlg.patterntable = BYTE(m_patterntables.GetCurSel());
+	if(battletype < 3) dlg.view = 0;
+	if(battletype == 4) dlg.view = 5;
+	if(battletype == 3){
+		BYTE temp[4] = {1,3,2,4};
+		dlg.view = temp[picassignment[0]];
+	}
+	dlg.palvalues[0] = (BYTE)pal[0];
+	dlg.palvalues[1] = (BYTE)pal[1];
 
-	//CBattlePatternTables dlg;
-	//dlg.cart = Proj2;
-	//dlg.patterntable = BYTE(m_patterntables.GetCurSel());
-	//if(battletype < 3) dlg.view = 0;
-	//if(battletype == 4) dlg.view = 5;
-	//if(battletype == 3){
-	//	BYTE temp[4] = {1,3,2,4};
-	//	dlg.view = temp[picassignment[0]];
-	//}
-	//dlg.palvalues[0] = (BYTE)pal[0];
-	//dlg.palvalues[1] = (BYTE)pal[1];
-
-	//dlg.DoModal();
-	//
-	//ReloadGraphics();
-	//InvalidateRect(rcPreview,0);
-	//UpdatePalettes();
+	dlg.DoModal();
+	
+	ReloadGraphics();
+	InvalidateRect(rcPreview,0);
+	UpdatePalettes();
 }
 
 void CBattle::OnBnClickedBattleSettings()
 {
-	//TODO - settings dlg
+	// Don't change the View Usage setting now, let the user know that it will change on reload.
+	CBattleEditorSettings stgs(*Proj2);
+	bool wasViewUsage = stgs.ViewUsage;
 
-	//// Don't change the View Usage setting now, let the user know that it will change on reload.
-	//CBattleEditorSettings stgs(*Proj2);
-	//bool wasViewUsage = stgs.ViewUsage;
-
-	//CBattleEditorSettingsDlg dlg(this);
-	//dlg.Proj2 = Proj2;
-	//if (dlg.DoModal() == IDOK) {
-	//	stgs.Read();
-	//	if (!wasViewUsage && stgs.ViewUsage) {
-	//		AfxMessageBox("View Usage will be available when you restart the editor.");
-	//	}
-	//	else if (wasViewUsage && !stgs.ViewUsage) {
-	//		AfxMessageBox("View Usage will be hidden when you restart the editor.");
-	//	}
-	//}
+	CBattleEditorSettingsDlg dlg(this);
+	dlg.Proj2 = Proj2;
+	if (dlg.DoModal() == IDOK) {
+		stgs.Read();
+		if (!wasViewUsage && stgs.ViewUsage) {
+			AfxMessageBox("View Usage will be available when you restart the editor.");
+		}
+		else if (wasViewUsage && !stgs.ViewUsage) {
+			AfxMessageBox("View Usage will be hidden when you restart the editor.");
+		}
+	}
 }
 
 void CBattle::OnBnClickedViewUsage()
