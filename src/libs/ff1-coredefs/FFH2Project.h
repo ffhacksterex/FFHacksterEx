@@ -163,5 +163,6 @@ public:
 	const std::string* GetTable(int index);
 	bool ClearROM();
 	void LoadROM();
+	void SaveROM();
 	bool UpdateVarsAndConstants();
 };

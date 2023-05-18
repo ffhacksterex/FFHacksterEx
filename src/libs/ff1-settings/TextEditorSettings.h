@@ -2,13 +2,14 @@
 
 #include "SettingsBase.h"
 #include "common_symbols.h"
-class CFFHacksterProject;
 
 class TextEditorSettings : public SettingsBase
 {
 public:
 	TextEditorSettings(CFFHacksterProject & proj, initflag flag = initflag::read);
 	TextEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag = initflag::read);
+	TextEditorSettings(FFH2Project& proj, initflag flag = initflag::read);
+	TextEditorSettings(FFH2Project& proj, CString sectionname, initflag flag = initflag::read);
 	virtual ~TextEditorSettings();
 
 	virtual void SetDefaults();

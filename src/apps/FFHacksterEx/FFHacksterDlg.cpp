@@ -939,7 +939,7 @@ void CFFHacksterDlg::OnShop()
 void CFFHacksterDlg::OnText()
 {
 	CText dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	if (dlg.DoModal() == IDOK) {
 		m_proj.SaveSharedSettings();
 	}

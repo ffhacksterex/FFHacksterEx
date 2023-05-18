@@ -142,7 +142,7 @@ void CAttack::LoadRom()
 void CAttack::SaveRom()
 {
 	if (Proj2->IsRom()) {
-		save_binary(tomfc(Proj2->info.workrom), Proj2->ROM);
+		Proj2->SaveROM();
 	}
 	else if (Proj2->IsAsm()) {
 		GameSerializer ser(*Proj2);

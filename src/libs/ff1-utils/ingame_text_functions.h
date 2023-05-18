@@ -68,12 +68,15 @@ namespace Ingametext
 
 namespace Ingametext // FFH2Project versions
 {
+	CString PutHexToList(FFH2Project* cart, int ptr, int ptradd, int last, bool DTE, CListBox* m_list, CComboBox* m_combo);
+
 	dataintnodevector LoadArmorEntries(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadAttackEntries(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadClassEntries(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadMagicEntries(FFH2Project& proj, bool showindex = false);
 
 	dataintnode LoadArmorEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadDialogueEntry(FFH2Project& proj, int index, bool showindex = false);
 
 	void PasteSwapStringBytes(bool swapping, FFH2Project& proj, int context, int sourceindex, int destindex);
 

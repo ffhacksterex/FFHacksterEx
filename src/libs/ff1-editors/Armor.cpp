@@ -195,9 +195,8 @@ void CArmor::LoadRom()
 
 void CArmor::SaveRom()
 {
-	//TODO - REPLACE
 	if (Proj2->IsRom()) {
-		save_binary(tomfc(Proj2->WorkRomPath), Proj2->ROM);
+		Proj2->SaveROM();
 	}
 	else if (Proj2->IsAsm()) {
 		GameSerializer ser(*Proj2);

@@ -307,8 +307,14 @@ bool FFH2Project::ClearROM()
 
 void FFH2Project::LoadROM()
 {
-	ASSERT(info.type == "rom");
+	ASSERT(info.type == "rom"); //TODO - throw instead?
 	Io::load_binary(tomfc(WorkRomPath), ROM);
+}
+
+void FFH2Project::SaveROM()
+{
+	ASSERT(info.type == "rom"); //TODO - throw instead?
+	Io::save_binary(tomfc(WorkRomPath), ROM);
 }
 
 // ROM projects load these values from the Values file, whereas assembly projects use the constants.inc and variables.inc source files.
