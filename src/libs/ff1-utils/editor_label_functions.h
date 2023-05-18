@@ -112,4 +112,6 @@ namespace Editorlabels
 	dataintnodevector LoadBattlePatternTableLabels(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadElementLabels(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadWepMagicLabels(FFH2Project& proj, bool showindex = false);
+
+	dataintnode LoadTextLabel(FFH2Project& proj, int index, bool showindex = false);
 }

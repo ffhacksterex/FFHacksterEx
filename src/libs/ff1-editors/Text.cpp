@@ -3,8 +3,11 @@
 
 #include "stdafx.h"
 #include "Text.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "collection_helpers.h"
+#include <core_exceptions.h>
+#include <DataValueAccessor.h>
+#include <dva_primitives.h>
 #include <editor_label_functions.h>
 #include "general_functions.h"
 #include "ini_functions.h"
@@ -104,16 +107,19 @@ BOOL CText::OnInitDialog()
 {
 	CEditorWithBackground::OnInitDialog();
 
+	SWITCH_OLDFFH_PTR_CHECK(Project);
+	MUST_SPECIFY_PROJECT(Proj2, "Text editor");
+
 	try {
 		this->LoadOffsets();
 		this->LoadRom();
 
-		int epiloguepages = Project->ROM[EPILOGUELASTPAGE_OFFSET];
+		int epiloguepages = Proj2->ROM[EPILOGUELASTPAGE_OFFSET];
 		CString text;
 		text.Format("Epilogue Last Page: %d", epiloguepages);
 		m_staticEpilogue.SetWindowText(text);
 
-		int prologuepages = Project->ROM[PROLOGUELASTPAGE_OFFSET];
+		int prologuepages = Proj2->ROM[PROLOGUELASTPAGE_OFFSET];
 		m_spinPrologue.SetRange32(0, STORYTEXT_COUNT);
 		m_spinPrologue.SetPos32(prologuepages);
 		UpdateSpinChange(prologuepages);
@@ -159,91 +165,93 @@ void CText::OnOK()
 
 void CText::LoadOffsets()
 {
-	BASICTEXT_PTRADD = ReadHex(Project->ValuesPath, "BASICTEXT_PTRADD");
-	BASICTEXT_OFFSET = ReadHex(Project->ValuesPath, "BASICTEXT_OFFSET");
-	BASICTEXT_COUNT = ReadDec(Project->ValuesPath, "BASICTEXT_COUNT");
-	ITEM_COUNT = ReadDec(Project->ValuesPath, "ITEM_COUNT");
-	WEAPON_COUNT = ReadDec(Project->ValuesPath, "WEAPON_COUNT");
-	ARMOR_COUNT = ReadDec(Project->ValuesPath, "ARMOR_COUNT");
-	GOLDITEM_COUNT = ReadDec(Project->ValuesPath, "GOLDITEM_COUNT");
-	MAGIC_COUNT = ReadDec(Project->ValuesPath, "MAGIC_COUNT");
-	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
-	ATTACKTEXT_OFFSET = ReadHex(Project->ValuesPath, "ATTACKTEXT_OFFSET");
-	ATTACKTEXT_PTRADD = ReadHex(Project->ValuesPath, "ATTACKTEXT_PTRADD");
-	ATTACK_COUNT = ReadDec(Project->ValuesPath, "ATTACK_COUNT");
-	ENEMYTEXT_OFFSET = ReadHex(Project->ValuesPath, "ENEMYTEXT_OFFSET");
-	ENEMYTEXT_PTRADD = ReadHex(Project->ValuesPath, "ENEMYTEXT_PTRADD");
-	ENEMY_COUNT = ReadDec(Project->ValuesPath, "ENEMY_COUNT");
-	DIALOGUE_OFFSET = ReadHex(Project->ValuesPath, "DIALOGUE_OFFSET");
-	DIALOGUE_PTRADD = ReadHex(Project->ValuesPath, "DIALOGUE_PTRADD");
-	DIALOGUE_COUNT = ReadDec(Project->ValuesPath, "DIALOGUE_COUNT");
-	BATTLEMESSAGETEXT_OFFSET = ReadHex(Project->ValuesPath, "BATTLEMESSAGETEXT_OFFSET");
-	BATTLEMESSAGETEXT_PTRADD = ReadHex(Project->ValuesPath, "BATTLEMESSAGETEXT_PTRADD");
-	BATTLEMESSAGE_COUNT = ReadDec(Project->ValuesPath, "BATTLEMESSAGE_COUNT");
-	BASICTEXT_START = ReadHex(Project->ValuesPath, "BASICTEXT_START");
-	BASICTEXT_END = ReadHex(Project->ValuesPath, "BASICTEXT_END");
-	ATTACKTEXT_START = ReadHex(Project->ValuesPath, "ATTACKTEXT_START");
-	ATTACKTEXT_END = ReadHex(Project->ValuesPath, "ATTACKTEXT_END");
-	ENEMYTEXT_START = ReadHex(Project->ValuesPath, "ENEMYTEXT_START");
-	ENEMYTEXT_END = ReadHex(Project->ValuesPath, "ENEMYTEXT_END");
-	DIALOGUE_START = ReadHex(Project->ValuesPath, "DIALOGUE_START");
-	DIALOGUE_START = ReadHex(Project->ValuesPath, "DIALOGUE_START");
-	DIALOGUE_END = ReadHex(Project->ValuesPath, "DIALOGUE_END");
-	BATTLEMESSAGETEXT_START = ReadHex(Project->ValuesPath, "BATTLEMESSAGETEXT_START");
-	BATTLEMESSAGETEXT_END = ReadHex(Project->ValuesPath, "BATTLEMESSAGETEXT_END");
-	BATTLEMESSAGE_OFFSET = ReadHex(Project->ValuesPath, "BATTLEMESSAGE_OFFSET");
+	ffh::fda::DataValueAccessor d(*Proj2);
+	BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+	BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
+	BASICTEXT_COUNT = d.get<int>("BASICTEXT_COUNT");
+	ITEM_COUNT = d.get<int>("ITEM_COUNT");
+	WEAPON_COUNT = d.get<int>("WEAPON_COUNT");
+	ARMOR_COUNT = d.get<int>("ARMOR_COUNT");
+	GOLDITEM_COUNT = d.get<int>("GOLDITEM_COUNT");
+	MAGIC_COUNT = d.get<int>("MAGIC_COUNT");
+	CLASS_COUNT = d.get<int>("CLASS_COUNT");
+	ATTACKTEXT_OFFSET = d.get<int>("ATTACKTEXT_OFFSET");
+	ATTACKTEXT_PTRADD = d.get<int>("ATTACKTEXT_PTRADD");
+	ATTACK_COUNT = d.get<int>("ATTACK_COUNT");
+	ENEMYTEXT_OFFSET = d.get<int>("ENEMYTEXT_OFFSET");
+	ENEMYTEXT_PTRADD = d.get<int>("ENEMYTEXT_PTRADD");
+	ENEMY_COUNT = d.get<int>("ENEMY_COUNT");
+	DIALOGUE_OFFSET = d.get<int>("DIALOGUE_OFFSET");
+	DIALOGUE_PTRADD = d.get<int>("DIALOGUE_PTRADD");
+	DIALOGUE_COUNT = d.get<int>("DIALOGUE_COUNT");
+	BATTLEMESSAGETEXT_OFFSET = d.get<int>("BATTLEMESSAGETEXT_OFFSET");
+	BATTLEMESSAGETEXT_PTRADD = d.get<int>("BATTLEMESSAGETEXT_PTRADD");
+	BATTLEMESSAGE_COUNT = d.get<int>("BATTLEMESSAGE_COUNT");
+	BASICTEXT_START = d.get<int>("BASICTEXT_START");
+	BASICTEXT_END = d.get<int>("BASICTEXT_END");
+	ATTACKTEXT_START = d.get<int>("ATTACKTEXT_START");
+	ATTACKTEXT_END = d.get<int>("ATTACKTEXT_END");
+	ENEMYTEXT_START = d.get<int>("ENEMYTEXT_START");
+	ENEMYTEXT_END = d.get<int>("ENEMYTEXT_END");
+	DIALOGUE_START = d.get<int>("DIALOGUE_START");
+	DIALOGUE_START = d.get<int>("DIALOGUE_START");
+	DIALOGUE_END = d.get<int>("DIALOGUE_END");
+	BATTLEMESSAGETEXT_START = d.get<int>("BATTLEMESSAGETEXT_START");
+	BATTLEMESSAGETEXT_END = d.get<int>("BATTLEMESSAGETEXT_END");
+	BATTLEMESSAGE_OFFSET = d.get<int>("BATTLEMESSAGE_OFFSET");
 
-	NOTHINGHAPPENS_OFFSET = ReadHex(Project->ValuesPath, "NOTHINGHAPPENS_OFFSET");
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
+	NOTHINGHAPPENS_OFFSET = d.get<int>("NOTHINGHAPPENS_OFFSET");
+	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");
 
-	INTROTEXT_OFFSET = ReadHex(Project->ValuesPath, "INTROTEXT_OFFSET"); // no pointer table, just a single complex string
-	INTROTEXT_START = ReadHex(Project->ValuesPath, "INTROTEXT_START");
-	INTROTEXT_END = ReadHex(Project->ValuesPath, "INTROTEXT_END");
+	INTROTEXT_OFFSET = d.get<int>("INTROTEXT_OFFSET"); // no pointer table, just a single complex string
+	INTROTEXT_START = d.get<int>("INTROTEXT_START");
+	INTROTEXT_END = d.get<int>("INTROTEXT_END");
 
-	SHOPTEXTPTR_OFFSET = ReadHex(Project->ValuesPath, "SHOPTEXTPTR_OFFSET");
-	SHOPTEXT_OFFSET = ReadHex(Project->ValuesPath, "SHOPTEXT_OFFSET");
-	SHOPTEXT_PTRADD = ReadHex(Project->ValuesPath, "SHOPTEXT_PTRADD");
-	SHOPTEXT_START = ReadHex(Project->ValuesPath, "SHOPTEXT_START");
-	SHOPTEXT_END = ReadHex(Project->ValuesPath, "SHOPTEXT_END");
-	SHOPTEXT_COUNT = ReadDec(Project->ValuesPath, "SHOPTEXT_COUNT");
+	SHOPTEXTPTR_OFFSET = d.get<int>("SHOPTEXTPTR_OFFSET");
+	SHOPTEXT_OFFSET = d.get<int>("SHOPTEXT_OFFSET");
+	SHOPTEXT_PTRADD = d.get<int>("SHOPTEXT_PTRADD");
+	SHOPTEXT_START = d.get<int>("SHOPTEXT_START");
+	SHOPTEXT_END = d.get<int>("SHOPTEXT_END");
+	SHOPTEXT_COUNT = d.get<int>("SHOPTEXT_COUNT");
 
-	STATUSMENUTEXTPTR_OFFSET = ReadHex(Project->ValuesPath, "STATUSMENUTEXTPTR_OFFSET");
-	STATUSMENUTEXT_OFFSET = ReadHex(Project->ValuesPath, "STATUSMENUTEXT_OFFSET");
-	STATUSMENUTEXT_PTRADD = ReadHex(Project->ValuesPath, "STATUSMENUTEXT_PTRADD");
-	STATUSMENUTEXT_START = ReadHex(Project->ValuesPath, "STATUSMENUTEXT_START");
-	STATUSMENUTEXT_END = ReadHex(Project->ValuesPath, "STATUSMENUTEXT_END");
-	STATUSMENUTEXT_COUNT = ReadDec(Project->ValuesPath, "STATUSMENUTEXT_COUNT");
+	STATUSMENUTEXTPTR_OFFSET = d.get<int>("STATUSMENUTEXTPTR_OFFSET");
+	STATUSMENUTEXT_OFFSET = d.get<int>("STATUSMENUTEXT_OFFSET");
+	STATUSMENUTEXT_PTRADD = d.get<int>("STATUSMENUTEXT_PTRADD");
+	STATUSMENUTEXT_START = d.get<int>("STATUSMENUTEXT_START");
+	STATUSMENUTEXT_END = d.get<int>("STATUSMENUTEXT_END");
+	STATUSMENUTEXT_COUNT = d.get<int>("STATUSMENUTEXT_COUNT");
 
-	STORYTEXTPTR_OFFSET = ReadHex(Project->ValuesPath, "STORYTEXTPTR_OFFSET");
-	STORYTEXT_OFFSET = ReadHex(Project->ValuesPath, "STORYTEXT_OFFSET");
-	STORYTEXT_PTRADD = ReadHex(Project->ValuesPath, "STORYTEXT_PTRADD");
-	STORYTEXT_START = ReadHex(Project->ValuesPath, "STORYTEXT_START");
-	STORYTEXT_END = ReadHex(Project->ValuesPath, "STORYTEXT_END");
-	STORYTEXT_COUNT = ReadDec(Project->ValuesPath, "STORYTEXT_COUNT");
+	STORYTEXTPTR_OFFSET = d.get<int>("STORYTEXTPTR_OFFSET");
+	STORYTEXT_OFFSET = d.get<int>("STORYTEXT_OFFSET");
+	STORYTEXT_PTRADD = d.get<int>("STORYTEXT_PTRADD");
+	STORYTEXT_START = d.get<int>("STORYTEXT_START");
+	STORYTEXT_END = d.get<int>("STORYTEXT_END");
+	STORYTEXT_COUNT = d.get<int>("STORYTEXT_COUNT");
 
-	PROLOGUELASTPAGE_OFFSET = ReadHex(Project->ValuesPath, "PROLOGUELASTPAGE_OFFSET");
-	EPILOGUELASTPAGE_OFFSET = ReadHex(Project->ValuesPath, "EPILOGUELASTPAGE_OFFSET");
+	PROLOGUELASTPAGE_OFFSET = d.get<int>("PROLOGUELASTPAGE_OFFSET");
+	EPILOGUELASTPAGE_OFFSET = d.get<int>("EPILOGUELASTPAGE_OFFSET");
 }
 
 void CText::LoadRom()
 {
-	Project->ClearROM();
-	if (Project->IsAsm()) {
-		CREDITTEXTPTR_OFFSET = ReadHex(Project->ValuesPath, "CREDITTEXTPTR_OFFSET");
-		CREDITTEXT_OFFSET = ReadHex(Project->ValuesPath, "CREDITTEXT_OFFSET");
-		CREDITTEXT_PTRADD = ReadHex(Project->ValuesPath, "CREDITTEXT_PTRADD");
-		CREDITTEXT_START = ReadHex(Project->ValuesPath, "CREDITTEXT_START");
-		CREDITTEXT_END = ReadHex(Project->ValuesPath, "CREDITTEXT_END");
-		CREDITTEXT_COUNT = ReadDec(Project->ValuesPath, "CREDITTEXT_COUNT");
+	Proj2->ClearROM();
+	if (Proj2->IsAsm()) {
+		ffh::fda::DataValueAccessor d(*Proj2);
+		CREDITTEXTPTR_OFFSET = d.get<int>("CREDITTEXTPTR_OFFSET");
+		CREDITTEXT_OFFSET = d.get<int>("CREDITTEXT_OFFSET");
+		CREDITTEXT_PTRADD = d.get<int>("CREDITTEXT_PTRADD");
+		CREDITTEXT_START = d.get<int>("CREDITTEXT_START");
+		CREDITTEXT_END = d.get<int>("CREDITTEXT_END");
+		CREDITTEXT_COUNT = d.get<int>("CREDITTEXT_COUNT");
 	}
 
 	// Now load the data
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 	}
-	else if (Project->IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		// Instead of writing to the entire buffer, just write to the parts we need
-		GameSerializer ser(*Project);
+		GameSerializer ser(*Proj2);
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.LoadAsmBin(BIN_ENEMYNAMES, ENEMYTEXT_OFFSET);
 		ser.LoadAsmBin(BIN_BATTLEMESSAGES, BATTLEMESSAGETEXT_START);
@@ -262,17 +270,17 @@ void CText::LoadRom()
 		}
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CText::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->SaveROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.SaveAsmBin(BIN_ENEMYNAMES, ENEMYTEXT_OFFSET);
@@ -292,7 +300,7 @@ void CText::SaveRom()
 		}
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
@@ -315,18 +323,18 @@ void CText::LoadValues()
 	}
 	else {
 		offset = ptroffset + (cur_text << 1);
-		offset = Project->ROM[offset] + (Project->ROM[offset + 1] << 8) + ptradd;
+		offset = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8) + ptradd;
 	}
 	text.Format("%X", offset);
 	m_pointer.SetWindowText(text);
 
 	text = "";
 	temptext = "";
-	for (; Project->ROM[offset]; offset++) {
-		temptext = Project->Tables[viewDTE][Project->ROM[offset]];
+	for (; Proj2->ROM[offset]; offset++) {
+		temptext = Proj2->tables[viewDTE][Proj2->ROM[offset]].c_str();
 		if (!temptext.GetLength()) {
-			if (Project->ROM[offset] < 0x10) temptext.Format("{0%X}", Project->ROM[offset]);
-			else temptext.Format("{%X}", Project->ROM[offset]);
+			if (Proj2->ROM[offset] < 0x10) temptext.Format("{0%X}", Proj2->ROM[offset]);
+			else temptext.Format("{%X}", Proj2->ROM[offset]);
 		}
 		text += temptext;
 	}
@@ -361,14 +369,14 @@ void CText::LoadValues()
 	ptrtblend = ptrtblstart + (tempcount << 1);
 
 	if (cur_main == STORY) {
-		int prologuepages = Project->ROM[PROLOGUELASTPAGE_OFFSET];
+		int prologuepages = Proj2->ROM[PROLOGUELASTPAGE_OFFSET];
 		UpdateSpinChange(prologuepages);
 	}
 	else if (cur_main == CREDIT) {
 		// Read the PPU address for the credit text
 		//FUTURE - CREDIT text is not currently used
 		int credoffset = GetOffset(CREDITTEXTPTR_OFFSET, CREDITTEXTPTR_OFFSET, cur_text);
-		int addr = Project->ROM[credoffset] + (Project->ROM[credoffset + 1] << 8);
+		int addr = Proj2->ROM[credoffset] + (Proj2->ROM[credoffset + 1] << 8);
 		CString csaddr;
 		csaddr.Format("%04X", addr);
 		m_editPpuAddr.SetWindowText(csaddr);
@@ -431,7 +439,7 @@ void CText::StoreValues()
 	if (cur_main == STORY) {
 		// The prologue last page value is saved regardless of whether or not the text can be saved.
 		int prologuepages = m_spinPrologue.GetPos32();
-		Project->ROM[PROLOGUELASTPAGE_OFFSET] = (BYTE)(prologuepages & 0xFF);
+		Proj2->ROM[PROLOGUELASTPAGE_OFFSET] = (BYTE)(prologuepages & 0xFF);
 	}
 	else if (cur_main == CREDIT) {
 		// Write the PPU address for the credit text
@@ -439,8 +447,8 @@ void CText::StoreValues()
 		m_editPpuAddr.GetWindowText(csaddr);
 		int addr = (unsigned short)strtoul(csaddr, nullptr, 16);
 		int offset = GetOffset(CREDITTEXTPTR_OFFSET, CREDITTEXTPTR_OFFSET, cur_text);
-		Project->ROM[offset] = addr & 0xFF;
-		Project->ROM[offset + 1] = (addr >> 8) & 0xFF;
+		Proj2->ROM[offset] = addr & 0xFF;
+		Proj2->ROM[offset + 1] = (addr >> 8) & 0xFF;
 	}
 
 	//Store values is kind of tricky.. first let's check to see if the text is in the *normal*
@@ -470,11 +478,11 @@ void CText::StoreValues()
 		}
 
 		offset = ptroffset + (cur_text << 1);
-		offset = Project->ROM[offset] + (Project->ROM[offset + 1] << 8) + ptradd;
+		offset = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8) + ptradd;
 	}
 
 	int co;
-	for (co = offset; Project->ROM[co]; co++);
+	for (co = offset; Proj2->ROM[co]; co++);
 	oldlength = co - offset + 1;		//add 1 to include the 00
 
 	bool showdialogue = CanShowDialogueEdit(cur_main);
@@ -521,18 +529,18 @@ void CText::StoreValues()
 		if (normaltext && dif) {
 			if (dif > 0) {	//shift to the right
 				for (co = textend - 1; co > offset; co--)
-					Project->ROM[co] = Project->ROM[co - dif];
+					Proj2->ROM[co] = Proj2->ROM[co - dif];
 			}
 			if (dif < 0) {	//shift to the left
 				for (co = offset; co < textend; co++)
-					Project->ROM[co] = Project->ROM[co - dif];
+					Proj2->ROM[co] = Proj2->ROM[co - dif];
 			}
 			for (co = ptrstart; co < ptrend; co += 2) {
-				temp = Project->ROM[co] + (Project->ROM[co + 1] << 8) + ptradd;
+				temp = Proj2->ROM[co] + (Proj2->ROM[co + 1] << 8) + ptradd;
 				if ((temp < textend) && (temp > offset)) {
 					temp += dif - ptradd;
-					Project->ROM[co] = temp & 0xFF;
-					Project->ROM[co + 1] = (BYTE)(temp >> 8);
+					Proj2->ROM[co] = temp & 0xFF;
+					Proj2->ROM[co + 1] = (BYTE)(temp >> 8);
 				}
 			}
 		}
@@ -541,7 +549,7 @@ void CText::StoreValues()
 	//Step 4:  insert the new text!
 
 	for (co = 0; co < newlength; co++)
-		Project->ROM[co + offset] = buffer[co];
+		Proj2->ROM[co + offset] = buffer[co];
 
 	madechange = 0;
 	m_changeptrbutton.EnableWindow(0);
@@ -578,7 +586,7 @@ void CText::OnSelchangeMainlist()
 		StoreValues();
 
 	cur_main = m_editcontexts[m_mainlist.GetCurSel()];
-	viewDTE = Project->TextViewInDTE[cur_main];
+	viewDTE = Proj2->session.textViewInDTE[cur_main];
 
 	auto showdialogue = CanShowDialogueEdit(cur_main);
 	m_textbox.ShowWindow(!showdialogue ? SW_SHOW : SW_HIDE);
@@ -658,9 +666,9 @@ void CText::ResetTextList()
 	switch (cur_main) {
 	case 8:
 	{
-		TextEditorSettings stgs(*Project);
+		TextEditorSettings stgs(*Proj2);
 		for (int co = 0; co < DIALOGUE_COUNT; co++) {
-			CString str = stgs.ShowActualText ? Ingametext::LoadDialogueEntry(*Project, co, true).name : LoadTextLabel(*Project, co).name;
+			CString str = stgs.ShowActualText ? Ingametext::LoadDialogueEntry(*Proj2, co, true).name : LoadTextLabel(*Proj2, co).name;
 			m_textlist.InsertString(co, str);
 		}
 		break;
@@ -669,10 +677,10 @@ void CText::ResetTextList()
 		//FUTURE - credit text either needs a separate editor, or this one needs to track PPUADDR and page number per string.
 		//	Not terribly not hard, but this dialog is already too complex for its own good.
 		//	Not sure if/how this is affected by the NASIR CRC that's tied to the credit text handler, so skip this for now.
-		//PutCreditTextToList(Project, ptroffset, ptradd, count, &m_textlist, nullptr);
+		//PutCreditTextToList(Proj2, ptroffset, ptradd, count, &m_textlist, nullptr);
 		break;
 	default:
-		PutHexToList(Project, ptroffset, ptradd, count, viewDTE, &m_textlist, nullptr);
+		PutHexToList(Proj2, ptroffset, ptradd, count, viewDTE, &m_textlist, nullptr);
 		break;
 	}
 }
@@ -684,7 +692,7 @@ void CText::FindKAB()
 		// Introtext doesn't use pointers, it's jsut a single complex string.
 		// In this case, the start and end are offsets to the actual text and
 		// are used in the loop directly.
-		for (co = textstart; Project->ROM[co] && co < textend; co++);
+		for (co = textstart; Proj2->ROM[co] && co < textend; co++);
 	}
 	else if (cur_main == CREDIT)
 	{
@@ -709,11 +717,11 @@ void CText::FindKAB()
 		ptrcount += ptrset;
 
 		for (co = ptrset; co < ptrcount; co += 2) {
-			thispointer = Project->ROM[co] + (Project->ROM[co + 1] << 8) + ptradd;
+			thispointer = Proj2->ROM[co] + (Proj2->ROM[co + 1] << 8) + ptradd;
 			if (thispointer < textend && thispointer > largestpointer) largestpointer = thispointer;
 		}
 
-		for (co = largestpointer; Project->ROM[co]; co++);
+		for (co = largestpointer; Proj2->ROM[co]; co++);
 	}
 
 	kab = textend - co - 1;
@@ -749,7 +757,7 @@ int CText::ConvertText(BYTE* buffer, CString text)
 		}
 		else {
 			for (co = 0; co < 256; co++) {
-				if (temp2 == Project->Tables[viewDTE][co]) break;
+				if (temp2 == Proj2->tables[viewDTE][co].c_str()) break;
 			}
 			if (co != 256) {
 				buffer[bytelength] = (BYTE)co;
@@ -757,7 +765,7 @@ int CText::ConvertText(BYTE* buffer, CString text)
 			}
 			else {
 				for (co = 0; co < 256; co++) {
-					if (temp1 == Project->Tables[viewDTE][co]) break;
+					if (temp1 == Proj2->tables[viewDTE][co].c_str()) break;
 				}
 				if (co != 256) {
 					buffer[bytelength] = (BYTE)co; bytelength += 1;
@@ -804,7 +812,7 @@ int CText::GetOffset(int theptroffset, int theptradd, int index)
 	// ROM[3702A] = first byte of a complex string, charclass data, etc.
 	// ...
 	int base = theptroffset + (index << 1);
-	int offset = Project->ROM[base] + (Project->ROM[base + 1] << 8) + theptradd;
+	int offset = Proj2->ROM[base] + (Proj2->ROM[base + 1] << 8) + theptradd;
 	return offset;
 }
 
@@ -841,11 +849,11 @@ void CText::UpdateTextList()
 	CString text = "";
 	CString temptext;
 	int offset = ptroffset + (cur_text << 1);
-	offset = Project->ROM[offset] + (Project->ROM[offset + 1] << 8) + ptradd;
-	for (int co = offset; Project->ROM[co]; co++) {
-		temptext = Project->Tables[viewDTE][Project->ROM[co]];
+	offset = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8) + ptradd;
+	for (int co = offset; Proj2->ROM[co]; co++) {
+		temptext = Proj2->tables[viewDTE][Proj2->ROM[co]].c_str();
 		if (temptext == "") {
-			temptext.Format("{%02X}", Project->ROM[co]);
+			temptext.Format("{%02X}", Proj2->ROM[co]);
 		}
 		text += temptext;
 	}
@@ -857,14 +865,15 @@ void CText::UpdateTextList()
 
 void CText::OnEditlabel()
 {
-	ChangeLabel(*Project, -1, LoadTextLabel(*Project, cur_text), WriteTextLabel, cur_text, &m_textlist, nullptr);
+	//TODO - implement
+	//ChangeLabel(*Proj2, -1, LoadTextLabel(*Proj2, cur_text), WriteTextLabel, cur_text, &m_textlist, nullptr);
 }
 
 void CText::OnDte()
 {
 	viewDTE = 0;
 	if (m_dte.GetCheck()) viewDTE = 1;
-	Project->TextViewInDTE[cur_main] = viewDTE;
+	Proj2->session.textViewInDTE[cur_main] = viewDTE;
 	if (cur_main != 8) ResetTextList();
 	m_textlist.SetCurSel(cur_text);
 }
@@ -902,8 +911,8 @@ void CText::OnChangeptr()
 
 	int offset = ptroffset + (cur_text << 1);
 	pointer -= ptradd;
-	Project->ROM[offset] = pointer & 0xFF;
-	Project->ROM[offset + 1] = (BYTE)(pointer >> 8);
+	Proj2->ROM[offset] = pointer & 0xFF;
+	Proj2->ROM[offset + 1] = (BYTE)(pointer >> 8);
 	UpdateTextList();
 	LoadValues();
 }
@@ -911,7 +920,7 @@ void CText::OnChangeptr()
 void CText::OnDeleteslot()
 {
 	int offset = ptroffset + (cur_text << 1);
-	offset = Project->ROM[offset] + (Project->ROM[offset + 1] << 8) + ptradd;
+	offset = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8) + ptradd;
 	if (offset < textstart || offset > textend) {
 		AfxMessageBox("The slot is not in the standard text boundaries.\nCannot remove slot.", MB_ICONERROR);
 		return;
@@ -922,7 +931,7 @@ void CText::OnDeleteslot()
 	int co;
 
 	for (co = ptrtblstart; co < ptrtblend; co += 2) {
-		thisptr = Project->ROM[co] + (Project->ROM[co + 1] << 8) + ptradd;
+		thisptr = Proj2->ROM[co] + (Proj2->ROM[co + 1] << 8) + ptradd;
 		if (thisptr > largestptr && thisptr < textend)
 			largestptr = thisptr;
 	}
@@ -935,7 +944,7 @@ void CText::OnDeleteslot()
 	if (AfxMessageBox("Really remove current slot?\nThis text will be deleted.", MB_YESNO | MB_ICONQUESTION) == IDNO) return;
 
 	int currentlength;
-	for (currentlength = offset; Project->ROM[currentlength]; currentlength += 1);
+	for (currentlength = offset; Proj2->ROM[currentlength]; currentlength += 1);
 	currentlength -= offset;
 	currentlength += 1;
 
@@ -951,17 +960,17 @@ void CText::OnDeleteslot()
 
 	//adjust pointers
 	for (co = ptrstart; co < ptrend; co += 2) {
-		temp = Project->ROM[co] + (Project->ROM[co + 1] << 8) + ptradd;
+		temp = Proj2->ROM[co] + (Proj2->ROM[co + 1] << 8) + ptradd;
 		if (temp > offset && temp < textend) {
 			temp -= currentlength;
 			temp -= ptradd;
-			Project->ROM[co] = temp & 0xFF;
-			Project->ROM[co + 1] = (BYTE)(temp >> 8);
+			Proj2->ROM[co] = temp & 0xFF;
+			Proj2->ROM[co + 1] = (BYTE)(temp >> 8);
 		}
 	}
 	//shift all text
 	for (co = offset; co < textend; co++)
-		Project->ROM[co] = Project->ROM[co + currentlength];
+		Proj2->ROM[co] = Proj2->ROM[co + currentlength];
 
 	UpdateTextList();
 	LoadValues();

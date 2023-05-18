@@ -684,9 +684,47 @@ namespace Ingametext // FFH2Project veersions
 			return dvec;
 		}
 
+		dataintnodevector LoadExpandedZeroBasedEntries(FFH2Project& proj, int ptr, int ptradd, int start, int count,
+			int tableindex, bool showindex, StrXform xform = CStrIdentity)
+		{
+			unsigned char* buffer = address(proj.ROM);
+			const std::string* table = proj.GetTable(tableindex);
+
+			dataintnodevector dvec;
+			int offset, co;
+			BYTE temp;
+			CString text, temptext;
+
+			int last = start + count - 1;
+			for (co = start; co <= last; co++, ptr += 2) {
+				offset = buffer[ptr] + (buffer[ptr + 1] << 8) + ptradd;
+				text = "";
+				if (showindex) text.AppendFormat("%02X: ", co);
+
+				while (1) {
+					temp = buffer[offset];
+					if (!temp) break;
+					if (table[temp] == "") {
+						temptext.Format("{%02X}", temp);
+						text += temptext;
+					}
+					else {
+						text += table[temp].c_str();
+					}
+					offset += 1;
+				}
+				CString xformtext = xform(co, text);
+				dvec.push_back({ xformtext, co });
+			}
+
+			return dvec;
+		}
+
+		//TODO - is this comment still relevant?
 		// Weapons IDs start with 0 as None, 1 as Wooden Nunchuk, but weapon text strings start with  0 as Wooden Nunchuk.
 		// LoadExpandedZeroBasedEntries can't be used here because it will start the index at 0, we need it to start at 1.
 		// index has to be passed in the [0,39] range, not [1,40] (at least for now).
+
 		dataintnodevector LoadExpandedOneBasedEntries(FFH2Project& proj, int ptr, int ptradd, int start, int count,
 			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
@@ -723,12 +761,29 @@ namespace Ingametext // FFH2Project veersions
 			return dvec;
 		}
 
+		datanode<int> LoadExpandedZeroBasedEntry(FFH2Project& proj, int index,
+			std::string ptrname, std::string ptraddname,
+			int tableindex, bool showindex, StrXform xform = CStrIdentity)
+		{
+			DataValueAccessor d(proj);
+			int ptr = d.get<int>(ptrname);
+			int ptradd = d.get<int>(ptraddname);
+
+			ASSERT(index >= 0);
+			if (index >= 0) {
+				// step forward by 'index' entries in the 2-byte/record pointer table
+				int textindex = index;
+				auto indexedptr = ptr + (textindex * 2);
+				auto vec = LoadExpandedZeroBasedEntries(proj, indexedptr, ptradd, textindex, 1, tableindex, showindex, xform);
+				if (!vec.empty()) return vec.front();
+			}
+			return{ "<!error!>", -1 };
+		}
+
 		// Pass the 1-based index to this function and it will handle the decrement and call to the underlying entries function.
 		datanode<int> LoadExpandedOneBasedEntry(FFH2Project& proj, int index,
 			std::string ptrname, std::string ptraddname,
-			int tableindex, bool showindex, StrXform xform = CStrIdentity
-			//unsigned char* buffer, int index, int ptr, int ptradd, CString table[], bool showindex, StrXform xform
-		)
+			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
 			DataValueAccessor d(proj);
 			int ptr = d.get<int>(ptrname);
@@ -747,6 +802,42 @@ namespace Ingametext // FFH2Project veersions
 		}
 
 	} // end namespace (unnamed)
+
+	CString PutHexToList(FFH2Project* cart, int ptr, int ptradd, int last, bool DTE, CListBox* m_list, CComboBox* m_combo)
+	{
+		CString ret = "";
+		int offset, co;
+		BYTE temp;
+		CString text, temptext;
+
+		if (m_list != nullptr) m_list->SetRedraw(FALSE);
+		if (m_combo != nullptr) m_combo->SetRedraw(FALSE);
+
+		for (co = 0; co < last; co++, ptr += 2) {
+			if (co) ret += "\\b";
+			offset = cart->ROM[ptr] + (cart->ROM[ptr + 1] << 8) + ptradd;
+			text = "";
+			while (1) {
+				temp = cart->ROM[offset];
+				if (!temp) break;
+				if (cart->tables[DTE][temp] == "") {
+					if (temp < 0x10) temptext.Format("{0%X}", temp);
+					else temptext.Format("{%X}", temp);
+					text += temptext;
+				}
+				else text += cart->tables[DTE][temp].c_str();
+				offset += 1;
+			}
+			ret += text;
+			if (m_list != nullptr) InsertEntry(*m_list, -1, text, co);
+			if (m_combo != nullptr) InsertEntry(*m_combo, -1, text, co);
+		}
+
+		if (m_list != nullptr) m_list->SetRedraw(TRUE);
+		if (m_combo != nullptr) m_combo->SetRedraw(TRUE);
+		return ret;
+	}
+
 
 	// LABEL LISTS
 
@@ -784,6 +875,14 @@ namespace Ingametext // FFH2Project veersions
 		int ARMORTEXT_OFFSET = d.get<int>("ARMORTEXT_OFFSET");
 		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 		return LoadExpandedOneBasedEntry(proj, index, "ARMORTEXT_OFFSET", "BASICTEXT_PTRADD", 2, showindex);
+	}
+
+	dataintnode LoadDialogueEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		DataValueAccessor d(proj);
+		int DIALOGUE_OFFSET = d.get<int>("DIALOGUE_OFFSET");
+		int DIALOGUE_PTRADD = d.get<int>("DIALOGUE_PTRADD");
+		return LoadExpandedZeroBasedEntry(proj, index, "DIALOGUE_OFFSET", "DIALOGUE_PTRADD", 8, showindex);
 	}
 
 

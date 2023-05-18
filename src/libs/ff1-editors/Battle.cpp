@@ -7,9 +7,9 @@
 #include "AsmFiles.h"
 #include <DataValueAccessor.h>
 #include <dva_primitives.h>
-#include "FFHacksterProject.h"
+#include <core_exceptions.h>
 #include <FFH2Project.h>
-#include "GameSerializer.h"
+#include <GameSerializer.h>
 
 #include <editor_label_functions.h>
 #include "general_functions.h"
