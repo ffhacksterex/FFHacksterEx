@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "BattleEditorSettingsDlg.h"
 #include "afxdialogex.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "BattleEditorSettings.h"
 #include <ui_helpers.h>
 
@@ -42,12 +42,10 @@ BOOL CBattleEditorSettingsDlg::OnInitDialog()
 {
 	CFFBaseDlg::OnInitDialog();
 
-	if (Project == nullptr) {
-		EndDialog(IDABORT);
-		return TRUE;
-	}
+	SWITCH_OLDFFH_PTR_CHECK(Project);
+	MUST_SPECIFY_PROJECT(Proj2, "BattleEditorSettings subeditor");
 
-	CBattleEditorSettings stgs(*Project);
+	CBattleEditorSettings stgs(*Proj2);
 	SetCheckValue(m_viewusage, stgs.ViewUsage);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -57,7 +55,7 @@ BOOL CBattleEditorSettingsDlg::OnInitDialog()
 
 void CBattleEditorSettingsDlg::OnOK()
 {
-	CBattleEditorSettings stgs(*Project);
+	CBattleEditorSettings stgs(*Proj2);
 	stgs.ViewUsage = GetCheckValue(m_viewusage);
 	if (stgs.Write())
 		CFFBaseDlg::OnOK();

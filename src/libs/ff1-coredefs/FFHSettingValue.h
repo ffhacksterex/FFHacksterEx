@@ -2,6 +2,7 @@
 
 #include <string>
 
+//TODO - rename to FFHSetting
 struct FFHSettingValue
 {
 	std::string name;

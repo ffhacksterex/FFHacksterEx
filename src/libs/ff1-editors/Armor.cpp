@@ -6,9 +6,10 @@
 #include "AsmFiles.h"
 #include "collection_helpers.h"
 #include <core_exceptions.h>
+#include <DataValueAccessor.h>
+#include <dva_primitives.h>
 #include <editor_label_functions.h>
 #include <FFH2Project.h>
-#include <FFHDataValue_dva.hpp>
 #include "GameSerializer.h"
 #include "general_functions.h"
 #include "imaging_helpers.h"
@@ -27,6 +28,7 @@ using namespace Io;
 using namespace Editorlabels;
 using namespace Ui;
 using namespace Imaging;
+using ffh::fda::DataValueAccessor;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -149,7 +151,7 @@ void CArmor::OnSelchangeArmorlist()
 
 void CArmor::LoadOffsets()
 {
-	ff1coredefs::DataValueAccessor d(*Proj2);
+	DataValueAccessor d(*Proj2);
 	CLASS_COUNT = d.get<int>("CLASS_COUNT");
 	ARMORTEXT_OFFSET = d.get<int>("ARMORTEXT_OFFSET");
 	BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");

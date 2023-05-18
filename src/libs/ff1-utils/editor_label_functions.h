@@ -108,6 +108,7 @@ namespace Editorlabels
 	dataintnodevector LoadArmorTypes(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadAILabels(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadBackdropLabels(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadBattleLabels(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadBattlePatternTableLabels(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadElementLabels(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadWepMagicLabels(FFH2Project& proj, bool showindex = false);

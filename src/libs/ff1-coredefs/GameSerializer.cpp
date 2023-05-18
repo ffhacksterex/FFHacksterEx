@@ -5,7 +5,8 @@
 #include "asmdll_impl.h"
 #include "collection_helpers.h"
 #include "DataValueAccessor.h"
-#include "std_collections_dva.hpp"
+//#include "std_collections_dva.hpp" //REMOVE
+#include "dva_std_collections.h"
 #include "dialogue_helpers.h"
 #include "general_functions.h"
 #include "ini_functions.h"
@@ -30,6 +31,7 @@ using namespace Io;
 using namespace regex_helpers;
 using namespace std_assembly::shared;
 using namespace Strings;
+using ffh::fda::DataValueAccessor;
 
 namespace {
 	CFFHacksterProject ffdummy;
@@ -66,7 +68,7 @@ std::istream& open_asmstream(std::ifstream& ifs, FFH2Project& proj, std::string 
 // CFFHacksterProject versions below
 std::string build_asm_path(CFFHacksterProject & proj, CString relfilename)
 {
-	FFH2_PTR_CHECK(&proj);
+	SWITCH_OLDFFH_PTR_CHECK(&proj);
 	if (!proj.IsAsm())
 
 		return std::string();
@@ -78,7 +80,7 @@ std::string build_asm_path(CFFHacksterProject & proj, CString relfilename)
 
 std::istream & open_asmstream(std::ifstream & ifs, CFFHacksterProject & proj, CString relfilename)
 {
-	FFH2_PTR_CHECK(&proj);
+	SWITCH_OLDFFH_PTR_CHECK(&proj);
 	if (ifs.is_open()) ifs.close();
 
 	if (!proj.IsAsm())
@@ -100,7 +102,7 @@ GameSerializer::GameSerializer(CFFHacksterProject & proj, CWnd* mainwnd)
 	, MainWindow(mainwnd)
 	, m_prj2(ff2dummy)
 {
-	FFH2_PTR_CHECK(&proj);
+	SWITCH_OLDFFH_PTR_CHECK(&proj);
 }
 
 GameSerializer::GameSerializer(FFH2Project& prj2, CWnd* mainwnd)
@@ -434,7 +436,7 @@ stdstringset GameSerializer::read_varnames()
 	stdstringset theset;
 
 	// Read the ram values into the string set (specified  in RAM_NAMES)
-	ff1coredefs::DataValueAccessor d(m_prj2);
+	DataValueAccessor d(m_prj2);
 	auto ramnames = d.get<std::vector<std::string>>("RAM_NAMES");
 	for (const auto& name : ramnames) theset.insert(name);
 
@@ -452,7 +454,7 @@ stdstringset GameSerializer::read_varnames()
 stdstringvector GameSerializer::read_prefixes()
 {
 	// Load in the prefix lists (from PREFIX_FILTER)
-	ff1coredefs::DataValueAccessor d(m_prj2);
+	DataValueAccessor d(m_prj2);
 	return d.get<std::vector<std::string>>("PREFIX_FILTER");
 }
 

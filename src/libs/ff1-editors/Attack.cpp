@@ -5,9 +5,10 @@
 #include "Attack.h"
 #include "AsmFiles.h"
 #include <core_exceptions.h>
+#include <DataValueAccessor.h>
+#include <dva_primitives.h>
 #include "editor_label_functions.h"
 #include <FFH2Project.h>
-#include <FFHDataValue_dva.hpp>
 #include "GameSerializer.h"
 #include "general_functions.h"
 #include "imaging_helpers.h"
@@ -25,6 +26,7 @@ using namespace Ingametext;
 using namespace Io;
 using namespace Strings;
 using namespace Ui;
+using ffh::fda::DataValueAccessor;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -115,7 +117,7 @@ BOOL CAttack::OnInitDialog()
 
 void CAttack::LoadOffsets()
 {
-	ff1coredefs::DataValueAccessor d(*Proj2);
+	DataValueAccessor d(*Proj2);
 	ATTACK_OFFSET = d.get<int>("ATTACK_OFFSET");
 	ATTACK_BYTES = d.get<int>("ATTACK_BYTES");
 	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");
@@ -126,7 +128,7 @@ void CAttack::LoadRom()
 {
 	Proj2->ClearROM();
 	if (Proj2->IsRom()) {
-		load_binary(tomfc(Proj2->info.workrom), Proj2->ROM);
+		Proj2->LoadROM();
 	}
 	else if (Proj2->IsAsm()) {
 		GameSerializer ser(*Proj2);

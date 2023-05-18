@@ -86,6 +86,15 @@ protected:
 
 	int BANK00_OFFSET = -1;   // used by subeditors
 
+	// Used by Usage Data (read-only)
+	int BANK04_OFFSET = -1;
+	int BANK05_OFFSET = -1;
+	int BANK06_OFFSET = -1;
+	int ENEMY_OFFSET = -1;
+	int BATTLEDOMAIN_OFFSET = -1;
+	int BATTLEPROBABILITY_OFFSET = -1;
+	int TALKROUTINEDATA_OFFSET = -1;
+
 	EnemyBattleUsageData m_usedata;
 	CDataListDialog m_dlgdatalist;
 

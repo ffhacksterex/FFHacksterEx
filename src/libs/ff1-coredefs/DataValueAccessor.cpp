@@ -1,20 +1,23 @@
 #include "stdafx.h"
 #include "DataValueAccessor.h"
 
-namespace ff1coredefs
+namespace ffh
 {
-
-	DataValueAccessor::DataValueAccessor(FFH2Project& prj2)
-		: Proj2(prj2)
+	namespace fda
 	{
-	}
 
-	FFHDataValue& DataValueAccessor::FindValue(FFH2Project& prj2, const std::string& name) const
-	{
-		auto it = prj2.values.entries.find(name);
-		if (it == end(prj2.values.entries))
-			throw std::runtime_error("Project value '" + name + "' not found.");
-		return it->second;
-	}
+		DataValueAccessor::DataValueAccessor(FFH2Project& prj2)
+			: Proj2(prj2)
+		{
+		}
 
-} // end namespace ff1coredefs
+		FFHDataValue& DataValueAccessor::FindValue(FFH2Project& prj2, const std::string& name) const
+		{
+			auto it = prj2.values.entries.find(name);
+			if (it == end(prj2.values.entries))
+				throw std::runtime_error("Project value '" + name + "' not found.");
+			return it->second;
+		}
+
+	} // end namespace fda
+} // end namespace ffh

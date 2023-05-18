@@ -71,6 +71,7 @@ namespace Ingametext // FFH2Project versions
 	dataintnodevector LoadArmorEntries(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadAttackEntries(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadClassEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadEnemyEntries(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadMagicEntries(FFH2Project& proj, bool showindex = false);
 
 	dataintnode LoadArmorEntry(FFH2Project& proj, int index, bool showindex = false);
