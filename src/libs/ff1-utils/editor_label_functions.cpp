@@ -380,6 +380,23 @@ namespace Editorlabels
 
 			return labels;
 		}
+
+		dataintnode LoadLabel(FFH2Project& proj, CString section, int index, bool showindex)
+		{
+			std::string group = tostd(section);
+			auto it = proj.strings.entries.find(group);
+			if (it == cend(proj.strings.entries))
+				RAISEEXCEPTION(std::runtime_error, "Failed to load label, unable to find label group '%s'.", group.c_str());
+
+			const auto& entries = it->second;
+			auto count = entries.size();
+			if (count < 1)
+				RAISEEXCEPTION(std::runtime_error, "No entires found for label group '%s'.", group.c_str());
+
+			const auto& entry = entries[index];
+			auto label = FormatLabel(group, entry, index, showindex);
+			return { label, index };
+		}
 	}
 
 	dataintnodevector LoadAilEffectLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "aileffectlabels", showindex); }
@@ -390,5 +407,7 @@ namespace Editorlabels
 	dataintnodevector LoadBattlePatternTableLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "patterntablelabels", showindex); }
 	dataintnodevector LoadElementLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "elementlabels", showindex); }
 	dataintnodevector LoadWepMagicLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "wepmaglabels", showindex); }
+
+	dataintnode LoadTextLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "dialoguelabels", index, showindex); }
 
 } // end namespace Editorlabels (CFFH2Project)
