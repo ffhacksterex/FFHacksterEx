@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "Mapman.h"
 #include "NESPalette.h"
-#include <ValueDataAccessor.h>
-#include <dva_primitives.h>
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
 #include <AppSettings.h>
@@ -15,6 +13,8 @@
 #include "string_functions.h"
 #include "draw_functions.h"
 #include <ui_helpers.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 #include "AsmFiles.h"
 #include "GameSerializer.h"
 

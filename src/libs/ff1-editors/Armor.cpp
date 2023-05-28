@@ -6,8 +6,6 @@
 #include "AsmFiles.h"
 #include "collection_helpers.h"
 #include <core_exceptions.h>
-#include <ValueDataAccessor.h>
-#include <dva_primitives.h>
 #include <editor_label_functions.h>
 #include <FFH2Project.h>
 #include "GameSerializer.h"
@@ -18,6 +16,9 @@
 #include "io_functions.h"
 #include "string_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
+
 #include "copypaste_helpers.h"
 #include <DlgPasteTargets.h>
 

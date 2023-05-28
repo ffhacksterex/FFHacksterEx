@@ -8,8 +8,6 @@
 #include "FFHacksterProject.h"
 #include <core_exceptions.h>
 #include <FFH2Project.h>
-#include <ValueDataAccessor.h>
-#include <dva_primitives.h>
 #include "DRAW_STRUCT.h"
 #include "draw_functions.h"
 #include "general_functions.h"
@@ -17,6 +15,8 @@
 #include "ini_functions.h"
 #include "io_functions.h"
 #include <ui_helpers.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 #include "AsmFiles.h"
 #include "GameSerializer.h"
 

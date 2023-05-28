@@ -4,12 +4,12 @@
 #include "stdafx.h"
 #include "resource_subeditors.h"
 #include "BattlePalettes.h"
-#include <ValueDataAccessor.h>
-#include <dva_primitives.h>
 #include <FFH2Project.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "string_functions.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Ini;
 

@@ -5,8 +5,6 @@
 #include "resource_subeditors.h"
 #include "Coords.h"
 #include "ICoordMap.h"
-#include <ValueDataAccessor.h>
-#include <dva_primitives.h>
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
 #include "general_functions.h"
@@ -14,6 +12,8 @@
 #include "string_functions.h"
 #include "editor_label_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 #include "NewLabel.h"
 
 using namespace Ini;

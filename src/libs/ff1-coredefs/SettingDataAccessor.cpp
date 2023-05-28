@@ -1,13 +1,52 @@
 #include "stdafx.h"
-#include "sva_primitives.h"
-#include "FFHSetting.h"
-#include "SettingValueAccessor.h"
+#include "SettingDataAccessor.h"
+#include "FFH2Project.h"
 #include <set>
 
 namespace ffh
 {
-	namespace fda
+	namespace acc
 	{
+		namespace {
+			ProjectEditorModuleEntry& FindModule(FFH2Project& proj, const std::string& modulename)
+			{
+				auto it = proj.modules.entries.find(modulename);
+				if (it == cend(proj.modules.entries))
+					throw std::runtime_error("SettingDataAccessor couldn't find a module named " + modulename + ".");
+				return it->second;
+			}
+		}
+
+		// === CLASS IMPLEMENTATION
+		// * SettingDataAccessor
+
+		SettingDataAccessor::SettingDataAccessor(FFH2Project& proj, const std::string& modulename)
+			: m_proj(proj)
+			, m_module(FindModule(proj, modulename))
+		{
+		}
+
+		FFHSetting& SettingDataAccessor::FindValue(const std::string& name) const
+		{
+			auto it = m_module.settings.find(name);
+			if (it == end(m_module.settings))
+				throw std::runtime_error("Module '" + m_module.slotName + "' setting '" + name + "' not found.");
+			return it->second;
+		}
+
+
+		// * sda_typeconversion_exception
+
+		sda_typeconversion_exception::sda_typeconversion_exception(std::string name, std::string srctype, std::string desttype)
+			: std::runtime_error("Value '" + (name)+"' doesn't support conversion from '" + (srctype)+"' to " + (desttype)+".")
+			, valueName(name)
+			, sourceType(srctype)
+			, destType(desttype)
+		{
+		}
+
+
+		// === STANDARD CONVERSION IMPLEMENTATIONS
 
 		FFHSetting& operator>>(FFHSetting& stg, bool& value)
 		{
@@ -68,5 +107,8 @@ namespace ffh
 			stg.data = value;
 			return stg;
 		}
+
 	}
+	// end acc
 }
+// end ffh

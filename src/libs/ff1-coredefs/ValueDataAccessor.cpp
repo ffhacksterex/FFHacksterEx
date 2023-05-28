@@ -7,7 +7,8 @@ namespace ffh
 {
 	namespace acc
 	{
-		// === CLASS IMPLEMENTATION
+		// === CLASS IMPLEMENTATIONS
+		// * ValueDataAccessor
 
 		ValueDataAccessor::ValueDataAccessor(FFH2Project& prj2)
 			: Proj2(prj2)
@@ -22,11 +23,14 @@ namespace ffh
 			return it->second;
 		}
 
+
+		// * vda_typeconversion_exception
+
 		vda_typeconversion_exception::vda_typeconversion_exception(std::string name, std::string srctype, std::string desttype)
 			: std::runtime_error("Value '" + (name)+"' doesn't support conversion from '" + (srctype)+"' to " + (desttype)+".")
 			, valueName(name)
 			, sourceType(srctype)
-			, destType(destType)
+			, destType(desttype)
 		{
 		}
 

@@ -5,12 +5,12 @@
 #include "Battle.h"
 
 #include "AsmFiles.h"
-#include <ValueDataAccessor.h>
-#include <dva_primitives.h>
-#include <core_exceptions.h>
 #include <FFH2Project.h>
 #include <GameSerializer.h>
 
+#include <core_exceptions.h>
+#include "collection_helpers.h"
+#include "draw_functions.h"
 #include <editor_label_functions.h>
 #include "general_functions.h"
 #include "imaging_helpers.h"
@@ -19,9 +19,8 @@
 #include "io_functions.h"
 #include <string_conversions.hpp>
 #include "ui_helpers.h"
-
-#include "collection_helpers.h"
-#include "draw_functions.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 #include "NESPalette.h"
 #include "BattlePalettes.h"

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SpriteDialogueSettings.h"
 #include <FFH2Project.h>
-#include <SettingValueAccessor.h>
+#include <SettingDataAccessor.h>
 #include <sva_primitives.h>
 #include "ini_functions.h"
 #include <string_conversions.hpp>
@@ -54,7 +54,7 @@ void CSpriteDialogueSettings::SetDefaults()
 
 bool CSpriteDialogueSettings::Read()
 {
-	ffh::fda::SettingValueAccessor s(m_prj2, ffh::str::tostd(m_sectionname));
+	ffh::acc::SettingDataAccessor s(m_prj2, ffh::str::tostd(m_sectionname));
 	ShowActualText = s.get<bool>("ShowActualText");
 	ShortTextLength = s.get<int>("ShortTextLength");
 	ThrowOnBadSpriteAddr = s.get<bool>("ThrowOnBadSpriteAddr");
@@ -63,7 +63,7 @@ bool CSpriteDialogueSettings::Read()
 
 bool CSpriteDialogueSettings::Write()
 {
-	ffh::fda::SettingValueAccessor s(m_prj2, ffh::str::tostd(m_sectionname));
+	ffh::acc::SettingDataAccessor s(m_prj2, ffh::str::tostd(m_sectionname));
 	s.set<bool>("ShowActualText", ShowActualText);
 	s.set<int>("ShortTextLength", ShortTextLength);
 	s.set<bool>("ThrowOnBadSpriteAddr", ThrowOnBadSpriteAddr);

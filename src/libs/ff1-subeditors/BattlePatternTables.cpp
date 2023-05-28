@@ -6,7 +6,6 @@
 #include "BattlePatternTables.h"
 #include <core_exceptions.h>
 #include <AppSettings.h>
-#include <ValueDataAccessor.h>
 #include <FFH2Project.h>
 #include "NESPalette.h"
 #include "general_functions.h"
@@ -18,8 +17,8 @@
 #include "GameSerializer.h"
 #include <editor_label_functions.h>
 #include <ui_helpers.h>
-#include <dva_primitives.h>
-#include <sva_primitives.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Editorlabels;
 using namespace Ini;

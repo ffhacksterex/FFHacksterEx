@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "BattleEditorSettings.h"
-#include <SettingValueAccessor.h>
+#include <SettingDataAccessor.h>
 #include <sva_primitives.h>
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
@@ -50,7 +50,7 @@ bool CBattleEditorSettings::Read()
 {
 	if (!m_is2) THROW_FFPROJECT_ERROR;
 
-	ffh::fda::SettingValueAccessor s(m_prj2, "battles");
+	ffh::acc::SettingDataAccessor s(m_prj2, "battles");
 	ViewUsage = s.get<bool>("ViewUsage");
 	return true;
 }
@@ -59,7 +59,7 @@ bool CBattleEditorSettings::Write()
 {
 	if (!m_is2) THROW_FFPROJECT_ERROR;
 
-	ffh::fda::SettingValueAccessor s(m_prj2, "battles");
+	ffh::acc::SettingDataAccessor s(m_prj2, "battles");
 	s.set("ViewUsage", ViewUsage);
 	return true;
 }

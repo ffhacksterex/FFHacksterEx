@@ -36,7 +36,7 @@
 #include <SpriteDialogueSettings.h>
 #include "editors_common.h"
 #include <ValueDataAccessor.h>
-#include <dva_primitives.h>
+#include <vda_std_collections.h>
 
 using namespace Editors;
 using namespace Editorlabels;

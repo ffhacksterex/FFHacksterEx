@@ -1,15 +1,15 @@
 #include "stdafx.h"
 #include "EnemyBattleUsageData.h"
-#include <ValueDataAccessor.h>
 #include <FFHacksterProject.h>
 #include <FFH2Project.h>
-#include <dva_primitives.h>
 #include "ini_functions.h"
 #include "common_symbols.h"
 #include "editor_label_functions.h"
 #include "editors_common.h"
 #include <collection_helpers.h>
 #include <string_functions.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 #include <dialogue_helpers.h>
 
 using ffh::acc::ValueDataAccessor;

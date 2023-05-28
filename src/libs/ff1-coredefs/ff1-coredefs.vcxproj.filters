@@ -135,16 +135,7 @@
     <ClCompile Include="ValueDataAccessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SettingValueAccessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dva_primitives.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dva_std_collections.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sva_primitives.cpp">
+    <ClCompile Include="SettingDataAccessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FFHImages.cpp">
@@ -390,19 +381,10 @@
     <ClInclude Include="core_exceptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SettingValueAccessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dva_primitives.h">
+    <ClInclude Include="SettingDataAccessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cnv_std_collections.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dva_std_collections.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sva_primitives.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FFHImages.h">
