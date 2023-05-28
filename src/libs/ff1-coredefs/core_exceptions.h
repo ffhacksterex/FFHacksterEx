@@ -22,3 +22,21 @@ public:
 private:
 	std::string m_message;
 };
+
+namespace ffh
+{
+	namespace uti
+	{
+		class bounds_error : std::exception
+		{
+		public:
+			bounds_error(size_t index, size_t bounds);
+			virtual ~bounds_error();
+			virtual const char* what() const;
+		private:
+			size_t m_index = (size_t)-1;
+			size_t m_bounds = (size_t)-1;
+			std::string m_message;
+		};
+	}
+}

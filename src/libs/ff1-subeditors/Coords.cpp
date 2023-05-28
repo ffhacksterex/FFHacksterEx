@@ -93,7 +93,6 @@ BOOL CCoords::OnInitDialog()
 	//DEVNOTE - since this dialog is used modelessly, it relies on a call to Boot() after Create() returns. LoadRom is called there.
 
 	FFH_THROW_NULL_PROJECT(Proj2, "Coords Subeditor");
-	FFH_THROW_OLD_FFHACKSTERPROJ(cart);
 
 	return TRUE;
 }
@@ -198,7 +197,7 @@ void CCoords::OnEditlabel()
 		// Ignore the list/combo index passed in and use the type-specific arid instead.
 		return writehandler(proj, arid, newvalue);
 	};
-	ChangeLabel(*cart, -1, label, changefunc, cur, nullptr, &m_teleportlist);
+	//ChangeLabel(*Proj2, -1, label, changefunc, cur, nullptr, &m_teleportlist); //TODO - translate ChangeLabel
 
 	if (!type && IsOV)
 		OVparent->UpdateTeleportLabel(arid, type);
@@ -226,8 +225,8 @@ void CCoords::OnCancel()
 
 void CCoords::UpdateButtons()
 {
-	BYTE& cu = cart->curFollowup;
-	BYTE& ma = cart->maxFollowup;
+	BYTE& cu = Proj2->curFollowup;
+	BYTE& ma = Proj2->maxFollowup;
 	m_followup_forward.EnableWindow(!(cu == (ma & 0x7F)));
 	m_followup_back.EnableWindow(!(
 		(cu == ((ma + 1) & 0x7F)) ||
@@ -236,7 +235,7 @@ void CCoords::UpdateButtons()
 
 void CCoords::OnFollowup()
 {
-	BYTE* Flw = cart->TeleportFollowup[cart->curFollowup];
+	BYTE* Flw = Proj2->TeleportFollowup[Proj2->curFollowup];
 	//place the last click in current Followup
 	if (IsOV) {
 		Flw[0] = 0xFF;
@@ -250,12 +249,12 @@ void CCoords::OnFollowup()
 	}
 
 	//increment curFollowup (and maxFollowup if needed)
-	if(cart->curFollowup == (cart->maxFollowup & 0x7F)){
-		if(cart->maxFollowup == 0xFF) cart->maxFollowup = 0x80;
-		else cart->maxFollowup += 1;}
-	cart->curFollowup = (cart->curFollowup + 1) & 0x7F;
+	if(Proj2->curFollowup == (Proj2->maxFollowup & 0x7F)){
+		if(Proj2->maxFollowup == 0xFF) Proj2->maxFollowup = 0x80;
+		else Proj2->maxFollowup += 1;}
+	Proj2->curFollowup = (Proj2->curFollowup + 1) & 0x7F;
 
-	Flw = cart->TeleportFollowup[cart->curFollowup];
+	Flw = Proj2->TeleportFollowup[Proj2->curFollowup];
 
 	//place the followup spot in the current followup
 	Flw[1] = Proj2->ROM[offset];
@@ -267,23 +266,23 @@ void CCoords::OnFollowup()
 
 void CCoords::OnFollowupBack()
 {
-	if(!cart->curFollowup) cart->curFollowup = 0x7F;
-	else cart->curFollowup -= 1;
+	if(!Proj2->curFollowup) Proj2->curFollowup = 0x7F;
+	else Proj2->curFollowup -= 1;
 	TeleportHere();
 }
 
 void CCoords::OnFollowupForward()
 {
-	cart->curFollowup = (cart->curFollowup + 1) & 0x7F;
+	Proj2->curFollowup = (Proj2->curFollowup + 1) & 0x7F;
 	TeleportHere();
 }
 
 void CCoords::TeleportHere()
 {
 	UpdateButtons();
-	BYTE _l = cart->TeleportFollowup[cart->curFollowup][0];
-	BYTE _x = cart->TeleportFollowup[cart->curFollowup][1];
-	BYTE _y = cart->TeleportFollowup[cart->curFollowup][2];
+	BYTE _l = Proj2->TeleportFollowup[Proj2->curFollowup][0];
+	BYTE _x = Proj2->TeleportFollowup[Proj2->curFollowup][1];
+	BYTE _y = Proj2->TeleportFollowup[Proj2->curFollowup][2];
 
 	if (IsOV)
 		OVparent->TeleportHere(_l, _x, _y);

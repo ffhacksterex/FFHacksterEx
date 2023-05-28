@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "FFH2Project.h"
 #include "FFH2Project_IniToJson_Defs.hpp"
+#include "core_exceptions.h"
 #include "GameSerializer.h"
 #include "ini_functions.h"
 #include "io_functions.h"
@@ -329,17 +330,24 @@ CImageList& FFH2Project::GetStandardTiles(size_t index, bool showrooms)
 {
 	// Stored as staggered, so stdmap 0 uses index 0 (outside) and 1 (showrooms)
 	//[0-60] [0-121] 0 => 0,1   60=> 120,121
-	ASSERT(((index * 2) + showrooms) < m_vstandardtiles.size());
+
 	int showroomsindex = showrooms ? 1 : 0;
-	return m_vstandardtiles[(index * 2) + showroomsindex].get();
+	return GetStandardTiles(index, showroomsindex);
 }
 
 CImageList& FFH2Project::GetStandardTiles(size_t index, int showroomsindex)
 {
 	// Stored as staggered, so stdmap 0 uses index 0 (outside) and 1 (showrooms)
 	//[0-60] [0-121] 0 => 0,1   60=> 120,121
-	ASSERT(((index * 2) + showroomsindex) < m_vstandardtiles.size());
-	return m_vstandardtiles[(index * 2) + showroomsindex].get();
+
+	auto arrindex = (size_t)((index * 2) + showroomsindex);
+	ASSERT(arrindex < m_vstandardtiles.size());
+	if (arrindex >= m_vstandardtiles.size())
+		throw ffh::uti::bounds_error(arrindex, m_vstandardtiles.size());
+
+	auto& ffi = m_vstandardtiles[arrindex];
+	auto& cimg = ffi.get();
+	return cimg;
 }
 
 void FFH2Project::DeleteStandardTiles()
@@ -446,11 +454,13 @@ namespace // unnamed
 
 
 
-//TODO - move these external functions to a separate cpp file(s)? if so, FieldToJson and JsonToField must be visible
+//TODO - move these external functions to separate cpp files? if so, FieldToJson and JsonToField must be in a shared header
 // Conversions to and from JSON (in this case, ordered_json)
 // Declared externally in the json header above.
 
 //=== FFHSetting extern functions //TODO- move these out of this class?
+// These are currently declared in FFH2Project_IniToJson_Defs.hpp
+
 void to_json(ojson& j, const FFHSetting& p)
 {
 	auto jdata = FieldToJson<ojson>(p.type, p.data);
@@ -491,6 +501,8 @@ void from_json(const ujson& j, FFHSetting& p)
 
 
 //=== FFHValue extern functions //TODO- move these out of this class?
+// These are currently declared in FFH2Project_IniToJson_Defs.hpp
+
 void to_json(ojson& j, const FFHValue& p)
 {
 	// Coming back to JSON, we have to rely on the incoming object to tell us

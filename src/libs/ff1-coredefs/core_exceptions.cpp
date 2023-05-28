@@ -4,12 +4,10 @@
 #include "FFH2Project.h"
 #include "std_assembly.h"
 
-// ################################################################
-// in FFHacksterProject.h
+// === bad_ffhtype_exception
 
-// bad_ffhtype_exception
-
-bad_ffhtype_exception::bad_ffhtype_exception(std::string file, int line, std::string function, exceptop op, std::string projtypename, std::string additionalmsg)
+bad_ffhtype_exception::bad_ffhtype_exception(std::string file, int line, std::string function,
+	exceptop op, std::string projtypename, std::string additionalmsg)
 {
 	TRACEEXCEPTIONPOINT(*this, file, line, function);
 
@@ -29,9 +27,10 @@ const char* bad_ffhtype_exception::what() const
 }
 
 
-// wrongprojectype_exception
+// === wrongprojectype_exception
 
-wrongprojectype_exception::wrongprojectype_exception(std::string file, int line, std::string function, CFFHacksterProject & proj, std::string expectedtype)
+wrongprojectype_exception::wrongprojectype_exception(std::string file, int line, std::string function,
+	CFFHacksterProject & proj, std::string expectedtype)
 {
 	TRACEEXCEPTIONPOINT(*this, file, line, function);
 
@@ -40,7 +39,8 @@ wrongprojectype_exception::wrongprojectype_exception(std::string file, int line,
 	LogMsg << m_message << std::endl;
 }
 
-wrongprojectype_exception::wrongprojectype_exception(std::string file, int line, std::string function, FFH2Project& proj, std::string expectedtype)
+wrongprojectype_exception::wrongprojectype_exception(std::string file, int line, std::string function,
+	FFH2Project& proj, std::string expectedtype)
 {
 	TRACEEXCEPTIONPOINT(*this, file, line, function);
 
@@ -59,11 +59,11 @@ const char* wrongprojectype_exception::what() const
 }
 
 
-
 // ################################################################
 // in assembly_functions.h
+//TODO - move from assembly_functions.h to core_exceptions.h
 
-// Assembly exceptions
+// === asminline_unusedmappingexception
 
 asminline_unusedmappingexception::asminline_unusedmappingexception(std::string file, int line, std::string function, exceptop op, const asmsourcemappingvector & mappings, const uintvector & hits)
 	: m_matchcount(0)
@@ -94,3 +94,33 @@ const char* asminline_unusedmappingexception::what() const
 { 
 	return m_message.c_str();
 }
+
+
+namespace ffh
+{
+	namespace uti
+	{
+		// === bounds_error
+
+		bounds_error::bounds_error(size_t index, size_t bounds)
+			: std::exception()
+			, m_index(index)
+			, m_bounds(bounds)
+		{
+			assert(index >= bounds);
+			m_message = "Array index '" + std::to_string(index) +
+				"' is outside the array's bounds [" + std::to_string(m_bounds) + "].";
+		}
+
+		bounds_error::~bounds_error()
+		{
+		}
+
+		const char* bounds_error::what() const
+		{
+			return m_message.c_str();
+		}
+	}
+	// end namespace uti
+}
+//namespace ffh

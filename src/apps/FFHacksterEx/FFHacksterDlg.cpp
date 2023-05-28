@@ -808,10 +808,8 @@ bool CFFHacksterDlg::WantsToReload() const
 
 namespace {
 	template <class ODLG, class NDLG>
-	void RunMapScreenLoop(CWnd & parent, CFFHacksterProject & proj, ODLG& dlg, NDLG& ndlg, bool OV)
+	void RunMapScreenLoop(CWnd & parent, FFH2Project & proj, ODLG& dlg, NDLG& ndlg, bool OV)
 	{
-		FFH_SWITCH_TO_FFH2;
-
 		bool teleport = 0;
 		bool loop = true;
 		do {
@@ -820,7 +818,7 @@ namespace {
 			if (OV) {
 				dlg.BootToTeleportFollowup = teleport;
 				if (dlg.DoModal() == IDOK) {
-					proj.SaveSharedSettings();
+					//proj.SaveSharedSettings(); //TODO - this is now Proj2->session, currently always saves
 					teleport = dlg.BootToTeleportFollowup;
 					if (teleport) {
 						OV = false;
@@ -831,7 +829,7 @@ namespace {
 			else {
 				ndlg.BootToTeleportFollowup = teleport;
 				if (ndlg.DoModal() == IDOK) {
-					proj.SaveSharedSettings();
+					//proj.SaveSharedSettings(); //TODO - this is now Proj2->session, currently always saves
 					teleport = ndlg.BootToTeleportFollowup;
 					if (teleport) {
 						OV = true;
@@ -849,10 +847,10 @@ void CFFHacksterDlg::GoToMapScreen(bool OV)
 	COverworldMapOrig dlg;
 	dlg.Proj2 = &m_prj2;
 	CMapsOrig ndlg;
-	ndlg.Project = &m_proj;
+	ndlg.Proj2 = &m_prj2;
 	ndlg.Enloader = &m_loader;
 
-	RunMapScreenLoop(*this, m_proj, dlg, ndlg, OV);
+	RunMapScreenLoop(*this, m_prj2, dlg, ndlg, OV);
 }
 
 void CFFHacksterDlg::GoToNewMapScreen(bool OV)
@@ -860,39 +858,10 @@ void CFFHacksterDlg::GoToNewMapScreen(bool OV)
 	COverworldMap dlg;
 	dlg.Proj2 = &m_prj2;
 	CMaps ndlg;
-	ndlg.Project = &m_proj;
+	ndlg.Proj2 = &m_prj2;
 	ndlg.Enloader = &m_loader;
 
-	RunMapScreenLoop(*this, m_proj, dlg, ndlg, OV);
-	//bool teleport = 0;
-	//bool loop = true;
-	//do {
-	//	// Don't loop unless there's a cross-editor teleport
-	//	loop = false;
-	//	if (OV) {
-	//		dlg.BootToTeleportFollowup = teleport;
-	//		if (dlg.DoModal() == IDOK) {
-	//			m_proj.SaveSharedSettings();
-	//			teleport = dlg.BootToTeleportFollowup;
-	//			if (teleport) {
-	//				OV = false;
-	//				loop = true;
-	//			}
-	//		}
-	//	}
-	//	else {
-	//		ndlg.BootToTeleportFollowup = teleport;
-	//		if (ndlg.DoModal() == IDOK) {
-	//			m_proj.SaveSharedSettings();
-	//			teleport = ndlg.BootToTeleportFollowup;
-	//			if (teleport) {
-	//				OV = true;
-	//				loop = true;
-	//			}
-	//		}
-	//	}
-	//} while (loop);
-	//this->BringWindowToTop();
+	RunMapScreenLoop(*this, m_prj2, dlg, ndlg, OV);
 }
 
 void CFFHacksterDlg::OnArmor() 
