@@ -150,6 +150,15 @@
     <ClCompile Include="FFHImages.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cnv_primitives.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="uti_std_collections.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="collection_conversions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ff1-coredefs.rc">
@@ -397,6 +406,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FFHImages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cnv_primitives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uti_std_collections.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="collection_conversions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

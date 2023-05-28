@@ -5,7 +5,10 @@
 #include "resource_subeditors.h"
 #include "Coords.h"
 #include "ICoordMap.h"
+#include <DataValueAccessor.h>
+#include <dva_primitives.h>
 #include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "string_functions.h"
@@ -50,13 +53,14 @@ void CCoords::DoDataExchange(CDataExchange* pDX)
 bool CCoords::LoadRom()
 {
 	//N.B. - the caller of Boot() will catch these exceptions
-	MAP_COUNT = ReadDec(cart->ValuesPath, "MAP_COUNT");
-	NNTELEPORT_COUNT = ReadDec(cart->ValuesPath, "NNTELEPORT_COUNT");
-	ONTELEPORT_COUNT = ReadDec(cart->ValuesPath, "ONTELEPORT_COUNT");
-	NOTELEPORT_COUNT = ReadDec(cart->ValuesPath, "NOTELEPORT_COUNT");
-	NNTELEPORT_OFFSET = ReadHex(cart->ValuesPath, "NNTELEPORT_OFFSET");
-	ONTELEPORT_OFFSET = ReadHex(cart->ValuesPath, "ONTELEPORT_OFFSET");
-	NOTELEPORT_OFFSET = ReadHex(cart->ValuesPath, "NOTELEPORT_OFFSET");
+	ffh::fda::DataValueAccessor d(*Proj2);
+	MAP_COUNT = d.get<int>("MAP_COUNT");
+	NNTELEPORT_COUNT = d.get<int>("NNTELEPORT_COUNT");
+	ONTELEPORT_COUNT = d.get<int>("ONTELEPORT_COUNT");
+	NOTELEPORT_COUNT = d.get<int>("NOTELEPORT_COUNT");
+	NNTELEPORT_OFFSET = d.get<int>("NNTELEPORT_OFFSET");
+	ONTELEPORT_OFFSET = d.get<int>("ONTELEPORT_OFFSET");
+	NOTELEPORT_OFFSET = d.get<int>("NOTELEPORT_OFFSET");
 	return true;
 }
 
@@ -88,6 +92,9 @@ BOOL CCoords::OnInitDialog()
 	
 	//DEVNOTE - since this dialog is used modelessly, it relies on a call to Boot() after Create() returns. LoadRom is called there.
 
+	FFH_THROW_NULL_PROJECT(Proj2, "Coords Subeditor");
+	FFH_THROW_OLD_FFHACKSTERPROJ(cart);
+
 	return TRUE;
 }
 
@@ -96,8 +103,8 @@ void CCoords::Boot()
 {
 	LoadRom();
 
-	LoadCombo(m_teleportlist, LoadONTeleportLabels(*cart) + LoadNNTeleportLabels(*cart) + LoadNOTeleportLabels(*cart));
-	LoadCombo(m_coord_l, LoadMapLabels(*cart));
+	LoadCombo(m_teleportlist, Labels2::LoadONTeleportLabels(*Proj2) + Labels2::LoadNNTeleportLabels(*Proj2) + Labels2::LoadNOTeleportLabels(*Proj2));
+	LoadCombo(m_coord_l, Labels2::LoadMapLabels(*Proj2));
 
 	cur = -1;
 	m_teleportlist.SetCurSel(0);
@@ -129,32 +136,32 @@ void CCoords::LoadValues()
 
 	CString text;
 
-	text.Format("%X",cart->ROM[offset]);
+	text.Format("%X",Proj2->ROM[offset]);
 	m_coord_x.SetWindowText(text);
 
-	text.Format("%X",cart->ROM[offset + count]);
+	text.Format("%X",Proj2->ROM[offset + count]);
 	m_coord_y.SetWindowText(text);
 	if(type < 2)
-		m_coord_l.SetCurSel(cart->ROM[offset + (count << 1)]);
+		m_coord_l.SetCurSel(Proj2->ROM[offset + (count << 1)]);
 }
 
 void CCoords::OnSelchangeCoordL()
 {
-	cart->ROM[offset + (count << 1)] = (BYTE)m_coord_l.GetCurSel();
+	Proj2->ROM[offset + (count << 1)] = (BYTE)m_coord_l.GetCurSel();
 }
 
 void CCoords::OnChangeCoordX()
 {
 	CString text;
 	m_coord_x.GetWindowText(text);
-	cart->ROM[offset] = (BYTE)StringToInt_HEX(text);
+	Proj2->ROM[offset] = (BYTE)StringToInt_HEX(text);
 }
 
 void CCoords::OnChangeCoordY()
 {
 	CString text;
 	m_coord_y.GetWindowText(text);
-	cart->ROM[offset + count] = (BYTE)StringToInt_HEX(text);
+	Proj2->ROM[offset + count] = (BYTE)StringToInt_HEX(text);
 }
 
 void CCoords::OnMouseclick()
@@ -172,11 +179,15 @@ void CCoords::OnMouseclick()
 void CCoords::OnEditlabel()
 {
 	int arid = cur;
-	if(type > 0) arid -= ONTELEPORT_COUNT;
-	if(type > 1) arid -= NNTELEPORT_COUNT;
+	if (type > 0) arid -= ONTELEPORT_COUNT;
+	if (type > 1) arid -= NNTELEPORT_COUNT;
 
-	auto getfunclist = std::vector<DataNodeReadFunc>{ LoadONTeleportLabel, LoadNNTeleportLabel, LoadNOTeleportLabel };
-	CString label = getfunclist[type](*cart, arid, false);
+	//TODO - remove WrapDataNodeReadFunc2 once CFFHacksterProject is gone (overload resolution can't resolve the two functions)
+	#define WrapDataNodeReadFunc2(f) [](FFH2Project& proj, int index, bool showindex) { return (f)(proj, index, showindex); }
+	auto getfunclist = std::vector<DataNodeReadFunc2>{ WrapDataNodeReadFunc2(Labels2::LoadONTeleportLabel),
+		WrapDataNodeReadFunc2(Labels2::LoadNNTeleportLabel),
+		WrapDataNodeReadFunc2(Labels2::LoadNOTeleportLabel) };
+	CString label = getfunclist[type](*Proj2, arid, false);
 
 	// The teleport listbox in this dialog has ON, NN, and NO targets, indexed with cur.
 	// The INI stores the each type within its index range, using arid.
@@ -247,10 +258,10 @@ void CCoords::OnFollowup()
 	Flw = cart->TeleportFollowup[cart->curFollowup];
 
 	//place the followup spot in the current followup
-	Flw[1] = cart->ROM[offset];
-	Flw[2] = cart->ROM[offset + count];
+	Flw[1] = Proj2->ROM[offset];
+	Flw[2] = Proj2->ROM[offset + count];
 	if(type == 2) Flw[0] = 0xFF;
-	else Flw[0] = cart->ROM[offset + (count << 1)];
+	else Flw[0] = Proj2->ROM[offset + (count << 1)];
 	TeleportHere();
 }
 

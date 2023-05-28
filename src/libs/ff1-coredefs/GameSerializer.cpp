@@ -5,7 +5,6 @@
 #include "asmdll_impl.h"
 #include "collection_helpers.h"
 #include "DataValueAccessor.h"
-//#include "std_collections_dva.hpp" //REMOVE
 #include "dva_std_collections.h"
 #include "dialogue_helpers.h"
 #include "general_functions.h"
@@ -17,13 +16,15 @@
 #include "path_functions.h"
 #include "regex_helpers.h"
 #include "std_assembly.h"
-#include "string_conversions.hpp"
 #include "string_functions.h"
 #include "type_support.h"
 #include "IProgress.h"
 #include <fstream>
 #include <regex>
 #include <memory>
+
+using ffh::str::tomfc;
+using ffh::str::tostd;
 
 using namespace asmdll_impl;
 using namespace Ini;

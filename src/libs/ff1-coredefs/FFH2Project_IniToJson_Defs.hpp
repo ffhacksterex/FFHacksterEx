@@ -40,7 +40,7 @@ EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectValues, entries);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogueElemTypeDesc, name, sizeInBytes, hardcoded, desc);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogueLabel, label, desc);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogueElement, type, hexoffset, paramindex, comment);
-EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogueTalkHandler, desc, bankaddr, elements);
+EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogueTalkHandler, name, desc, bankaddr, elements);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogueTalkHandlers, order, entries);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectDialogue, valueTypes, labels, handlers);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, FFH2Project, ffheader, info, strings, session, palette, tables, modules, values, dialogue);

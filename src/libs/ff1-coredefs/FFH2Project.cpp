@@ -9,7 +9,6 @@
 #include "AsmFiles.h"
 #include "dva_primitives.h"
 #include "dva_std_collections.h"
-#include "string_conversions.hpp"
 #include "string_functions.h"
 
 #include <functional>
@@ -18,7 +17,21 @@
 #include <map>
 
 using ffh::fda::DataValueAccessor;
+using ffh::str::tomfc;
+using ffh::str::tostd;
 
+// === Structure members
+
+FFHSettingValue& ProjectEditorModuleEntry::GetSetting(const std::string& name)
+{
+	auto it = settings.find(name);
+	if (it == cend(settings))
+		throw std::runtime_error("Module '" + this->slotName + "' does not contain a setting named " + name + ".");
+	return it->second;
+}
+
+
+// === FFH2Project
 
 FFH2Project::FFH2Project()
 {
@@ -110,6 +123,7 @@ void FFH2Project::Load(std::string projectpath)
 
 	Finger.Create(16, 16);
 	LoadFinger();
+	InitMapVars();
 
 	LogHere << "  -> finished loading JSON project to " << projectpath << std::endl;
 }
@@ -174,13 +188,24 @@ bool FFH2Project::IsAsm() const
 	return info.type == "asm";
 }
 
-const std::string* FFH2Project::GetTable(int index)
+std::string* FFH2Project::GetTable(int index)
 {
 	ASSERT(index >= 0 && index < (int)session.textViewInDTE.size());
 	if (index < 0 || index >= (int)session.textViewInDTE.size())
 		throw std::runtime_error("Can't find a text table with index '" + std::to_string(index) + "'.");
 
 	return tables[session.textViewInDTE[index]].data();
+}
+
+void FFH2Project::InitMapVars()
+{
+	DataValueAccessor d(*this);
+	auto MAP_COUNT = d.get<int>("MAP_COUNT");
+	OK_overworldtiles = false;
+	OK_tiles.resize(MAP_COUNT, false);
+
+	DeleteStandardTiles();
+	m_vstandardtiles.resize(MAP_COUNT * 2);
 }
 
 bool FFH2Project::ClearROM()
@@ -240,9 +265,87 @@ bool FFH2Project::UpdateVarsAndConstants()
 	return true;
 }
 
+void FFH2Project::ReTintPalette()
+{
+	ffh::fda::DataValueAccessor d(*this);
+	int TRANSPARENTCOLOR = d.get<int>("TRANSPARENTCOLOR");
+	int TRANSPARENTCOLORREPLACEMENT = d.get<int>("TRANSPARENTCOLORREPLACEMENT");
+
+	bool tinter[9][3] = { 1,1,1,0,0,0,0,0,1,0,1,0,1,0,0,0,1,1,1,0,1,1,1,0,1,1,1 };
+	int co2, co, c;
+	int rgb[3];
+	int temp;
+	for (co2 = 1; co2 < 9; co2++)
+	{
+		for (co = 0; co < 0x40; co++)
+		{
+			rgb[0] = palette[0][co] & 0xFF;
+			rgb[1] = (palette[0][co] >> 8) & 0xFF;
+			rgb[2] = (palette[0][co] >> 16) & 0xFF;
+
+			for (c = 0; c < 3; c++) {
+				if (tinter[co2][c]) {
+					rgb[c] += session.tintVariant;
+					if (rgb[c] > 0xFF) rgb[c] = 0xFF;
+				}
+				else {
+					rgb[c] -= session.tintVariant;
+					if (rgb[c] < 0) rgb[c] = 0;
+				}
+			}
+
+			temp = (rgb[2] << 16) + (rgb[1] << 8) + rgb[0];
+			if (temp == TRANSPARENTCOLOR) temp = TRANSPARENTCOLORREPLACEMENT;
+
+			palette[co2][co] = temp;
+		}
+	}
+}
+
+FFHDataValue& FFH2Project::GetValue(const std::string& name)
+{
+	//TODO - replace this copypasta with ffh::uti::find
+	auto it = values.entries.find(name);
+	if (it == cend(values.entries))
+		throw std::runtime_error("Project values collection does not contain a value named " + name + ".");
+	return it->second;
+}
+
+ProjectEditorModuleEntry& FFH2Project::GetModule(const std::string& name)
+{
+	auto it = modules.entries.find(name);
+	if (it == cend(modules.entries))
+		throw std::runtime_error("Project modules collection does not contain a module named " + name + ".");
+	return it->second;
+}
+
+ProjectDialogueTalkHandler& FFH2Project::GetHandler(const std::string& name)
+{
+	auto it = dialogue.handlers.entries.find(name);
+	if (it == cend(dialogue.handlers.entries))
+		throw std::runtime_error("Project dialogue handler collection does not contain a handler named " + name + ".");
+	return it->second;
+}
+
+CImageList& FFH2Project::GetStandardTiles(size_t index, bool showrooms)
+{
+	// Stored as staggered, so stdmap 0 uses index 0 (outside) and 1 (showrooms)
+	//[0-60] [0-121] 0 => 0,1   60=> 120,121
+	ASSERT(((index * 2) + showrooms) < m_vstandardtiles.size());
+	int showroomsindex = showrooms ? 1 : 0;
+	return m_vstandardtiles[(index * 2) + showroomsindex].get();
+}
+
+CImageList& FFH2Project::GetStandardTiles(size_t index, int showroomsindex)
+{
+	// Stored as staggered, so stdmap 0 uses index 0 (outside) and 1 (showrooms)
+	//[0-60] [0-121] 0 => 0,1   60=> 120,121
+	ASSERT(((index * 2) + showroomsindex) < m_vstandardtiles.size());
+	return m_vstandardtiles[(index * 2) + showroomsindex].get();
+}
+
 void FFH2Project::DeleteStandardTiles()
 {
-	for (auto* ptile : m_vstandardtiles) delete ptile;
 	m_vstandardtiles.clear();
 }
 

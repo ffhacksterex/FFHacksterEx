@@ -182,6 +182,8 @@
     <ClCompile Include="AppSettings.cpp" />
     <ClCompile Include="aseembly_types.cpp" />
     <ClCompile Include="ci_support.cpp" />
+    <ClCompile Include="cnv_primitives.cpp" />
+    <ClCompile Include="collection_conversions.cpp" />
     <ClCompile Include="collection_helpers.cpp" />
     <ClCompile Include="core_exceptions.cpp" />
     <ClCompile Include="DataValueAccessor.cpp" />
@@ -227,6 +229,7 @@
     <ClCompile Include="Upgrades_ini.cpp" />
     <ClCompile Include="upgrade_functions.cpp" />
     <ClCompile Include="upgrade_ini_to_json.cpp" />
+    <ClCompile Include="uti_std_collections.cpp" />
     <ClCompile Include="vector_types.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -248,7 +251,9 @@
     <ClInclude Include="AsmFiles.h" />
     <ClInclude Include="assembly_types.h" />
     <ClInclude Include="ci_support.h" />
+    <ClInclude Include="cnv_primitives.h" />
     <ClInclude Include="cnv_std_collections.h" />
+    <ClInclude Include="collection_conversions.h" />
     <ClInclude Include="collection_helpers.h" />
     <ClInclude Include="common_symbols.h" />
     <ClInclude Include="conditional_build_symbols.h" />
@@ -313,6 +318,7 @@
     <ClInclude Include="type_support.h" />
     <ClInclude Include="Upgrades_ini.h" />
     <ClInclude Include="upgrade_functions.h" />
+    <ClInclude Include="uti_std_collections.hpp" />
     <ClInclude Include="vector_types.h" />
     <ClInclude Include="window_messages.h" />
   </ItemGroup>

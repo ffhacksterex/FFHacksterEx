@@ -6,7 +6,9 @@
 #include "conditional_build_symbols.h"
 #include "core_exceptions.h"
 
+#ifndef THROW_FFPROJECT_ERROR
 #define THROW_FFPROJECT_ERROR std::runtime_error(__FILE__ "(" + std::to_string(__LINE__) + "): " __FUNCTION__ " - switch to using FFH2Project")
+#endif
 
 class IProgress;
 class AppSettings;

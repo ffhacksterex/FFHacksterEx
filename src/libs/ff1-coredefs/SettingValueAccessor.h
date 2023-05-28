@@ -14,7 +14,7 @@ namespace ffh
 		// Requires defining the required operator in either namespace or global scope
 		// for the types involved.
 
-		class SettingValueAccessor
+		class SettingValueAccessor //TODO - rename class and file to SettingDataAccessor
 		{
 			FFH2Project& m_proj;
 			ProjectEditorModuleEntry& m_module;

@@ -16,7 +16,6 @@
 #include "ingame_text_functions.h"
 #include "ini_functions.h"
 #include "io_functions.h"
-#include <string_conversions.hpp>
 #include "string_functions.h"
 #include "ui_helpers.h"
 #include "copypaste_helpers.h"
@@ -110,12 +109,12 @@ BOOL CArmor::OnInitDialog()
 			&m_use7,&m_use8,&m_use9,&m_use10,&m_use11,&m_use12 };
 		ASSERT(classlists.size() == (size_t)CLASS_COUNT);
 
-		LoadCaptions(std::vector<CWnd*>{ &m_def1, & m_def2, & m_def3, & m_def4, & m_def5, & m_def6, & m_def7, & m_def8 }, LoadElementLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_def1, & m_def2, & m_def3, & m_def4, & m_def5, & m_def6, & m_def7, & m_def8 }, Labels2::LoadElementLabels(*Proj2));
 
 		LoadListBox(m_armorlist, LoadArmorEntries(*Proj2));
 		LoadCombo(m_spellcast, LoadMagicEntries(*Proj2) + LoadAttackEntries(*Proj2));
 		m_spellcast.InsertString(0, "--None--");
-		LoadCombo(m_armortype, LoadArmorTypes(*Proj2));
+		LoadCombo(m_armortype, Labels2::LoadArmorTypes(*Proj2));
 		LoadCaptions(classlists, LoadClassEntries(*Proj2));
 
 		cur = -1;

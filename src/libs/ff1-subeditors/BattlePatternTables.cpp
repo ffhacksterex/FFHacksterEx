@@ -161,7 +161,7 @@ BOOL CBattlePatternTables::OnInitDialog()
 		for (co = 0; co < 120; co++)
 			PicFormation[co] = ConstPicFormation[co];
 
-		auto BackdropLabels = LoadBackdropLabels(*Proj2);
+		auto BackdropLabels = Labels2::LoadBackdropLabels(*Proj2);
 		for (co = 0; co < 16; co++)
 			m_backdrop.InsertString(co, BackdropLabels[co].name);
 		cur_backdrop = -1;

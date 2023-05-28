@@ -2,11 +2,13 @@
 
 #include "datanode.h"
 class CFFHacksterProject;
+class FFH2Project;
 
 class CEntriesLoader
 {
 public:
 	CEntriesLoader(CFFHacksterProject & proj);
+	CEntriesLoader(FFH2Project& proj);
 	virtual ~CEntriesLoader();
 
 	virtual void Init();
@@ -44,6 +46,41 @@ public:
 	virtual dataintnode LoadWeaponEntry(CFFHacksterProject & proj, int index, bool showindex = false);
 	virtual dataintnode LoadTreasureItemEntry(CFFHacksterProject & proj, int index, bool showindex = false);
 
+	// FFH2project versions
+	virtual dataintnodevector LoadTruncatedDialogueEntries(FFH2Project& proj, int maxlength, bool showindex = false);
+	virtual dataintnodevector LoadArmorEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadAttackEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadBattleMessageEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadClassEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadDialogueEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadDialogueShortEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadEnemyEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadGoldEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadItemEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadMagicEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadOutOfBattleMagicEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadPotionEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadWeaponEntries(FFH2Project& proj, bool showindex = false);
+	virtual dataintnodevector LoadTreasureItemEntries(FFH2Project& proj, bool showindex = false);
+
+	virtual dataintnode LoadTruncatedDialogueEntry(FFH2Project& proj, int index, int maxlength, bool showindex = false);
+	virtual dataintnode LoadArmorEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadAttackEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadBattleMessageEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadClassEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadDialogueEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadDialogueShortEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadEnemyEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadGoldEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadItemEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadItemHardcodedEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadMagicEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadOutOfBattleMagicEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadPotionEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadWeaponEntry(FFH2Project& proj, int index, bool showindex = false);
+	virtual dataintnode LoadTreasureItemEntry(FFH2Project& proj, int index, bool showindex = false);
+
 protected:
 	CFFHacksterProject & m_proj;
+	FFH2Project& m_prj2;
 };

@@ -1,12 +1,15 @@
 #pragma once
 
 #define SWITCH_OLDFFH_PTR_CHECK(p) if ((p) != nullptr) throw std::runtime_error(__FUNCTION__ ": Switch editor\nfrom CFFHacksterProject\nto FFH2Project (Proj2)");
-
-//#define STOP_USING_CFFHACKSTERPROJ throw std::runtime_error(__FILE__ "(" + std::to_string(__LINE__) + "): " __FUNCTION__ " - switch to using FFH2Project")
-//#define MUST_SPECIFY_PROJECT(ed) std::runtime_error(std::string(ed) + " must specify a project.")
-
 #define MUST_SPECIFY_PROJECT(proj,edName) if (proj == nullptr) std::runtime_error(std::string(edName) + " must specify a project.")
 
+#ifndef THROW_FFPROJECT_ERROR
+#define THROW_FFPROJECT_ERROR std::runtime_error(__FILE__ "(" + std::to_string(__LINE__) + "): " __FUNCTION__ " - switch to using FFH2Project")
+#endif
+
+#define FFH_THROW_OLD_FFHACKSTERPROJ(p) SWITCH_OLDFFH_PTR_CHECK((p))
+#define FFH_THROW_NULL_PROJECT(proj,edName) MUST_SPECIFY_PROJECT((proj),(edName))
+#define FFH_SWITCH_TO_FFH2 THROW_FFPROJECT_ERROR
 
 #include "FFHSettingValue.h"
 #include "FFHDataValue.h"
@@ -60,10 +63,12 @@ enum ProjectEditorModuleEntryType
 struct ProjectEditorModuleEntry //TODO- rename, maybe ProjectExtensionEntry?
 {
 	std::string id;
-	std::string slotName;
+	std::string slotName; //TODO - rename this to just name?
 	std::string sourcePath;
 	ProjectEditorModuleEntryType type;
 	std::map<std::string, FFHSettingValue> settings;
+
+	FFHSettingValue& GetSetting(const std::string& name);
 };
 
 struct ProjectEditorModules
@@ -94,15 +99,18 @@ struct ProjectDialogueLabel
 struct ProjectDialogueElement
 {
 	std::string type;
-	std::string hexoffset;  // offset from the handler's bankaddr in hex, 0x12ABC
+	std::string hexoffset;  // offset from the handler's bankaddr in hex, 0x12ABC //TODO - rename to bank offset and type as int
 	int paramindex;         // -1 if hardcoded
 	std::string comment;
+
+	bool isHardcoded() const { return type.find("hc") == 0; }
 };
 
 struct ProjectDialogueTalkHandler
 {
+	std::string name;
 	std::string desc;
-	std::string bankaddr;   // addr format, e.g. $12AB
+	std::string bankaddr;   // addr format, e.g. $12AB //TODO - change to int and define to_json/from_json for this struct
 	std::vector<ProjectDialogueElement> elements;
 };
 
@@ -152,23 +160,34 @@ public:
 	void Load(std::string projectpath);
 	void Save(std::string altenateprojectpath = "");
 
-	// Non-serialized members (Runtime-only)
+	// === Non-serialized members (Runtime-only)
 	std::string ProjectPath;
 	std::string ProjectFolder;
 	std::string WorkRomPath;
 	AppSettings* AppSettings = nullptr;
 	std::map<std::string, int> m_varmap;
-	//TODO - wrap/hide these if possible
+	//TODO - wrap/hide these imagelists if possible
 	//--
 	FFHImages Finger; //TODO - either move this out or add a copy ctor...
-	std::vector<CImageList*> m_vstandardtiles;
+
+	//TODO - do these images lists have to be part of the project? or can they live in the respective editors and
+	//		initialize on edit? Overworld tiles does exactly that every time it loads.
+	std::vector<FFHImages> m_vstandardtiles;
+	FFHImages m_overworldtiles;
 	//--
+
+	enum { FOLLOWUPS = 0x80 };
+	BYTE TeleportFollowup[FOLLOWUPS][3] = { 0 };
+	BYTE curFollowup = 0;
+	BYTE maxFollowup = 0;
+	std::vector<bool> OK_tiles;
+	bool OK_overworldtiles = false;
 
 	std::vector<unsigned char> ROM;
 	//AsmFileSet AsmFiles; //TODO - not used yet
 
 	//TODO - make these a separate class, e.g. FFH2ProjectData? ROM and ASM files aren't serialized with it
-	// Serialized members
+	// === Serialized members
 	ProjectHeader ffheader;
 	ProjectInfo info;
 	ProjectStrings strings;
@@ -182,13 +201,22 @@ public:
 	// Methods
 	bool IsRom() const;
 	bool IsAsm() const;
-	const std::string* GetTable(int index);
+	std::string* GetTable(int index);
 	bool ClearROM();
 	void LoadROM();
 	void SaveROM();
 	bool UpdateVarsAndConstants();
+	void ReTintPalette();
+
+	FFHDataValue& GetValue(const std::string& name);
+	ProjectEditorModuleEntry& GetModule(const std::string& name);
+	ProjectDialogueTalkHandler& GetHandler(const std::string& name);
+
+	CImageList& GetStandardTiles(size_t index, bool showrooms);
+	CImageList& GetStandardTiles(size_t index, int showroomsindex);
 
 private:
 	void LoadFinger();
+	void InitMapVars();
 	void DeleteStandardTiles();
 };

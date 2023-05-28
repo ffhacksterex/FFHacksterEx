@@ -83,6 +83,16 @@ namespace Ui
 	void ReplaceString(CComboBox& box, int index, CString newstring);
 	void ReplaceString(CListBox& box, int index, CString newstring);
 
+	namespace ffh2
+	{
+		void AddEntry(CComboBox& box, const std::string& string, DWORD_PTR data);
+		void AddEntry(CListBox& box, const std::string& string, DWORD_PTR data);
+		void InsertEntry(CComboBox& box, int index, const std::string& string, DWORD_PTR data);
+		void InsertEntry(CListBox& box, int index, const std::string& string, DWORD_PTR data);
+		void ReplaceString(CComboBox& box, int index, const std::string& newstring);
+		void ReplaceString(CListBox& box, int index, const std::string& newstring);
+	}
+
 	CString GetItemText(CListBox& box, int index);
 
 	int FindIndexByData(CComboBox & box, DWORD_PTR data);
@@ -194,3 +204,5 @@ namespace Ui
 
 	int MultiplyIf(bool condition, int multiplier);
 }
+
+namespace Ui2 = Ui::ffh2;

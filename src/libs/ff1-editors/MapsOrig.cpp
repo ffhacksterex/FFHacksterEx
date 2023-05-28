@@ -343,12 +343,12 @@ BOOL CMapsOrig::OnInitDialog()
 
 		LoadCombo(m_tcitem_list, Enloader->LoadTreasureItemEntries(*cart, true));
 
-		LoadListBox(m_maplist, LoadMapLabels(*cart));
+		LoadListBox(m_maplist, Labels2::LoadMapLabels(*Proj2));
 		for (auto wnd : { &m_battle1, &m_battle2, &m_battle3,&m_battle4,&m_battle5,&m_battle6,&m_battle7,&m_battle8 })
 			LoadCombo(*wnd, LoadBattleLabels(*cart));
 
-		CSpriteDialogueSettings dlgstgs(*cart);
-		LoadCombo(m_text_list, (dlgstgs.ShowActualText ? LoadGameTextEntries : LoadTextLabels)(*cart, true));
+		CSpriteDialogueSettings dlgstgs(*Proj2);
+		LoadCombo(m_text_list, (dlgstgs.ShowActualText ? LoadGameTextEntries(*Proj2, true) : Labels2::LoadTextLabels(*Proj2, true)));
 
 		LoadCombo(m_tileset, LoadTilesetLabels(*cart));
 		LoadCombo(m_fight_list, LoadBattleLabels(*cart));

@@ -4,7 +4,6 @@
 #include "general_functions.h"
 #include "io_functions.h"
 #include "logging_functions.h"
-#include "string_conversions.hpp"
 #include "string_functions.h"
 #include <afxole.h>
 #include <afxdlgs.h>
@@ -12,6 +11,9 @@
 #include <fstream>
 #include <iterator>
 #include <filesystem>
+
+using ffh::str::tomfc;
+using ffh::str::tostd;
 
 //STDFILESYS - several issues:
 // 1) While microsoft maintains that VC++ Platform Toolset v141_xp (VC++ 2017) supports XP,

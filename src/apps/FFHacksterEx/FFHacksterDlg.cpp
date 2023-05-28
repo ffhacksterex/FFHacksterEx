@@ -18,7 +18,6 @@
 #include <io_functions.h>
 #include <LoadLibraryHandleScope.h>
 #include <ram_value_functions.h>
-#include <string_conversions.hpp>
 #include <string_functions.h>
 #include <ui_helpers.h>
 #include <ui_prompts.h>
@@ -65,6 +64,8 @@
 #include <MapsOrig.h>
 #include <OverworldMapOrig.h>
 
+using ffh::str::tomfc; //REMOVE - scope these names below
+using ffh::str::tostd;
 
 using namespace Imaging;
 using namespace Io;
@@ -332,14 +333,14 @@ void CFFHacksterDlg::EditSpriteDialogue(CString action, CString params)
 {
 	try {
 		if (action == "edit") {
-			CSpriteDialogue2 dlg(m_proj, this);
-			dlg.Project = &m_proj;
+			CSpriteDialogue2 dlg(this);
+			dlg.Proj2 = &m_prj2;
 			dlg.Enloader = &m_loader;
 			dlg.DoModal();
 		}
 		else if (action == "rclick") {
 			CSpriteDialogueSettingsDlg dlg(this);
-			dlg.m_proj = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 	}
