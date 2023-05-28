@@ -22,7 +22,7 @@ namespace ffh
 		{
 		}
 
-		FFHSettingValue& SettingValueAccessor::FindValue(const std::string& name) const
+		FFHSetting& SettingValueAccessor::FindValue(const std::string& name) const
 		{
 			auto it = m_module.settings.find(name);
 			if (it == end(m_module.settings))

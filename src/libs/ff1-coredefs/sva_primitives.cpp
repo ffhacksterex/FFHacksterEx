@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "sva_primitives.h"
-#include "FFHSettingValue.h"
+#include "FFHSetting.h"
 #include "SettingValueAccessor.h"
 #include <set>
 
@@ -9,7 +9,7 @@ namespace ffh
 	namespace fda
 	{
 
-		FFHSettingValue& operator>>(FFHSettingValue& stg, bool& value)
+		FFHSetting& operator>>(FFHSetting& stg, bool& value)
 		{
 			if (stg.type != "bool")
 				THROW_SVA_TYPE_ERROR(stg.name, stg.type, "bool");
@@ -18,7 +18,7 @@ namespace ffh
 			return stg;
 		}
 
-		FFHSettingValue& operator<<(FFHSettingValue& stg, const bool& value)
+		FFHSetting& operator<<(FFHSetting& stg, const bool& value)
 		{
 			if (stg.type != "bool")
 				THROW_SVA_TYPE_ERROR(stg.name, "bool", stg.type);
@@ -31,7 +31,7 @@ namespace ffh
 			std::set<std::string> s_intTypes = { "int", "hex", "addr", "rgb" };
 		}
 
-		FFHSettingValue& operator>>(FFHSettingValue& stg, int& value)
+		FFHSetting& operator>>(FFHSetting& stg, int& value)
 		{
 			if (s_intTypes.find(stg.type) == cend(s_intTypes))
 				THROW_SVA_TYPE_ERROR(stg.name, stg.type, "int");
@@ -40,7 +40,7 @@ namespace ffh
 			return stg;
 		}
 
-		FFHSettingValue& operator<<(FFHSettingValue& stg, const int& value)
+		FFHSetting& operator<<(FFHSetting& stg, const int& value)
 		{
 			if (s_intTypes.find(stg.type) == cend(s_intTypes))
 				THROW_SVA_TYPE_ERROR(stg.name, "int", stg.type);
@@ -51,7 +51,7 @@ namespace ffh
 			return stg;
 		}
 
-		FFHSettingValue& operator>>(FFHSettingValue& stg, std::string& value)
+		FFHSetting& operator>>(FFHSetting& stg, std::string& value)
 		{
 			if (stg.type != "str")
 				THROW_SVA_TYPE_ERROR(stg.name, stg.type, "str");
@@ -60,7 +60,7 @@ namespace ffh
 			return stg;
 		}
 
-		FFHSettingValue& operator<<(FFHSettingValue& stg, const std::string& value)
+		FFHSetting& operator<<(FFHSetting& stg, const std::string& value)
 		{
 			if (stg.type != "str")
 				THROW_SVA_TYPE_ERROR(stg.name, "str", stg.type);

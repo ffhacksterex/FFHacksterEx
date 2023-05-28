@@ -11,11 +11,11 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ProjectEditorModuleEntryType, {
 	});
 
 
-//=== FFHSettingValue
-extern void to_json(ojson& j, const FFHSettingValue& p);
-extern void from_json(const ojson& j, FFHSettingValue& p);
-extern void to_json(ujson& j, const FFHSettingValue& p);
-extern void from_json(const ujson& j, FFHSettingValue& p);
+//=== FFHSetting
+extern void to_json(ojson& j, const FFHSetting& p);
+extern void from_json(const ojson& j, FFHSetting& p);
+extern void to_json(ujson& j, const FFHSetting& p);
+extern void from_json(const ujson& j, FFHSetting& p);
 
 
 //=== FFHDataValue

@@ -1,19 +1,19 @@
 #pragma once
 
-struct FFHSettingValue;
+struct FFHSetting;
 
 namespace ffh
 {
 	namespace fda //TODO - rename to fda (field data accessors)
 	{
-		FFHSettingValue& operator>>(FFHSettingValue& stg, bool& value);
-		FFHSettingValue& operator<<(FFHSettingValue& stg, const bool& value);
+		FFHSetting& operator>>(FFHSetting& stg, bool& value);
+		FFHSetting& operator<<(FFHSetting& stg, const bool& value);
 
-		FFHSettingValue& operator>>(FFHSettingValue& stg, int& value);
-		FFHSettingValue& operator<<(FFHSettingValue& stg, const int& value);
+		FFHSetting& operator>>(FFHSetting& stg, int& value);
+		FFHSetting& operator<<(FFHSetting& stg, const int& value);
 
-		FFHSettingValue& operator>>(FFHSettingValue& stg, std::string& value);
-		FFHSettingValue& operator<<(FFHSettingValue& stg, const std::string& value);
+		FFHSetting& operator>>(FFHSetting& stg, std::string& value);
+		FFHSetting& operator<<(FFHSetting& stg, const std::string& value);
 	}
 
 }

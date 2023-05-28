@@ -22,7 +22,7 @@ using ffh::str::tostd;
 
 // === Structure members
 
-FFHSettingValue& ProjectEditorModuleEntry::GetSetting(const std::string& name)
+FFHSetting& ProjectEditorModuleEntry::GetSetting(const std::string& name)
 {
 	auto it = settings.find(name);
 	if (it == cend(settings))
@@ -452,8 +452,8 @@ namespace // unnamed
 // Conversions to and from JSON (in this case, ordered_json)
 // Declared externally in the json header above.
 
-//=== FFHSettingValue extern functions //TODO- move these out of this class?
-void to_json(ojson& j, const FFHSettingValue& p)
+//=== FFHSetting extern functions //TODO- move these out of this class?
+void to_json(ojson& j, const FFHSetting& p)
 {
 	auto jdata = FieldToJson<ojson>(p.type, p.data);
 	j = ojson{
@@ -463,7 +463,7 @@ void to_json(ojson& j, const FFHSettingValue& p)
 	};
 }
 
-void from_json(const ojson& j, FFHSettingValue& p)
+void from_json(const ojson& j, FFHSetting& p)
 {
 	ojson jdata;
 	j.at("type").get_to(p.type);
@@ -472,7 +472,7 @@ void from_json(const ojson& j, FFHSettingValue& p)
 	p.data = JsonToField(jdata);
 }
 
-void to_json(ujson& j, const FFHSettingValue& p)
+void to_json(ujson& j, const FFHSetting& p)
 {
 	auto jdata = FieldToJson<ujson>(p.type, p.data);
 	j = ujson{
@@ -482,7 +482,7 @@ void to_json(ujson& j, const FFHSettingValue& p)
 	};
 }
 
-void from_json(const ujson& j, FFHSettingValue& p)
+void from_json(const ujson& j, FFHSetting& p)
 {
 	ujson jdata;
 	j.at("type").get_to(p.type);

@@ -1,7 +1,7 @@
 #pragma once
 
 class FFH2Project;
-struct FFHSettingValue;
+struct FFHSetting;
 struct ProjectEditorModuleEntry;
 
 namespace ffh
@@ -9,7 +9,7 @@ namespace ffh
 	namespace fda
 	{
 
-		// Use extraction >> and insertion << operators on FFHSettingValue
+		// Use extraction >> and insertion << operators on FFHSetting
 		// to convert data types instead of type casrs.
 		// Requires defining the required operator in either namespace or global scope
 		// for the types involved.
@@ -21,7 +21,7 @@ namespace ffh
 		public:
 			SettingValueAccessor(FFH2Project& proj, const std::string& modulename);
 
-			FFHSettingValue& FindValue(const std::string& name) const;
+			FFHSetting& FindValue(const std::string& name) const;
 
 			template <typename T>
 			T get(const std::string& name)

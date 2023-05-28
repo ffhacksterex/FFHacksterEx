@@ -11,7 +11,7 @@
 #define FFH_THROW_NULL_PROJECT(proj,edName) MUST_SPECIFY_PROJECT((proj),(edName))
 #define FFH_SWITCH_TO_FFH2 THROW_FFPROJECT_ERROR
 
-#include "FFHSettingValue.h"
+#include "FFHSetting.h"
 #include "FFHDataValue.h"
 #include "FFHImages.h"
 #include "pair_result.h"
@@ -66,9 +66,9 @@ struct ProjectEditorModuleEntry //TODO- rename, maybe ProjectExtensionEntry?
 	std::string slotName; //TODO - rename this to just name?
 	std::string sourcePath;
 	ProjectEditorModuleEntryType type;
-	std::map<std::string, FFHSettingValue> settings;
+	std::map<std::string, FFHSetting> settings;
 
-	FFHSettingValue& GetSetting(const std::string& name);
+	FFHSetting& GetSetting(const std::string& name);
 };
 
 struct ProjectEditorModules
