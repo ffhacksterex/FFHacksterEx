@@ -810,6 +810,8 @@ namespace {
 	template <class ODLG, class NDLG>
 	void RunMapScreenLoop(CWnd & parent, CFFHacksterProject & proj, ODLG& dlg, NDLG& ndlg, bool OV)
 	{
+		FFH_SWITCH_TO_FFH2;
+
 		bool teleport = 0;
 		bool loop = true;
 		do {
@@ -845,7 +847,7 @@ namespace {
 void CFFHacksterDlg::GoToMapScreen(bool OV)
 {
 	COverworldMapOrig dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	CMapsOrig ndlg;
 	ndlg.Project = &m_proj;
 	ndlg.Enloader = &m_loader;
@@ -856,7 +858,7 @@ void CFFHacksterDlg::GoToMapScreen(bool OV)
 void CFFHacksterDlg::GoToNewMapScreen(bool OV)
 {
 	COverworldMap dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	CMaps ndlg;
 	ndlg.Project = &m_proj;
 	ndlg.Enloader = &m_loader;
@@ -932,7 +934,7 @@ void CFFHacksterDlg::OnMagic()
 void CFFHacksterDlg::OnShop()
 {
 	CShop dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.Enloader = &m_loader;
 	dlg.DoModal();
 }
@@ -949,7 +951,7 @@ void CFFHacksterDlg::OnText()
 void CFFHacksterDlg::OnWeapon() 
 {
 	CWeapon dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
@@ -961,7 +963,7 @@ void CFFHacksterDlg::OnDialogue()
 void CFFHacksterDlg::OnStartingItems()
 {
 	CStartingItems dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
@@ -988,14 +990,14 @@ void CFFHacksterDlg::OnLocalMap()
 void CFFHacksterDlg::OnPartySetup()
 {
 	CPartySetup dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
 void CFFHacksterDlg::OnImportHacksterDAT()
 {
 	CDlgImport dlg(this);
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
@@ -1196,6 +1198,8 @@ LRESULT CFFHacksterDlg::OnFfeditRclick(WPARAM wparam, LPARAM lparam)
 
 void CFFHacksterDlg::EditProjectLabels()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	Paths::FilePathRestorer fprestore(m_proj.StringsPath);
 	ASSERT(fprestore.CanSave());
 
@@ -1207,6 +1211,8 @@ void CFFHacksterDlg::EditProjectLabels()
 
 void CFFHacksterDlg::EditProjectValues()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	Paths::FilePathRestorer fprestore(m_proj.ValuesPath);
 	ASSERT(fprestore.CanSave());
 
@@ -1221,6 +1227,8 @@ void CFFHacksterDlg::EditProjectValues()
 
 void CFFHacksterDlg::EditProjectRamValues()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	Paths::FilePathRestorer fprestore(m_proj.ValuesPath);
 	ASSERT(fprestore.CanSave());
 
@@ -1254,6 +1262,8 @@ void CFFHacksterDlg::EditAppSettings()
 
 void CFFHacksterDlg::EditProjectSettings()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	CDlgProjectSettings dlg(this);
 	dlg.m_proj = &m_proj;
 	dlg.ShowBackgroundArt = AppStgs->ShowBackgroundArt;
@@ -1264,6 +1274,8 @@ void CFFHacksterDlg::EditProjectSettings()
 
 void CFFHacksterDlg::EditProjectEditorsList()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	//N.B. - if an exception is thrown here, catching it renders the CDialog unresponsive AND leaks memory
 	//		when the object is destroyed. Not sure why the derived-class destructors aren't being called
 	//		yet, but that's the apparent reason. Exceptions in these diallogs will currently terminate
@@ -1288,6 +1300,8 @@ void CFFHacksterDlg::EditProjectEditorsList()
 
 void CFFHacksterDlg::OnCloneProject()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	CDlgPickNamedDestination pick(this);
 	pick.Title = "Clone Project";
 	pick.Blurb = "Select a parent folder to host the cloned project folder.\n"
@@ -1319,6 +1333,8 @@ void CFFHacksterDlg::OnCloneProject()
 
 void CFFHacksterDlg::OnArchiveProject()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	if (!m_proj.IsAsm() && !m_proj.IsRom()) {
 		AfxMessageBox("The project type does not support archiving.", MB_ICONERROR);
 		return;

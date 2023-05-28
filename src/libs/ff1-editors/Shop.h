@@ -2,7 +2,6 @@
 // Shop.h : header file
 
 #include <EditorWithBackground.h>
-class CFFHacksterProject;
 class CEntriesLoader;
 
 /////////////////////////////////////////////////////////////////////////////
