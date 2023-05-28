@@ -4,8 +4,8 @@
 #include "FFH2Project.h"
 #include "asmdll_impl.h"
 #include "collection_helpers.h"
-#include "DataValueAccessor.h"
-#include "dva_std_collections.h"
+#include "ValueDataAccessor.h"
+#include "vda_std_collections.h"
 #include "dialogue_helpers.h"
 #include "general_functions.h"
 #include "ini_functions.h"
@@ -32,7 +32,6 @@ using namespace Io;
 using namespace regex_helpers;
 using namespace std_assembly::shared;
 using namespace Strings;
-using ffh::fda::DataValueAccessor;
 
 namespace {
 	CFFHacksterProject ffdummy;
@@ -437,7 +436,7 @@ stdstringset GameSerializer::read_varnames()
 	stdstringset theset;
 
 	// Read the ram values into the string set (specified  in RAM_NAMES)
-	DataValueAccessor d(m_prj2);
+	ffh::acc::ValueDataAccessor d(m_prj2);
 	auto ramnames = d.get<std::vector<std::string>>("RAM_NAMES");
 	for (const auto& name : ramnames) theset.insert(name);
 
@@ -455,7 +454,7 @@ stdstringset GameSerializer::read_varnames()
 stdstringvector GameSerializer::read_prefixes()
 {
 	// Load in the prefix lists (from PREFIX_FILTER)
-	DataValueAccessor d(m_prj2);
+	ffh::acc::ValueDataAccessor d(m_prj2);
 	return d.get<std::vector<std::string>>("PREFIX_FILTER");
 }
 

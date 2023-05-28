@@ -310,7 +310,7 @@ namespace {
 		{
 			if (exclusions.find(section) != cend(exclusions)) continue;
 
-			FFHDataValue& f = (p.values.entries[(LPCSTR)section] = {});
+			FFHValue& f = (p.values.entries[(LPCSTR)section] = {});
 			f.name = (LPCSTR)section;
 			f.desc = Ini::ReadIni(valpath, section, "desc", "");
 			f.label = Ini::ReadIni(valpath, section, "label", "");

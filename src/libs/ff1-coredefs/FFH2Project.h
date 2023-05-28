@@ -11,8 +11,8 @@
 #define FFH_THROW_NULL_PROJECT(proj,edName) MUST_SPECIFY_PROJECT((proj),(edName))
 #define FFH_SWITCH_TO_FFH2 THROW_FFPROJECT_ERROR
 
-#include "FFHSettingValue.h"
-#include "FFHDataValue.h"
+#include "FFHSetting.h"
+#include "FFHValue.h"
 #include "FFHImages.h"
 #include "pair_result.h"
 #include <string>
@@ -66,9 +66,9 @@ struct ProjectEditorModuleEntry //TODO- rename, maybe ProjectExtensionEntry?
 	std::string slotName; //TODO - rename this to just name?
 	std::string sourcePath;
 	ProjectEditorModuleEntryType type;
-	std::map<std::string, FFHSettingValue> settings;
+	std::map<std::string, FFHSetting> settings;
 
-	FFHSettingValue& GetSetting(const std::string& name);
+	FFHSetting& GetSetting(const std::string& name);
 };
 
 struct ProjectEditorModules
@@ -79,7 +79,7 @@ struct ProjectEditorModules
 
 struct ProjectValues
 {
-	std::map<std::string, FFHDataValue> entries;
+	std::map<std::string, FFHValue> entries;
 };
 
 struct ProjectDialogueElemTypeDesc
@@ -208,7 +208,7 @@ public:
 	bool UpdateVarsAndConstants();
 	void ReTintPalette();
 
-	FFHDataValue& GetValue(const std::string& name);
+	FFHValue& GetValue(const std::string& name);
 	ProjectEditorModuleEntry& GetModule(const std::string& name);
 	ProjectDialogueTalkHandler& GetHandler(const std::string& name);
 

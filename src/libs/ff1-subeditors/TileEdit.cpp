@@ -8,8 +8,6 @@
 #include "FFHacksterProject.h"
 #include <core_exceptions.h>
 #include <FFH2Project.h>
-#include <DataValueAccessor.h>
-#include <dva_primitives.h>
 #include "DRAW_STRUCT.h"
 #include "draw_functions.h"
 #include "general_functions.h"
@@ -17,6 +15,8 @@
 #include "ini_functions.h"
 #include "io_functions.h"
 #include <ui_helpers.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 #include "AsmFiles.h"
 #include "GameSerializer.h"
 
@@ -48,7 +48,7 @@ void CTileEdit::DoDataExchange(CDataExchange* pDX)
 
 void CTileEdit::LoadRom()
 {
-	ffh::fda::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	OVERWORLDPALETTE_ASSIGNMENT = d.get<int>("OVERWORLDPALETTE_ASSIGNMENT");
 	OVERWORLDPALETTE_OFFSET = d.get<int>("OVERWORLDPALETTE_OFFSET");
 	OVERWORLDPATTERNTABLE_ASSIGNMENT = d.get<int>("OVERWORLDPATTERNTABLE_ASSIGNMENT");

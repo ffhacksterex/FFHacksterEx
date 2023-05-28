@@ -5,8 +5,6 @@
 #include "Attack.h"
 #include "AsmFiles.h"
 #include <core_exceptions.h>
-#include <DataValueAccessor.h>
-#include <dva_primitives.h>
 #include "editor_label_functions.h"
 #include <FFH2Project.h>
 #include "GameSerializer.h"
@@ -17,6 +15,8 @@
 #include "io_functions.h"
 #include "string_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Editorlabels;
 using namespace Imaging;
@@ -25,7 +25,6 @@ using namespace Ingametext;
 using namespace Io;
 using namespace Strings;
 using namespace Ui;
-using ffh::fda::DataValueAccessor;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -116,7 +115,7 @@ BOOL CAttack::OnInitDialog()
 
 void CAttack::LoadOffsets()
 {
-	DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	ATTACK_OFFSET = d.get<int>("ATTACK_OFFSET");
 	ATTACK_BYTES = d.get<int>("ATTACK_BYTES");
 	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");

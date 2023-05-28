@@ -2,8 +2,7 @@
 
 #include <string>
 
-//TODO - rename to FFHSetting
-struct FFHSettingValue
+struct FFHSetting
 {
 	std::string name;
 	std::string type;

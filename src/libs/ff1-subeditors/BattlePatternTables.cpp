@@ -6,7 +6,6 @@
 #include "BattlePatternTables.h"
 #include <core_exceptions.h>
 #include <AppSettings.h>
-#include <DataValueAccessor.h>
 #include <FFH2Project.h>
 #include "NESPalette.h"
 #include "general_functions.h"
@@ -18,8 +17,8 @@
 #include "GameSerializer.h"
 #include <editor_label_functions.h>
 #include <ui_helpers.h>
-#include <dva_primitives.h>
-#include <sva_primitives.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Editorlabels;
 using namespace Ini;
@@ -90,7 +89,7 @@ const BYTE ConstPicFormation[120] = {
 
 void CBattlePatternTables::LoadRom()
 {
-	ffh::fda::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	BATTLEPALETTE_OFFSET = d.get<int>("BATTLEPALETTE_OFFSET");
 	BATTLEPATTERNTABLE_OFFSET = d.get<int>("BATTLEPATTERNTABLE_OFFSET");
 	CHAOSPALETTE_TABLE = d.get<int>("CHAOSPALETTE_TABLE");

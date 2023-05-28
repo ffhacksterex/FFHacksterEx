@@ -2,8 +2,8 @@
 
 #include <string>
 
-//TODO - rename to FFHValue
-struct FFHDataValue {
+struct FFHValue
+{
 	std::string name;
 	std::string type;
 	std::string format;

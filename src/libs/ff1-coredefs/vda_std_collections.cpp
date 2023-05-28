@@ -1,21 +1,21 @@
 #include "stdafx.h"
-#include "dva_std_collections.h"
+#include "vda_std_collections.h"
 #include "cnv_std_collections.h"
-#include "FFHDataValue.h"
-#include "DataValueAccessor.h"
+#include "FFHValue.h"
+#include "ValueDataAccessor.h"
 #include <vector>
 #include <map>
 #include <array>
 
 namespace ffh
 {
-	namespace fda
+	namespace acc
 	{
 		namespace {
 			const std::string typeStrvec = "std::vector<std::string>";
 		}
 
-		const FFHDataValue& operator>>(const FFHDataValue& stg, std::vector<std::string>& value)
+		const FFHValue& operator>>(const FFHValue& stg, std::vector<std::string>& value)
 		{
 			const static std::string mytype = "str[]";
 			if (stg.type != mytype)
@@ -24,7 +24,7 @@ namespace ffh
 			value = cnv::to<std::string>(stg.data);
 			return stg;
 		}
-		FFHDataValue& operator<<(FFHDataValue& stg, const std::vector<std::string>& value)
+		FFHValue& operator<<(FFHValue& stg, const std::vector<std::string>& value)
 		{
 			const static std::string mytype = "str[]";
 			if (stg.type != mytype)

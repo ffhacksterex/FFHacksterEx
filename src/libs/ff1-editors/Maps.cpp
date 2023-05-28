@@ -35,8 +35,8 @@
 
 #include <SpriteDialogueSettings.h>
 #include "editors_common.h"
-#include <DataValueAccessor.h>
-#include <dva_primitives.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Editors;
 using namespace Editorlabels;
@@ -200,7 +200,7 @@ END_MESSAGE_MAP()
 
 void CMaps::LoadOffsets()
 {
-	ffh::fda::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	ITEMPRICE_OFFSET = d.get<int>("ITEMPRICE_OFFSET");
 	MAPSPRITEPATTERNTABLE_COUNT = d.get<int>("MAPSPRITEPATTERNTABLE_COUNT");
 	MAPSPRITEPATTERNTABLE_OFFSET = d.get<int>("MAPSPRITEPATTERNTABLE_OFFSET");

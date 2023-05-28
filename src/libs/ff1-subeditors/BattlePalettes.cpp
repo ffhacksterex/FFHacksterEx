@@ -4,12 +4,12 @@
 #include "stdafx.h"
 #include "resource_subeditors.h"
 #include "BattlePalettes.h"
-#include <DataValueAccessor.h>
-#include <dva_primitives.h>
 #include <FFH2Project.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "string_functions.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Ini;
 
@@ -53,7 +53,7 @@ BOOL CBattlePalettes::OnInitDialog()
 	SWITCH_OLDFFH_PTR_CHECK(Project);
 	MUST_SPECIFY_PROJECT(Proj2, "BattlePalettes subeditor");
 
-	ffh::fda::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	BATTLEPALETTE_OFFSET = d.get<int>("BATTLEPALETTE_OFFSET");
 
 	drawrect.left = 30;

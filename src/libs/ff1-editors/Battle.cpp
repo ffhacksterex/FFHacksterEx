@@ -5,12 +5,12 @@
 #include "Battle.h"
 
 #include "AsmFiles.h"
-#include <DataValueAccessor.h>
-#include <dva_primitives.h>
-#include <core_exceptions.h>
 #include <FFH2Project.h>
 #include <GameSerializer.h>
 
+#include <core_exceptions.h>
+#include "collection_helpers.h"
+#include "draw_functions.h"
 #include <editor_label_functions.h>
 #include "general_functions.h"
 #include "imaging_helpers.h"
@@ -19,9 +19,8 @@
 #include "io_functions.h"
 #include <string_conversions.hpp>
 #include "ui_helpers.h"
-
-#include "collection_helpers.h"
-#include "draw_functions.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 #include "NESPalette.h"
 #include "BattlePalettes.h"
@@ -39,7 +38,6 @@ using namespace Ingametext;
 using namespace Ini;
 using namespace Io;
 using namespace Ui;
-using ffh::fda::DataValueAccessor;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -394,7 +392,7 @@ void CBattle::LoadFiendChaosPic(int pattern_off,int palette_off,bool chaos)
 
 void CBattle::LoadOffsets()
 {
-	DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 
 	//TODO - Label sizes are currently unspecified since they are now freeform text
 	//	In the old FFHackster.DAT:

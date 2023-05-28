@@ -9,8 +9,8 @@
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
 #include <algorithm>
-#include <DataValueAccessor.h>
-#include <dva_primitives.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using ffh::str::tomfc;
 using ffh::str::tostd;
@@ -464,7 +464,7 @@ namespace Editorlabels
 
 		dataintnodevector LoadOnScreenSpriteLabels(FFH2Project& proj, bool showindex)
 		{
-			ffh::fda::DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			int count = d.get<int>("MAPSPRITE_COUNT");
 			if (count == 0) return dataintnodevector();
 
@@ -528,7 +528,7 @@ namespace Editorlabels
 
 		dataintnode LoadOnScreenSpriteLabel(FFH2Project& proj, int index, bool showindex)
 		{
-			ffh::fda::DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			int count = d.get<int>("MAPSPRITE_COUNT");
 
 			ASSERT(count > 0);

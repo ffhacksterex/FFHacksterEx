@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "Mapman.h"
 #include "NESPalette.h"
-#include <DataValueAccessor.h>
-#include <dva_primitives.h>
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
 #include <AppSettings.h>
@@ -15,6 +13,8 @@
 #include "string_functions.h"
 #include "draw_functions.h"
 #include <ui_helpers.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 #include "AsmFiles.h"
 #include "GameSerializer.h"
 
@@ -66,7 +66,7 @@ const BYTE ConstPicFormation[16] = {
 
 void CMapman::LoadRom()
 {
-	ffh::fda::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	OVERWORLDPALETTE_OFFSET = d.get<int>("OVERWORLDPALETTE_OFFSET");
 	MAPMANPALETTE_OFFSET = d.get<int>("MAPMANPALETTE_OFFSET");
 	BANK00_OFFSET = d.get<int>("BANK00_OFFSET");

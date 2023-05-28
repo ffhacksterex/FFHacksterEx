@@ -132,19 +132,10 @@
     <ClCompile Include="Upgrades_ini.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataValueAccessor.cpp">
+    <ClCompile Include="ValueDataAccessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SettingValueAccessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dva_primitives.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dva_std_collections.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sva_primitives.cpp">
+    <ClCompile Include="SettingDataAccessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FFHImages.cpp">
@@ -157,6 +148,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="collection_conversions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vda_std_collections.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -378,31 +372,19 @@
     <ClInclude Include="conditional_build_symbols.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataValueAccessor.h">
+    <ClInclude Include="ValueDataAccessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FFHDataValue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FFHSettingValue.h">
+    <ClInclude Include="FFHValue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core_exceptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SettingValueAccessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dva_primitives.h">
+    <ClInclude Include="SettingDataAccessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cnv_std_collections.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dva_std_collections.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sva_primitives.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FFHImages.h">
@@ -415,6 +397,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="collection_conversions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FFHSetting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vda_std_collections.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

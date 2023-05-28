@@ -1,28 +1,26 @@
 #include "stdafx.h"
 #include "FFH2Project.h"
-#include "DataValueAccessor.h"
 #include "FFH2Project_IniToJson_Defs.hpp"
 #include "GameSerializer.h"
 #include "ini_functions.h"
 #include "io_functions.h"
 #include "path_functions.h"
 #include "AsmFiles.h"
-#include "dva_primitives.h"
-#include "dva_std_collections.h"
 #include "string_functions.h"
+#include "ValueDataAccessor.h"
+#include "vda_std_collections.h"
 
 #include <functional>
 #include <fstream>
 #include <iomanip>
 #include <map>
 
-using ffh::fda::DataValueAccessor;
 using ffh::str::tomfc;
 using ffh::str::tostd;
 
 // === Structure members
 
-FFHSettingValue& ProjectEditorModuleEntry::GetSetting(const std::string& name)
+FFHSetting& ProjectEditorModuleEntry::GetSetting(const std::string& name)
 {
 	auto it = settings.find(name);
 	if (it == cend(settings))
@@ -199,7 +197,7 @@ std::string* FFH2Project::GetTable(int index)
 
 void FFH2Project::InitMapVars()
 {
-	DataValueAccessor d(*this);
+	ffh::acc::ValueDataAccessor d(*this);
 	auto MAP_COUNT = d.get<int>("MAP_COUNT");
 	OK_overworldtiles = false;
 	OK_tiles.resize(MAP_COUNT, false);
@@ -210,7 +208,7 @@ void FFH2Project::InitMapVars()
 
 bool FFH2Project::ClearROM()
 {
-	DataValueAccessor d(*this);
+	ffh::acc::ValueDataAccessor d(*this);
 	auto ROM_SIZE = d.get<int>("ROM_SIZE");
 	if (ROM_SIZE == 0)
 		throw std::runtime_error("ROM_SIZE shouldn't be 0");
@@ -240,7 +238,7 @@ bool FFH2Project::UpdateVarsAndConstants()
 		const std::string fieldName = "ROMINIT_VARNAMES_SECTIONS";
 		auto it = values.entries.find(fieldName);
 		if (it != cend(values.entries)) {
-			DataValueAccessor d(*this);
+			ffh::acc::ValueDataAccessor d(*this);
 			// Get the main list of entries
 			auto arr = d.get<std::vector<std::string>>(fieldName);
 			for (const auto& a : arr) {
@@ -267,7 +265,7 @@ bool FFH2Project::UpdateVarsAndConstants()
 
 void FFH2Project::ReTintPalette()
 {
-	ffh::fda::DataValueAccessor d(*this);
+	ffh::acc::ValueDataAccessor d(*this);
 	int TRANSPARENTCOLOR = d.get<int>("TRANSPARENTCOLOR");
 	int TRANSPARENTCOLORREPLACEMENT = d.get<int>("TRANSPARENTCOLORREPLACEMENT");
 
@@ -302,7 +300,7 @@ void FFH2Project::ReTintPalette()
 	}
 }
 
-FFHDataValue& FFH2Project::GetValue(const std::string& name)
+FFHValue& FFH2Project::GetValue(const std::string& name)
 {
 	//TODO - replace this copypasta with ffh::uti::find
 	auto it = values.entries.find(name);
@@ -360,7 +358,7 @@ void FFH2Project::LoadFinger()
 	auto oldbmp = mDC.SelectObject(&bmp);
 
 	try {
-		ffh::fda::DataValueAccessor s(*this);
+		ffh::acc::ValueDataAccessor s(*this);
 		auto FINGERGRAPHIC_OFFSET = s.get<int>("FINGERGRAPHIC_OFFSET");
 		auto CHARBATTLEPALETTE_OFFSET = s.get<int>("CHARBATTLEPALETTE_OFFSET");
 		ASSERT(FINGERGRAPHIC_OFFSET > 0);
@@ -452,8 +450,8 @@ namespace // unnamed
 // Conversions to and from JSON (in this case, ordered_json)
 // Declared externally in the json header above.
 
-//=== FFHSettingValue extern functions //TODO- move these out of this class?
-void to_json(ojson& j, const FFHSettingValue& p)
+//=== FFHSetting extern functions //TODO- move these out of this class?
+void to_json(ojson& j, const FFHSetting& p)
 {
 	auto jdata = FieldToJson<ojson>(p.type, p.data);
 	j = ojson{
@@ -463,7 +461,7 @@ void to_json(ojson& j, const FFHSettingValue& p)
 	};
 }
 
-void from_json(const ojson& j, FFHSettingValue& p)
+void from_json(const ojson& j, FFHSetting& p)
 {
 	ojson jdata;
 	j.at("type").get_to(p.type);
@@ -472,7 +470,7 @@ void from_json(const ojson& j, FFHSettingValue& p)
 	p.data = JsonToField(jdata);
 }
 
-void to_json(ujson& j, const FFHSettingValue& p)
+void to_json(ujson& j, const FFHSetting& p)
 {
 	auto jdata = FieldToJson<ujson>(p.type, p.data);
 	j = ujson{
@@ -482,7 +480,7 @@ void to_json(ujson& j, const FFHSettingValue& p)
 	};
 }
 
-void from_json(const ujson& j, FFHSettingValue& p)
+void from_json(const ujson& j, FFHSetting& p)
 {
 	ujson jdata;
 	j.at("type").get_to(p.type);
@@ -492,8 +490,8 @@ void from_json(const ujson& j, FFHSettingValue& p)
 }
 
 
-//=== FFHDataValue extern functions //TODO- move these out of this class?
-void to_json(ojson& j, const FFHDataValue& p)
+//=== FFHValue extern functions //TODO- move these out of this class?
+void to_json(ojson& j, const FFHValue& p)
 {
 	// Coming back to JSON, we have to rely on the incoming object to tell us
 	// when to put dquotes around strings.
@@ -514,7 +512,7 @@ void to_json(ojson& j, const FFHDataValue& p)
 		});
 }
 
-void from_json(const ojson& j, FFHDataValue& p)
+void from_json(const ojson& j, FFHValue& p)
 {
 	ThrowOnFailure(p.name, [&]() {
 		ojson jdata;
@@ -532,7 +530,7 @@ void from_json(const ojson& j, FFHDataValue& p)
 		});
 }
 
-void to_json(ujson& j, const FFHDataValue& p)
+void to_json(ujson& j, const FFHValue& p)
 {
 	ThrowOnFailure(p.name, [&]() {
 		auto jdata = FieldToJson<ujson>(p.type, p.data);
@@ -550,7 +548,7 @@ void to_json(ujson& j, const FFHDataValue& p)
 		});
 }
 
-void from_json(const ujson& j, FFHDataValue& p)
+void from_json(const ujson& j, FFHValue& p)
 {
 	ThrowOnFailure(p.name, [&]() {
 		ujson jdata;
