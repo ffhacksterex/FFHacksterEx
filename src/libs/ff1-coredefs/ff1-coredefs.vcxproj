@@ -275,7 +275,7 @@
     <ClInclude Include="FFH2Project.h" />
     <ClInclude Include="FFH2Project_IniToJson_Defs.hpp" />
     <ClInclude Include="FFHacksterProject.h" />
-    <ClInclude Include="FFHDataValue.h" />
+    <ClInclude Include="FFHValue.h" />
     <ClInclude Include="FFHSetting.h" />
     <ClInclude Include="FilePathRemover.h" />
     <ClInclude Include="FilePathRestorer.h" />

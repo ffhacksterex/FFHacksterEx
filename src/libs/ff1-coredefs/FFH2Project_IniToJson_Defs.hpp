@@ -18,11 +18,11 @@ extern void to_json(ujson& j, const FFHSetting& p);
 extern void from_json(const ujson& j, FFHSetting& p);
 
 
-//=== FFHDataValue
-extern void to_json(ojson& j, const FFHDataValue& p);
-extern void from_json(const ojson& j, FFHDataValue& p);
-extern void to_json(ujson& j, const FFHDataValue& p);
-extern void from_json(const ujson& j, FFHDataValue& p);
+//=== FFHValue
+extern void to_json(ojson& j, const FFHValue& p);
+extern void from_json(const ojson& j, FFHValue& p);
+extern void to_json(ujson& j, const FFHValue& p);
+extern void from_json(const ujson& j, FFHValue& p);
 
 
 //=== Ordered macro declarations

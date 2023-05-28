@@ -302,7 +302,7 @@ void FFH2Project::ReTintPalette()
 	}
 }
 
-FFHDataValue& FFH2Project::GetValue(const std::string& name)
+FFHValue& FFH2Project::GetValue(const std::string& name)
 {
 	//TODO - replace this copypasta with ffh::uti::find
 	auto it = values.entries.find(name);
@@ -492,8 +492,8 @@ void from_json(const ujson& j, FFHSetting& p)
 }
 
 
-//=== FFHDataValue extern functions //TODO- move these out of this class?
-void to_json(ojson& j, const FFHDataValue& p)
+//=== FFHValue extern functions //TODO- move these out of this class?
+void to_json(ojson& j, const FFHValue& p)
 {
 	// Coming back to JSON, we have to rely on the incoming object to tell us
 	// when to put dquotes around strings.
@@ -514,7 +514,7 @@ void to_json(ojson& j, const FFHDataValue& p)
 		});
 }
 
-void from_json(const ojson& j, FFHDataValue& p)
+void from_json(const ojson& j, FFHValue& p)
 {
 	ThrowOnFailure(p.name, [&]() {
 		ojson jdata;
@@ -532,7 +532,7 @@ void from_json(const ojson& j, FFHDataValue& p)
 		});
 }
 
-void to_json(ujson& j, const FFHDataValue& p)
+void to_json(ujson& j, const FFHValue& p)
 {
 	ThrowOnFailure(p.name, [&]() {
 		auto jdata = FieldToJson<ujson>(p.type, p.data);
@@ -550,7 +550,7 @@ void to_json(ujson& j, const FFHDataValue& p)
 		});
 }
 
-void from_json(const ujson& j, FFHDataValue& p)
+void from_json(const ujson& j, FFHValue& p)
 {
 	ThrowOnFailure(p.name, [&]() {
 		ujson jdata;

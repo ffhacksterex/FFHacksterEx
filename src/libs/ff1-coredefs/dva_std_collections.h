@@ -1,13 +1,13 @@
 #pragma once
-//#include "FFHDataValue.h"
-struct FFHDataValue;
+//#include "FFHValue.h"
+struct FFHValue;
 #include <vector>
 
 namespace ffh
 {
 	namespace fda
 	{
-		const FFHDataValue& operator>>(const FFHDataValue& stg, std::vector<std::string>& value);
-		FFHDataValue& operator<<(FFHDataValue& stg, const std::vector<std::string>& value);
+		const FFHValue& operator>>(const FFHValue& stg, std::vector<std::string>& value);
+		FFHValue& operator<<(FFHValue& stg, const std::vector<std::string>& value);
 	}
 }

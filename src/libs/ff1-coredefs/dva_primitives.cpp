@@ -9,7 +9,7 @@ namespace ffh
 	{
 		//TODO - figure out how to reduce this boilerplate
 
-		FFHDataValue& operator>>(FFHDataValue& stg, bool& value)
+		FFHValue& operator>>(FFHValue& stg, bool& value)
 		{
 			const static std::string mytype = "bool";
 			if (stg.type != mytype)
@@ -18,7 +18,7 @@ namespace ffh
 			value = (stg.data == "true");
 			return stg;
 		}
-		FFHDataValue& operator<<(FFHDataValue& stg, const bool& value)
+		FFHValue& operator<<(FFHValue& stg, const bool& value)
 		{
 			const static std::string mytype = "bool";
 			if (stg.type != mytype)
@@ -28,7 +28,7 @@ namespace ffh
 			return stg;
 		}
 
-		FFHDataValue& operator>>(FFHDataValue& stg, std::string& value)
+		FFHValue& operator>>(FFHValue& stg, std::string& value)
 		{
 			const static std::string mytype = "str";
 			if (stg.type != mytype)
@@ -37,7 +37,7 @@ namespace ffh
 			value = stg.data;
 			return stg;
 		}
-		FFHDataValue& operator<<(FFHDataValue& stg, const std::string& value)
+		FFHValue& operator<<(FFHValue& stg, const std::string& value)
 		{
 			const static std::string mytype = "str";
 			if (stg.type != mytype)
@@ -51,7 +51,7 @@ namespace ffh
 			const std::set<std::string> intTypes = { "int", "hex", "addr", "rgb" };
 		}
 
-		FFHDataValue& operator>>(FFHDataValue& stg, int& value)
+		FFHValue& operator>>(FFHValue& stg, int& value)
 		{
 			const static std::string mytype = "int";
 			if (intTypes.find(stg.type) == cend(intTypes))
@@ -60,7 +60,7 @@ namespace ffh
 			sscanf(stg.data.c_str(), stg.format.c_str(), &value);
 			return stg;
 		}
-		FFHDataValue& operator<<(FFHDataValue& stg, const int& value)
+		FFHValue& operator<<(FFHValue& stg, const int& value)
 		{
 			const static std::string mytype = "int";
 			if (intTypes.find(stg.type) == cend(intTypes))
@@ -72,7 +72,7 @@ namespace ffh
 			return stg;
 		}
 		//		template <>
-		//		inline int FromData(const FFHDataValue& value)
+		//		inline int FromData(const FFHValue& value)
 		//		{
 		//			static std::set<std::string> intTypes = { "int", "hex", "addr", "rgb" };
 		//			if (intTypes.find(value.type) != cend(intTypes))
@@ -87,7 +87,7 @@ namespace ffh
 		//		}
 		//
 		//		template <>
-		//		inline bool FromData(const FFHDataValue& value)
+		//		inline bool FromData(const FFHValue& value)
 		//		{
 		//			if (value.type == "bool")
 		//				return value.data == "true";

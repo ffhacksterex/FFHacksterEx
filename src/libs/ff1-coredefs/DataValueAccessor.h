@@ -7,8 +7,8 @@ namespace ffh
 	namespace fda
 	{
 		// FORWARD DECL
-		template <typename T> T FromData(const FFHDataValue& value);
-		//template <typename T> void ToData(FFHDataValue& value, const T& newvalue);
+		template <typename T> T FromData(const FFHValue& value);
+		//template <typename T> void ToData(FFHValue& value, const T& newvalue);
 
 		class DataValueAccessor //TODO - rename class and file to ValueDataAccessor
 		{
@@ -16,7 +16,7 @@ namespace ffh
 		public:
 			DataValueAccessor(FFH2Project& prj2);
 
-			FFHDataValue& FindValue(FFH2Project& prj2, const std::string& name) const;
+			FFHValue& FindValue(FFH2Project& prj2, const std::string& name) const;
 
 			template <typename T>
 			T get(const std::string& name) const
@@ -52,7 +52,7 @@ namespace ffh
 
 		// DEFAULT IMPLEMENTATION
 		template <typename T>
-		T FromData(const FFHDataValue& value)
+		T FromData(const FFHValue& value)
 		{
 			//return (T)value.data;
 			T data{};
@@ -61,7 +61,7 @@ namespace ffh
 		}
 
 		//template <typename T>
-		//void ToData(FFHDataValue& value, const T& newvalue)
+		//void ToData(FFHValue& value, const T& newvalue)
 		//{
 		//	value.data = (std::string)newvalue;
 		//}

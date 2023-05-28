@@ -12,7 +12,7 @@
 #define FFH_SWITCH_TO_FFH2 THROW_FFPROJECT_ERROR
 
 #include "FFHSetting.h"
-#include "FFHDataValue.h"
+#include "FFHValue.h"
 #include "FFHImages.h"
 #include "pair_result.h"
 #include <string>
@@ -79,7 +79,7 @@ struct ProjectEditorModules
 
 struct ProjectValues
 {
-	std::map<std::string, FFHDataValue> entries;
+	std::map<std::string, FFHValue> entries;
 };
 
 struct ProjectDialogueElemTypeDesc
@@ -208,7 +208,7 @@ public:
 	bool UpdateVarsAndConstants();
 	void ReTintPalette();
 
-	FFHDataValue& GetValue(const std::string& name);
+	FFHValue& GetValue(const std::string& name);
 	ProjectEditorModuleEntry& GetModule(const std::string& name);
 	ProjectDialogueTalkHandler& GetHandler(const std::string& name);
 

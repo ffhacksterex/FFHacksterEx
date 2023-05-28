@@ -11,7 +11,7 @@ namespace ffh
 		{
 		}
 
-		FFHDataValue& DataValueAccessor::FindValue(FFH2Project& prj2, const std::string& name) const
+		FFHValue& DataValueAccessor::FindValue(FFH2Project& prj2, const std::string& name) const
 		{
 			auto it = prj2.values.entries.find(name);
 			if (it == end(prj2.values.entries))

@@ -381,7 +381,7 @@
     <ClInclude Include="DataValueAccessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FFHDataValue.h">
+    <ClInclude Include="FFHValue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core_exceptions.h">
