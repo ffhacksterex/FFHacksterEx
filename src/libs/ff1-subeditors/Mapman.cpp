@@ -4,7 +4,10 @@
 #include "stdafx.h"
 #include "Mapman.h"
 #include "NESPalette.h"
+#include <DataValueAccessor.h>
+#include <dva_primitives.h>
 #include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include <AppSettings.h>
 #include "general_functions.h"
 #include "ini_functions.h"
@@ -63,10 +66,10 @@ const BYTE ConstPicFormation[16] = {
 
 void CMapman::LoadRom()
 {
-		OVERWORLDPALETTE_OFFSET = ReadHex(cart->ValuesPath, "OVERWORLDPALETTE_OFFSET");
-		MAPMANPALETTE_OFFSET = ReadHex(cart->ValuesPath, "MAPMANPALETTE_OFFSET");
-		BANK00_OFFSET = ReadHex(cart->ValuesPath, "BANK00_OFFSET");
-
+	ffh::fda::DataValueAccessor d(*Proj2);
+	OVERWORLDPALETTE_OFFSET = d.get<int>("OVERWORLDPALETTE_OFFSET");
+	MAPMANPALETTE_OFFSET = d.get<int>("MAPMANPALETTE_OFFSET");
+	BANK00_OFFSET = d.get<int>("BANK00_OFFSET");
 
 	// In-memory operations ignore loading and saving to the file(s) and assume that the client has intiialized ROM
 	// and will handle the loading and saving details.
@@ -74,15 +77,16 @@ void CMapman::LoadRom()
 		return;
 
 	// Now load the data
-	if (cart->IsRom()) {
+	if (Proj2->IsRom()) {
+		// Parent does the loading
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.LoadAsmBin(BANK_00, BANK00_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
@@ -93,15 +97,16 @@ void CMapman::SaveRom()
 	if (InMemory)
 		return;
 
-	if (cart->IsRom()) {
+	if (Proj2->IsRom()) {
+		// Parent does the saving
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.SaveAsmBin(BANK_00, BANK00_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
@@ -133,7 +138,7 @@ BOOL CMapman::OnInitDialog()
 		draw.PalFormation = PalFormation;
 		draw.mousedown = 0;
 
-		Draw_ROM_Buffer(cart, graphicoffset, &draw);
+		Draw_ROM_Buffer(Proj2, graphicoffset, &draw);
 
 		int offset;
 		if (paletteoffset < 0) {
@@ -141,18 +146,18 @@ BOOL CMapman::OnInitDialog()
 			//looks like we'll load the overworl palette as a background
 			offset = OVERWORLDPALETTE_OFFSET + 0x10;
 			for (co = 0; co < 8; co++, offset++)
-				palette[co] = cart->ROM[offset];
+				palette[co] = Proj2->ROM[offset];
 
 			//then replace the third color (indexes 2 and 6) with the individual character palette colors,
 			//which represent top and bottom.
 			offset = ((-paletteoffset - 1) << 1) + MAPMANPALETTE_OFFSET;
-			palette[2] = cart->ROM[offset];
-			palette[6] = cart->ROM[offset + 1];
+			palette[2] = Proj2->ROM[offset];
+			palette[6] = Proj2->ROM[offset + 1];
 		}
 		else {
 			offset = paletteoffset;
 			for (co = 0; co < 8; co++, offset++)
-				palette[co] = cart->ROM[offset];
+				palette[co] = Proj2->ROM[offset];
 		}
 		palette[0] = 0x40;
 		palette[4] = 0x40;
@@ -170,11 +175,11 @@ BOOL CMapman::OnInitDialog()
 void CMapman::OnPaint() 
 {
 	CPaintDC dc(this);
-	Draw_DrawGraphic(&dc,&draw,cart,palette,1,1);
-	Draw_DrawFinger(&dc,&draw,cart);
-	Draw_DrawCloseup(&dc,&draw,cart,&palette[(draw.curblock & 2) << 1]);
-	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top,cart,palette);
-	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top + 16,cart,&palette[4]);
+	Draw_DrawGraphic(&dc,&draw, Proj2,palette,1,1);
+	Draw_DrawFinger(&dc,&draw, Proj2);
+	Draw_DrawCloseup(&dc,&draw, Proj2,&palette[(draw.curblock & 2) << 1]);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top, Proj2,palette);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top + 16, Proj2,&palette[4]);
 }
 
 void CMapman::OnLButtonDown(UINT nFlags, CPoint pt) 
@@ -229,7 +234,7 @@ void CMapman::OnLButtonDblClk(UINT nFlags, CPoint pt)
 		pt.x = (pt.x - draw.rcPalette.left) >> 4;
 		pt.y = (pt.y > (draw.rcPalette.top + 16)) << 2;
 		CNESPalette dlg;
-		dlg.cart = cart;
+		dlg.Proj2 = Proj2;
 		dlg.color = &palette[pt.y + pt.x + 1];
 		if(dlg.DoModal() == IDOK){
 			InvalidateRect(draw.rcCloseup,0);
@@ -240,36 +245,36 @@ void CMapman::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 void CMapman::StoreValues()
 {
-	Draw_Buffer_ROM(cart,graphicoffset,&draw);
+	Draw_Buffer_ROM(Proj2,graphicoffset,&draw);
 	
 	int offset;
 	if (paletteoffset < 0) {
 		//we must load character palettes
 		offset = OVERWORLDPALETTE_OFFSET + 0x10;
-		cart->ROM[offset + 1] = palette[1];
-		cart->ROM[offset + 3] = palette[3];
-		cart->ROM[offset + 5] = palette[5];
-		cart->ROM[offset + 7] = palette[7];
+		Proj2->ROM[offset + 1] = palette[1];
+		Proj2->ROM[offset + 3] = palette[3];
+		Proj2->ROM[offset + 5] = palette[5];
+		Proj2->ROM[offset + 7] = palette[7];
 		offset = ((-paletteoffset - 1) << 1) + MAPMANPALETTE_OFFSET;
-		cart->ROM[offset] = palette[2];
-		cart->ROM[offset + 1] = palette[6];
+		Proj2->ROM[offset] = palette[2];
+		Proj2->ROM[offset + 1] = palette[6];
 	}
 	else {
 		offset = paletteoffset;
 		for(BYTE co = 0; co < 8; co++, offset++){
 			if(!(co & 3)) continue;
-			cart->ROM[offset] = palette[co];}
+			Proj2->ROM[offset] = palette[co];}
 	}
 }
 
 void CMapman::OnExportbitmap()
 {
-	Draw_ExportToBmp(&draw, cart, palette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
+	Draw_ExportToBmp(&draw, Proj2, palette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 }
 
 void CMapman::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,cart,palette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
+	Draw_ImportFromBmp(&draw, Proj2,palette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }

@@ -15,7 +15,6 @@
 #include "ingame_text_functions.h"
 #include "ini_functions.h"
 #include "io_functions.h"
-#include <string_conversions.hpp>
 #include "string_functions.h"
 #include "ui_helpers.h"
 
@@ -95,8 +94,8 @@ BOOL CAttack::OnInitDialog()
 		this->LoadRom();
 
 		LoadListBox(m_attacklist, LoadAttackEntries(*Proj2));
-		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, LoadElementLabels(*Proj2));
-		LoadCaptions(std::vector<CWnd*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 }, LoadAilEffectLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, Labels2::LoadElementLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 }, Labels2::LoadAilEffectLabels(*Proj2));
 
 		cur = -1;
 		m_attacklist.SetCurSel(0);

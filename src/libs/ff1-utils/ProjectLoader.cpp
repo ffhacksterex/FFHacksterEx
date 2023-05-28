@@ -26,6 +26,9 @@
 #include <filesystem>
 #include <regex>
 
+using ffh::str::tomfc;
+using ffh::str::tostd;
+
 //STDFILESYS - see path_functions.cpp for more info
 namespace fs = std::experimental;
 using namespace asmdll_impl;

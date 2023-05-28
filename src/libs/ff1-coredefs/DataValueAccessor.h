@@ -10,7 +10,7 @@ namespace ffh
 		template <typename T> T FromData(const FFHDataValue& value);
 		//template <typename T> void ToData(FFHDataValue& value, const T& newvalue);
 
-		class DataValueAccessor
+		class DataValueAccessor //TODO - rename class and file to ValueDataAccessor
 		{
 			FFH2Project& Proj2;
 		public:

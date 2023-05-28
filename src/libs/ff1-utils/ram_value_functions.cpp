@@ -1,9 +1,13 @@
 #include "stdafx.h"
 #include "ram_value_functions.h"
-#include "ini_functions.h"
-#include "string_functions.h"
-#include "type_support.h"
-#include "FFHacksterProject.h"
+#include <DataValueAccessor.h>
+#include <dva_primitives.h>
+#include <ini_functions.h>
+#include <string_functions.h>
+#include <dva_std_collections.h>
+#include <type_support.h>
+#include <FFHacksterProject.h>
+#include <FFH2Project.h>
 #include <algorithm>
 
 using namespace Ini;
@@ -83,6 +87,7 @@ namespace Ramvalues
 
 
 	namespace {
+		//TODO - STOP USING hardcoded RAM value names. That makes the RAM_VALUES project value inert.
 		const mfcstringvector vehiclelabels = {
 			"ship_vis", "airship_vis", "bridge_vis", "has_canoe", "item_canoe" // included both canoe items since they're tied to the canoe in some way
 		};
@@ -126,6 +131,21 @@ namespace Ramvalues
 		return name;
 	}
 
+	CString GetItemFallbackName(FFH2Project& proj, CString name, int itemaddr)
+	{
+		if (isemptyorwhitespace(name)) {
+			auto iter = find_by_data(proj.m_varmap, itemaddr);
+			if (iter != cend(proj.m_varmap)) {
+				name = iter->first.c_str();
+				ffh::fda::DataValueAccessor d(proj);
+				auto altname = d.get<std::string>((LPCSTR)name);
+				if (altname.empty()) altname = d.get<std::string>((LPCSTR)name);
+				if (!altname.empty()) name = altname.c_str();
+			}
+		}
+		return name;
+	}
+
 
 	namespace {
 
@@ -142,18 +162,18 @@ namespace Ramvalues
 			return dvec;
 		}
 
-		dataintnodevector LoadEntries(CFFHacksterProject & proj, bool showindex, const std::vector<CString> & sectionnames)
+		dataintnodevector LoadEntries(CFFHacksterProject& proj, bool showindex, const std::vector<CString>& sectionnames)
 		{
 			auto values = ReadRamValuesToVector(proj, sectionnames);
 			return DoLoadEntries(values, 0, (int)values.size(), showindex);
 		}
 
 		// Find the label by the supplied address, as these values are not strictly contiguous
-		dataintnode LoadEntry(CFFHacksterProject & proj, int value, bool showindex, const std::vector<CString> & sectionnames)
+		dataintnode LoadEntry(CFFHacksterProject& proj, int value, bool showindex, const std::vector<CString>& sectionnames)
 		{
 			// short list, just use a linear search
 			auto values = ReadRamValuesToVector(proj, sectionnames);
-			auto iter = std::find_if(begin(values), end(values), [value](const ramvalue & rv) { return rv.addr == value;});
+			auto iter = std::find_if(begin(values), end(values), [value](const ramvalue& rv) { return rv.addr == value; });
 
 			if (iter == cend(values)) return{ "", -1 };
 
@@ -166,9 +186,9 @@ namespace Ramvalues
 	} // end namespace unnamed (LoadEntries helpers)
 
 
-	void AdjustRamItemEntries(CFFHacksterProject & proj, dataintnodevector & nodes, CString indexformat, int adjustby)
+	void AdjustRamItemEntries(CFFHacksterProject& proj, dataintnodevector& nodes, CString indexformat, int adjustby)
 	{
-		for (auto & node : nodes) {
+		for (auto& node : nodes) {
 			// adjust the value if it's nonzero
 			if (adjustby != 0) node.value += adjustby;
 
@@ -207,6 +227,7 @@ namespace Ramvalues
 	}
 
 
+
 	// ### STRINGS
 
 	dataintnodevector LoadMapSpriteEntries(CFFHacksterProject& proj, bool showindex)
@@ -215,17 +236,17 @@ namespace Ramvalues
 		return LoadEntries(proj, showindex, mapspritelabels);
 	}
 
-	dataintnodevector LoadDialogSoundEntries(CFFHacksterProject & proj, bool showindex)
+	dataintnodevector LoadDialogSoundEntries(CFFHacksterProject& proj, bool showindex)
 	{
 		return LoadEntries(proj, showindex, fanfarelabels);
 	}
 
-	dataintnodevector LoadCanoeEntries(CFFHacksterProject & proj, bool showindex)
+	dataintnodevector LoadCanoeEntries(CFFHacksterProject& proj, bool showindex)
 	{
 		return LoadEntries(proj, showindex, canoelabels);
 	}
 
-	dataintnodevector LoadItemOrCanoeEntries(CFFHacksterProject & proj, bool showindex)
+	dataintnodevector LoadItemOrCanoeEntries(CFFHacksterProject& proj, bool showindex)
 	{
 		return LoadEntries(proj, showindex, itemorcanoelabels);
 	}
@@ -233,9 +254,169 @@ namespace Ramvalues
 
 	// ### SINGLE STRINGS
 
-	dataintnode LoadMapSpriteEntry(CFFHacksterProject & proj, int value, bool showindex)
+	dataintnode LoadMapSpriteEntry(CFFHacksterProject& proj, int value, bool showindex)
 	{
 		return LoadEntry(proj, value, showindex, mapspritelabels);
 	}
 
 } // end namespace Ramvalues
+
+
+// FFH2Project support
+namespace Ramvalues
+{
+	namespace {
+
+		dataintnodevector LoadEntries(FFH2Project& proj, bool showindex, const std::vector<CString>& sectionnames)
+		{
+			auto values = ReadRamValuesToVector(proj, sectionnames);
+			return DoLoadEntries(values, 0, (int)values.size(), showindex);
+		}
+
+		// Find the label by the supplied address, as these values are not strictly contiguous
+		dataintnode LoadEntry(FFH2Project& proj, int value, bool showindex, const std::vector<CString>& sectionnames)
+		{
+			// short list, just use a linear search
+			auto values = ReadRamValuesToVector(proj, sectionnames);
+			auto iter = std::find_if(begin(values), end(values), [value](const ramvalue& rv) { return rv.addr == value; });
+
+			if (iter == cend(values)) return{ "", -1 };
+
+			CString strname;
+			if (showindex) strname.Format("%04X: ", iter->addr);
+			strname += iter->name;
+			return { strname, iter->addr };
+		}
+
+	} // end namespace unnamed (LoadEntries helpers)
+
+
+	// Valid RAM address are expected to be in either $addr or 0xhex format.
+	// Any other format (or blank) returns -1.
+	int ReadRamAddress(FFH2Project& proj, CString key)
+	{
+		ffh::fda::DataValueAccessor d(proj);
+		auto addr = d.get<int>(str::tostd(key));
+		return addr;
+	}
+
+	void AdjustRamItemEntries(FFH2Project& proj, dataintnodevector& nodes, CString indexformat, int adjustby)
+	{
+		int nodeindex = -1;
+		for (auto& node : nodes) {
+			++nodeindex;
+			// adjust the value if it's nonzero
+			if (adjustby != 0) node.value += adjustby;
+
+			//TODO - We don't expect blank names in the node list.
+			//	For that reason, I'm not sure the commented-out code block below is valid.
+			//	For now, throw if the name is blank. 
+			if (isemptyorwhitespace(node.name))
+				throw std::runtime_error("Unable to adjust node index " + std::to_string(nodeindex) + " because its name is blank.");
+
+			//if (isemptyorwhitespace(node.name)) {
+			//	// the name is empty, generate a new name
+			//	auto iter = find_by_data(proj.m_varmap, node.value);
+			//	CString newname;
+			//	if (iter != cend(proj.m_varmap)) {
+			//		// use the label, description, or ramvalue name (in that order of preference)
+			//		newname = ReadIni(proj.ValuesPath, newname, "label", "");
+			//		if (newname.IsEmpty())
+			//			newname = ReadIni(proj.ValuesPath, newname, "desc", "");
+			//		if (newname.IsEmpty())
+			//			newname = iter->first.c_str();
+			//	}
+
+			//	//TODO - If there's still no name, this is actually an error condition (the ramvalue label was blank or missing)
+			//	// But for now, create a temporary name using the value.
+			//	if (newname.IsEmpty())
+			//		newname.Format("Item_%04X", node.value);
+
+			//	node.name = newname;
+			//}
+
+			// adjust the label if the indexformat is defined
+			if (!indexformat.IsEmpty()) {
+				// strip the leading value and colon if present, as well as any space before the existing name
+				int sep = node.name.Find(':');
+				if (sep != -1) node.name.TrimRight().Delete(0, sep + 1);
+				// now format the number and prepend it
+				CString newprefix;
+				newprefix.Format(indexformat + ": ", node.value);
+				node.name.Insert(0, newprefix);
+			}
+		}
+	}
+
+	ramvaluevector ReadRamValuesToVector(FFH2Project& proj, const std::vector<std::string>& sectionnames)
+	{
+		ramvaluevector vec;
+		bool error = false;
+
+		ffh::fda::DataValueAccessor d(proj);
+		for (const auto& section : sectionnames) {
+			// Attempts to read label, then desc, and defaults to section if it can't find the others
+			auto addrvalue = d.get<int>(section);
+			vec.push_back({ ffh::str::tomfc(section), addrvalue });
+		}
+
+		if (error) vec.clear();
+		return vec;
+	}
+
+	ramvaluevector ReadRamValuesToVector(FFH2Project& proj, const std::vector<CString>& sectionnames)
+	{
+		ramvaluevector vec;
+		bool error = false;
+
+		ffh::fda::DataValueAccessor d(proj);
+		for (const auto& section : sectionnames) {
+			// Attempts to read label, then desc, and defaults to section if it can't find the others
+			// 
+			//N.B. - this could be in either address or hex format (treasure chest sound values are in hex)
+			//const auto& value = proj.GetValue(ffh::str::tostd(section));
+			//auto strvalue = ReadIni(inifile, section, "value", CString());
+			//int addrvalue = is_addr(strvalue) ? addr(strvalue) : hex(strvalue);
+
+			auto addrvalue = d.get<int>(ffh::str::tostd(section));
+			vec.push_back({ section, addrvalue });
+		}
+
+		if (error) vec.clear();
+		return vec;
+	}
+
+	ramvaluevector ReadRamValuesToVector(FFH2Project& proj, CString key)
+	{
+		ffh::fda::DataValueAccessor d(proj);
+		auto names = d.get<std::vector<std::string>>(ffh::str::tostd(key));
+
+		//auto namestring = ReadIni(proj.ValuesPath, key, "value", CString());
+		//auto names = split(namestring, " ");
+		//return ReadRamValuesToVector(proj, names);
+		return ReadRamValuesToVector(proj, names);
+	}
+
+
+	// === LOAD FUNCTIONS
+	// COLLECTIONS
+
+	dataintnodevector LoadCanoeEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadEntries(proj, showindex, canoelabels);
+	}
+
+	dataintnodevector LoadMapSpriteEntries(FFH2Project& proj, bool showindex)
+	{
+		//FUTURE - this loads the section name instead of the label, see if we can load the label.
+		return LoadEntries(proj, showindex, mapspritelabels);
+	}
+
+	// SINGLES
+
+	dataintnode LoadMapSpriteEntry(FFH2Project& proj, int value, bool showindex)
+	{
+		return LoadEntry(proj, value, showindex, mapspritelabels);
+	}
+
+} // end namespace Ramvalues FFH2Project support

@@ -78,9 +78,9 @@ BOOL CStartingItems::OnInitDialog()
 		m_consumelabelids = { IDC_STARTITEMS_STATIC_CONSUM1, IDC_STARTITEMS_STATIC_CONSUM2, IDC_STARTITEMS_STATIC_CONSUM3,
 			IDC_STARTITEMS_STATIC_CONSUM4,IDC_STARTITEMS_STATIC_CONSUM5,IDC_STARTITEMS_STATIC_CONSUM6 };
 
-		AddEntry(m_comboBridge, "Upon stepping on the bridge (normal setting)", 0);
-		AddEntry(m_comboBridge, "When overworld first displays", 1);
-		AddEntry(m_comboBridge, "Never", 0x80);
+		Ui2::AddEntry(m_comboBridge, (std::string)"Upon stepping on the bridge (normal setting)", 0);
+		Ui2::AddEntry(m_comboBridge, (std::string)"When overworld first displays", 1);
+		Ui2::AddEntry(m_comboBridge, (std::string)"Never", 0x80);
 
 		LoadValues();
 

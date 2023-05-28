@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "resource_subeditors.h"
 #include "CustomTool.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -38,13 +38,16 @@ END_MESSAGE_MAP()
 BOOL CCustomTool::OnInitDialog() 
 {
 	CFFBaseDlg::OnInitDialog();
+
+	FFH_THROW_NULL_PROJECT(Proj2, "Custom Tool");
+	FFH_THROW_OLD_FFHACKSTERPROJ(dat);
 	
 	rcTiles.SetRect(75,15,75 + 256,15 + 128);
 	rcTool.SetRect(15,15,15 + 48,15 + 48);
 	redpen.CreatePen(PS_SOLID,1,RGB(255,0,0));
 	slot = 0;
 	for(int co = 0; co < 9; co++)
-		toolarray[co] = dat->SmartTools[tool][co];
+		toolarray[co] = Proj2->session.smartTools[tool][co];
 	
 	return 1;
 }
@@ -96,6 +99,6 @@ void CCustomTool::OnLButtonDown(UINT nFlags, CPoint pt)
 void CCustomTool::OnOK() 
 {
 	for(int co = 0; co < 9; co++)
-		dat->SmartTools[tool][co] = toolarray[co];
+		Proj2->session.smartTools[tool][co] = toolarray[co];
 	CFFBaseDlg::OnOK();
 }

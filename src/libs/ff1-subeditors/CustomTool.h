@@ -10,6 +10,7 @@
 
 #include "resource_subeditors.h"
 #include <FFBaseDlg.h>
+class FFH2Project;
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -21,6 +22,7 @@ class CCustomTool : public CFFBaseDlg
 public:
 	CCustomTool(CWnd* pParent = nullptr);   // standard constructor
 	int tool;
+	FFH2Project* Proj2 = nullptr;
 	CFFHacksterProject* dat;
 	CImageList* m_tiles;
 	int slot;

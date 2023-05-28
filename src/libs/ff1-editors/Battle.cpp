@@ -30,6 +30,9 @@
 #include <BattleEditorSettingsDlg.h>
 #include <BattleEditorSettings.h>
 
+using ffh::str::tomfc; //REMOVE - scope these names below
+using ffh::str::tostd;
+
 using namespace Editorlabels;
 using namespace Imaging;
 using namespace Ingametext;
@@ -195,8 +198,8 @@ BOOL CBattle::OnInitDialog()
 
 		SetRedraw(FALSE);
 
-		auto BattleLabels = get_names(LoadBattleLabels(*Proj2));
-		auto BattlePatternTableLabels = get_names(LoadBattlePatternTableLabels(*Proj2));
+		auto BattleLabels = get_names(Labels2::LoadBattleLabels(*Proj2));
+		auto BattlePatternTableLabels = get_names(Labels2::LoadBattlePatternTableLabels(*Proj2));
 
 		int co;
 		for (co = 0; co < BATTLE_COUNT; co++)

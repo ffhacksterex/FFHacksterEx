@@ -5,6 +5,7 @@
 #include "datanode.h"
 #include <map>
 class CFFHacksterProject;
+class FFH2Project;
 
 namespace Ramvalues
 {
@@ -24,6 +25,7 @@ namespace Ramvalues
 	ramvaluevector ReadRamValuesToVector(CFFHacksterProject & proj, CString key);
 
 	CString GetItemFallbackName(CFFHacksterProject& proj, CString name, int itemaddr);
+	CString GetItemFallbackName(FFH2Project& proj, CString name, int itemaddr);
 
 	void AdjustRamItemEntries(CFFHacksterProject & proj, dataintnodevector & nodes, CString indexformat, int adjustby);
 
@@ -40,4 +42,19 @@ namespace Ramvalues
 
 	dataintnode LoadMapSpriteEntry(CFFHacksterProject& proj, int value, bool showindex = false);
 
+} // end CFFHacksterProject support
+
+namespace Ramvalues // FFH2Project support
+{
+	int ReadRamAddress(FFH2Project& proj, CString key);
+	void AdjustRamItemEntries(FFH2Project& proj, dataintnodevector& nodes, CString indexformat, int adjustby);
+
+	ramvaluevector ReadRamValuesToVector(FFH2Project& proj, const std::vector<std::string>& sectionnames);
+	ramvaluevector ReadRamValuesToVector(FFH2Project& proj, const std::vector<CString>& sectionnames);
+	ramvaluevector ReadRamValuesToVector(FFH2Project& proj, CString key);
+
+	dataintnodevector LoadCanoeEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadMapSpriteEntries(FFH2Project& proj, bool showindex = false);
+
+	dataintnode LoadMapSpriteEntry(FFH2Project& proj, int value, bool showindex = false);
 }

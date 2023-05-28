@@ -11,6 +11,7 @@
 #include "resource_subeditors.h"
 #include "DRAW_STRUCT.h"
 class CFFHacksterProject;
+class FFH2Project;
 
 /////////////////////////////////////////////////////////////////////////////
 // CTileEdit dialog
@@ -24,6 +25,8 @@ public:
 	enum InvokerType { None = 0, Overworld, Maps };
 
 	CFFHacksterProject* cart = nullptr;
+	FFH2Project* Proj2 = nullptr;
+	
 	InvokerType Invoker = None;
 
 	BYTE tileset;

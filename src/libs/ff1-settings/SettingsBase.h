@@ -19,7 +19,7 @@ public:
 	virtual bool Write() = 0;
 
 protected:
-	CString m_sectionname;
+	CString m_sectionname; //TODO - change to std::string
 	CFFHacksterProject& m_proj;
 	FFH2Project& m_prj2;
 	bool m_is2 = false;

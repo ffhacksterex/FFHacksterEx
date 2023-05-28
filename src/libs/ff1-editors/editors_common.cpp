@@ -17,7 +17,7 @@ namespace Editors
 	{
 		CSpriteDialogueSettings stgs(proj);
 		return stgs.ShowActualText ?
-			[&]() { return LoadTruncatedDialogueEntries(proj, stgs.ShortTextLength, showindex); }() :
+			LoadTruncatedDialogueEntries(proj, stgs.ShortTextLength, showindex):
 			LoadTextLabels(proj, showindex);
 	}
 
@@ -25,8 +25,24 @@ namespace Editors
 	{
 		CSpriteDialogueSettings stgs(proj);
 		return stgs.ShowActualText ?
-			[&]() { return LoadTruncatedDialogueEntry(proj, index, stgs.ShortTextLength, showindex); }() :
+			LoadTruncatedDialogueEntry(proj, index, stgs.ShortTextLength, showindex) :
 			LoadTextLabel(proj, index, showindex);
+	}
+
+	dataintnodevector LoadGameTextEntries(FFH2Project& proj, bool showindex)
+	{
+		CSpriteDialogueSettings stgs(proj);
+		return stgs.ShowActualText ?
+			LoadTruncatedDialogueEntries(proj, stgs.ShortTextLength, showindex):
+			Labels2::LoadTextLabels(proj, showindex);
+	}
+
+	dataintnode LoadGameTextEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		CSpriteDialogueSettings stgs(proj);
+		return stgs.ShowActualText ?
+			LoadTruncatedDialogueEntry(proj, index, stgs.ShortTextLength, showindex) :
+			Labels2::LoadTextLabel(proj, index, showindex);
 	}
 }
 

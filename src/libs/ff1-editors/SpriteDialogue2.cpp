@@ -8,10 +8,15 @@
 
 #include <EntriesLoader.h>
 #include <FFHacksterProject.h>
+#include <FFH2Project.h>
+#include <DataValueAccessor.h>
+#include <dva_primitives.h>
+#include <dva_std_collections.h>
 #include <GameSerializer.h>
 #include <WaitingDlg.h>
-
 #include <AsmFiles.h>
+#include <cnv_primitives.h>
+#include <collection_conversions.h>
 #include <dialogue_helpers.h>
 #include <editor_label_functions.h>
 #include <general_functions.h>
@@ -23,6 +28,7 @@
 #include <string_functions.h>
 #include <type_support.h>
 #include <ui_helpers.h>
+#include <uti_std_collections.hpp>
 
 #include <FFHacksterProject.h>
 #include <SpriteDialogueSettings.h>
@@ -45,11 +51,10 @@ namespace SpriteDialogue_Helpers // DECLARATION
 {
 	enum class asm_search { nomatch, match, prefix, inimatch };
 
-	mfcstringvector read_names_vector(CFFHacksterProject & proj, mfcstringvector keynames);
-	std::string search_for_match(CFFHacksterProject & proj, asm_search searchtype, std::string key, int index);
+	mfcstringvector read_names_vector(FFH2Project& proj, mfcstringvector keynames);
+	std::string search_for_match(FFH2Project& proj, asm_search searchtype, std::string key, int index);
 
-	stdstringvector GetIniTalkRoutineNames(CFFHacksterProject & proj);
-
+	stdstringvector GetIniTalkRoutineNames(FFH2Project& proj);
 }
 using namespace SpriteDialogue_Helpers;
 
@@ -58,10 +63,8 @@ using namespace SpriteDialogue_Helpers;
 
 IMPLEMENT_DYNAMIC(CSpriteDialogue2, CEditorWithBackground)
 
-CSpriteDialogue2::CSpriteDialogue2(CFFHacksterProject & project, CWnd* pParent /*=NULL*/)
+CSpriteDialogue2::CSpriteDialogue2(CWnd* pParent /*=NULL*/)
 	: CEditorWithBackground(IDD_SPRITE_DIALOGUE2, pParent)
-	, m_proj(project)
-	, m_dialoguepathrestorer(project.DialoguePath)
 	, m_curindex(-1)
 {
 }
@@ -74,14 +77,15 @@ BOOL CSpriteDialogue2::OnInitDialog()
 {
 	CEditorWithBackground::OnInitDialog();
 
-	if (!m_proj.IsRom() && !m_proj.IsAsm())
-		return AbortInitDialog(this, "This editor doesn't support '" + m_proj.ProjectTypeName + "'.");	
+	SWITCH_OLDFFH_PTR_CHECK(Project);
+	MUST_SPECIFY_PROJECT(Proj2, "Text editor");
+
 	if (Enloader == nullptr)
 		return AbortInitDialog(this, "No entry loader was specified for this editor");
 
 	try {
 		CWaitCursor wait;
-		LoadListBox(m_mainlist, LoadSpriteLabels(m_proj, true));
+		LoadListBox(m_mainlist, Labels2::LoadSpriteLabels(*Proj2, true));
 		this->LoadOffsets();
 		this->LoadRom();
 		SetupLayout();
@@ -102,49 +106,46 @@ BOOL CSpriteDialogue2::OnInitDialog()
 
 void CSpriteDialogue2::LoadOffsets()
 {
-	TALKROUTINEPTRTABLE_OFFSET = ReadHex(m_proj.ValuesPath, "TALKROUTINEPTRTABLE_OFFSET");
-	TALKROUTINEPTRTABLE_BYTES = ReadDec(m_proj.ValuesPath, "TALKROUTINEPTRTABLE_BYTES");
-	TALKROUTINEPTRTABLE_PTRADD = ReadHex(m_proj.ValuesPath, "TALKROUTINEPTRTABLE_PTRADD");
-	TALKROUTINEDATA_OFFSET = ReadHex(m_proj.ValuesPath, "TALKROUTINEDATA_OFFSET");
-	TALKROUTINEDATA_BYTES = ReadDec(m_proj.ValuesPath, "TALKROUTINEDATA_BYTES");
-	BANK0A_OFFSET = ReadHex(m_proj.ValuesPath, "BANK0A_OFFSET");
+	ffh::fda::DataValueAccessor d(*Proj2);
+	TALKROUTINEPTRTABLE_OFFSET = d.get<int>("TALKROUTINEPTRTABLE_OFFSET");
+	TALKROUTINEPTRTABLE_BYTES = d.get<int>("TALKROUTINEPTRTABLE_BYTES");
+	TALKROUTINEPTRTABLE_PTRADD = d.get<int>("TALKROUTINEPTRTABLE_PTRADD");
+	TALKROUTINEDATA_OFFSET = d.get<int>("TALKROUTINEDATA_OFFSET");
+	TALKROUTINEDATA_BYTES = d.get<int>("TALKROUTINEDATA_BYTES");
+	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");
 }
 
 void CSpriteDialogue2::LoadRom()
 {
-	m_proj.ClearROM();
+	Proj2->ClearROM();
 
-	// Build a reference map for fanfare values up front. For any missing value, warn and lean on FF1 defaults.
-	auto AddFanfareValue = [this](CString key, int usabilityvalue, int hexdefault) {
-		auto value = hex(ReadIni(m_proj.ValuesPath, key, "value", "0x0"));
-		if (value != 0)
-			m_fanfarevalues[value] = usabilityvalue;
-		else {
-			AfxMessageBox("Can't find the fanfare value " + key + ": falling back to the FF1 default value.");
-			m_fanfarevalues[hexdefault] = usabilityvalue;
-		}
+	// Build a reference map for fanfare values up front.
+	ffh::fda::DataValueAccessor dva(*Proj2);
+	auto AddFanfareValue = [&,this](CString key, int usabilityvalue, int hexdefault) {
+		auto value = dva.get<int>(ffh::str::tostd(key));
+		m_fanfarevalues[value] = usabilityvalue;
 	};
 	AddFanfareValue("talkfanfare", ASM_TRUE, 0x7DE6);
 	AddFanfareValue("notalksnd", ASM_FALSE, 0xEAEA);
 
-	if (m_proj.IsRom()) {
-		load_binary(m_proj.WorkRomPath, m_proj.ROM);
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 
-		m_itemsaddr = ReadRamAddress(m_proj, "items");
-		m_unsramaddr = ReadRamAddress(m_proj, "unsram");
+		m_itemsaddr = ReadRamAddress(*Proj2, "items");
+		m_unsramaddr = ReadRamAddress(*Proj2, "unsram");
 
 		LoadRomTalkData();
 	}
-	else if (m_proj.IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		CWaitingDlg waiting(this);
 		waiting.Init();
 		waiting.SetMessage("Loading sprite dialogue data...");
-		GameSerializer ser(m_proj, &waiting);
+		GameSerializer ser(*Proj2, &waiting);
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.LoadAsmBin(BIN_OBJECTDATA, TALKROUTINEDATA_OFFSET);
 
-		m_itemsaddr = findvalue(m_proj.m_varmap, std::string("items"));
-		m_unsramaddr = findvalue(m_proj.m_varmap, std::string("unsram"));
+		m_itemsaddr = findvalue(Proj2->m_varmap, std::string("items"));
+		m_unsramaddr = findvalue(Proj2->m_varmap, std::string("unsram"));
 
 		LoadAsmTalkData(ser);
 	}
@@ -152,17 +153,15 @@ void CSpriteDialogue2::LoadRom()
 
 void CSpriteDialogue2::SaveRom()
 {
-	m_dialoguepathrestorer.Save();
-
-	if (m_proj.IsRom()) {
+	if (Proj2->IsRom()) {
 		SaveRomTalkData();
-		save_binary(m_proj.WorkRomPath, m_proj.ROM);
+		Proj2->SaveROM();
 	}
-	else if (m_proj.IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		CWaitingDlg waiting(this);
 		waiting.Init();
 		waiting.SetMessage("Saving sprite dialogue data...");
-		GameSerializer ser(m_proj, &waiting);
+		GameSerializer ser(*Proj2, &waiting);
 
 		const auto & prenames = m_asmroutinenames;
 		const auto & premap = m_asmroutinemap;
@@ -182,16 +181,13 @@ void CSpriteDialogue2::LoadRomTalkData()
 	m_comboRoutineType.ResetContent();
 	m_routineaddrmap.clear();
 
-	// Load the names from the .dialogue file into the routine combo.
-	auto sectionnames = ReadIniSectionNames(m_proj.DialoguePath);
-	sectionnames.erase(std::remove_if(begin(sectionnames), end(sectionnames), [](const auto& n) { return _strnicmp(n, "talk", 4) != 0; }), end(sectionnames));
-
-	// Load the routine address map
-	for (const auto & name : sectionnames) {
-		int bankaddr = hex(ReadIni(m_proj.DialoguePath, name, "bankaddr", "0x0"));
-		if (!has(m_routineaddrmap, name)) {
-			Ui::AddEntry(m_comboRoutineType, name, bankaddr);
-			m_routineaddrmap[name] = bankaddr;
+	// Load the routine address map and the routine dropdown
+	for (const auto& name : Proj2->dialogue.handlers.order) {
+		auto& handler = Proj2->GetHandler(name);
+		int bankaddr = ffh::cnv::hex(handler.bankaddr);
+		if (!has(m_routineaddrmap, handler.name)) {
+			Ui2::AddEntry(m_comboRoutineType, handler.name, bankaddr);
+			m_routineaddrmap[handler.name] = bankaddr;
 		}
 	}
 
@@ -209,9 +205,9 @@ void CSpriteDialogue2::LoadAsmTalkData(GameSerializer & ser)
 	m_comboRoutineType.ResetContent();
 	m_routineaddrmap.clear();
 
-	std::string label = (LPCSTR)ReadIni(m_proj.DialoguePath, "Label_TalkJumpTable", "value", "");
-	auto asmfile = Paths::Combine({ m_proj.ProjectFolder, "asm", ASM_0E });
-	ser.LoadDialogue(asmfile, label, m_asmroutinenames, m_asmroutinemap);
+	auto labeldata = ffh::uti::find(Proj2->dialogue.labels, "Label_TalkJumpTable", "the project dialogue labels");
+	auto asmfile = Paths::Combine({ Proj2->ProjectFolder.c_str(), "asm", ASM_0E });
+	ser.LoadDialogue(asmfile, labeldata.label, m_asmroutinenames, m_asmroutinemap);
 
 	// Load the routine address map.
 	// Also load the hardcoded elements from the assembly source into the working ROM.
@@ -223,25 +219,30 @@ void CSpriteDialogue2::LoadAsmTalkData(GameSerializer & ser)
 
 		srcset.insert(routine);
 
-		auto bankaddr = hex(ReadIni(m_proj.DialoguePath, csroutinename, "bankaddr", "0x0"));
+		auto& handler = Proj2->GetHandler(routine);
+		auto bankaddr = ffh::cnv::hex(handler.bankaddr);
 		if (bankaddr == 0)
 			continue; // this routine is defined in source, but isn't known to the editor ... can't edit it.
 
-		if (!has(m_routineaddrmap, csroutinename)) {
-			Ui::AddEntry(m_comboRoutineType, csroutinename, bankaddr);
-			m_routineaddrmap[csroutinename] = bankaddr;
+		if (!has(m_routineaddrmap, routine)) {
+			Ui2::AddEntry(m_comboRoutineType, routine, bankaddr);
+			m_routineaddrmap[routine] = bankaddr;
 		}
 
+		// Read the lines from the assembly file.
+		// These will fill in the values referenced by the handler element
+		size_t index = -1;
 		for (auto & line : lines) {
-			auto delem = dialogue_helpers::ReadElement(m_proj, csroutinename, line.element.c_str());
-			const auto & marker = delem.marker;
-			if (marker.Find("hc") == 0) {
+			++index;
+			const auto& delem = handler.elements[index];
+			const auto& marker = delem.type;
+			if (marker.find("hc") == 0) {
 				//N.B. - the Write calls below are writing assembly file data to the working ROM buffer
 				//		This allows the FFHEx editor to manipulate values from the assembly file.
 				//		This is done using markers, which is why the Annotated Disch assembly is required.
-				auto routineoffset = delem.routineoffset;
+				auto routineoffset = ffh::cnv::hex(delem.hexoffset);
 				auto offset = bankaddr + routineoffset;
-				auto newvalue = TextToValue(marker, line.value.c_str());
+				auto newvalue = TextToValue(marker.c_str(), line.value.c_str());
 				if (marker == "hcfanfare") {
 					auto iter = find_by_data(m_fanfarevalues, newvalue);
 					if (iter == cend(m_fanfarevalues))
@@ -296,48 +297,53 @@ void CSpriteDialogue2::SaveAsmTalkData(GameSerializer & ser)
 
 		// Update the routine table to reflect the new name, and the routine map to reflect the new address.
 		//TODO - for now, there's no facility to rename routine labels, so this has no effect.
-		std::string routinename = (LPCSTR)iter->first;
-		m_asmroutinenames[mainindex] = routinename.c_str();
+		std::string routinename = iter->first;
+		m_asmroutinenames[mainindex] = routinename;
 		iter->second = newbankaddr;
+
+		auto& handler = Proj2->GetHandler(routinename);
 
 		// Update the hardcoded elements.
 		// Params are already saved inplace in the parameters table TALKROUTINEDATA_OFFSET.
+		size_t index = -1;
 		auto & lines = m_asmroutinemap[routinename];
 		for (auto & line : lines) {
-			auto delem = dialogue_helpers::ReadElement(m_proj, routinename.c_str(), line.element.c_str());
-			const auto & marker = delem.marker;
+			++index;
+			const auto& delem = handler.elements[index];
+			const auto & marker = delem.type;
 
 			// We only process hardcoded elements when writing to assembly files.
-			if (marker.Find("hc") == 0) {
+			if (marker.find("hc") == 0) {
 				//N.B. - the Read calls below are reading values from the working ROM buffer.
 				//		This allows FFHEx (via the asmdll) to write those values to the assembly source file.
 				//		This is done using markers, which is why the Annotated Disch assembly is required.
-				auto offset = newbankaddr + delem.routineoffset;
+				auto offset = newbankaddr + ffh::cnv::hex(delem.hexoffset);
 				if (marker == "hcfanfare") {
 					auto newvalue = Read16(offset);
 					auto faniter = m_fanfarevalues.find(newvalue);
 					if (faniter != cend(m_fanfarevalues))
-						line.value = ValueToText(marker, faniter->second); // get the ASM_TRUE/FALSE/IGNORE value
+						line.value = ValueToText(marker.c_str(), faniter->second); // get the ASM_TRUE/FALSE/IGNORE value
 				}
 				else {
 					auto newvalue = (line.bits == 8) ?
 						(int)Read8(offset) :
 						Read16(offset);
-					line.value = ValueToText(marker, newvalue); // get the ASM_TRUE/FALSE/IGNORE value
+					line.value = ValueToText(marker.c_str(), newvalue); // get the ASM_TRUE/FALSE/IGNORE value
 				}
 			}
 		}
 	}
 
-	std::string label = (LPCSTR)ReadIni(m_proj.DialoguePath, "Label_TalkJumpTable", "value", "");
+	std::string label = Proj2->dialogue.labels["Label_TalkJumpTable"].label;
+	CString projfolder = Proj2->ProjectFolder.c_str();
 
 #ifndef TEST_SAVE
-	auto asmfile = Paths::Combine({ m_proj.ProjectFolder, "asm", ASM_0E });
+	auto asmfile = Paths::Combine({ projfolder, "asm", ASM_0E });
 #else
 	//TESTING - test code writes to a temp file instead of destroying the real one
 	//-- 
-	auto origasm = Paths::Combine({ m_proj.ProjectFolder, "asm", ASM_0E });
-	auto asmfile = Paths::Combine({ m_proj.ProjectFolder, "asm", ASM_0E + CString(".test") });
+	auto origasm = Paths::Combine({ projfolder, "asm", ASM_0E });
+	auto asmfile = Paths::Combine({ projfolder, "asm", ASM_0E + CString(".test") });
 	Paths::FileDelete(asmfile);
 	Paths::FileCopy(origasm, asmfile);
 	//--
@@ -377,12 +383,12 @@ void CSpriteDialogue2::EnsureValidSpriteHandlers()
 		return cs;
 	};
 
-	const auto& handler = Project->IsRom() ? romhandler : asmhandler;
-	const auto& errfunc = Project->IsRom() ? romerrfunc : asmerrfunc;
+	const auto& handler = Proj2->IsRom() ? romhandler : asmhandler;
+	const auto& errfunc = Proj2->IsRom() ? romerrfunc : asmerrfunc;
 	static const int limit = 20;
 
 	// Ignore missing handlers (if we aren't throwing on errors)
-	CSpriteDialogueSettings stgs(*Project);
+	CSpriteDialogueSettings stgs(*Proj2);
 	bool throws = stgs.ThrowOnBadSpriteAddr;
 	int errcount = 0;
 	CString missing;
@@ -411,9 +417,9 @@ void CSpriteDialogue2::EnsureValidSpriteHandlers()
 
 void CSpriteDialogue2::EnaureSynchedHandlerTables()
 {
-	CSpriteDialogueSettings stgs(*Project);
+	CSpriteDialogueSettings stgs(*Proj2);
 	bool throws = stgs.ThrowOnBadSpriteAddr;
-	auto ininames = GetIniTalkRoutineNames(*Project);
+	auto ininames = GetIniTalkRoutineNames(*Proj2);
 
 	// Ensure thewe have the same handler count in INI and ASM/ROM
 	if (ininames.size() != m_routineaddrmap.size()) {
@@ -431,10 +437,11 @@ void CSpriteDialogue2::EnaureSynchedHandlerTables()
 	static const int limit = 20;
 	int errors = 0;
 	CString err;
-	if (Project->IsRom()) {
+	if (Proj2->IsRom()) {
 		std::set<int> iniset;
 		for (const auto& name : ininames) {
-			int bankaddr = hex(ReadIni(m_proj.DialoguePath, name.c_str(), "bankaddr", "0x0"));
+			const auto& handler = Proj2->GetHandler(name);
+			int bankaddr = ffh::cnv::hex(handler.bankaddr);
 			if (bankaddr != 0)
 				iniset.insert(bankaddr);
 		}
@@ -448,7 +455,7 @@ void CSpriteDialogue2::EnaureSynchedHandlerTables()
 			}
 		}
 	}
-	else if (Project->IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		// Compare the names since ASM doesn't have the bank addresses
 		// Identify ASM routines that aren't declared in the dialogue INI
 		std::set<std::string> iniset;
@@ -553,18 +560,15 @@ void CSpriteDialogue2::LoadElementList()
 
 	CString routinename;
 	m_comboRoutineType.GetWindowText(routinename);
-	auto bankaddr = hex(ReadIni(m_proj.DialoguePath, routinename, "bankaddr", ""));
-	auto elemnames = Ini::ReadIniKeyNames(m_proj.DialoguePath, routinename);
-	for (const auto & elem : elemnames) {
-		if (elem.Find("elem") != 0) continue;
 
-		int elemindex = -1;
-		sscanf(elem, "elem%d", &elemindex);
-		if (elemindex == -1) continue;
-
+	auto& handler = Proj2->GetHandler(ffh::str::tostd(routinename));
+	auto bankaddr = ffh::cnv::hex(handler.bankaddr);
+	int elemindex = 0;
+	for (auto & elem : handler.elements) {
 		auto newindex = m_elementlist.InsertItem(elemindex, "");
 		ASSERT(newindex == elemindex);
-		LoadElement(newindex, bankaddr, routinename);
+		LoadElement(newindex, bankaddr, routinename, handler);
+		++elemindex;
 	}
 }
 
@@ -572,30 +576,27 @@ void CSpriteDialogue2::SaveElementList()
 {
 	CString routinename;
 	m_comboRoutineType.GetWindowText(routinename);
-	auto bankaddr = hex(ReadIni(m_proj.DialoguePath, routinename, "bankaddr", ""));
-	auto elemnames = Ini::ReadIniKeyNames(m_proj.DialoguePath, routinename);
-	for (const auto & elem : elemnames) {
-		if (elem.Find("elem") != 0) continue;
 
-		int elemindex = -1;
-		sscanf(elem, "elem%d", &elemindex);
-		if (elemindex == -1) continue;
-
-		SaveElement(elemindex, bankaddr, routinename);
+	auto& handler = Proj2->GetHandler(ffh::str::tostd(routinename));
+	auto bankaddr = ffh::cnv::hex(handler.bankaddr);
+	int elemindex = 0;
+	for (auto& elem : handler.elements) {
+		SaveElement(elemindex, bankaddr, routinename, handler);
+		++elemindex;
 	}
 }
 
-void CSpriteDialogue2::LoadElement(int elementindex, int bankaddr, CString routinename)
+void CSpriteDialogue2::LoadElement(int elementindex, int bankaddr, CString routinename, const ProjectDialogueTalkHandler & handler)
 {
 	CString elem;
-	elem.Format("elem%d", elementindex);
+	elem.Format("elem%d", elementindex);	
 
-	auto delem = dialogue_helpers::ReadElement(m_proj, routinename, elem);
-	const auto & marker = delem.marker;
-	const auto & comment = delem.comment;
-	const auto & inputvalue = delem.isHardcoded() ? hex(delem.routineoffset) : dec(delem.paramindex);
+	const auto& delem = handler.elements[elementindex];
+	CString marker = ffh::str::tomfc(delem.type);
+	CString comment = ffh::str::tomfc(delem.comment);
+	CString inputvalue = ffh::str::tomfc(delem.isHardcoded() ? delem.hexoffset : ffh::cnv::dec(delem.paramindex));
 
-	if (m_proj.IsRom()) {
+	if (Proj2->IsRom()) {
 		//TODO - this function has to change to complete the move from parts to delem
 		//		so pass deleme to it directly instead of marker and inputvalue
 		auto elemvalue = GetElementValue(elementindex, bankaddr, marker, inputvalue);
@@ -604,7 +605,7 @@ void CSpriteDialogue2::LoadElement(int elementindex, int bankaddr, CString routi
 		m_elementlist.SetItemText(elementindex, 2, comment);
 		m_elementlist.SetItemData(elementindex, elemvalue.second); // reference value, if == IGNOREDITEM, then ignore this element
 	}
-	else if (m_proj.IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		//REFACTOR - instead of throwing exceptions, just display a message that the element can't be edited?
 		try {
 			auto iter = m_asmroutinemap.find((LPCSTR)routinename);
@@ -633,7 +634,7 @@ void CSpriteDialogue2::LoadElement(int elementindex, int bankaddr, CString routi
 	}
 }
 
-void CSpriteDialogue2::SaveElement(int elementindex, int bankaddr, CString routinename)
+void CSpriteDialogue2::SaveElement(int elementindex, int bankaddr, CString routinename, ProjectDialogueTalkHandler & handler)
 {
 	if (m_elementlist.GetItemData(elementindex) == IGNOREDITEM) return; // don't save ignored items (don't save their comments either)
 
@@ -641,13 +642,16 @@ void CSpriteDialogue2::SaveElement(int elementindex, int bankaddr, CString routi
 	elem.Format("elem%d", elementindex);
 
 	auto newcomment = m_elementlist.GetItemText(elementindex, 2);
-	auto delem = dialogue_helpers::ReadElement(m_proj, routinename, elem);
-	const auto & marker = delem.marker;
-	const auto & inputvalue = delem.isHardcoded() ? hex(delem.routineoffset) : dec(delem.paramindex);
+	auto& delem = handler.elements[elementindex];
+	CString marker = ffh::str::tomfc(delem.type);
+	CString comment = ffh::str::tomfc(delem.comment);
+	CString inputvalue = ffh::str::tomfc(delem.isHardcoded() ? delem.hexoffset : ffh::cnv::dec(delem.paramindex));
+
+	CString newvalue = m_elementlist.GetItemText(elementindex, 1);
 
 	// Update ROM
 	//TODO - this function might also need to change to move from parts to delem
-	SetRomValue(elementindex, bankaddr, marker, inputvalue, m_elementlist.GetItemText(elementindex, 1));
+	SetRomValue(elementindex, bankaddr, marker, inputvalue, newvalue);
 
 	//TODO - currently, the ASM comment and dialogue file comment are UNRELATED
 	//		and this will NOT change the comment written to the ASM source file.
@@ -655,15 +659,14 @@ void CSpriteDialogue2::SaveElement(int elementindex, int bankaddr, CString routi
 	//		but for now it does not.
 
 	// If this is an assembly project, update the comment for this routine's element
-	if (m_proj.IsAsm()) {
+	if (Proj2->IsAsm()) {
 		auto iter = m_asmroutinemap.find((LPCSTR)routinename);
 		if (iter != end(m_asmroutinemap))
 			iter->second[elementindex].comment = newcomment;
 	}
 
-	// Now update the comment in the dialogue file
+	// Now update the comment in the dialogue element
 	delem.comment = newcomment;
-	dialogue_helpers::WriteElement(m_proj, routinename, elem, delem);
 }
 
 void CSpriteDialogue2::EditElementValue(int elementindex, CString marker, CString value)
@@ -672,11 +675,11 @@ void CSpriteDialogue2::EditElementValue(int elementindex, CString marker, CStrin
 
 	auto rcitem = Ui::GetSubitemRect(m_elementlist, elementindex, 1);
 
-	const auto DoEditDropdown = [&rcitem,elementindex,this](LoadEntryFunc func, bool showindex = true) {
+	const auto DoEditDropdown = [&rcitem,elementindex,this](LoadEntryFunc2 func, bool showindex = true) {
 		m_inplacecombo.SetPosition(rcitem);
 		m_inplacecombo.ClearData();
 		auto & box = m_inplacecombo.m_combo;
-		LoadCombo(m_inplacecombo.m_combo, func(m_proj, showindex));
+		LoadCombo(m_inplacecombo.m_combo, func(*Proj2, showindex));
 
 		auto itemdata = m_elementlist.GetItemData(elementindex);
 		if (!SelectItemByData(box, itemdata))
@@ -692,7 +695,7 @@ void CSpriteDialogue2::EditElementValue(int elementindex, CString marker, CStrin
 		return true;
 	};
 
-	const auto DoLoadItemEntries = [marker,this](CFFHacksterProject & proj, bool showindex) {
+	const auto DoLoadItemEntries = [marker,this](FFH2Project & proj, bool showindex) {
 		UNREFERENCED_PARAMETER(showindex);
 		// Load all entries without the index, then replace the index with the appropriate format and value
 		auto entries = Enloader->LoadItemEntries(proj, false);
@@ -702,22 +705,22 @@ void CSpriteDialogue2::EditElementValue(int elementindex, CString marker, CStrin
 		AdjustRamItemEntries(proj, entries, indexformat, adjustby);
 		return entries;
 	};
-	const auto DoLoadItemOrMapEntries = [marker,DoLoadItemEntries,this](CFFHacksterProject & proj, bool showindex) {
+	const auto DoLoadItemOrMapEntries = [marker,DoLoadItemEntries,this](FFH2Project& proj, bool showindex) {
 		auto entries = LoadMapSpriteEntries(proj, showindex) + DoLoadItemEntries(proj, showindex);
 		return entries;
 	};
-	const auto DoLoadItemOrCanoeEntries = [marker, DoLoadItemEntries, this](CFFHacksterProject & proj, bool showindex) {
+	const auto DoLoadItemOrCanoeEntries = [marker, DoLoadItemEntries, this](FFH2Project& proj, bool showindex) {
 		auto entries = LoadCanoeEntries(proj, showindex) + DoLoadItemEntries(proj, showindex);
 		return entries;
 	};
-	const auto DoLoadFanfareEntries = [marker,elementindex,this](CFFHacksterProject & proj, bool showindex) {
+	const auto DoLoadFanfareEntries = [marker,elementindex,this](FFH2Project& proj, bool showindex) {
 		UNREFERENCED_PARAMETER(showindex);
 		bool hardcoded = marker.Find("hc") == 0; // starts with "hc" if hardcoded
 		if (!hardcoded)
 			THROWEXCEPTION(std::invalid_argument, "elem" + std::to_string(elementindex) + std::string("fanfare must be hardcoded, but uses non-hardcoded marker ") + (LPCSTR)marker);
 
 		const auto LoadEntry = [&](int value, int index) {
-			auto node = LoadFanfareLabel(proj, index, false);
+			auto node = Labels2::LoadFanfareLabel(proj, index, false);
 			CString newname;
 			newname.Format("%04X: %s", value, (LPCSTR)node.name);
 			node.name = newname;
@@ -741,22 +744,24 @@ void CSpriteDialogue2::EditElementValue(int elementindex, CString marker, CStrin
 			return true;
 		};
 	};
-	const auto LoadBattleLabels2 = [&](CFFHacksterProject& proj, bool showindex) {
-		return LoadBattleLabelsEx(proj, false, showindex);
+	const auto LoadBattleLabels2 = [&](FFH2Project& proj, bool showindex) {
+		return Labels2::LoadBattleLabelsEx(proj, false, showindex);
 	};
 
+	#define WrapForLoadEntries(f) [](FFH2Project& proj, bool showindex) { return (f)(proj, showindex); }
+
 	if (marker == "text" || marker == "hctext")
-		DoEditDropdown(LoadGameTextEntries);
+		DoEditDropdown(WrapForLoadEntries(LoadGameTextEntries));
 	else if (marker == "obj" || marker == "hcobj" || marker == "event" || marker == "hcevent" || marker == "spr" || marker == "hcspr")
-		DoEditDropdown(LoadSpriteLabels);
+		DoEditDropdown(WrapForLoadEntries(Labels2::LoadSpriteLabels));
 	else if (marker == "battle" || marker == "hcbattle")
 		DoEditDropdown(LoadBattleLabels2);
 	else if (marker == "item" || marker == "hcitem")
 		DoEditDropdown(DoLoadItemEntries);
 	else if (marker == "hcmap")
-		DoEditDropdown(LoadMapSpriteEntries);
+		DoEditDropdown(WrapForLoadEntries(LoadMapSpriteEntries));
 	else if (marker == "weapon" || marker == "hcweapon")
-		DoEditDropdown([this](CFFHacksterProject & proj, bool showindex) { return Enloader->LoadWeaponEntries(proj, showindex); });
+		DoEditDropdown([this](FFH2Project& proj, bool showindex) { return Enloader->LoadWeaponEntries(proj, showindex); });
 	else if (marker == "hcitemormap")
 		DoEditDropdown(DoLoadItemOrMapEntries);
 	else if (marker == "hcitemorcanoe")
@@ -764,15 +769,15 @@ void CSpriteDialogue2::EditElementValue(int elementindex, CString marker, CStrin
 	else if (marker == "hcfanfare")
 		DoEditDropdown(DoLoadFanfareEntries);
 	else if (marker == "hcnntele")
-		DoEditDropdown(LoadNNTeleportLabels);
+		DoEditDropdown(WrapForLoadEntries(Labels2::LoadNNTeleportLabels));
 	else if (marker == "hcnotele")
-		DoEditDropdown(LoadNOTeleportLabels);
+		DoEditDropdown(WrapForLoadEntries(Labels2::LoadNOTeleportLabels));
 	else if (marker == "hcuint8")
 		DoInplaceEdit(from_dec);
 	else if (marker == "hcbyte")
 		DoInplaceEdit(from_addr);
 	else if (marker == "gold" || marker == "hcgold")
-		DoEditDropdown([this](CFFHacksterProject & proj, bool showindex) { return Enloader->LoadGoldEntries(proj, showindex); });
+		DoEditDropdown([this](FFH2Project& proj, bool showindex) { return Enloader->LoadGoldEntries(proj, showindex); });
 	else
 		ErrorHere << " Unable to edit unknown element: type '" << marker << "' value '" << value << "'" << std::endl;
 }
@@ -780,18 +785,21 @@ void CSpriteDialogue2::EditElementValue(int elementindex, CString marker, CStrin
 // inputvalue: from the .dialogue file, and it's either the talkparam index or the offset from bankaddr to the deisred hardcoded value.
 std::pair<CString, int> CSpriteDialogue2::GetElementValue(int elementindex, int bankaddr, CString marker, CString inputvalue)
 {
-	const auto DoLoadEntry = [bankaddr, this](LoadSingleEntryFunc func, CString marker, CString inputvalue) -> std::pair<CString, int> {
+	// Type wrapper used when passing handlers to the functions defined below.
+	#define WrapForDoLoadEntry(f) [](FFH2Project & proj, int index, bool showindex) { return (f)(proj, index, showindex); }
+
+	const auto DoLoadEntry = [bankaddr, this](LoadSingleEntryFunc2 func, CString marker, CString inputvalue) -> std::pair<CString, int> {
 		bool hardcoded = marker.Find("hc") == 0; // starts with "hc" if hardcoded
 		int itemref = hardcoded ? Read8(bankaddr + hex(inputvalue)) : ReadParam(dec(inputvalue));
-		return{ func(m_proj, itemref, true).name, itemref };
+		return{ func(*Proj2, itemref, true).name, itemref };
 	};
-	const auto DoLoadEntry16 = [bankaddr, elementindex, this](LoadSingleEntryFunc func, CString marker, CString inputvalue) -> std::pair<CString, int> {
+	const auto DoLoadEntry16 = [bankaddr, elementindex, this](LoadSingleEntryFunc2 func, CString marker, CString inputvalue) -> std::pair<CString, int> {
 		bool hardcoded = marker.Find("hc") == 0; // starts with "hc" if hardcoded
 		if (!hardcoded)
 			THROWEXCEPTION(std::invalid_argument, "elem" + std::to_string(elementindex) + std::string(": 16-bit reads must be hardcoded, but uses non-hardcoded marker ") + (LPCSTR)marker);
 
 		int itemref = Read16(bankaddr + hex(inputvalue));
-		return{ func(m_proj, itemref, true).name, itemref };
+		return{ func(*Proj2, itemref, true).name, itemref };
 	};
 	const auto DoLoadItemEntry = [bankaddr, this](CString marker, CString inputvalue) -> std::pair<CString, int> {
 		// We want the item name (or a fallback from the values file if it's blank).
@@ -799,11 +807,11 @@ std::pair<CString, int> CSpriteDialogue2::GetElementValue(int elementindex, int 
 		int itemref = hardcoded ? Read16(bankaddr + hex(inputvalue)) : ReadParam(dec(inputvalue));
 		int itemindex = hardcoded ? itemref - m_itemsaddr : itemref;
 		int fallbackref = hardcoded ? itemref : itemref + m_itemsaddr;
-		auto entry = Enloader->LoadItemEntry(m_proj, itemindex, false);
+		auto entry = Enloader->LoadItemEntry(*Proj2, itemindex, false);
 		CString format = hardcoded ? "%04X: " : "%02X: ";
 		CString name;
 		name.Format(format, itemref);
-		name += GetItemFallbackName(m_proj, entry.name, fallbackref);
+		name += GetItemFallbackName(*Proj2, entry.name, fallbackref);
 		return{ name, itemref };
 	};
 	const auto DoLoadItemOrMap = [bankaddr, DoLoadEntry16, DoLoadItemEntry, this](CString marker, CString inputvalue) -> std::pair<CString, int> {
@@ -812,7 +820,7 @@ std::pair<CString, int> CSpriteDialogue2::GetElementValue(int elementindex, int 
 			// If hardcoded AND the itemref is below the items address, then it's really a map sprite.
 			int itemref = Read16(bankaddr + hex(inputvalue));
 			if (itemref < m_itemsaddr)
-				return DoLoadEntry16(LoadMapSpriteEntry, marker, inputvalue);
+				return DoLoadEntry16(WrapForDoLoadEntry(LoadMapSpriteEntry), marker, inputvalue);
 		}
 		// Otherwise assume it's an item (which can be either a param or hardcoded entry).
 		return DoLoadItemEntry(marker, inputvalue);
@@ -823,7 +831,7 @@ std::pair<CString, int> CSpriteDialogue2::GetElementValue(int elementindex, int 
 		if (hardcoded) {
 			int itemref = hardcoded ? Read16(bankaddr + hex(inputvalue)) : ReadParam(dec(inputvalue));
 			if (itemref < m_itemsaddr)
-				return DoLoadEntry16(LoadMapSpriteEntry, marker, inputvalue);
+				return DoLoadEntry16(WrapForDoLoadEntry(LoadMapSpriteEntry), marker, inputvalue);
 		}
 		// Otherwise assume it's an item (which can be either a param or hardcoded entry).
 		return DoLoadItemEntry(marker, inputvalue);
@@ -838,7 +846,7 @@ std::pair<CString, int> CSpriteDialogue2::GetElementValue(int elementindex, int 
 		if (iter == cend(m_fanfarevalues))
 			return{ "IGNORED", IGNOREDITEM };
 
-		auto entry = LoadFanfareLabel(m_proj, iter->second, false);
+		auto entry = Labels2::LoadFanfareLabel(*Proj2, iter->second, false);
 		CString newname;
 		newname.Format("%04X: %s", itemref, (LPCSTR)entry.name);
 		return{ newname, itemref };
@@ -848,23 +856,20 @@ std::pair<CString, int> CSpriteDialogue2::GetElementValue(int elementindex, int 
 		auto intvalue = hardcoded ? Read8(bankaddr + hex(inputvalue)) : ReadParam(dec(inputvalue));
 		return{ formatter(intvalue), intvalue };
 	};
-	const auto LoadBattleLabel2 = [this](CFFHacksterProject& proj, int index, bool showindex) {
-		return LoadBattleLabelEx(proj, index, showindex);
-	};
 
 	if (marker == "text" || marker == "hctext")
-		return DoLoadEntry(LoadGameTextEntry, marker, inputvalue);
+		return DoLoadEntry(WrapForDoLoadEntry(LoadGameTextEntry), marker, inputvalue);
 	if (marker == "obj" || marker == "hcobj" || marker == "event" || marker == "hcevent" || marker == "spr" || marker == "hcspr")
-		return DoLoadEntry(LoadSpriteLabel, marker, inputvalue);
+		return DoLoadEntry(WrapForDoLoadEntry(Labels2::LoadSpriteLabel), marker, inputvalue);
 	if (marker == "battle" || marker == "hcbattle")
-		return DoLoadEntry(LoadBattleLabel2, marker, inputvalue);
+		return DoLoadEntry(WrapForDoLoadEntry(Labels2::LoadBattleLabelEx), marker, inputvalue);
 	if (marker == "item" || marker == "hcitem")
 		return DoLoadItemEntry(marker, inputvalue);
 	if (marker == "hcmap")
-		return DoLoadEntry16(LoadMapSpriteEntry, marker, inputvalue);
+		return DoLoadEntry16(WrapForDoLoadEntry(LoadMapSpriteEntry), marker, inputvalue);
 	if (marker == "weapon" || marker == "hcweapon")
 		return DoLoadEntry(
-			[this](CFFHacksterProject & proj, int index, bool showindex) { return Enloader->LoadWeaponEntry(proj, index, showindex); },
+			[this](FFH2Project& proj, int index, bool showindex) { return Enloader->LoadWeaponEntry(proj, index, showindex); },
 			marker, inputvalue);
 	if (marker == "hcitemormap")
 		return DoLoadItemOrMap(marker, inputvalue);
@@ -873,16 +878,16 @@ std::pair<CString, int> CSpriteDialogue2::GetElementValue(int elementindex, int 
 	if (marker == "hcfanfare")
 		return DoLoadFanfareEntry(marker, inputvalue);
 	if (marker == "nntele" || marker == "hcnntele")
-		return DoLoadEntry(LoadNNTeleportLabel, marker, inputvalue);
+		return DoLoadEntry(WrapForDoLoadEntry(Labels2::LoadNNTeleportLabel), marker, inputvalue);
 	if (marker == "notele" || marker == "hcnotele")
-		return DoLoadEntry(LoadNOTeleportLabel, marker, inputvalue);
+		return DoLoadEntry(WrapForDoLoadEntry(Labels2::LoadNOTeleportLabel), marker, inputvalue);
 	if (marker == "hcuint8")
 		return DoLoadNumber8(marker, inputvalue, dec);
 	if (marker == "hcbyte")
 		return DoLoadNumber8(marker, inputvalue, addr);
 	if (marker == "gold" || marker == "hcgold")
 		return DoLoadEntry(
-			[this](CFFHacksterProject & proj, int index, bool showindex) { return Enloader->LoadGoldEntry(proj, index, showindex); },
+			[this](FFH2Project& proj, int index, bool showindex) { return Enloader->LoadGoldEntry(proj, index, showindex); },
 			marker, inputvalue);
 
 	return{ "<unsupported>", IGNOREDITEM };
@@ -984,61 +989,61 @@ void CSpriteDialogue2::EditElementComment(int elementindex, CString comment)
 int CSpriteDialogue2::ReadHandlerAddr(int index)
 {
 	int romoffset = TALKROUTINEPTRTABLE_OFFSET + (index * TALKROUTINEPTRTABLE_BYTES);
-	int value = m_proj.ROM[romoffset] + (m_proj.ROM[romoffset + 1] << 8);
+	int value = Proj2->ROM[romoffset] + (Proj2->ROM[romoffset + 1] << 8);
 	return value;
 }
 
 void CSpriteDialogue2::WriteHandlerAddr(int index, int data)
 {
 	int romoffset = TALKROUTINEPTRTABLE_OFFSET + (index * TALKROUTINEPTRTABLE_BYTES);
-	m_proj.ROM[romoffset] = (data) & 0xFF;
-	m_proj.ROM[romoffset + 1] = (data >> 8) & 0xFF;
+	Proj2->ROM[romoffset] = (data) & 0xFF;
+	Proj2->ROM[romoffset + 1] = (data >> 8) & 0xFF;
 }
 
 BYTE CSpriteDialogue2::Read8(int addedoffset)
 {
 	int romoffset = TALKROUTINEPTRTABLE_PTRADD + addedoffset;
-	BYTE value = m_proj.ROM[romoffset];
+	BYTE value = Proj2->ROM[romoffset];
 	return value;
 }
 
 void CSpriteDialogue2::Write8(int addedoffset, BYTE data)
 {
 	int romoffset = TALKROUTINEPTRTABLE_PTRADD + addedoffset;
-	m_proj.ROM[romoffset] = data;
+	Proj2->ROM[romoffset] = data;
 }
 
 int CSpriteDialogue2::Read16(int addedoffset)
 {
 	int romoffset = TALKROUTINEPTRTABLE_PTRADD + addedoffset;
-	int value = m_proj.ROM[romoffset] + (m_proj.ROM[romoffset + 1] << 8);
+	int value = Proj2->ROM[romoffset] + (Proj2->ROM[romoffset + 1] << 8);
 	return value;
 }
 
 void CSpriteDialogue2::Write16(int addedoffset, int data)
 {
 	int romoffset = TALKROUTINEPTRTABLE_PTRADD + addedoffset;
-	m_proj.ROM[romoffset] = (data) & 0xFF;
-	m_proj.ROM[romoffset + 1] = (data >> 8) & 0xFF;
+	Proj2->ROM[romoffset] = (data) & 0xFF;
+	Proj2->ROM[romoffset + 1] = (data >> 8) & 0xFF;
 }
 
 BYTE CSpriteDialogue2::ReadParam(int index)
 {
 	int romoffset = TALKROUTINEDATA_OFFSET + (m_curindex * TALKROUTINEDATA_BYTES) + index;
-	BYTE value = m_proj.ROM[romoffset];
+	BYTE value = Proj2->ROM[romoffset];
 	return value;
 }
 
 void CSpriteDialogue2::WriteParam(int index, BYTE value)
 {
 	int romoffset = TALKROUTINEDATA_OFFSET + (m_curindex * TALKROUTINEDATA_BYTES) + index;
-	m_proj.ROM[romoffset] = value;
+	Proj2->ROM[romoffset] = value;
 }
 
 int CSpriteDialogue2::TextToValue(CString marker, std::string inputvalue)
 {
-	auto iter = m_proj.m_varmap.find(inputvalue);
-	if (iter != cend(m_proj.m_varmap))
+	auto iter = Proj2->m_varmap.find(inputvalue);
+	if (iter != cend(Proj2->m_varmap))
 		return iter->second;
 
 	if (!inputvalue.empty() && isalpha(inputvalue.front()))
@@ -1064,7 +1069,7 @@ std::string CSpriteDialogue2::ValueToText(CString marker, int newvalue)
 
 	const auto SetHCIndexData = [marker,newvalue,this](asm_search searchtype, std::string keyorprefixnames)
 	{
-		auto strnewvalue = search_for_match(m_proj, searchtype, keyorprefixnames, newvalue);
+		auto strnewvalue = search_for_match(*Proj2, searchtype, keyorprefixnames, newvalue);
 		return strnewvalue;
 	};
 	const auto SaveFanfareItem = [marker](int fanvalue) {
@@ -1149,7 +1154,7 @@ void CSpriteDialogue2::OnPaint()
 void CSpriteDialogue2::OnBnClickedSettings()
 {
 	CSpriteDialogueSettingsDlg dlg(this);
-	dlg.m_proj = &m_proj;
+	dlg.Proj2 = Proj2;
 	if (dlg.DoModal() == IDOK) {
 		OnSelchangeList();
 	}
@@ -1199,13 +1204,15 @@ void CSpriteDialogue2::OnNMClickListTalkelements(NMHDR *pNMHDR, LRESULT *pResult
 namespace SpriteDialogue_Helpers // IMPLEMENTATION
 {
 
-	mfcstringvector read_names_vector(CFFHacksterProject & proj, mfcstringvector keynames)
+	mfcstringvector read_names_vector(FFH2Project& proj, mfcstringvector keynames)
 	{
+		ffh::fda::DataValueAccessor d(proj);
 		mfcstringvector allvalnames;
 		for (const auto & keyname : keynames) {
 			mfcstringvector valnames;
 			try {
-				valnames = ReadIni(proj.ValuesPath, keyname, "value", mfcstringvector{});
+				auto thenames = d.get<std::vector<std::string>>(ffh::str::tostd(keyname));
+				valnames = ffh::cnv::tomfc(thenames);
 			}
 			catch (...) {
 				THROWEXCEPTION(std::invalid_argument, (LPCSTR)keyname + std::string(" is not a str[], and therefore cannot be uded\nto retrieve varmap values."));
@@ -1215,7 +1222,7 @@ namespace SpriteDialogue_Helpers // IMPLEMENTATION
 		return allvalnames;
 	}
 
-	std::string search_for_match(CFFHacksterProject & proj, asm_search searchtype, std::string key, int index)
+	std::string search_for_match(FFH2Project& proj, asm_search searchtype, std::string key, int index)
 	{
 		stdstrintmap & varmap = proj.m_varmap;
 		std::string result;
@@ -1264,11 +1271,9 @@ namespace SpriteDialogue_Helpers // IMPLEMENTATION
 		return result;
 	}
 
-	stdstringvector GetIniTalkRoutineNames(CFFHacksterProject & proj)
+	stdstringvector GetIniTalkRoutineNames(FFH2Project& proj)
 	{
-		auto ininames = ReadIniSectionNames(proj.DialoguePath);
-		ininames.erase(std::remove_if(begin(ininames), end(ininames), [](const auto & n) { return _strnicmp(n, "talk", 4) != 0; }), end(ininames));
-		return convert(ininames);
+		return proj.dialogue.handlers.order;
 	}
 
 } // end namespace SpriteDialogue_Helpers IMPLEMENTATION

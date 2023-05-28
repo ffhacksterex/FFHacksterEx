@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "SpriteDialogueSettingsDlg.h"
 #include "SpriteDialogueSettings.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "afxdialogex.h"
 #include "type_support.h"
 #include "ui_helpers.h"
@@ -44,12 +44,10 @@ BOOL CSpriteDialogueSettingsDlg::OnInitDialog()
 {
 	CFFBaseDlg::OnInitDialog();
 
-	if (m_proj == nullptr) {
-		EndDialog(IDABORT);
-		return TRUE;
-	}
+	FFH_THROW_NULL_PROJECT(Proj2, "Dialogue Editor");
+	FFH_THROW_OLD_FFHACKSTERPROJ(m_proj);
 
-	CSpriteDialogueSettings stgs(*m_proj);
+	CSpriteDialogueSettings stgs(*Proj2);
 	SetCheckValue(m_showactualtextcheck, stgs.ShowActualText);
 	SetEditValue(m_shorttextlengthedit, dec(stgs.ShortTextLength));
 	SetCheckValue(m_throwonbadspraddcheck, stgs.ThrowOnBadSpriteAddr);
@@ -60,7 +58,7 @@ BOOL CSpriteDialogueSettingsDlg::OnInitDialog()
 
 void CSpriteDialogueSettingsDlg::OnOK()
 {
-	CSpriteDialogueSettings stgs(*m_proj);
+	CSpriteDialogueSettings stgs(*Proj2);
 	stgs.ShowActualText = GetCheckValue(m_showactualtextcheck);
 	stgs.ShortTextLength = dec(GetEditValue(m_shorttextlengthedit));
 	stgs.ThrowOnBadSpriteAddr = GetCheckValue(m_throwonbadspraddcheck);

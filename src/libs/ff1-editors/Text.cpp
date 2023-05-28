@@ -668,7 +668,7 @@ void CText::ResetTextList()
 	{
 		TextEditorSettings stgs(*Proj2);
 		for (int co = 0; co < DIALOGUE_COUNT; co++) {
-			CString str = stgs.ShowActualText ? Ingametext::LoadDialogueEntry(*Proj2, co, true).name : LoadTextLabel(*Proj2, co).name;
+			CString str = stgs.ShowActualText ? Ingametext::LoadDialogueEntry(*Proj2, co, true).name : Labels2::LoadTextLabel(*Proj2, co).name;
 			m_textlist.InsertString(co, str);
 		}
 		break;

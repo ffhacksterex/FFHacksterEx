@@ -5,6 +5,7 @@
 #include <FFBaseDlg.h>
 #include <ClearEdit.h>
 class CFFHacksterProject;
+class FFH2Project;
 
 // CSpriteDialogueSettingsDlg dialog
 
@@ -16,7 +17,8 @@ public:
 	CSpriteDialogueSettingsDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~CSpriteDialogueSettingsDlg();
 
-	CFFHacksterProject * m_proj = nullptr;
+	FFH2Project* Proj2 = nullptr;
+	CFFHacksterProject* m_proj = nullptr;
 
 // Dialog Data
 	enum { IDD = IDD_SPRITE_DIALOGUE_SETTINGS };

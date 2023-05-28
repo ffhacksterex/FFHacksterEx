@@ -3,8 +3,9 @@
 #include <afx.h>
 #include <string>
 #include <set>
-#include "collection_helpers.h"
 #include <functional>
+#include "collection_helpers.h"
+#include "string_conversions.hpp"
 
 namespace Strings
 {

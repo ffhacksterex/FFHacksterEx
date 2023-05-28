@@ -7,7 +7,6 @@
 #include "upgrade_functions.h"
 #include "ini_functions.h"
 #include "path_functions.h"
-#include "string_conversions.hpp"
 #include "string_functions.h"
 #include "FFH2Project.h"
 #include "FFH2Project_IniToJson_Defs.hpp"
@@ -377,6 +376,7 @@ namespace {
 			p.dialogue.handlers.order.push_back(name);
 
 			ProjectDialogueTalkHandler& talk = (p.dialogue.handlers.entries[name] = {});
+			talk.name = name;
 			talk.desc = (LPCSTR)Ini::ReadIni(dlgpath, sect, "desc", "");
 			talk.bankaddr = (LPCSTR)Ini::ReadIni(dlgpath, sect, "bankaddr", "");
 
