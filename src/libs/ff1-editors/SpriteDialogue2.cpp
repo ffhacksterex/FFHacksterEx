@@ -9,9 +9,6 @@
 #include <EntriesLoader.h>
 #include <FFHacksterProject.h>
 #include <FFH2Project.h>
-#include <DataValueAccessor.h>
-#include <dva_primitives.h>
-#include <dva_std_collections.h>
 #include <GameSerializer.h>
 #include <WaitingDlg.h>
 #include <AsmFiles.h>
@@ -29,8 +26,9 @@
 #include <type_support.h>
 #include <ui_helpers.h>
 #include <uti_std_collections.hpp>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
-#include <FFHacksterProject.h>
 #include <SpriteDialogueSettings.h>
 #include <SpriteDialogueSettingsDlg.h>
 #include <iterator>
@@ -106,7 +104,7 @@ BOOL CSpriteDialogue2::OnInitDialog()
 
 void CSpriteDialogue2::LoadOffsets()
 {
-	ffh::fda::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	TALKROUTINEPTRTABLE_OFFSET = d.get<int>("TALKROUTINEPTRTABLE_OFFSET");
 	TALKROUTINEPTRTABLE_BYTES = d.get<int>("TALKROUTINEPTRTABLE_BYTES");
 	TALKROUTINEPTRTABLE_PTRADD = d.get<int>("TALKROUTINEPTRTABLE_PTRADD");
@@ -120,7 +118,7 @@ void CSpriteDialogue2::LoadRom()
 	Proj2->ClearROM();
 
 	// Build a reference map for fanfare values up front.
-	ffh::fda::DataValueAccessor dva(*Proj2);
+	ffh::acc::ValueDataAccessor dva(*Proj2);
 	auto AddFanfareValue = [&,this](CString key, int usabilityvalue, int hexdefault) {
 		auto value = dva.get<int>(ffh::str::tostd(key));
 		m_fanfarevalues[value] = usabilityvalue;
@@ -1206,7 +1204,7 @@ namespace SpriteDialogue_Helpers // IMPLEMENTATION
 
 	mfcstringvector read_names_vector(FFH2Project& proj, mfcstringvector keynames)
 	{
-		ffh::fda::DataValueAccessor d(proj);
+		ffh::acc::ValueDataAccessor d(proj);
 		mfcstringvector allvalnames;
 		for (const auto & keyname : keynames) {
 			mfcstringvector valnames;

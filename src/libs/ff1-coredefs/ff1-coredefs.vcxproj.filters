@@ -132,7 +132,7 @@
     <ClCompile Include="Upgrades_ini.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataValueAccessor.cpp">
+    <ClCompile Include="ValueDataAccessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SettingValueAccessor.cpp">
@@ -157,6 +157,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="collection_conversions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vda_std_collections.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -378,7 +381,7 @@
     <ClInclude Include="conditional_build_symbols.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataValueAccessor.h">
+    <ClInclude Include="ValueDataAccessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FFHValue.h">
@@ -415,6 +418,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FFHSetting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vda_std_collections.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

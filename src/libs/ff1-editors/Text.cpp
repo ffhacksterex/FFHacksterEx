@@ -6,7 +6,7 @@
 #include <FFH2Project.h>
 #include "collection_helpers.h"
 #include <core_exceptions.h>
-#include <DataValueAccessor.h>
+#include <ValueDataAccessor.h>
 #include <dva_primitives.h>
 #include <editor_label_functions.h>
 #include "general_functions.h"
@@ -165,7 +165,7 @@ void CText::OnOK()
 
 void CText::LoadOffsets()
 {
-	ffh::fda::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 	BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
 	BASICTEXT_COUNT = d.get<int>("BASICTEXT_COUNT");
@@ -236,7 +236,7 @@ void CText::LoadRom()
 {
 	Proj2->ClearROM();
 	if (Proj2->IsAsm()) {
-		ffh::fda::DataValueAccessor d(*Proj2);
+		ffh::acc::ValueDataAccessor d(*Proj2);
 		CREDITTEXTPTR_OFFSET = d.get<int>("CREDITTEXTPTR_OFFSET");
 		CREDITTEXT_OFFSET = d.get<int>("CREDITTEXT_OFFSET");
 		CREDITTEXT_PTRADD = d.get<int>("CREDITTEXT_PTRADD");

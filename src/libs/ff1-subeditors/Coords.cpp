@@ -5,7 +5,7 @@
 #include "resource_subeditors.h"
 #include "Coords.h"
 #include "ICoordMap.h"
-#include <DataValueAccessor.h>
+#include <ValueDataAccessor.h>
 #include <dva_primitives.h>
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
@@ -53,7 +53,7 @@ void CCoords::DoDataExchange(CDataExchange* pDX)
 bool CCoords::LoadRom()
 {
 	//N.B. - the caller of Boot() will catch these exceptions
-	ffh::fda::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	MAP_COUNT = d.get<int>("MAP_COUNT");
 	NNTELEPORT_COUNT = d.get<int>("NNTELEPORT_COUNT");
 	ONTELEPORT_COUNT = d.get<int>("ONTELEPORT_COUNT");

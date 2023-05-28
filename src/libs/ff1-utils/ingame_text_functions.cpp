@@ -1,22 +1,18 @@
 #include "stdafx.h"
 #include "ingame_text_functions.h"
-
-#include <DataValueAccessor.h>
-#include <dva_std_collections.h>
 #include <FFHacksterProject.h>
 #include <FFH2Project.h>
-
-#include <dva_primitives.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "path_functions.h"
 #include "string_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Ini;
 using namespace Strings;
 using namespace Ui;
-using ffh::fda::DataValueAccessor;
 
 namespace Ingametext
 {
@@ -609,7 +605,7 @@ namespace Ingametext // FFH2Project veersions
 			std::string ptrname, std::string ptraddname, std::string startname, std::string countname,
 			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
-			DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			unsigned char* buffer = address(proj.ROM);
 			int ptr = d.get<int>(ptrname);
 			int ptradd = d.get<int>(ptraddname);
@@ -649,7 +645,7 @@ namespace Ingametext // FFH2Project veersions
 			std::string ptrname, std::string ptraddname, std::string startname, std::string countname,
 			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
-			DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			unsigned char* buffer = address(proj.ROM);
 			int ptr = d.get<int>(ptrname);
 			int ptradd = d.get<int>(ptraddname);
@@ -768,7 +764,7 @@ namespace Ingametext // FFH2Project veersions
 			std::string ptrname, std::string ptraddname,
 			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
-			DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			int ptr = d.get<int>(ptrname);
 			int ptradd = d.get<int>(ptraddname);
 
@@ -788,7 +784,7 @@ namespace Ingametext // FFH2Project veersions
 			std::string ptrname, std::string ptraddname,
 			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
-			DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			int ptr = d.get<int>(ptrname);
 			int ptradd = d.get<int>(ptraddname);
 
@@ -807,7 +803,7 @@ namespace Ingametext // FFH2Project veersions
 		//DEVNOTE - If the index isn't found, default to mgbase + indxx
 		dataintnode ReadOutOfBattleMagicAssemblyNode(FFH2Project& proj, int mgbase, std::string name, int index, bool showindex)
 		{
-			ffh::fda::DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			//int MAGICTEXT_OFFSET = ReadHex(proj.ValuesPath, "MAGICTEXT_OFFSET");
 			//int BASICTEXT_PTRADD = ReadHex(proj.ValuesPath, "BASICTEXT_PTRADD");
 
@@ -826,7 +822,7 @@ namespace Ingametext // FFH2Project veersions
 
 		dataintnode ReadOutOfBattleMagicROMNode(FFH2Project& proj, int mgbase, std::string name, int index, bool showindex)
 		{
-			ffh::fda::DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			//int MAGICTEXT_OFFSET = d.get<int>("MAGICTEXT_OFFSET");
 			//int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 
@@ -846,7 +842,7 @@ namespace Ingametext // FFH2Project veersions
 
 		dataintnodevector LoadOutofBattleMagicAssemblyEntries(FFH2Project& proj, bool showindex)
 		{
-			ffh::fda::DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			int MG_START = find_or_default(proj.m_varmap, std::string("MG_START"), -1);
 			if (MG_START < 0) {
 				ErrorHere << "could not find MG_START, unable to resolve OOBMAGIC entries" << std::endl;
@@ -878,11 +874,9 @@ namespace Ingametext // FFH2Project veersions
 
 		dataintnodevector LoadOutofBattleMagicROMEntries(FFH2Project& proj, bool showindex)
 		{
-			ffh::fda::DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			int OOBMAGIC_COUNT = d.get<int>("OOBMAGIC_COUNT");
 			int MG_START = d.get<int>("MG_START");
-
-			//auto symnames = ReadIni(proj.ValuesPath, "OOBMAGIC_SYMNAMES", "value", mfcstringvector{});
 			auto symnames = d.get<std::vector<std::string>>("OOBMAGIC_SYMNAMES");
 
 			ASSERT(OOBMAGIC_COUNT > 0);
@@ -1127,7 +1121,7 @@ namespace Ingametext // FFH2Project veersions
 
 	dataintnodevector LoadPotionEntries(FFH2Project& proj, bool showindex)
 	{
-		ffh::fda::DataValueAccessor d(proj);
+		ffh::acc::ValueDataAccessor d(proj);
 		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
 		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 		int POTION_COUNT = d.get<int>("POTION_COUNT");
@@ -1149,7 +1143,7 @@ namespace Ingametext // FFH2Project veersions
 	dataintnode LoadArmorEntry(FFH2Project& proj, int index, bool showindex)
 	{
 		//TODO - clean up these functions
-		//DataValueAccessor d(proj);
+		//ValueDataAccessor d(proj);
 		//int ARMORTEXT_OFFSET = d.get<int>("ARMORTEXT_OFFSET");
 		//int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 		return LoadExpandedOneBasedEntry(proj, index, "ARMORTEXT_OFFSET", "BASICTEXT_PTRADD", 2, showindex);
@@ -1180,7 +1174,7 @@ namespace Ingametext // FFH2Project veersions
 
 	dataintnode LoadDialogueEntry(FFH2Project& proj, int index, bool showindex)
 	{
-		//DataValueAccessor d(proj);
+		//ValueDataAccessor d(proj);
 		//int DIALOGUE_OFFSET = d.get<int>("DIALOGUE_OFFSET");
 		//int DIALOGUE_PTRADD = d.get<int>("DIALOGUE_PTRADD");
 		return LoadExpandedZeroBasedEntry(proj, index, "DIALOGUE_OFFSET", "DIALOGUE_PTRADD", 8, showindex);
@@ -1212,7 +1206,7 @@ namespace Ingametext // FFH2Project veersions
 
 	dataintnode LoadItemEntry(FFH2Project& proj, int index, bool showindex)
 	{
-		ffh::fda::DataValueAccessor d(proj);
+		ffh::acc::ValueDataAccessor d(proj);
 		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
 		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 
@@ -1223,7 +1217,7 @@ namespace Ingametext // FFH2Project veersions
 
 	dataintnode LoadItemHardcodedEntry(FFH2Project& proj, int index, bool showindex)
 	{
-		ffh::fda::DataValueAccessor d(proj);
+		ffh::acc::ValueDataAccessor d(proj);
 		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
 		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 
@@ -1243,7 +1237,7 @@ namespace Ingametext // FFH2Project veersions
 
 	dataintnode LoadOutOfBattleMagicEntry(FFH2Project& proj, int index, bool showindex)
 	{
-		ffh::fda::DataValueAccessor d(proj);
+		ffh::acc::ValueDataAccessor d(proj);
 		int OOBMAGIC_COUNT = d.get<int>("OOBMAGIC_COUNT");
 		auto symnames = d.get<std::vector<std::string>>("OOBMAGIC_SYMNAMES");
 
@@ -1271,7 +1265,7 @@ namespace Ingametext // FFH2Project veersions
 
 	dataintnode LoadPotionEntry(FFH2Project& proj, int index, bool showindex)
 	{
-		ffh::fda::DataValueAccessor d(proj);
+		ffh::acc::ValueDataAccessor d(proj);
 		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
 		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 		int POTIONSTART_INDEX = d.get<int>("POTIONSTART_INDEX");
@@ -1305,7 +1299,7 @@ namespace Ingametext // FFH2Project veersions
 			return; //TODO - or throw? it's not applicable here
 		}
 
-		DataValueAccessor d(proj);
+		ffh::acc::ValueDataAccessor d(proj);
 		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
 		int BASICTEXT_COUNT = d.get<int>("BASICTEXT_COUNT");

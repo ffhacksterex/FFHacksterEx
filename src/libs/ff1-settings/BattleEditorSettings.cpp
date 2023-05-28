@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "BattleEditorSettings.h"
 #include <SettingValueAccessor.h>
+#include <sva_primitives.h>
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
 #include "ini_functions.h"
-#include <sva_primitives.h>
 
 constexpr auto SECT_NAME = "BATTLE";
 #define ViewUsage_default true

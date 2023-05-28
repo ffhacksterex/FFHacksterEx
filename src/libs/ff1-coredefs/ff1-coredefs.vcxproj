@@ -186,7 +186,7 @@
     <ClCompile Include="collection_conversions.cpp" />
     <ClCompile Include="collection_helpers.cpp" />
     <ClCompile Include="core_exceptions.cpp" />
-    <ClCompile Include="DataValueAccessor.cpp" />
+    <ClCompile Include="ValueDataAccessor.cpp" />
     <ClCompile Include="dialogue_helpers.cpp" />
     <ClCompile Include="DirPathRemover.cpp" />
     <ClCompile Include="draw_functions.cpp" />
@@ -230,6 +230,7 @@
     <ClCompile Include="upgrade_functions.cpp" />
     <ClCompile Include="upgrade_ini_to_json.cpp" />
     <ClCompile Include="uti_std_collections.cpp" />
+    <ClCompile Include="vda_std_collections.cpp" />
     <ClCompile Include="vector_types.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -260,7 +261,7 @@
     <ClInclude Include="core_exceptions.h" />
     <ClInclude Include="DATA.h" />
     <ClInclude Include="datanode.h" />
-    <ClInclude Include="DataValueAccessor.h" />
+    <ClInclude Include="ValueDataAccessor.h" />
     <ClInclude Include="dva_primitives.h" />
     <ClInclude Include="dva_std_collections.h" />
     <ClInclude Include="FFHImages.h" />
@@ -319,6 +320,7 @@
     <ClInclude Include="Upgrades_ini.h" />
     <ClInclude Include="upgrade_functions.h" />
     <ClInclude Include="uti_std_collections.hpp" />
+    <ClInclude Include="vda_std_collections.h" />
     <ClInclude Include="vector_types.h" />
     <ClInclude Include="window_messages.h" />
   </ItemGroup>

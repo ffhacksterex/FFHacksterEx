@@ -4,7 +4,7 @@
 #include <FFH2Project.h>
 #include "ingame_text_functions.h"
 #include <ini_functions.h>
-#include <DataValueAccessor.h>
+#include <ValueDataAccessor.h>
 #include <dva_primitives.h>
 
 using namespace Ingametext;
@@ -390,7 +390,7 @@ dataintnode CEntriesLoader::LoadTreasureItemEntry(FFH2Project& proj, int index, 
 	if (index < 0)
 		THROWEXCEPTION(std::invalid_argument, std::to_string(index) + " is below the range of treasure item entries");
 
-	ffh::fda::DataValueAccessor d(proj);
+	ffh::acc::ValueDataAccessor d(proj);
 	auto ITEM_COUNT = d.get<int>("ITEM_COUNT");
 	if (index < ITEM_COUNT) return LoadItemEntry(proj, index, showindex);
 

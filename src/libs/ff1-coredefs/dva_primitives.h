@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include "FFHValue.h"
 
 namespace ffh
@@ -16,3 +17,5 @@ namespace ffh
 		FFHValue& operator<<(FFHValue& stg, const int& value);
 	}
 }
+
+#endif

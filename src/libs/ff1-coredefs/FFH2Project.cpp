@@ -1,22 +1,20 @@
 #include "stdafx.h"
 #include "FFH2Project.h"
-#include "DataValueAccessor.h"
 #include "FFH2Project_IniToJson_Defs.hpp"
 #include "GameSerializer.h"
 #include "ini_functions.h"
 #include "io_functions.h"
 #include "path_functions.h"
 #include "AsmFiles.h"
-#include "dva_primitives.h"
-#include "dva_std_collections.h"
 #include "string_functions.h"
+#include "ValueDataAccessor.h"
+#include "vda_std_collections.h"
 
 #include <functional>
 #include <fstream>
 #include <iomanip>
 #include <map>
 
-using ffh::fda::DataValueAccessor;
 using ffh::str::tomfc;
 using ffh::str::tostd;
 
@@ -199,7 +197,7 @@ std::string* FFH2Project::GetTable(int index)
 
 void FFH2Project::InitMapVars()
 {
-	DataValueAccessor d(*this);
+	ffh::acc::ValueDataAccessor d(*this);
 	auto MAP_COUNT = d.get<int>("MAP_COUNT");
 	OK_overworldtiles = false;
 	OK_tiles.resize(MAP_COUNT, false);
@@ -210,7 +208,7 @@ void FFH2Project::InitMapVars()
 
 bool FFH2Project::ClearROM()
 {
-	DataValueAccessor d(*this);
+	ffh::acc::ValueDataAccessor d(*this);
 	auto ROM_SIZE = d.get<int>("ROM_SIZE");
 	if (ROM_SIZE == 0)
 		throw std::runtime_error("ROM_SIZE shouldn't be 0");
@@ -240,7 +238,7 @@ bool FFH2Project::UpdateVarsAndConstants()
 		const std::string fieldName = "ROMINIT_VARNAMES_SECTIONS";
 		auto it = values.entries.find(fieldName);
 		if (it != cend(values.entries)) {
-			DataValueAccessor d(*this);
+			ffh::acc::ValueDataAccessor d(*this);
 			// Get the main list of entries
 			auto arr = d.get<std::vector<std::string>>(fieldName);
 			for (const auto& a : arr) {
@@ -267,7 +265,7 @@ bool FFH2Project::UpdateVarsAndConstants()
 
 void FFH2Project::ReTintPalette()
 {
-	ffh::fda::DataValueAccessor d(*this);
+	ffh::acc::ValueDataAccessor d(*this);
 	int TRANSPARENTCOLOR = d.get<int>("TRANSPARENTCOLOR");
 	int TRANSPARENTCOLORREPLACEMENT = d.get<int>("TRANSPARENTCOLORREPLACEMENT");
 
@@ -360,7 +358,7 @@ void FFH2Project::LoadFinger()
 	auto oldbmp = mDC.SelectObject(&bmp);
 
 	try {
-		ffh::fda::DataValueAccessor s(*this);
+		ffh::acc::ValueDataAccessor s(*this);
 		auto FINGERGRAPHIC_OFFSET = s.get<int>("FINGERGRAPHIC_OFFSET");
 		auto CHARBATTLEPALETTE_OFFSET = s.get<int>("CHARBATTLEPALETTE_OFFSET");
 		ASSERT(FINGERGRAPHIC_OFFSET > 0);

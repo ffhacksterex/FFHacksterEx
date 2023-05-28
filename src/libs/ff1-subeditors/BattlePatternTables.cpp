@@ -6,7 +6,7 @@
 #include "BattlePatternTables.h"
 #include <core_exceptions.h>
 #include <AppSettings.h>
-#include <DataValueAccessor.h>
+#include <ValueDataAccessor.h>
 #include <FFH2Project.h>
 #include "NESPalette.h"
 #include "general_functions.h"
@@ -90,7 +90,7 @@ const BYTE ConstPicFormation[120] = {
 
 void CBattlePatternTables::LoadRom()
 {
-	ffh::fda::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	BATTLEPALETTE_OFFSET = d.get<int>("BATTLEPALETTE_OFFSET");
 	BATTLEPATTERNTABLE_OFFSET = d.get<int>("BATTLEPATTERNTABLE_OFFSET");
 	CHAOSPALETTE_TABLE = d.get<int>("CHAOSPALETTE_TABLE");
