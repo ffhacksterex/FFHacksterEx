@@ -4,7 +4,6 @@
 #include "ini_functions.h"
 #include "type_support.h"
 #include <SettingDataAccessor.h>
-#include <sva_primitives.h>
 
 using namespace Ini;
 using namespace Types;

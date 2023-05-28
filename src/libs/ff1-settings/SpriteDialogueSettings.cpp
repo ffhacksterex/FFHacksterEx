@@ -2,7 +2,6 @@
 #include "SpriteDialogueSettings.h"
 #include <FFH2Project.h>
 #include <SettingDataAccessor.h>
-#include <sva_primitives.h>
 #include "ini_functions.h"
 #include <string_conversions.hpp>
 #include "type_support.h"

@@ -5,7 +5,6 @@
 #include "ingame_text_functions.h"
 #include <ini_functions.h>
 #include <ValueDataAccessor.h>
-#include <dva_primitives.h>
 
 using namespace Ingametext;
 using namespace Ini;

@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "BattleEditorSettings.h"
 #include <SettingDataAccessor.h>
-#include <sva_primitives.h>
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
 #include "ini_functions.h"
