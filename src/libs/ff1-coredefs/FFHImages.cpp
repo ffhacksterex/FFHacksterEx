@@ -12,13 +12,13 @@ FFHImages::~FFHImages()
 }
 
 FFHImages::FFHImages(const FFHImages& rhs)
+	: FFHImages()
 {
 	this->operator=(rhs);
 }
 
 FFHImages& FFHImages::operator=(const FFHImages& rhs)
 {
-	DeleteImageList();
 	if (rhs.HasList()) {
 		// Copying an image llst isn't directly suported,
 		// so use the Read/Write support provided via CArchive.
@@ -30,7 +30,7 @@ FFHImages& FFHImages::operator=(const FFHImages& rhs)
 				throw std::runtime_error("FFHImages assignment failed during store phase.");
 		}
 
-		images = std::make_unique<CImageList>();
+		DeleteImageList();
 		m.SeekToBegin();
 		{
 			CArchive arload(&m, CArchive::load);

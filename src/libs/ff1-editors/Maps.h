@@ -64,8 +64,6 @@ protected:
 	virtual void LoadTileData();
 	virtual void StoreTileData();
 
-	FFH2Project* cart = nullptr; //FUTURE - replace cart with Proj2 and remove references to cart
-
 	void UpdateTeleportLabel(int,bool);
 	void DoViewcoords();
 	void DoOK();

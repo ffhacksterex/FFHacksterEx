@@ -18,5 +18,6 @@ namespace Editors
 namespace Maps
 {
 	void DecompressMap(CFFHacksterProject& proj, int mapindex, int mapbase, int ptradd, BYTE DecompressedMap[0x40][0x40]);
+	void DecompressMap(FFH2Project& proj, int mapindex, int mapbase, int ptradd, BYTE DecompressedMap[0x40][0x40]);
 	void DecompressMap(std::vector<unsigned char>& rom, int mapindex, int mapbase, int ptradd, BYTE DecompressedMap[0x40][0x40]);
 }

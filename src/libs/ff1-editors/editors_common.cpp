@@ -2,7 +2,8 @@
 #include "editors_common.h"
 
 #include "logging_functions.h"
-#include "FFHacksterProject.h"
+#include "FFHacksterProject.h" //REMOVE
+#include <FFH2Project.h>
 #include "SpriteDialogueSettings.h"
 #include "editor_label_functions.h"
 #include "ingame_text_functions.h"
@@ -50,6 +51,11 @@ namespace Editors
 namespace Maps {
 
 	void DecompressMap(CFFHacksterProject& proj, int mapindex, int mapbase, int ptradd, BYTE DecompressedMap[0x40][0x40])
+	{
+		DecompressMap(proj.ROM, mapindex, mapbase, ptradd, DecompressedMap);
+	}
+
+	void DecompressMap(FFH2Project& proj, int mapindex, int mapbase, int ptradd, BYTE DecompressedMap[0x40][0x40])
 	{
 		DecompressMap(proj.ROM, mapindex, mapbase, ptradd, DecompressedMap);
 	}
