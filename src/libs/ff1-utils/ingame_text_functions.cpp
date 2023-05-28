@@ -1102,7 +1102,7 @@ namespace Ingametext // FFH2Project veersions
 
 	dataintnodevector LoadItemEntries(FFH2Project& proj, bool showindex)
 	{
-		return LoadExpandedOneBasedEntriesEx(proj, "ITEMTEXT_OFFSET", "ITEMTEXT_PTRADD", "", "ITEM_COUNT", 0, showindex);
+		return LoadExpandedOneBasedEntriesEx(proj, "BASICTEXT_OFFSET", "BASICTEXT_PTRADD", "", "ITEM_COUNT", 0, showindex);
 	}
 
 	dataintnodevector LoadMagicEntries(FFH2Project& proj, bool showindex)

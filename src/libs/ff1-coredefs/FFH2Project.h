@@ -4,7 +4,11 @@
 #define MUST_SPECIFY_PROJECT(proj,edName) if (proj == nullptr) std::runtime_error(std::string(edName) + " must specify a project.")
 
 #ifndef THROW_FFPROJECT_ERROR
-#define THROW_FFPROJECT_ERROR std::runtime_error(__FILE__ "(" + std::to_string(__LINE__) + "): " __FUNCTION__ " - switch to using FFH2Project")
+	#include <string>
+	inline void ThrowOldFfProjectError(std::string filename, int line, std::string function) \
+	{ throw std::runtime_error(filename + "(" + std::to_string(line) + "): " + function + " - switch to using FFH2Project"); }
+
+	#define THROW_FFPROJECT_ERROR ThrowOldFfProjectError(__FILE__, __LINE__, __FUNCTION__)
 #endif
 
 #define FFH_THROW_OLD_FFHACKSTERPROJ(p) SWITCH_OLDFFH_PTR_CHECK((p))

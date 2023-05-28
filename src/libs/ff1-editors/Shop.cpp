@@ -4,9 +4,10 @@
 #include "Shop.h"
 #include <AsmFiles.h>
 #include <collection_helpers.h>
+#include <core_exceptions.h>
 #include <editor_label_functions.h>
 #include <EntriesLoader.h>
-#include <FFHacksterProject.h>
+#include <FFH2Project.h>
 #include <GameSerializer.h>
 #include <general_functions.h>
 #include <imaging_helpers.h>
@@ -14,6 +15,7 @@
 #include <io_functions.h>
 #include <string_functions.h>
 #include <ui_helpers.h>
+#include <ValueDataAccessor.h>
 #include "NewLabel.h"
 
 using namespace Editorlabels;
@@ -98,7 +100,7 @@ BOOL CShop::OnInitDialog()
 	CEditorWithBackground::OnInitDialog();
 
 	try {
-		if (Project == nullptr) throw std::runtime_error("No project was specified for this editor");
+		if (Proj2 == nullptr) throw std::runtime_error("No project was specified for this editor");
 		if (Enloader == nullptr) throw std::runtime_error("No entry loader was specified for this editor");
 
 		this->LoadOffsets();
@@ -126,7 +128,7 @@ BOOL CShop::OnInitDialog()
 		m_itprice[3] = &m_price4;
 		m_itprice[4] = &m_price5;
 
-		auto treasureitems = Enloader->LoadTreasureItemEntries(*Project);
+		auto treasureitems = Enloader->LoadTreasureItemEntries(*Proj2);
 		for (co = 0; co < 5; co++) {
 			LoadCombo(*m_item[co], treasureitems);
 		}
@@ -157,28 +159,29 @@ int CShop::GetItemPriceOffset(int index)
 
 void CShop::LoadOffsets()
 {
-	SHOP_START = ReadHex(Project->ValuesPath, "SHOP_START");
-	SHOP_OFFSET = ReadHex(Project->ValuesPath, "SHOP_OFFSET");
-	SHOP_PTRADD = ReadHex(Project->ValuesPath, "SHOP_PTRADD");
-	SHOP_END = ReadHex(Project->ValuesPath, "SHOP_END");
-	SHOP_MAXDATALENGTH = ReadHex(Project->ValuesPath, "SHOP_MAXDATALENGTH");
-	STARTINGGOLD_OFFSET = ReadHex(Project->ValuesPath, "STARTINGGOLD_OFFSET");
-	ITEMPRICE_OFFSET = ReadHex(Project->ValuesPath, "ITEMPRICE_OFFSET");
+	ffh::acc::ValueDataAccessor d(*Proj2);
+	SHOP_START = d.get<int>("SHOP_START");
+	SHOP_OFFSET = d.get<int>("SHOP_OFFSET");
+	SHOP_PTRADD = d.get<int>("SHOP_PTRADD");
+	SHOP_END = d.get<int>("SHOP_END");
+	SHOP_MAXDATALENGTH = d.get<int>("SHOP_MAXDATALENGTH");
+	STARTINGGOLD_OFFSET = d.get<int>("STARTINGGOLD_OFFSET");
+	ITEMPRICE_OFFSET = d.get<int>("ITEMPRICE_OFFSET");
 
-	BANK00_OFFSET = ReadHex(Project->ValuesPath, "BANK00_OFFSET");
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
-	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
-	BINSHOPDATA_OFFSET = ReadHex(Project->ValuesPath, "BINSHOPDATA_OFFSET");
+	BANK00_OFFSET = d.get<int>("BANK00_OFFSET");
+	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");
+	BINPRICEDATA_OFFSET = d.get<int>("BINPRICEDATA_OFFSET");
+	BINSHOPDATA_OFFSET = d.get<int>("BINSHOPDATA_OFFSET");
 }
 
 void CShop::LoadRom()
 {
-	Project->ClearROM();
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.LoadAsmBin(BANK_00, BANK00_OFFSET);
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
@@ -186,17 +189,17 @@ void CShop::LoadRom()
 		ser.LoadAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CShop::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->SaveROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.SaveAsmBin(BANK_00, BANK00_OFFSET);
 		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
@@ -204,7 +207,7 @@ void CShop::SaveRom()
 		ser.SaveAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
@@ -224,7 +227,7 @@ void CShop::OnSelchangeShoptype()
 	cur_type = m_shoptype.GetCurSel();
 	while(m_shop.GetCount()) m_shop.DeleteString(0);
 	for(int co = 0; co < 10;co++)
-		m_shop.InsertString(co, LoadShopLabel(*Project, co + (cur_type * 10)).name);
+		m_shop.InsertString(co, Labels2::LoadShopLabel(*Proj2, co + (cur_type * 10)).name);
 	cur = 0;
 	m_shop.SetCurSel(0);
 
@@ -239,7 +242,7 @@ void CShop::FindKAB()
 	int co;
 
 	for(co = SHOP_OFFSET; co < SHOP_START; co++){
-		thispointer = Project->ROM[co] + (Project->ROM[co + 1] << 8) + SHOP_PTRADD;
+		thispointer = Proj2->ROM[co] + (Proj2->ROM[co + 1] << 8) + SHOP_PTRADD;
 		if(thispointer < SHOP_END && thispointer > largestpointer){
 			largestpointer = thispointer;
 			ptrref = co;
@@ -252,7 +255,7 @@ void CShop::FindKAB()
 	else{
 		//if we got here... a normal shop is at the end.  determine it's size and
 		// reserve 1 extra byte (for the break)
-		for(co = largestpointer; Project->ROM[co]; co++);
+		for(co = largestpointer; Proj2->ROM[co]; co++);
 		kab = SHOP_END - co - 1;}
 
 	CString text; text.Format("%d",kab);
@@ -262,7 +265,7 @@ void CShop::FindKAB()
 void CShop::LoadValues()
 {
 	ptroffset = (cur_type * 20) + (cur << 1) + SHOP_OFFSET;
-	int offset = Project->ROM[ptroffset] + (Project->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
+	int offset = Proj2->ROM[ptroffset] + (Proj2->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
 
 	CString text;
 	text.Format("%X",offset);
@@ -280,19 +283,19 @@ void CShop::LoadValues()
 			m_item[co]->ShowWindow(0);
 			m_remove[co]->ShowWindow(0);
 			m_itprice[co]->ShowWindow(0);}
-		temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+		temp = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8);
 		text.Format("%d",temp);
 		m_price.SetWindowText(text);
 		numitems = -1;}
 	else{
 		// It's a multi-item shop.
 		// Get the number of non-zero items for this shop, but cap it to 5.
-		for(temp = 0; Project->ROM[offset + temp]; temp++);
+		for(temp = 0; Proj2->ROM[offset + temp]; temp++);
 		if(temp > 5) temp = 5;
 
 		text = "Remove Item";
 		for(co = 0; co < temp; co++){
-			m_curitem[co] = Project->ROM[offset + co] - 1;
+			m_curitem[co] = Proj2->ROM[offset + co] - 1;
 			m_item[co]->SetCurSel(m_curitem[co]);
 
 			m_item[co]->ShowWindow(1);
@@ -312,7 +315,7 @@ void CShop::LoadValues()
 		numitems = temp;
 	}
 
-	temp = Project->ROM[STARTINGGOLD_OFFSET] + (Project->ROM[STARTINGGOLD_OFFSET + 1] << 8) + (Project->ROM[STARTINGGOLD_OFFSET + 2] << 16);
+	temp = Proj2->ROM[STARTINGGOLD_OFFSET] + (Proj2->ROM[STARTINGGOLD_OFFSET + 1] << 8) + (Proj2->ROM[STARTINGGOLD_OFFSET + 2] << 16);
 	text.Format("%d",temp);
 	m_startinggold.SetWindowText(text);
 
@@ -321,7 +324,7 @@ void CShop::LoadValues()
 
 void CShop::StoreValues()
 {
-	int offset = Project->ROM[ptroffset] + (Project->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
+	int offset = Proj2->ROM[ptroffset] + (Proj2->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
 	bool hasprice = (cur_type == 4) || (cur_type == 5);
 	CString text;
 	int temp;
@@ -329,29 +332,29 @@ void CShop::StoreValues()
 	if (hasprice) {
 		m_price.GetWindowText(text); temp = StringToInt(text);
 		if (temp > 0xFFFF) temp = 0xFFFF;
-		Project->ROM[offset] = temp & 0xFF;
-		Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+		Proj2->ROM[offset] = temp & 0xFF;
+		Proj2->ROM[offset + 1] = (BYTE)(temp >> 8);
 	}
 	else {
 		for (int co = 0; co < numitems; co++) {
 			StorePrice(co);
 			auto itemdata = m_item[co]->GetCurSel();
 
-			Project->ROM[offset + co] = (BYTE)(itemdata + 1);
+			Proj2->ROM[offset + co] = (BYTE)(itemdata + 1);
 		}
 	}
 
 	m_startinggold.GetWindowText(text);
 	temp = StringToInt(text); if(temp > 0xFFFFFF) temp = 0xFFFFFF;
-	Project->ROM[STARTINGGOLD_OFFSET    ] = temp & 0xFF; temp >>= 8;
-	Project->ROM[STARTINGGOLD_OFFSET + 1] = temp & 0xFF; temp >>= 8;
-	Project->ROM[STARTINGGOLD_OFFSET + 2] = temp & 0xFF;
+	Proj2->ROM[STARTINGGOLD_OFFSET    ] = temp & 0xFF; temp >>= 8;
+	Proj2->ROM[STARTINGGOLD_OFFSET + 1] = temp & 0xFF; temp >>= 8;
+	Proj2->ROM[STARTINGGOLD_OFFSET + 2] = temp & 0xFF;
 }
 
 void CShop::LoadPrice(int co)
 {
 	int offset = GetItemPriceOffset(co);
-	int temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+	int temp = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8);
 	CString text; text.Format("%d",temp);
 	m_itprice[co]->SetWindowText(text);
 }
@@ -363,8 +366,8 @@ void CShop::StorePrice(int co)
 	CString text;
 	m_itprice[co]->GetWindowText(text); int temp = StringToInt(text);
 	if(temp > 0xFFFF) temp = 0xFFFF;
-	Project->ROM[offset] = temp & 0xFF;
-	Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+	Proj2->ROM[offset] = temp & 0xFF;
+	Proj2->ROM[offset + 1] = (BYTE)(temp >> 8);
 }
 
 void CShop::OnRemove1() 
@@ -386,26 +389,26 @@ void CShop::Remove(int id)
 		return;}
 
 	numitems -= 1;
-	int thisptr = Project->ROM[ptroffset] + (Project->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
+	int thisptr = Proj2->ROM[ptroffset] + (Proj2->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
 	if(thisptr < SHOP_START || thisptr >= SHOP_END){
-		Project->ROM[thisptr + id] = 0x00;
+		Proj2->ROM[thisptr + id] = 0x00;
 		return;}
 
 	int temp;
 	int co;
 	//shift all greater pointers left
 	for (co = SHOP_OFFSET; co < SHOP_START; co += 2) {
-		temp = Project->ROM[co] + (Project->ROM[co + 1] << 8) + SHOP_PTRADD;
+		temp = Proj2->ROM[co] + (Proj2->ROM[co + 1] << 8) + SHOP_PTRADD;
 		if (temp > thisptr && temp < SHOP_END) {
 			temp -= SHOP_PTRADD + 1;
-			Project->ROM[co] = temp & 0xFF;
-			Project->ROM[co + 1] = (BYTE)(temp >> 8);
+			Proj2->ROM[co] = temp & 0xFF;
+			Proj2->ROM[co + 1] = (BYTE)(temp >> 8);
 		}
 	}
 
 	//shift all data to the left
 	for(co = thisptr + id; co < SHOP_END - 1; co++)
-		Project->ROM[co] = Project->ROM[co + 1];
+		Proj2->ROM[co] = Proj2->ROM[co + 1];
 
 	LoadValues();
 	FindKAB();
@@ -414,15 +417,15 @@ void CShop::Remove(int id)
 void CShop::Add(int id)
 {
 	StoreValues();
-	int thisptr = Project->ROM[ptroffset] + (Project->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
+	int thisptr = Proj2->ROM[ptroffset] + (Proj2->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
 	int temp;
 	if(thisptr < SHOP_START || thisptr >= SHOP_END){
 		if(AfxMessageBox("This data is not within standard boundaries.\n"
 			"Increasing the size of this data may result in overwriting something.\nAre you sure you want to continue?",
 			MB_YESNO | MB_ICONQUESTION) == IDNO)
 			return;
-		Project->ROM[thisptr + id] = 1;
-		Project->ROM[thisptr + id + 1] = 0;}
+		Proj2->ROM[thisptr + id] = 1;
+		Proj2->ROM[thisptr + id + 1] = 0;}
 	else{
 		if(kab < 1){
 			AfxMessageBox("Don't have enough KAB.\nCould not increase shop size.", MB_ICONERROR);
@@ -431,20 +434,20 @@ void CShop::Add(int id)
 		//shift larger pointers to the right
 		int co;
 		for (co = SHOP_OFFSET; co < SHOP_START; co += 2) {
-			temp = Project->ROM[co] + (Project->ROM[co + 1] << 8) + SHOP_PTRADD;
+			temp = Proj2->ROM[co] + (Proj2->ROM[co + 1] << 8) + SHOP_PTRADD;
 			if (temp > thisptr && temp < SHOP_END) {
 				temp -= SHOP_PTRADD - 1;
-				Project->ROM[co] = temp & 0xFF;
-				Project->ROM[co + 1] = (BYTE)(temp >> 8);
+				Proj2->ROM[co] = temp & 0xFF;
+				Proj2->ROM[co + 1] = (BYTE)(temp >> 8);
 			}
 		}
 
 		//shift all the data to the right
 		for(co = SHOP_END - 2; co >= thisptr + id; co--)
-			Project->ROM[co + 1] = Project->ROM[co];
+			Proj2->ROM[co + 1] = Proj2->ROM[co];
 
 		//insert a non-zero number in the new slot
-		Project->ROM[thisptr + id] = 1;
+		Proj2->ROM[thisptr + id] = 1;
 	}
 
 	LoadValues();
@@ -472,8 +475,8 @@ void CShop::OnChangeptr()
 		return;
 	}
 
-	Project->ROM[ptroffset] = temp & 0xFF;
-	Project->ROM[ptroffset + 1] = (BYTE)(temp >> 8);
+	Proj2->ROM[ptroffset] = temp & 0xFF;
+	Proj2->ROM[ptroffset + 1] = (BYTE)(temp >> 8);
 
 	LoadValues();
 	FindKAB();
@@ -482,7 +485,7 @@ void CShop::OnChangeptr()
 
 void CShop::OnDeleteslot() 
 {
-	int offset = Project->ROM[ptroffset] + (Project->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
+	int offset = Proj2->ROM[ptroffset] + (Proj2->ROM[ptroffset + 1] << 8) + SHOP_PTRADD;
 	if(offset < SHOP_START || offset > SHOP_END){
 		AfxMessageBox("The slot is not in the standard shop boundaries.\nCannot remove slot.", MB_ICONERROR);
 		return;}
@@ -492,7 +495,7 @@ void CShop::OnDeleteslot()
 	int co;
 
 	for(co = SHOP_OFFSET; co < SHOP_START; co += 2){
-		thisptr = Project->ROM[co] + (Project->ROM[co + 1] << 8) + SHOP_PTRADD;
+		thisptr = Proj2->ROM[co] + (Proj2->ROM[co + 1] << 8) + SHOP_PTRADD;
 		if(thisptr > largestptr && thisptr < SHOP_END)
 			largestptr = thisptr;}
 
@@ -505,16 +508,16 @@ void CShop::OnDeleteslot()
 	int shift = numitems;
 	if(numitems == -1) shift = 2;
 	for(co = SHOP_OFFSET; co < SHOP_START; co += 2){
-		thisptr = Project->ROM[co] + (Project->ROM[co + 1] << 8) + SHOP_PTRADD;
+		thisptr = Proj2->ROM[co] + (Proj2->ROM[co + 1] << 8) + SHOP_PTRADD;
 		if(thisptr > offset){
 			thisptr -= SHOP_PTRADD + shift;
-			Project->ROM[co] = thisptr & 0xFF;
-			Project->ROM[co + 1] = (BYTE)(thisptr >> 8);
+			Proj2->ROM[co] = thisptr & 0xFF;
+			Proj2->ROM[co + 1] = (BYTE)(thisptr >> 8);
 		}
 	}
 
 	for(co = offset + shift; co < SHOP_END; co++)
-		Project->ROM[co - shift] = Project->ROM[co];
+		Proj2->ROM[co - shift] = Proj2->ROM[co];
 
 	FindKAB();
 	LoadValues();
@@ -532,11 +535,11 @@ void CShop::OnNewslot()
 	int newptr = SHOP_END - kab;
 
 	for(minkab--; minkab >= 0; minkab--)
-		Project->ROM[newptr + minkab] = 0;
+		Proj2->ROM[newptr + minkab] = 0;
 
 	newptr -= SHOP_PTRADD;
-	Project->ROM[ptroffset] = newptr & 0xFF;
-	Project->ROM[ptroffset + 1] = (BYTE)(newptr >> 8);
+	Proj2->ROM[ptroffset] = newptr & 0xFF;
+	Proj2->ROM[ptroffset + 1] = (BYTE)(newptr >> 8);
 
 
 	FindKAB();
@@ -563,7 +566,8 @@ void CShop::SelChangeItem(int co)
 
 void CShop::OnEditlabel() 
 {
-	ChangeLabel(*Project, -1, LoadShopLabel(*Project, (cur_type * 10) + cur), WriteShopLabel, cur, &m_shop, nullptr);
+	//TODO - translate ChangeLabel to FFH2Project
+	//ChangeLabel(*Proj2, -1, LoadShopLabel(*Proj2, (cur_type * 10) + cur), WriteShopLabel, cur, &m_shop, nullptr);
 }
 
 void CShop::OnPaint()
