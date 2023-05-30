@@ -4,17 +4,20 @@
 #include "stdafx.h"
 #include "resource_subeditors.h"
 #include "Backdrop.h"
-#include "NESPalette.h"
+#include <AppSettings.h>
+#include "AsmFiles.h"
+#include <core_exceptions.h>
 #include <draw_functions.h>
+#include <FFH2Project.h>
+#include <GameSerializer.h>
 #include <general_functions.h>
 #include <ini_functions.h>
 #include <io_functions.h>
 #include <string_functions.h>
 #include <ui_helpers.h>
-#include <FFHacksterProject.h>
-#include <AppSettings.h>
-#include "AsmFiles.h"
-#include <GameSerializer.h>
+#include <ValueDataAccessor.h>
+
+#include "NESPalette.h"
 
 using namespace Ini;
 using namespace Io;
@@ -80,10 +83,10 @@ BOOL CBackdrop::OnInitDialog()
 
 		int offset = BATTLEBACKDROPPALETTE_OFFSET + (backdrop << 2);
 		for (BYTE co = 0; co < 4; co++, offset++)
-			palette[co] = Project->ROM[offset];
+			palette[co] = Proj2->ROM[offset];
 		palette[0] = 0x0F;
 
-		Draw_ROM_Buffer(Project, BATTLEPATTERNTABLE_OFFSET + 0x10 + (backdrop << 11), &draw);
+		Draw_ROM_Buffer(Proj2, BATTLEPATTERNTABLE_OFFSET + 0x10 + (backdrop << 11), &draw);
 	}
 	catch (std::exception & ex) {
 		return AbortInitDialog(this, CString("Failed to load game data:\n") + ex.what());
@@ -97,18 +100,19 @@ BOOL CBackdrop::OnInitDialog()
 
 void CBackdrop::LoadRom()
 {
-	BATTLEBACKDROPPALETTE_OFFSET = ReadHex(Project->ValuesPath, "BATTLEBACKDROPPALETTE_OFFSET");
-	BATTLEPATTERNTABLE_OFFSET = ReadHex(Project->ValuesPath, "BATTLEPATTERNTABLE_OFFSET");
+	ffh::acc::ValueDataAccessor d(*Proj2);
+	BATTLEBACKDROPPALETTE_OFFSET = d.get<int>("BATTLEBACKDROPPALETTE_OFFSET");
+	BATTLEPATTERNTABLE_OFFSET = d.get<int>("BATTLEPATTERNTABLE_OFFSET");
 
-	if (!Project->IsRom() && !Project->IsAsm()) {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+	if (!Proj2->IsRom() && !Proj2->IsAsm()) {
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CBackdrop::SaveRom()
 {
-	if (!Project->IsRom() && !Project->IsAsm()) {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+	if (!Proj2->IsRom() && !Proj2->IsAsm()) {
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 	m_bNeedsRefesh = true; // if it saved, then we need to refresh the caller
 }
@@ -117,9 +121,9 @@ void CBackdrop::StoreValues()
 {
 	int offset = BATTLEBACKDROPPALETTE_OFFSET + (backdrop << 2);
 	for (BYTE co = 0; co < 4; co++, offset++)
-		Project->ROM[offset] = palette[co];
+		Proj2->ROM[offset] = palette[co];
 
-	Draw_Buffer_ROM(Project, BATTLEPATTERNTABLE_OFFSET + 0x10 + (backdrop << 11), &draw);
+	Draw_Buffer_ROM(Proj2, BATTLEPATTERNTABLE_OFFSET + 0x10 + (backdrop << 11), &draw);
 }
 
 
@@ -144,7 +148,7 @@ END_MESSAGE_MAP()
 void CBackdrop::OnPaint() 
 {
 	CPaintDC dc(this);
-	Draw_DrawAll(&dc,&draw,Project,palette);
+	Draw_DrawAll(&dc,&draw,Proj2,palette);
 }
 
 void CBackdrop::OnLButtonDown(UINT nFlags, CPoint pt) 
@@ -200,7 +204,7 @@ void CBackdrop::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 	if(PtInRect(draw.rcPalette,pt)){
 		CNESPalette dlg;
-		dlg.cart = Project;
+		dlg.Proj2 = Proj2;
 		dlg.color = &palette[draw.curpal];
 		if(dlg.DoModal() == IDOK){
 			InvalidateRect(draw.rcPalette,0);
@@ -211,12 +215,12 @@ void CBackdrop::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 void CBackdrop::OnExportbitmap()
 {
-	Draw_ExportToBmp(&draw, Project, palette, FOLDERPREF(Project->AppSettings, PrefImageImportExportFolder));
+	Draw_ExportToBmp(&draw, Proj2, palette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 }
 
 void CBackdrop::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,Project,palette, FOLDERPREF(Project->AppSettings, PrefImageImportExportFolder));
+	Draw_ImportFromBmp(&draw,Proj2,palette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }

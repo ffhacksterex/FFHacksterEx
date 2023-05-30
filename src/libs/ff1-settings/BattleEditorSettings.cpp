@@ -6,6 +6,7 @@
 #include "ini_functions.h"
 
 constexpr auto SECT_NAME = "BATTLE";
+#define ViewUsage_name "ViewUsage"
 #define ViewUsage_default true
 
 CBattleEditorSettings::CBattleEditorSettings(CFFHacksterProject& proj, initflag flag)
@@ -16,10 +17,12 @@ CBattleEditorSettings::CBattleEditorSettings(CFFHacksterProject& proj, initflag 
 CBattleEditorSettings::CBattleEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag)
 	: SettingsBase(proj, sectionname)
 {
-	if (flag == initflag::read)
-		Read();
-	else
-		SetDefaults();
+	FFH_SWITCH_TO_FFH2;
+
+	//if (flag == initflag::read)
+	//	Read();
+	//else
+	//	SetDefaults();
 }
 
 CBattleEditorSettings::CBattleEditorSettings(FFH2Project& proj, initflag flag)
@@ -30,6 +33,9 @@ CBattleEditorSettings::CBattleEditorSettings(FFH2Project& proj, initflag flag)
 CBattleEditorSettings::CBattleEditorSettings(FFH2Project& proj, CString sectionname, initflag flag)
 	: SettingsBase(proj, sectionname)
 {
+	ffh::acc::SettingDataAccessor s(m_prj2, "battles");
+	s.EnsureSetting("ViewUsage", "bool", "true", "a");
+
 	if (flag == initflag::read)
 		Read();
 	else
@@ -50,7 +56,7 @@ bool CBattleEditorSettings::Read()
 	if (!m_is2) THROW_FFPROJECT_ERROR;
 
 	ffh::acc::SettingDataAccessor s(m_prj2, "battles");
-	ViewUsage = s.get<bool>("ViewUsage");
+	ViewUsage = s.get<bool>(ViewUsage_name);
 	return true;
 }
 
@@ -59,6 +65,6 @@ bool CBattleEditorSettings::Write()
 	if (!m_is2) THROW_FFPROJECT_ERROR;
 
 	ffh::acc::SettingDataAccessor s(m_prj2, "battles");
-	s.set("ViewUsage", ViewUsage);
+	s.set(ViewUsage_name, ViewUsage);
 	return true;
 }

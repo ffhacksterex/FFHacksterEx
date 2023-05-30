@@ -9,7 +9,6 @@
 
 #include "resource_subeditors.h"
 #include <FFBaseDlg.h>
-class CFFHacksterProject;
 class ICoordMap;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -21,7 +20,7 @@ class CMiniMap : public CFFBaseDlg
 public:
 	CMiniMap(CWnd* pParent = nullptr);   // standard constructor
 
-	CFFHacksterProject* cart;
+	FFH2Project* Proj2 = nullptr;
 	int Context;
 	ICoordMap* OVmap;
 	BYTE* Map;

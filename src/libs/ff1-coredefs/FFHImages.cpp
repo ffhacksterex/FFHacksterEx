@@ -46,11 +46,25 @@ CImageList& FFHImages::get()
 	return *images;
 }
 
-bool FFHImages::Create(int width, int height)
+//TODO - remove and use the other overload
+//bool FFHImages::Create(int width, int height)
+//{
+//	DeleteImageList();
+//	m_size = { 0,0 };
+//	bool created = images->Create(width, height, ILC_COLOR16 + ILC_MASK, 2, 0) == TRUE;
+//	if (created)
+//		m_size = { width, height };
+//	return created;
+//}
+
+bool FFHImages::Create(int width, int height, int flags, int initialCount, int growBy)
 {
 	DeleteImageList();
-	m_size = { width, height };
-	return images->Create(width, height, ILC_COLOR16 + ILC_MASK, 2, 0) == TRUE;
+	m_size = { 0,0 };
+	bool created = images->Create(width, height, flags, initialCount, growBy) == TRUE;
+	if (created)
+		m_size = { width, height };
+	return created;
 }
 
 void FFHImages::Empty()

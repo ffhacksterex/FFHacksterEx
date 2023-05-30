@@ -4,8 +4,6 @@
 #include <EditorWithBackground.h>
 #include "ICoordMap.h"
 #include <vector>
-#include "afxwin.h"
-class CFFHacksterProject;
 class CEntriesLoader;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -40,8 +38,6 @@ protected:
 	virtual void StoreValues();
 	virtual void LoadTileData();
 	virtual void StoreTileData();
-
-	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
 
 	void UpdateTeleportLabel(int,bool);
 	void DoViewcoords();

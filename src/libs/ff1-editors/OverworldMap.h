@@ -8,7 +8,6 @@
 #include "afxwin.h"
 #include <DrawingToolButton.h>
 #include <DlgPopoutMap.h>
-class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
 // COverworldMap dialog
@@ -69,7 +68,6 @@ protected:
 	virtual void DecompressMap();
 	virtual void CompressMap();
 
-	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
 	CImageList m_sprites;
 	CImageList m_backdrop;
 	COLORREF m_gridcolor;

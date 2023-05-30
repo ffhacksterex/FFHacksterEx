@@ -12,8 +12,10 @@ public:
 	
 	CImageList& get();
 
-	bool Create(int width, int height);
-	void Empty();
+	//bool Create(int width, int height);
+	bool Create(int width, int height, int flags, int initialCount, int growBy);
+	void Empty();                  // removes images, but doesn't delete the image list
+	void DeleteImageList();        // deletes the image list
 
 	BOOL Draw(CDC* pdc, int index, POINT pt, UINT style);
 	
@@ -21,6 +23,5 @@ private:
 	std::unique_ptr<CImageList> images;
 	SIZE m_size{};
 
-	void DeleteImageList();
 	bool HasList() const;
 };

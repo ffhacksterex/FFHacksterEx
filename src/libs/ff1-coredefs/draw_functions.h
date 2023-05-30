@@ -36,6 +36,7 @@ void Draw_DrawFinger(CDC* mDC, DRAW_STRUCT* draw, CFFHacksterProject* cart);
 void Draw_DrawFinger(CDC* mDC, DRAW_STRUCT* draw, FFH2Project* proj);
 
 void Draw_DrawAll(CDC* mDC, DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* pal);
+void Draw_DrawAll(CDC* mDC, DRAW_STRUCT* draw, FFH2Project* proj, BYTE* pal);
 
 void Draw_ExportToBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* pal, CString initialfile = "");
 void Draw_ExportToBmp(DRAW_STRUCT* draw, FFH2Project* cart, BYTE* pal, CString initialfile = "");

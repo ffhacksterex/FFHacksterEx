@@ -2,12 +2,12 @@
 //
 
 #include "stdafx.h"
-#include "resource_subeditors.h"
-#include "ICoordMap.h"
 #include "MiniMap.h"
-#include "FFHacksterProject.h"
-#include <ui_helpers.h>
+#include <FFH2Project.h>
+#include "ICoordMap.h"
 #include <OffscreenDC.h>
+#include "resource_subeditors.h"
+#include <ui_helpers.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -55,7 +55,7 @@ void CMiniMap::OnPaint()
 		int coX, coY, co = 0;
 		for (coY = 0; coY < 256; coY++) {
 			for (coX = 0; coX < 256; coX++, co++)
-				dc.SetPixelV(coX, coY, cart->Palette[0][palette[(PalAssign[Map[co]] << 2) + 3]]);
+				dc.SetPixelV(coX, coY, Proj2->palette[0][palette[(PalAssign[Map[co]] << 2) + 3]]);
 		}
 		odc.Update();
 	}
