@@ -19,6 +19,8 @@
 #include "io_functions.h"
 #include <string_conversions.hpp>
 #include "ui_helpers.h"
+
+#include <SettingDataAccessor.h>
 #include <ValueDataAccessor.h>
 #include <vda_std_collections.h>
 

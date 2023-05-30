@@ -120,7 +120,8 @@ void FFH2Project::Load(std::string projectpath)
 
 	//TODO - from LoadCartData(), need to add palette loading
 
-	Finger.Create(16, 16);
+	//Finger.Create(16, 16); //REMOVE
+	Finger.Create(16, 16, ILC_COLOR16 + ILC_MASK, 2, 0);
 	LoadFinger();
 	InitMapVars();
 

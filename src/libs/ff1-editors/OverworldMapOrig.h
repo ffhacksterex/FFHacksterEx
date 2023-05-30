@@ -4,8 +4,6 @@
 #include <EditorWithBackground.h>
 #include "ICoordMap.h"
 #include <vector>
-#include "afxwin.h"
-class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
 // COverworldMapOrig dialog
@@ -39,7 +37,6 @@ protected:
 	virtual void DecompressMap();
 	virtual void CompressMap();
 
-	CFFHacksterProject* cart = nullptr; //FUTURE - replace cart with Project and remove references to cart
 	CImageList m_sprites;
 	CImageList m_backdrop;
 	CImageList m_tools;

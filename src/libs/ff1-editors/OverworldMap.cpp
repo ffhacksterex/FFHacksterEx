@@ -3,32 +3,36 @@
 
 #include "stdafx.h"
 #include "OverworldMap.h"
+#include <FFH2Project.h>
 #include <AppSettings.h>
-#include "FFHacksterProject.h"
+#include "AsmFiles.h"
 #include "collection_helpers.h"
+#include <core_exceptions.h>
+#include "draw_functions.h"
+#include "DRAW_STRUCT.h"
+#include "editor_label_functions.h"
+#include "GameSerializer.h"
 #include "general_functions.h"
 #include "ini_functions.h"
-#include "string_functions.h"
 #include "ingame_text_functions.h"
+#include "imaging_helpers.h"
 #include "io_functions.h"
-#include "editor_label_functions.h"
-#include "draw_functions.h"
 #include <path_functions.h>
-#include "AsmFiles.h"
-#include "GameSerializer.h"
-#include "DRAW_STRUCT.h"
+#include "string_functions.h"
 #include "ui_helpers.h"
 #include <ui_prompts.h>
-#include "imaging_helpers.h"
-#include "NESPalette.h"
-#include "Loading.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
+
+#include "Backdrop.h"
 #include "Coords.h"
 #include "CustomTool.h"
-#include "Tint.h"
-#include "Backdrop.h"
-#include "TileEdit.h"
+#include "NESPalette.h"
+#include "Loading.h"
 #include "MiniMap.h"
 #include "NewLabel.h"
+#include "Tint.h"
+#include "TileEdit.h"
 
 using namespace Editorlabels;
 using namespace Imaging;
@@ -261,7 +265,7 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 			//flood fill
 			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
 				for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
-					DecompressedMap[coY][coX] = cart->SmartTools[temp][4];
+					DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][4];
 			}
 			//"smart" top edge
 			coY = rcToolRect.top;
@@ -269,10 +273,10 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 				draw = 1;
 				if (coY) {
 					for (co = 0; co < 6 && draw; co++) {
-						if (DecompressedMap[coY - 1][coX] == cart->SmartTools[temp][co]) draw = 0;
+						if (DecompressedMap[coY - 1][coX] == Proj2->session.smartTools[temp][co]) draw = 0;
 					}
 				}
-				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][1];
+				if (draw) DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][1];
 			}
 			//"smart" bottom edge
 			coY = rcToolRect.bottom;
@@ -280,10 +284,10 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 				draw = 1;
 				if (coY < 255) {
 					for (co = 3; co < 9 && draw; co++) {
-						if (DecompressedMap[coY + 1][coX] == cart->SmartTools[temp][co]) draw = 0;
+						if (DecompressedMap[coY + 1][coX] == Proj2->session.smartTools[temp][co]) draw = 0;
 					}
 				}
-				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][7];
+				if (draw) DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][7];
 			}
 			//"smart" left edge
 			coX = rcToolRect.left;
@@ -292,10 +296,10 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 				if (coX) {
 					for (co = 0; co < 8 && draw; co++) {
 						if (co % 3 == 2) co++;
-						if (DecompressedMap[coY][coX - 1] == cart->SmartTools[temp][co]) draw = 0;
+						if (DecompressedMap[coY][coX - 1] == Proj2->session.smartTools[temp][co]) draw = 0;
 					}
 				}
-				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][3];
+				if (draw) DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][3];
 			}
 			//"smart" right edge
 			coX = rcToolRect.right;
@@ -304,10 +308,10 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 				if (coX < 255) {
 					for (co = 1; co < 9 && draw; co++) {
 						if (co % 3 == 0) co++;
-						if (DecompressedMap[coY][coX + 1] == cart->SmartTools[temp][co]) draw = 0;
+						if (DecompressedMap[coY][coX + 1] == Proj2->session.smartTools[temp][co]) draw = 0;
 					}
 				}
-				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][5];
+				if (draw) DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][5];
 			}
 			//"smart" NW corner
 			co = 0;
@@ -316,7 +320,7 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 				coY = DecompressedMap[rcToolRect.top][rcToolRect.left - 1];
 				for (coX = 0; draw && coX < 8; coX++) {
 					if (coX % 3 == 2) coX++;
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) co = 1;
@@ -324,14 +328,14 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 			if (rcToolRect.top) {
 				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.left];
 				for (coX = 0; draw && coX < 6; coX++) {
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) {
 				if (co == 1) co = 4;
 				else co = 3;
 			}
-			DecompressedMap[rcToolRect.top][rcToolRect.left] = cart->SmartTools[temp][co];
+			DecompressedMap[rcToolRect.top][rcToolRect.left] = Proj2->session.smartTools[temp][co];
 			//"smart" SW corner
 			co = 6;
 			draw = 1;
@@ -339,7 +343,7 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.left - 1];
 				for (coX = 0; draw && coX < 8; coX++) {
 					if (coX % 3 == 2) coX++;
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) co = 7;
@@ -347,14 +351,14 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 			if (rcToolRect.bottom < 255) {
 				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.left];
 				for (coX = 3; draw && coX < 9; coX++) {
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) {
 				if (co == 7) co = 4;
 				else co = 3;
 			}
-			DecompressedMap[rcToolRect.bottom][rcToolRect.left] = cart->SmartTools[temp][co];
+			DecompressedMap[rcToolRect.bottom][rcToolRect.left] = Proj2->session.smartTools[temp][co];
 			//"smart" NE corner
 			co = 2;
 			draw = 1;
@@ -362,7 +366,7 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 				coY = DecompressedMap[rcToolRect.top][rcToolRect.right + 1];
 				for (coX = 1; draw && coX < 9; coX++) {
 					if (coX % 3 == 0) coX++;
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) co = 1;
@@ -370,14 +374,14 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 			if (rcToolRect.top) {
 				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.right];
 				for (coX = 0; draw && coX < 6; coX++) {
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) {
 				if (co == 1) co = 4;
 				else co = 5;
 			}
-			DecompressedMap[rcToolRect.top][rcToolRect.right] = cart->SmartTools[temp][co];
+			DecompressedMap[rcToolRect.top][rcToolRect.right] = Proj2->session.smartTools[temp][co];
 			//"smart" SE corner
 			co = 8;
 			draw = 1;
@@ -385,7 +389,7 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.right + 1];
 				for (coX = 1; draw && coX < 9; coX++) {
 					if (coX % 3 == 0) coX++;
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) co = 7;
@@ -393,14 +397,14 @@ void COverworldMap::HandleLButtonUp(UINT nFlags, CPoint point)
 			if (rcToolRect.bottom < 255) {
 				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.right];
 				for (coX = 3; draw && coX < 9; coX++) {
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) {
 				if (co == 7) co = 4;
 				else co = 5;
 			}
-			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
+			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = Proj2->session.smartTools[temp][co];
 
 			invalidate_maps();
 		}break;
@@ -514,8 +518,8 @@ void COverworldMap::HandleMapExport()
 bool COverworldMap::HandleCustomizeTool()
 {
 	CCustomTool dlg;
-	dlg.dat = cart;
-	dlg.m_tiles = &cart->m_overworldtiles;
+	dlg.Proj2 = Proj2;
+	dlg.m_tiles = &Proj2->m_overworldtiles.get();
 	dlg.tool = cur_tool - 2;
 	auto result = dlg.DoModal();
 	return result == IDOK;
@@ -553,48 +557,49 @@ void COverworldMap::DoViewcoords()
 
 void COverworldMap::LoadOffsets()
 {
-	TRANSPARENTCOLOR = ReadRgb(cart->ValuesPath, "TRANSPARENTCOLOR");
-	OVERWORLDPALETTE_ASSIGNMENT = ReadHex(cart->ValuesPath, "OVERWORLDPALETTE_ASSIGNMENT");
-	OVERWORLDPALETTE_OFFSET = ReadHex(cart->ValuesPath, "OVERWORLDPALETTE_OFFSET");
-	OVERWORLD_TILEDATA = ReadHex(cart->ValuesPath, "OVERWORLD_TILEDATA");
-	OVERWORLDMAP_OFFSET = ReadHex(cart->ValuesPath, "OVERWORLDMAP_OFFSET");
-	OVERWORLDMAP_PTRADD = ReadHex(cart->ValuesPath, "OVERWORLDMAP_PTRADD");
-	OVERWORLDPATTERNTABLE_ASSIGNMENT = ReadHex(cart->ValuesPath, "OVERWORLDPATTERNTABLE_ASSIGNMENT");
-	OVERWORLDPATTERNTABLE_OFFSET = ReadHex(cart->ValuesPath, "OVERWORLDPATTERNTABLE_OFFSET");
-	BATTLEBACKDROP_COUNT = ReadDec(cart->ValuesPath, "BATTLEBACKDROP_COUNT");
-	BATTLEBACKDROPASSIGNMENT_OFFSET = ReadHex(cart->ValuesPath, "BATTLEBACKDROPASSIGNMENT_OFFSET");
-	MAPMANPALETTE_OFFSET = ReadHex(cart->ValuesPath, "MAPMANPALETTE_OFFSET");
-	MAPMANGRAPHIC_OFFSET = ReadHex(cart->ValuesPath, "MAPMANGRAPHIC_OFFSET");
-	BATTLEPATTERNTABLE_OFFSET = ReadHex(cart->ValuesPath, "BATTLEPATTERNTABLE_OFFSET");
-	BATTLEBACKDROPPALETTE_OFFSET = ReadHex(cart->ValuesPath, "BATTLEBACKDROPPALETTE_OFFSET");
-	BATTLEDOMAIN_OFFSET = ReadHex(cart->ValuesPath, "BATTLEDOMAIN_OFFSET");
-	BATTLEPROBABILITY_OFFSET = ReadHex(cart->ValuesPath, "BATTLEPROBABILITY_OFFSET");
-	OVERWORLDMAP_END = ReadHex(cart->ValuesPath, "OVERWORLDMAP_END");
-	OVERWORLDMAP_START = ReadHex(cart->ValuesPath, "OVERWORLDMAP_START");
-	OWBATTLERATE_LAND_OFFSET = ReadHex(cart->ValuesPath, "OWBATTLERATE_LAND_OFFSET");
-	OWBATTLERATE_SEA_OFFSET = ReadHex(cart->ValuesPath, "OWBATTLERATE_SEA_OFFSET");
+	ffh::acc::ValueDataAccessor d(*Proj2);
+	TRANSPARENTCOLOR = d.get<int>("TRANSPARENTCOLOR");
+	OVERWORLDPALETTE_ASSIGNMENT = d.get<int>("OVERWORLDPALETTE_ASSIGNMENT");
+	OVERWORLDPALETTE_OFFSET = d.get<int>("OVERWORLDPALETTE_OFFSET");
+	OVERWORLD_TILEDATA = d.get<int>("OVERWORLD_TILEDATA");
+	OVERWORLDMAP_OFFSET = d.get<int>("OVERWORLDMAP_OFFSET");
+	OVERWORLDMAP_PTRADD = d.get<int>("OVERWORLDMAP_PTRADD");
+	OVERWORLDPATTERNTABLE_ASSIGNMENT = d.get<int>("OVERWORLDPATTERNTABLE_ASSIGNMENT");
+	OVERWORLDPATTERNTABLE_OFFSET = d.get<int>("OVERWORLDPATTERNTABLE_OFFSET");
+	BATTLEBACKDROP_COUNT = d.get<int>("BATTLEBACKDROP_COUNT");
+	BATTLEBACKDROPASSIGNMENT_OFFSET = d.get<int>("BATTLEBACKDROPASSIGNMENT_OFFSET");
+	MAPMANPALETTE_OFFSET = d.get<int>("MAPMANPALETTE_OFFSET");
+	MAPMANGRAPHIC_OFFSET = d.get<int>("MAPMANGRAPHIC_OFFSET");
+	BATTLEPATTERNTABLE_OFFSET = d.get<int>("BATTLEPATTERNTABLE_OFFSET");
+	BATTLEBACKDROPPALETTE_OFFSET = d.get<int>("BATTLEBACKDROPPALETTE_OFFSET");
+	BATTLEDOMAIN_OFFSET = d.get<int>("BATTLEDOMAIN_OFFSET");
+	BATTLEPROBABILITY_OFFSET = d.get<int>("BATTLEPROBABILITY_OFFSET");
+	OVERWORLDMAP_END = d.get<int>("OVERWORLDMAP_END");
+	OVERWORLDMAP_START = d.get<int>("OVERWORLDMAP_START");
+	OWBATTLERATE_LAND_OFFSET = d.get<int>("OWBATTLERATE_LAND_OFFSET");
+	OWBATTLERATE_SEA_OFFSET = d.get<int>("OWBATTLERATE_SEA_OFFSET");
 
-	COORD_STARTING_OFFSET = ReadHex(cart->ValuesPath, "COORD_STARTING_OFFSET");
-	COORD_SHIP_OFFSET = ReadHex(cart->ValuesPath, "COORD_SHIP_OFFSET");
-	COORD_AIRSHIP_OFFSET = ReadHex(cart->ValuesPath, "COORD_AIRSHIP_OFFSET");
-	COORD_BRIDGE_OFFSET = ReadHex(cart->ValuesPath, "COORD_BRIDGE_OFFSET");
-	COORD_CANAL_OFFSET = ReadHex(cart->ValuesPath, "COORD_CANAL_OFFSET");
+	COORD_STARTING_OFFSET = d.get<int>("COORD_STARTING_OFFSET");
+	COORD_SHIP_OFFSET = d.get<int>("COORD_SHIP_OFFSET");
+	COORD_AIRSHIP_OFFSET = d.get<int>("COORD_AIRSHIP_OFFSET");
+	COORD_BRIDGE_OFFSET = d.get<int>("COORD_BRIDGE_OFFSET");
+	COORD_CANAL_OFFSET = d.get<int>("COORD_CANAL_OFFSET");
 
-	BANK00_OFFSET = ReadHex(cart->ValuesPath, "BANK00_OFFSET");
-	BANK02_OFFSET = ReadHex(cart->ValuesPath, "BANK02_OFFSET");
-	BANK07_OFFSET = ReadHex(cart->ValuesPath, "BANK07_OFFSET");
-	BANK08_OFFSET = ReadHex(cart->ValuesPath, "BANK08_OFFSET");
-	BINBANK01DATA_OFFSET = ReadHex(cart->ValuesPath, "BINBANK01DATA_OFFSET");
+	BANK00_OFFSET = d.get<int>("BANK00_OFFSET");
+	BANK02_OFFSET = d.get<int>("BANK02_OFFSET");
+	BANK07_OFFSET = d.get<int>("BANK07_OFFSET");
+	BANK08_OFFSET = d.get<int>("BANK08_OFFSET");
+	BINBANK01DATA_OFFSET = d.get<int>("BINBANK01DATA_OFFSET");
 }
 
 void COverworldMap::LoadRom()
 {
-	cart->ClearROM();
-	if (cart->IsRom()) {
-		load_binary(cart->WorkRomPath, cart->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		// Note that tile data spans from bank 3 through the end of bank 6.
 		ser.LoadAsmBin(BANK_00, BANK00_OFFSET);
@@ -610,17 +615,17 @@ void COverworldMap::LoadRom()
 		});
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void COverworldMap::SaveRom()
 {
-	if (cart->IsRom()) {
-		save_binary(cart->WorkRomPath, cart->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->SaveROM();
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		// Note that tile data spans from bank 3 through the end of bank 6.
 		ser.SaveAsmBin(BANK_00, BANK00_OFFSET);
@@ -636,13 +641,12 @@ void COverworldMap::SaveRom()
 		});
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
 BOOL COverworldMap::OnInitDialog()
 {
-	cart = Project;
 	CEditorWithBackground::OnInitDialog();
 
 	try {
@@ -657,7 +661,7 @@ BOOL COverworldMap::OnInitDialog()
 
 		int co;
 
-		coord_dlg.cart = cart;
+		coord_dlg.Proj2 = Proj2;
 		coord_dlg.Context = Coords;
 		coord_dlg.Create(IDD_COORDS, this);
 		coord_dlg.IsOV = 1;
@@ -669,7 +673,7 @@ BOOL COverworldMap::OnInitDialog()
 		m_toolbuttons = { &m_penbutton, &m_blockbutton, &m_custom1button, &m_custom2button, &m_custom3button };
 		init_popout_map_window();
 
-		minimap.cart = cart;minimap.Context = Minimap;
+		minimap.Proj2 = Proj2;minimap.Context = Minimap;
 		minimap.OVmap = this;
 		minimap.Create(IDD_MINIMAP, this);
 		minimap.ShowWindow(0);
@@ -678,27 +682,27 @@ BOOL COverworldMap::OnInitDialog()
 		minimap.SetFocusRect(0, 0, 16, 16); // default, will change when invoked
 
 		for (co = 0; co < 128; co++)
-			minimap.PalAssign[co] = cart->ROM[OVERWORLDPALETTE_ASSIGNMENT + co] & 3;
+			minimap.PalAssign[co] = Proj2->ROM[OVERWORLDPALETTE_ASSIGNMENT + co] & 3;
 
-		LoadCombo(m_backdroplist, LoadBackdropLabels(*cart));
-		const auto battleLabels = LoadBattleLabels(*cart);
+		LoadCombo(m_backdroplist, Labels2::LoadBackdropLabels(*Proj2));
+		const auto battleLabels = Labels2::LoadBattleLabels(*Proj2);
 		for (auto wnd : { &m_battle1, &m_battle2, &m_battle3,&m_battle4,&m_battle5,&m_battle6,&m_battle7,&m_battle8 })
 			LoadCombo(*wnd, battleLabels);
 
-		LoadCombo(m_teleportbox, LoadONTeleportLabels(*cart));
+		LoadCombo(m_teleportbox, Labels2::LoadONTeleportLabels(*Proj2));
 		m_teleportbox.SetCurSel(0);
 
 		for (co = 0; co < 32; co++) {
 			if (!(co & 3))
-				palette[0][co] = cart->ROM[OVERWORLDPALETTE_OFFSET + 0x10];
+				palette[0][co] = Proj2->ROM[OVERWORLDPALETTE_OFFSET + 0x10];
 			else
-				palette[0][co] = cart->ROM[OVERWORLDPALETTE_OFFSET + co];
+				palette[0][co] = Proj2->ROM[OVERWORLDPALETTE_OFFSET + co];
 		}
 
 		for (co = 0; co < 5; co++) {
-			LoadCombo(m_misccoords, LoadMiscCoordLabels(*cart));
-			misccoords[co].x = cart->ROM[m_misccoordoffsets[co]];
-			misccoords[co].y = cart->ROM[m_misccoordoffsets[co] + 1];
+			LoadCombo(m_misccoords, Labels2::LoadMiscCoordLabels(*Proj2));
+			misccoords[co].x = Proj2->ROM[m_misccoordoffsets[co]];
+			misccoords[co].y = Proj2->ROM[m_misccoordoffsets[co] + 1];
 		}
 		misccoords[0].x += 7;
 		misccoords[0].y += 7;
@@ -759,15 +763,15 @@ BOOL COverworldMap::OnInitDialog()
 		ReloadGraphics();
 		DecompressMap();
 
-		m_showlastclick.SetCheck(cart->ShowLastClick);
-		m_drawgrid.SetCheck(cart->DrawDomainGrid);
+		m_showlastclick.SetCheck(Proj2->session.showLastClick);
+		m_drawgrid.SetCheck(Proj2->session.drawDomainGrid);
 
-		Ui::SetControlInt(m_landencrateedit, Project->ROM[OWBATTLERATE_LAND_OFFSET]);
-		Ui::SetControlInt(m_seaencrateedit, Project->ROM[OWBATTLERATE_SEA_OFFSET]);
+		Ui::SetControlInt(m_landencrateedit, Proj2->ROM[OWBATTLERATE_LAND_OFFSET]);
+		Ui::SetControlInt(m_seaencrateedit, Proj2->ROM[OWBATTLERATE_SEA_OFFSET]);
 
 		if (BootToTeleportFollowup) {
-			ptLastClick.x = cart->TeleportFollowup[cart->curFollowup][1];
-			ptLastClick.y = cart->TeleportFollowup[cart->curFollowup][2];
+			ptLastClick.x = Proj2->TeleportFollowup[Proj2->curFollowup][1];
+			ptLastClick.y = Proj2->TeleportFollowup[Proj2->curFollowup][2];
 			OnHScroll(5, ptLastClick.x - 8, &m_hscroll);
 			OnVScroll(5, ptLastClick.y - 8, &m_vscroll);
 			cur_tile = DecompressedMap[ptLastClick.y][ptLastClick.x];
@@ -824,8 +828,8 @@ void COverworldMap::LoadTileData()
 {
 	int temp = OVERWORLD_TILEDATA + (cur_tile << 1);
 	BYTE data[2];
-	data[0] = cart->ROM[temp];
-	data[1] = cart->ROM[temp + 1];
+	data[0] = Proj2->ROM[temp];
+	data[1] = Proj2->ROM[temp + 1];
 
 	temp = data[0] & 0xC0;
 	m_caravan.SetCheck(temp == 0x80);
@@ -856,7 +860,7 @@ void COverworldMap::LoadTileData()
 		m_fight_ocean.SetCheck(temp == 0x42);
 		m_fight_river.SetCheck(temp == 0x41 || temp == 0x43);}
 
-	m_backdroplist.SetCurSel(cart->ROM[BATTLEBACKDROPASSIGNMENT_OFFSET + cur_tile] & 0x0F);
+	m_backdroplist.SetCurSel(Proj2->ROM[BATTLEBACKDROPASSIGNMENT_OFFSET + cur_tile] & 0x0F);
 	if(m_teleportbox.GetCurSel() == -1) m_teleportbox.SetCurSel(0);
 
 	OnSelchangeTeleportbox();
@@ -888,10 +892,10 @@ void COverworldMap::StoreTileData()
 		if(m_fight_river.GetCheck()) data[1] = 0x41;
 	}
 	
-	cart->ROM[temp] = data[0];
-	cart->ROM[temp + 1] = data[1];
+	Proj2->ROM[temp] = data[0];
+	Proj2->ROM[temp + 1] = data[1];
 
-	cart->ROM[BATTLEBACKDROPASSIGNMENT_OFFSET + cur_tile] = (BYTE)m_backdroplist.GetCurSel();
+	Proj2->ROM[BATTLEBACKDROPASSIGNMENT_OFFSET + cur_tile] = (BYTE)m_backdroplist.GetCurSel();
 }
 
 void COverworldMap::DecompressMap()
@@ -903,10 +907,10 @@ void COverworldMap::DecompressMap()
 
 	ptr = OVERWORLDMAP_OFFSET;
 	for(coY = 0; coY < 256; coY++, ptr += 2){
-		offset = cart->ROM[ptr] + (cart->ROM[ptr + 1] << 8) + OVERWORLDMAP_PTRADD;
+		offset = Proj2->ROM[ptr] + (Proj2->ROM[ptr + 1] << 8) + OVERWORLDMAP_PTRADD;
 		for(coX = 0; coX < 256; offset++){
-			temp = cart->ROM[offset];
-			run = cart->ROM[offset + 1];
+			temp = Proj2->ROM[offset];
+			run = Proj2->ROM[offset + 1];
 			if(temp < 0x80){
 				DecompressedMap[coY][coX] = temp;
 				coX++;}
@@ -933,12 +937,12 @@ void COverworldMap::ReloadGraphics()
 	dlg.m_progress.SetPos(0);
 	dlg.ShowWindow(1);
 
-	if(cart->OK_overworldtiles)
+	if(Proj2->OK_overworldtiles)
 	{
 		dlg.m_progress.SetRange(0,5);
 	}
 	else{
-		cart->m_overworldtiles.Create(16,16,ILC_COLOR16,128,0);
+		Proj2->m_overworldtiles.Create(16,16,ILC_COLOR16,128,0);
 		CBitmap bmp;
 		CBitmap dummy;
 		CPaintDC dc(this);
@@ -950,18 +954,19 @@ void COverworldMap::ReloadGraphics()
 
 		BYTE usepalette;
 		int offset;
-		
+		const auto& tints = Proj2->session.tintTiles;
+
 		for(short imagecount = 0; imagecount < 128; imagecount += 1){
-			usepalette = (cart->ROM[OVERWORLDPALETTE_ASSIGNMENT + imagecount] & 3) << 2;
+			usepalette = (Proj2->ROM[OVERWORLDPALETTE_ASSIGNMENT + imagecount] & 3) << 2;
 			offset = OVERWORLDPATTERNTABLE_ASSIGNMENT + imagecount;
 
-			DrawTile(&mDC,0,0,cart,OVERWORLDPATTERNTABLE_OFFSET + (cart->ROM[offset] << 4),&palette[0][usepalette],cart->TintTiles[0][imagecount]);
-			DrawTile(&mDC,8,0,cart,OVERWORLDPATTERNTABLE_OFFSET + (cart->ROM[offset + 128] << 4),&palette[0][usepalette],cart->TintTiles[0][imagecount]);
-			DrawTile(&mDC,0,8,cart,OVERWORLDPATTERNTABLE_OFFSET + (cart->ROM[offset + 256] << 4),&palette[0][usepalette],cart->TintTiles[0][imagecount]);
-			DrawTile(&mDC,8,8,cart,OVERWORLDPATTERNTABLE_OFFSET + (cart->ROM[offset + 384] << 4),&palette[0][usepalette],cart->TintTiles[0][imagecount]);
+			DrawTile(&mDC,0,0,Proj2,OVERWORLDPATTERNTABLE_OFFSET + (Proj2->ROM[offset] << 4),&palette[0][usepalette], tints[0][imagecount]);
+			DrawTile(&mDC,8,0,Proj2,OVERWORLDPATTERNTABLE_OFFSET + (Proj2->ROM[offset + 128] << 4),&palette[0][usepalette], tints[0][imagecount]);
+			DrawTile(&mDC,0,8,Proj2,OVERWORLDPATTERNTABLE_OFFSET + (Proj2->ROM[offset + 256] << 4),&palette[0][usepalette], tints[0][imagecount]);
+			DrawTile(&mDC,8,8,Proj2,OVERWORLDPATTERNTABLE_OFFSET + (Proj2->ROM[offset + 384] << 4),&palette[0][usepalette], tints[0][imagecount]);
 
 			mDC.SelectObject(&dummy);
-			cart->m_overworldtiles.Add(&bmp,TRANSPARENTCOLOR);
+			Proj2->m_overworldtiles.get().Add(&bmp,TRANSPARENTCOLOR); //TODO - add Add() to FFHImages
 			mDC.SelectObject(&bmp);
 			dlg.m_progress.OffsetPos(1);
 		}
@@ -969,7 +974,7 @@ void COverworldMap::ReloadGraphics()
 		mDC.DeleteDC();
 		bmp.DeleteObject();
 		dummy.DeleteObject();
-		cart->OK_overworldtiles = 1;
+		Proj2->OK_overworldtiles = 1;
 	}
 
 	ReloadSpriteGraphics(&dlg.m_progress);
@@ -986,8 +991,8 @@ void COverworldMap::ReloadSpriteGraphics(CProgressCtrl* m_prog)
 		FixedPals[0][co] = palette[1][co];
 	for(co = 0; co < 16; co += 4)
 		FixedPals[0][co] = 0x40;
-	FixedPals[0][2] = cart->ROM[MAPMANPALETTE_OFFSET];
-	FixedPals[1][2] = cart->ROM[MAPMANPALETTE_OFFSET + 1];
+	FixedPals[0][2] = Proj2->ROM[MAPMANPALETTE_OFFSET];
+	FixedPals[1][2] = Proj2->ROM[MAPMANPALETTE_OFFSET + 1];
 	int offsets[5] = {MAPMANGRAPHIC_OFFSET,0x9E50,0x9F90,0x9C50,0x9C90};
 	BYTE palassign[5] = {0,2,2,3,3};
 
@@ -1001,11 +1006,11 @@ void COverworldMap::ReloadSpriteGraphics(CProgressCtrl* m_prog)
 	mDC.SelectObject(&bmp);
 
 	for(co = 0; co < 5; co++){
-		DrawTile(&mDC,0,0,cart,offsets[co],FixedPals[palassign[co]],0);
-		DrawTile(&mDC,8,0,cart,offsets[co] + 16,FixedPals[palassign[co]],0);
+		DrawTile(&mDC,0,0,Proj2,offsets[co],FixedPals[palassign[co]],0);
+		DrawTile(&mDC,8,0,Proj2,offsets[co] + 16,FixedPals[palassign[co]],0);
 		if(!co) palassign[0] = 1;
-		DrawTile(&mDC,0,8,cart,offsets[co] + 32,FixedPals[palassign[co]],0);
-		DrawTile(&mDC,8,8,cart,offsets[co] + 48,FixedPals[palassign[co]],0);
+		DrawTile(&mDC,0,8,Proj2,offsets[co] + 32,FixedPals[palassign[co]],0);
+		DrawTile(&mDC,8,8,Proj2,offsets[co] + 48,FixedPals[palassign[co]],0);
 		mDC.SelectObject(&dummy);
 		m_sprites.Add(&bmp,TRANSPARENTCOLOR);
 		mDC.SelectObject(&bmp);
@@ -1038,8 +1043,8 @@ void COverworldMap::InitBackdrops()
 	for(bigco = 0; bigco < BATTLEBACKDROP_COUNT; bigco++, paloffset += 4, offset += 0x700){
 		for(coY = 0; coY < 32; coY += 8){
 		for(coX = 0; coX < 32; coX += 8, offset += 16){
-			DrawTile(&mDC,coX,coY,cart,offset,&cart->ROM[paloffset]);
-			DrawTile(&mDC,coX + slapX[coX >> 3],coY,cart,offset,&cart->ROM[paloffset]);}}
+			DrawTile(&mDC,coX,coY,Proj2,offset,&Proj2->ROM[paloffset]);
+			DrawTile(&mDC,coX + slapX[coX >> 3],coY,Proj2,offset,&Proj2->ROM[paloffset]);}}
 		mDC.SelectObject(&dummy);
 		m_backdrop.Add(&bmp,TRANSPARENTCOLOR);
 		mDC.SelectObject(&bmp);
@@ -1164,7 +1169,7 @@ void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
 		pt.y = (pt.y - rcPalette.top) >> 4;
 		pt.x = (pt.x - rcPalette.left) >> 4;
 		CNESPalette dlg;
-		dlg.cart = cart;
+		dlg.Proj2 = Proj2;
 		dlg.color = &palette[pt.y][pt.x];
 		if(dlg.DoModal() == IDOK){
 			if(!(pt.x & 3)){
@@ -1173,8 +1178,8 @@ void COverworldMap::OnLButtonDown(UINT nFlags, CPoint pt)
 			}
 			else if(m_minimap.GetCheck() && ((pt.x & 3) == 3))
 				minimap.UpdateAll();
-			cart->m_overworldtiles.DeleteImageList();
-			cart->OK_overworldtiles = 0;
+			Proj2->m_overworldtiles.DeleteImageList();
+			Proj2->OK_overworldtiles = 0;
 			ReloadGraphics();
 			InvalidateRect(rcTiles,0);
 			InvalidateRect(rcPalette,0);
@@ -1199,16 +1204,16 @@ void COverworldMap::OnLButtonDblClk(UINT nFlags, CPoint pt)
 	if (PtInRect(rcTiles, pt)) {
 		CTileEdit dlg;
 		dlg.Invoker = CTileEdit::Overworld;
-		dlg.cart = cart;
+		dlg.Proj2 = Proj2;
 		dlg.tileset = 0;
 		dlg.tile = (BYTE)cur_tile;
 		dlg.pal[0] = palette[0];
 		OnSave();
 		if (dlg.DoModal() == IDOK) {
-			minimap.PalAssign[cur_tile] = cart->ROM[OVERWORLDPALETTE_ASSIGNMENT + cur_tile] & 3;
+			minimap.PalAssign[cur_tile] = Proj2->ROM[OVERWORLDPALETTE_ASSIGNMENT + cur_tile] & 3;
 			if (m_minimap.GetCheck()) minimap.UpdateAll();
-			cart->m_overworldtiles.DeleteImageList();
-			cart->OK_overworldtiles = 0;
+			Proj2->m_overworldtiles.DeleteImageList();
+			Proj2->OK_overworldtiles = 0;
 			ReloadGraphics();
 			InvalidateRect(rcPalette, 0);
 			InvalidateRect(rcTiles, 0);
@@ -1268,7 +1273,7 @@ void COverworldMap::OnMouseMove(UINT nFlags, CPoint pt)
 void COverworldMap::OnEditlabel()
 {
 	int temp = m_backdroplist.GetCurSel();
-	ChangeLabel(*cart, -1, LoadBackdropLabel(*cart, temp), WriteBackdropLabel, temp, nullptr, &m_backdroplist);
+	//ChangeLabel(*Proj2, -1, LoadBackdropLabel(*Proj2, temp), WriteBackdropLabel, temp, nullptr, &m_backdroplist); //TODO - ChangeLabel
 }
 
 void COverworldMap::OnSelchangeBackdrop() 
@@ -1303,22 +1308,22 @@ void COverworldMap::LoadDomain()
 	int ref = (ptDomain.y << 3) + ptDomain.x;
 	ref = BATTLEDOMAIN_OFFSET + (ref << 3);
 
-	m_battle1.SetCurSel(cart->ROM[ref] & 0x7F);
-	m_form1.SetCheck(cart->ROM[ref] & 0x80);
-	m_battle2.SetCurSel(cart->ROM[ref + 1] & 0x7F);
-	m_form2.SetCheck(cart->ROM[ref + 1] & 0x80);
-	m_battle3.SetCurSel(cart->ROM[ref + 2] & 0x7F);
-	m_form3.SetCheck(cart->ROM[ref + 2] & 0x80);
-	m_battle4.SetCurSel(cart->ROM[ref + 3] & 0x7F);
-	m_form4.SetCheck(cart->ROM[ref + 3] & 0x80);
-	m_battle5.SetCurSel(cart->ROM[ref + 4] & 0x7F);
-	m_form5.SetCheck(cart->ROM[ref + 4] & 0x80);
-	m_battle6.SetCurSel(cart->ROM[ref + 5] & 0x7F);
-	m_form6.SetCheck(cart->ROM[ref + 5] & 0x80);
-	m_battle7.SetCurSel(cart->ROM[ref + 6] & 0x7F);
-	m_form7.SetCheck(cart->ROM[ref + 6] & 0x80);
-	m_battle8.SetCurSel(cart->ROM[ref + 7] & 0x7F);
-	m_form8.SetCheck(cart->ROM[ref + 7] & 0x80);
+	m_battle1.SetCurSel(Proj2->ROM[ref] & 0x7F);
+	m_form1.SetCheck(Proj2->ROM[ref] & 0x80);
+	m_battle2.SetCurSel(Proj2->ROM[ref + 1] & 0x7F);
+	m_form2.SetCheck(Proj2->ROM[ref + 1] & 0x80);
+	m_battle3.SetCurSel(Proj2->ROM[ref + 2] & 0x7F);
+	m_form3.SetCheck(Proj2->ROM[ref + 2] & 0x80);
+	m_battle4.SetCurSel(Proj2->ROM[ref + 3] & 0x7F);
+	m_form4.SetCheck(Proj2->ROM[ref + 3] & 0x80);
+	m_battle5.SetCurSel(Proj2->ROM[ref + 4] & 0x7F);
+	m_form5.SetCheck(Proj2->ROM[ref + 4] & 0x80);
+	m_battle6.SetCurSel(Proj2->ROM[ref + 5] & 0x7F);
+	m_form6.SetCheck(Proj2->ROM[ref + 5] & 0x80);
+	m_battle7.SetCurSel(Proj2->ROM[ref + 6] & 0x7F);
+	m_form7.SetCheck(Proj2->ROM[ref + 6] & 0x80);
+	m_battle8.SetCurSel(Proj2->ROM[ref + 7] & 0x7F);
+	m_form8.SetCheck(Proj2->ROM[ref + 7] & 0x80);
 
 	if(probabilitychanged){
 		probabilitychanged = 0;
@@ -1326,7 +1331,7 @@ void COverworldMap::LoadDomain()
 		int buffer[8] = {0,0,0,0,0,0,0,0};
 		int co;
 		for(co = 0; co < 64; co++)
-			buffer[cart->ROM[ref + co]] += 1;
+			buffer[Proj2->ROM[ref + co]] += 1;
 		CString text;
 		CEdit* m_edit[8] = {&m_probability1,&m_probability2,&m_probability3,&m_probability4,
 			&m_probability5,&m_probability6,&m_probability7,&m_probability8};
@@ -1341,14 +1346,14 @@ void COverworldMap::StoreDomain()
 	int ref = (ptDomain.y << 3) + ptDomain.x;
 	ref = BATTLEDOMAIN_OFFSET + (ref << 3);
 
-	cart->ROM[ref] = (BYTE)(m_battle1.GetCurSel() + (m_form1.GetCheck() << 7));
-	cart->ROM[ref + 1] = (BYTE)(m_battle2.GetCurSel() + (m_form2.GetCheck() << 7));
-	cart->ROM[ref + 2] = (BYTE)(m_battle3.GetCurSel() + (m_form3.GetCheck() << 7));
-	cart->ROM[ref + 3] = (BYTE)(m_battle4.GetCurSel() + (m_form4.GetCheck() << 7));
-	cart->ROM[ref + 4] = (BYTE)(m_battle5.GetCurSel() + (m_form5.GetCheck() << 7));
-	cart->ROM[ref + 5] = (BYTE)(m_battle6.GetCurSel() + (m_form6.GetCheck() << 7));
-	cart->ROM[ref + 6] = (BYTE)(m_battle7.GetCurSel() + (m_form7.GetCheck() << 7));
-	cart->ROM[ref + 7] = (BYTE)(m_battle8.GetCurSel() + (m_form8.GetCheck() << 7));
+	Proj2->ROM[ref] = (BYTE)(m_battle1.GetCurSel() + (m_form1.GetCheck() << 7));
+	Proj2->ROM[ref + 1] = (BYTE)(m_battle2.GetCurSel() + (m_form2.GetCheck() << 7));
+	Proj2->ROM[ref + 2] = (BYTE)(m_battle3.GetCurSel() + (m_form3.GetCheck() << 7));
+	Proj2->ROM[ref + 3] = (BYTE)(m_battle4.GetCurSel() + (m_form4.GetCheck() << 7));
+	Proj2->ROM[ref + 4] = (BYTE)(m_battle5.GetCurSel() + (m_form5.GetCheck() << 7));
+	Proj2->ROM[ref + 5] = (BYTE)(m_battle6.GetCurSel() + (m_form6.GetCheck() << 7));
+	Proj2->ROM[ref + 6] = (BYTE)(m_battle7.GetCurSel() + (m_form7.GetCheck() << 7));
+	Proj2->ROM[ref + 7] = (BYTE)(m_battle8.GetCurSel() + (m_form8.GetCheck() << 7));
 
 	if(probabilitychanged){
 		int hold[8] = {0,0,0,0,0,0,0,0};
@@ -1369,10 +1374,10 @@ void COverworldMap::StoreDomain()
 		int bigco;
 		for(bigco = 0; bigco < 8; bigco++){
 			for(co = 0; co < hold[bigco] && ref < max; co++, ref++)
-				cart->ROM[ref] = (BYTE)bigco;}
+				Proj2->ROM[ref] = (BYTE)bigco;}
 
 		for(;ref < max; ref++)
-			cart->ROM[ref] = 0;
+			Proj2->ROM[ref] = 0;
 
 		LoadDomain();
 	}
@@ -1410,12 +1415,12 @@ void COverworldMap::UpdateMisc(int update)
 }
 void COverworldMap::OnShowlastclick()
 {
-	cart->ShowLastClick = (m_showlastclick.GetCheck() != 0);
+	Proj2->session.showLastClick = (m_showlastclick.GetCheck() != 0);
 	invalidate_maps();
 }
 void COverworldMap::OnDrawgrid()
 {
-	cart->DrawDomainGrid = (m_drawgrid.GetCheck() != 0);
+	Proj2->session.drawDomainGrid = (m_drawgrid.GetCheck() != 0);
 	invalidate_maps();
 }
 void COverworldMap::OnTeleport() 
@@ -1484,11 +1489,11 @@ void COverworldMap::CompressMap()
 				recycle = (DecompressedMap[coR][coX] == DecompressedMap[coY][coX]);}
 		if(recycle){
 			coR--;
-			cart->ROM[OVERWORLDMAP_OFFSET + (coY << 1)] = cart->ROM[OVERWORLDMAP_OFFSET + (coR << 1)];
-			cart->ROM[OVERWORLDMAP_OFFSET + (coY << 1) + 1] = cart->ROM[OVERWORLDMAP_OFFSET + (coR << 1) + 1];}
+			Proj2->ROM[OVERWORLDMAP_OFFSET + (coY << 1)] = Proj2->ROM[OVERWORLDMAP_OFFSET + (coR << 1)];
+			Proj2->ROM[OVERWORLDMAP_OFFSET + (coY << 1) + 1] = Proj2->ROM[OVERWORLDMAP_OFFSET + (coR << 1) + 1];}
 		else {
-			cart->ROM[OVERWORLDMAP_OFFSET + (coY << 1)] = (co - OVERWORLDMAP_PTRADD) & 0xFF;
-			cart->ROM[OVERWORLDMAP_OFFSET + (coY << 1) + 1] = (BYTE)((co - OVERWORLDMAP_PTRADD) >> 8);
+			Proj2->ROM[OVERWORLDMAP_OFFSET + (coY << 1)] = (co - OVERWORLDMAP_PTRADD) & 0xFF;
+			Proj2->ROM[OVERWORLDMAP_OFFSET + (coY << 1) + 1] = (BYTE)((co - OVERWORLDMAP_PTRADD) >> 8);
 			coX = 0;
 			while (coX < 256) {
 				ThisRun = DecompressedMap[coY][coX]; RunLength = 0;
@@ -1500,36 +1505,36 @@ void COverworldMap::CompressMap()
 					for (;coX < 256 && ThisRun == DecompressedMap[coY][coX]; coX++, RunLength++); // empty loop body
 				}
 				if (RunLength == 1) {
-					cart->ROM[co] = (BYTE)ThisRun;
+					Proj2->ROM[co] = (BYTE)ThisRun;
 					co++;
 				}
 				else if (RunLength == 0xFF) {
-					cart->ROM[co] = (BYTE)(ThisRun + 0x80);
-					cart->ROM[co + 1] = 0xFE;
-					cart->ROM[co + 2] = (BYTE)ThisRun;
+					Proj2->ROM[co] = (BYTE)(ThisRun + 0x80);
+					Proj2->ROM[co + 1] = 0xFE;
+					Proj2->ROM[co + 2] = (BYTE)ThisRun;
 					co += 3;
 				}
 				else {
 					if (RunLength == 256) RunLength = 0;
-					cart->ROM[co] = (BYTE)(ThisRun + 0x80);
-					cart->ROM[co + 1] = (BYTE)RunLength;
+					Proj2->ROM[co] = (BYTE)(ThisRun + 0x80);
+					Proj2->ROM[co + 1] = (BYTE)RunLength;
 					co += 2;
 				}
 			}
-			cart->ROM[co] = 0xFF;
+			Proj2->ROM[co] = 0xFF;
 			co++;
 		}
 	}
 
 	//Also, store the palette here as well... might as well  :P
 	for(co = 0; co < 32; co++)
-		cart->ROM[co + OVERWORLDPALETTE_OFFSET] = palette[0][co];
+		Proj2->ROM[co + OVERWORLDPALETTE_OFFSET] = palette[0][co];
 }
 
 void COverworldMap::OnEditgraphics()
 {
 	CBackdrop dlg;
-	dlg.Project = cart;
+	dlg.Proj2 = Proj2;
 	dlg.backdrop = (BYTE)m_backdroplist.GetCurSel();
 	//DEVNOTE - since the user can click Save, then Cancel, checking for IDOK isn't sufficient
 	//          to register a redraw of the backdrop. NeedsRefresh() tracks Save/Cancel and OK.
@@ -1557,8 +1562,8 @@ void COverworldMap::StoreMiscCoords()
 	if(misccoords[0].x < 0) misccoords[0].x = 0;
 	if(misccoords[0].y < 0) misccoords[0].y = 0;
 	for(int co = 0; co < 5; co++){
-		cart->ROM[m_misccoordoffsets[co]] = (BYTE)misccoords[co].x;
-		cart->ROM[m_misccoordoffsets[co] + 1] = (BYTE)misccoords[co].y;}
+		Proj2->ROM[m_misccoordoffsets[co]] = (BYTE)misccoords[co].x;
+		Proj2->ROM[m_misccoordoffsets[co] + 1] = (BYTE)misccoords[co].y;}
 	misccoords[0].x += 7;
 	misccoords[0].y += 7;
 }
@@ -1671,18 +1676,18 @@ CSize COverworldMap::get_scroll_limits()
 
 void COverworldMap::apply_tile_tint(int ref)
 {
-	int old = cart->TintTiles[0][ref];
+	int old = Proj2->session.tintTiles[0][ref];
 	CTint dlg;
 	dlg.tintvalue = old;
-	dlg.m_tintvariant = cart->TintVariant;
+	dlg.m_tintvariant = Proj2->session.tintVariant;
 	if (dlg.DoModal() == IDOK) {
-		cart->TintTiles[0][ref] = (BYTE)dlg.tintvalue;
-		if (cart->TintVariant != dlg.m_tintvariant) {
-			cart->TintVariant = (BYTE)dlg.m_tintvariant;
-			cart->ReTintPalette();
+		Proj2->session.tintTiles[0][ref] = (BYTE)dlg.tintvalue;
+		if (Proj2->session.tintVariant != dlg.m_tintvariant) {
+			Proj2->session.tintVariant = (BYTE)dlg.m_tintvariant;
+			Proj2->ReTintPalette();
 		}
-		cart->m_overworldtiles.DeleteImageList();
-		cart->OK_overworldtiles = 0;
+		Proj2->m_overworldtiles.DeleteImageList();
+		Proj2->OK_overworldtiles = 0;
 		ReloadGraphics();
 		InvalidateRect(rcTiles, 0);
 		invalidate_maps();
@@ -1703,7 +1708,7 @@ void COverworldMap::handle_paint(CDC& dc)
 	//Draw the Source Tiles on the screen (8 rows of 16 tiles)
 	for (coY = 0, tile = 0, pt.y = rcTiles.top; coY < 0x08; coY++, pt.y += 16) {
 		for (coX = 0, pt.x = rcTiles.left; coX < 0x10; coX++, pt.x += 16, tile++)
-			cart->m_overworldtiles.Draw(&dc, tile, pt, ILD_NORMAL);
+			Proj2->m_overworldtiles.Draw(&dc, tile, pt, ILD_NORMAL);
 	}
 	pt.x = ((cur_tile & 0x0F) << 4) + rcTiles.left;
 	pt.y = (cur_tile & 0xF0) + rcTiles.top;
@@ -1754,7 +1759,7 @@ void COverworldMap::handle_paint(CDC& dc)
 	rc.right = rc.left + 16; rc.bottom = rc.top + 16;
 	for (pt.y = 0; pt.y < 2; pt.y += 1, rc.top += 16, rc.bottom += 16, rc.left -= 256, rc.right -= 256) {
 		for (pt.x = 0; pt.x < 16; pt.x++, rc.left += 16, rc.right += 16) {
-			br.CreateSolidBrush(cart->Palette[0][palette[pt.y][pt.x]]);
+			br.CreateSolidBrush(Proj2->palette[0][palette[pt.y][pt.x]]);
 			dc.FillRect(rc, &br);
 			br.DeleteObject();
 		}
@@ -1798,7 +1803,7 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayrect, CPoint scroll
 	for (coY = 0, pt.y = displayarea.top; coY < gridvis.cy; coY++, pt.y += tiledims.cy, copt.y += 1) {
 		for (coX = 0, pt.x = displayarea.left, copt.x = gridanchor.x; coX < gridvis.cx; coX++, pt.x += tiledims.cx, copt.x += 1) {
 			if (!(mousedown && cur_tool && PtInRect(rcTemp, copt))) {
-				cart->m_overworldtiles.Draw(&dc, DecompressedMap[copt.y][copt.x], pt, ILD_NORMAL);
+				Proj2->m_overworldtiles.Draw(&dc, DecompressedMap[copt.y][copt.x], pt, ILD_NORMAL);
 			}
 		}
 	}
@@ -1815,7 +1820,7 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayrect, CPoint scroll
 			for (; coY < copt.y; coY++) {
 				for (coX = tile; coX < copt.x; coX++) {
 					pt.x = displayarea.left + (coX << 4); pt.y = displayarea.top + (coY << 4);
-					cart->m_overworldtiles.Draw(&dc, cur_tile, pt, ILD_NORMAL);
+					Proj2->m_overworldtiles.Draw(&dc, cur_tile, pt, ILD_NORMAL);
 				}
 			}
 		}break;
@@ -1830,7 +1835,7 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayrect, CPoint scroll
 		}break;
 		}
 	}
-	if (cart->ShowLastClick) {
+	if (Proj2->session.showLastClick) {
 		pt.x = ((ptLastClick.x - gridanchor.x) * tiledims.cx) + displayarea.left;
 		pt.y = ((ptLastClick.y - gridanchor.y) * tiledims.cy) + displayarea.top;
 		if (PtInRect(displayarea, pt)) {
@@ -1843,7 +1848,7 @@ void COverworldMap::paint_map_elements(CDC& dc, CRect displayrect, CPoint scroll
 			dc.SelectObject(oldpen);
 		}
 	}
-	if (cart->DrawDomainGrid) {
+	if (Proj2->session.drawDomainGrid) {
 		auto oldbkmode = dc.SetBkMode(TRANSPARENT);
 		auto oldtxcolor = dc.SetTextColor(m_gridcolor);
 		CString text;
@@ -1941,8 +1946,8 @@ bool COverworldMap::DoSave()
 		if (kab < 0)
 			THROWEXCEPTION(std::runtime_error, "Map is too complex to save.\nDid not save to ROM.");
 
-		Project->ROM[OWBATTLERATE_LAND_OFFSET] = (unsigned char)(Ui::GetControlInt(m_landencrateedit) & 0xFF);
-		Project->ROM[OWBATTLERATE_SEA_OFFSET] = (unsigned char)(Ui::GetControlInt(m_seaencrateedit) & 0xFF);
+		Proj2->ROM[OWBATTLERATE_LAND_OFFSET] = (unsigned char)(Ui::GetControlInt(m_landencrateedit) & 0xFF);
+		Proj2->ROM[OWBATTLERATE_SEA_OFFSET] = (unsigned char)(Ui::GetControlInt(m_seaencrateedit) & 0xFF);
 
 		StoreMiscCoords();
 		StoreTileData();
@@ -1981,7 +1986,7 @@ void COverworldMap::OnChangeMiscy()
 void COverworldMap::OnMapExport() 
 {
 	CString text = "Overworld Map." + CString(FFH_MAP_EXT);
-	CString filename = Paths::Combine({ FOLDERPREF(Project->AppSettings,PrefMapImportExportFolder), text });
+	CString filename = Paths::Combine({ FOLDERPREF(Proj2->AppSettings,PrefMapImportExportFolder), text });
 	auto result = Ui::SaveFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Export Overworld Map", filename);
 	if (!result) return;
 
@@ -1996,7 +2001,7 @@ void COverworldMap::OnMapExport()
 void COverworldMap::OnMapImport() 
 {
 	auto result = OpenFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Import Overworld Map",
-		FOLDERPREF(Project->AppSettings, PrefMapImportExportFolder));
+		FOLDERPREF(Proj2->AppSettings, PrefMapImportExportFolder));
 	if (!result) return;
 
 	FILE* file = fopen(result.value, "r+b");
@@ -2029,7 +2034,7 @@ void COverworldMap::UpdateTeleportLabel(int arid)
 {
 	int temp = m_teleportbox.GetCurSel();
 	m_teleportbox.DeleteString(arid);
-	m_teleportbox.InsertString(arid, LoadONTeleportLabel(*cart, arid).name);
+	m_teleportbox.InsertString(arid, Labels2::LoadONTeleportLabel(*Proj2, arid).name);
 	m_teleportbox.SetCurSel(temp);
 }
 

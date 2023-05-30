@@ -485,16 +485,17 @@ void CMaps::ReloadImages(CProgressCtrl* m_prog)
 		int co;
 		int pal;
 		int temp = (cur_tileset << 11) + TILESETPATTERNTABLE_OFFSET;
+		const auto& tints = Proj2->session.tintTiles;
 
 		for(int showrm = 0; showrm < 2; showrm++){
 		for(co = 0; co < 128; co++){
 				pal = Proj2->ROM[TILESETPALETTE_ASSIGNMENT + co + (cur_tileset << 7)] & 3;
 				offset = TILESETPATTERNTABLE_ASSIGNMENT + co + (cur_tileset << 9);
 
-				DrawTile(&mDC,0,0,Proj2,temp + (Proj2->ROM[offset] << 4),MapPalette[showrm][pal],Proj2->session.tintTiles[cur_tileset + 1][co]);
-				DrawTile(&mDC,8,0,Proj2,temp + (Proj2->ROM[offset + 128] << 4),MapPalette[showrm][pal],Proj2->session.tintTiles[cur_tileset + 1][co]);
-				DrawTile(&mDC,0,8,Proj2,temp + (Proj2->ROM[offset + 256] << 4),MapPalette[showrm][pal],Proj2->session.tintTiles[cur_tileset + 1][co]);
-				DrawTile(&mDC,8,8,Proj2,temp + (Proj2->ROM[offset + 384] << 4),MapPalette[showrm][pal],Proj2->session.tintTiles[cur_tileset + 1][co]);
+				DrawTile(&mDC,0,0,Proj2,temp + (Proj2->ROM[offset] << 4),MapPalette[showrm][pal],tints[cur_tileset + 1][co]);
+				DrawTile(&mDC,8,0,Proj2,temp + (Proj2->ROM[offset + 128] << 4),MapPalette[showrm][pal],tints[cur_tileset + 1][co]);
+				DrawTile(&mDC,0,8,Proj2,temp + (Proj2->ROM[offset + 256] << 4),MapPalette[showrm][pal],tints[cur_tileset + 1][co]);
+				DrawTile(&mDC,8,8,Proj2,temp + (Proj2->ROM[offset + 384] << 4),MapPalette[showrm][pal],tints[cur_tileset + 1][co]);
 
 				mDC.SelectObject(&dummy);
 				Proj2->GetStandardTiles(cur_map,showrm).Add(&bmp,RGB(255,1,255));

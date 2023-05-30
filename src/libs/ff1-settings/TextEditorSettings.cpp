@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "TextEditorSettings.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "ini_functions.h"
 #include "type_support.h"
 #include <SettingDataAccessor.h>
@@ -8,7 +8,8 @@
 using namespace Ini;
 using namespace Types;
 
-constexpr auto SECT_NAME = "TEXT";
+constexpr auto SECT_NAME = "text";
+#define ShowActualText_name "ShowActualText"
 #define ShowActualText_default true
 
 TextEditorSettings::TextEditorSettings(CFFHacksterProject & proj, initflag flag)
@@ -19,10 +20,12 @@ TextEditorSettings::TextEditorSettings(CFFHacksterProject & proj, initflag flag)
 TextEditorSettings::TextEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag)
 	: SettingsBase(proj, sectionname)
 {
-	if (flag == initflag::read)
-		Read();
-	else
-		SetDefaults();
+	FFH_SWITCH_TO_FFH2;
+
+	//if (flag == initflag::read)
+	//	Read();
+	//else
+	//	SetDefaults();
 }
 
 TextEditorSettings::TextEditorSettings(FFH2Project& proj, initflag flag)
@@ -33,6 +36,9 @@ TextEditorSettings::TextEditorSettings(FFH2Project& proj, initflag flag)
 TextEditorSettings::TextEditorSettings(FFH2Project& proj, CString sectionname, initflag flag)
 	: SettingsBase(proj, sectionname)
 {
+	ffh::acc::SettingDataAccessor s(m_prj2, SECT_NAME);
+	s.EnsureSetting(ShowActualText_name, "bool", "true", "a");
+
 	if (flag == initflag::read)
 		Read();
 	else
@@ -64,14 +70,14 @@ bool TextEditorSettings::Write()
 	return true;
 }
 
-//TODO - how to handle this?
-bool TextEditorSettings::ReadDteSetting(CString key, bool defaultvalue)
-{
-	return ReadIniBool(m_proj.EditorSettingsPath, m_sectionname, "DTE" + key, defaultvalue);
-}
-
-//TODO - how to handle this?
-void TextEditorSettings::WriteDteSetting(CString key, bool value)
-{
-	WriteIniBool(m_proj.EditorSettingsPath, m_sectionname, "DTE" + key, value);
-}
+////TODO - how to handle this?
+//bool TextEditorSettings::ReadDteSetting(CString key, bool defaultvalue)
+//{
+//	return ReadIniBool(m_proj.EditorSettingsPath, m_sectionname, "DTE" + key, defaultvalue);
+//}
+//
+////TODO - how to handle this?
+//void TextEditorSettings::WriteDteSetting(CString key, bool value)
+//{
+//	WriteIniBool(m_proj.EditorSettingsPath, m_sectionname, "DTE" + key, value);
+//}

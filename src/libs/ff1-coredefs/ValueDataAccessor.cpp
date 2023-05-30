@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ValueDataAccessor.h"
 #include "FFH2Project.h"
+#include "cnv_primitives.h"
 #include <set>
 
 namespace ffh
@@ -39,67 +40,77 @@ namespace ffh
 
 		//TODO - figure out how to reduce this boilerplate
 
-		FFHValue& operator>>(FFHValue& stg, bool& value)
+		FFHValue& operator>>(FFHValue& f, bool& value)
 		{
 			const static std::string mytype = "bool";
-			if (stg.type != mytype)
-				THROW_DVA_TYPE_ERROR(stg.name, stg.type, mytype);
+			if (f.type != mytype)
+				THROW_DVA_TYPE_ERROR(f.name, f.type, mytype);
 
-			value = (stg.data == "true");
-			return stg;
+			value = (f.data == "true");
+			return f;
 		}
-		FFHValue& operator<<(FFHValue& stg, const bool& value)
+		FFHValue& operator<<(FFHValue& f, const bool& value)
 		{
 			const static std::string mytype = "bool";
-			if (stg.type != mytype)
-				THROW_DVA_TYPE_ERROR(stg.name, stg.type, mytype);
+			if (f.type != mytype)
+				THROW_DVA_TYPE_ERROR(f.name, f.type, mytype);
 
-			stg.data = value ? "true" : "false";
-			return stg;
+			f.data = value ? "true" : "false";
+			return f;
 		}
 
-		FFHValue& operator>>(FFHValue& stg, std::string& value)
+		FFHValue& operator>>(FFHValue& f, std::string& value)
 		{
 			const static std::string mytype = "str";
-			if (stg.type != mytype)
-				THROW_DVA_TYPE_ERROR(stg.name, stg.type, mytype);
+			if (f.type != mytype)
+				THROW_DVA_TYPE_ERROR(f.name, f.type, mytype);
 
-			value = stg.data;
-			return stg;
+			value = f.data;
+			return f;
 		}
-		FFHValue& operator<<(FFHValue& stg, const std::string& value)
+		FFHValue& operator<<(FFHValue& f, const std::string& value)
 		{
 			const static std::string mytype = "str";
-			if (stg.type != mytype)
-				THROW_DVA_TYPE_ERROR(stg.name, stg.type, mytype);
+			if (f.type != mytype)
+				THROW_DVA_TYPE_ERROR(f.name, f.type, mytype);
 
-			stg.data = value;
-			return stg;
+			f.data = value;
+			return f;
 		}
 
 		namespace {
 			const std::set<std::string> intTypes = { "int", "hex", "addr", "rgb" };
 		}
 
-		FFHValue& operator>>(FFHValue& stg, int& value)
+		FFHValue& operator>>(FFHValue& f, int& value)
 		{
 			const static std::string mytype = "int";
-			if (intTypes.find(stg.type) == cend(intTypes))
-				THROW_DVA_TYPE_ERROR(stg.name, stg.type, mytype);
+			if (intTypes.find(f.type) == cend(intTypes))
+				THROW_DVA_TYPE_ERROR(f.name, f.type, mytype);
 
-			sscanf(stg.data.c_str(), stg.format.c_str(), &value);
-			return stg;
+			if (f.type == "hex") {
+				value = ffh::cnv::hex(f.data, f.format);
+			}
+			else {
+				sscanf(f.data.c_str(), f.format.c_str(), &value);
+			}
+			return f;
 		}
-		FFHValue& operator<<(FFHValue& stg, const int& value)
+
+		FFHValue& operator<<(FFHValue& f, const int& value)
 		{
 			const static std::string mytype = "int";
-			if (intTypes.find(stg.type) == cend(intTypes))
-				THROW_DVA_TYPE_ERROR(stg.name, stg.type, mytype);
+			if (intTypes.find(f.type) == cend(intTypes))
+				THROW_DVA_TYPE_ERROR(f.name, f.type, mytype);
 
-			char buf[128] = { 0 };
-			sprintf_s(buf, stg.format.c_str(), value);
-			stg.data = buf; //TODO - do I need dquotes here? should I use nlohmann here?
-			return stg;
+			if (f.type == "hex") {
+				f.data = ffh::cnv::hex(value, f.format);
+			} else {
+				char buf[128] = { 0 };
+				sprintf_s(buf, f.format.c_str(), value);
+				f.data = buf;
+			}
+			return f;
 		}
 
 	}

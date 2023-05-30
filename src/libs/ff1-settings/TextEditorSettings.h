@@ -16,8 +16,8 @@ public:
 	virtual bool Read();
 	virtual bool Write();
 
-	bool ReadDteSetting(CString key, bool defaultvalue);
-	void WriteDteSetting(CString key, bool value);
+	//bool ReadDteSetting(CString key, bool defaultvalue);
+	//void WriteDteSetting(CString key, bool value);
 
 	bool ShowActualText;
 	//int ShortTextLength;

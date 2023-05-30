@@ -237,6 +237,14 @@ void Draw_DrawAll(CDC* mDC, DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* p
 	Draw_DrawCloseup(mDC, draw, cart, pal);
 }
 
+void Draw_DrawAll(CDC* mDC, DRAW_STRUCT* draw, FFH2Project* proj, BYTE* pal)
+{
+	Draw_DrawPalette(mDC, draw->rcPalette.left, draw->rcPalette.top, proj, pal);
+	Draw_DrawFinger(mDC, draw, proj);
+	Draw_DrawGraphic(mDC, draw, proj, pal, 1, 1);
+	Draw_DrawCloseup(mDC, draw, proj, pal);
+}
+
 void Draw_DrawFinger(CDC* mDC, DRAW_STRUCT* draw, CFFHacksterProject* cart)
 {
 	CPoint pt;

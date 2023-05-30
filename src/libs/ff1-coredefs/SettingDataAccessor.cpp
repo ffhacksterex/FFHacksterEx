@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SettingDataAccessor.h"
 #include "FFH2Project.h"
+#include "cnv_primitives.h"
 #include <set>
 
 namespace ffh
@@ -26,12 +27,37 @@ namespace ffh
 		{
 		}
 
-		FFHSetting& SettingDataAccessor::FindValue(const std::string& name) const
+		// Returns the named setting.
+		// If it doesn't exist, creates it with the specified name, type, data, and optional format.
+		// Data is in string format, so an object would have to be serialized as a string.
+		FFHSetting& SettingDataAccessor::EnsureSetting(std::string name, std::string type, std::string data, std::string format) const
+		{
+			auto it = m_module.settings.find(name);
+			if (it != end(m_module.settings))
+				return it->second;
+
+			auto& s = (m_module.settings[name] = FFHSetting{});
+			s.name = name;
+			s.type = type;
+			s.data = data;
+			s.format = format;
+			return s;
+		}
+
+		FFHSetting& SettingDataAccessor::FindSetting(const std::string& name) const
 		{
 			auto it = m_module.settings.find(name);
 			if (it == end(m_module.settings))
 				throw std::runtime_error("Module '" + m_module.slotName + "' setting '" + name + "' not found.");
 			return it->second;
+		}
+
+		FFHSetting* SettingDataAccessor::TryFindSetting(const std::string& name) const
+		{
+			auto it = m_module.settings.find(name);
+			if (it == end(m_module.settings))
+				return nullptr;
+			return &it->second;
 		}
 
 
@@ -48,64 +74,75 @@ namespace ffh
 
 		// === STANDARD CONVERSION IMPLEMENTATIONS
 
-		FFHSetting& operator>>(FFHSetting& stg, bool& value)
+		FFHSetting& operator>>(FFHSetting& f, bool& value)
 		{
-			if (stg.type != "bool")
-				THROW_SVA_TYPE_ERROR(stg.name, stg.type, "bool");
+			if (f.type != "bool")
+				THROW_SVA_TYPE_ERROR(f.name, f.type, "bool");
 
-			value = (stg.data == "true");
-			return stg;
+			value = (f.data == "true");
+			return f;
 		}
 
-		FFHSetting& operator<<(FFHSetting& stg, const bool& value)
+		FFHSetting& operator<<(FFHSetting& f, const bool& value)
 		{
-			if (stg.type != "bool")
-				THROW_SVA_TYPE_ERROR(stg.name, "bool", stg.type);
+			if (f.type != "bool")
+				THROW_SVA_TYPE_ERROR(f.name, "bool", f.type);
 
-			stg.data = value ? "true" : "false";
-			return stg;
+			f.data = value ? "true" : "false";
+			return f;
 		}
 
 		namespace {
 			std::set<std::string> s_intTypes = { "int", "hex", "addr", "rgb" };
 		}
 
-		FFHSetting& operator>>(FFHSetting& stg, int& value)
+		FFHSetting& operator>>(FFHSetting& f, int& value)
 		{
-			if (s_intTypes.find(stg.type) == cend(s_intTypes))
-				THROW_SVA_TYPE_ERROR(stg.name, stg.type, "int");
+			if (s_intTypes.find(f.type) == cend(s_intTypes))
+				THROW_SVA_TYPE_ERROR(f.name, f.type, "int");
 
-			sscanf(stg.data.c_str(), stg.format.c_str(), &value);
-			return stg;
+			if (f.type == "hex") {
+				value = ffh::cnv::hex(f.data, f.format);
+			}
+			else {
+				sscanf(f.data.c_str(), f.format.c_str(), &value);
+			}
+
+			return f;
 		}
 
-		FFHSetting& operator<<(FFHSetting& stg, const int& value)
+		FFHSetting& operator<<(FFHSetting& f, const int& value)
 		{
-			if (s_intTypes.find(stg.type) == cend(s_intTypes))
-				THROW_SVA_TYPE_ERROR(stg.name, "int", stg.type);
+			if (s_intTypes.find(f.type) == cend(s_intTypes))
+				THROW_SVA_TYPE_ERROR(f.name, "int", f.type);
 
-			char buf[24] = { 0 };
-			sprintf_s<24>(buf, stg.format.c_str(), stg.data, value);
-			stg.data = buf;
-			return stg;
+			if (f.type == "hex") {
+				f.data = ffh::cnv::hex(value, f.format);
+			}
+			else {
+				char buf[128] = { 0 };
+				sprintf_s(buf, f.format.c_str(), value);
+				f.data = buf;
+			}
+			return f;
 		}
 
-		FFHSetting& operator>>(FFHSetting& stg, std::string& value)
+		FFHSetting& operator>>(FFHSetting& f, std::string& value)
 		{
-			if (stg.type != "str")
-				THROW_SVA_TYPE_ERROR(stg.name, stg.type, "str");
+			if (f.type != "str")
+				THROW_SVA_TYPE_ERROR(f.name, f.type, "str");
 
-			value = stg.data;
-			return stg;
+			value = f.data;
+			return f;
 		}
 
-		FFHSetting& operator<<(FFHSetting& stg, const std::string& value)
+		FFHSetting& operator<<(FFHSetting& f, const std::string& value)
 		{
-			if (stg.type != "str")
-				THROW_SVA_TYPE_ERROR(stg.name, "str", stg.type);
+			if (f.type != "str")
+				THROW_SVA_TYPE_ERROR(f.name, "str", f.type);
 
-			stg.data = value;
-			return stg;
+			f.data = value;
+			return f;
 		}
 
 	}
