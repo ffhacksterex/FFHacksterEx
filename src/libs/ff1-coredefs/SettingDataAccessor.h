@@ -17,17 +17,15 @@ namespace ffh
 
 		class SettingDataAccessor //TODO - rename class and file to SettingDataAccessor
 		{
-			FFH2Project& m_proj;
-			ProjectEditorModuleEntry& m_module;
 		public:
 			SettingDataAccessor(FFH2Project& proj, const std::string& modulename);
 
-			FFHSetting& FindValue(const std::string& name) const;
+			FFHSetting& EnsureSetting(std::string name, std::string type, std::string data, std::string format = "") const;
 
 			template <typename T>
 			T get(const std::string& name)
 			{
-				auto& setting = FindValue(name);
+				auto& setting = FindSetting(name);
 				T value;
 				setting >> value;
 				return value;
@@ -36,9 +34,27 @@ namespace ffh
 			template <typename T>
 			void set(const std::string& name, const T& newvalue)
 			{
-				auto& setting = FindValue(name);
+				auto& setting = FindSetting(name);
 				setting << newvalue;
 			}
+
+			template <typename T>
+			T tryget(const std::string& name, T& defultValue)
+			{
+				auto* setting = TryFindSetting(name);
+				if (setting == nullptr)
+					return defaultValue;
+				T value;
+				*setting >> value;
+				return value;
+			}
+
+		private:
+			FFH2Project& m_proj;
+			ProjectEditorModuleEntry& m_module;
+
+			FFHSetting& FindSetting(const std::string& name) const;
+			FFHSetting* TryFindSetting(const std::string& name) const;
 		};
 
 		class sda_typeconversion_exception : std::runtime_error
@@ -51,18 +67,20 @@ namespace ffh
 			const std::string destType;
 		};
 
+
 //TODO - DEPRECATED, THROW THE EXCEPTION DIRECTLY
 #define THROW_SVA_TYPE_ERROR(name,srctype,dsttype) throw ffh::acc::sda_typeconversion_exception((name), (srctype), (dsttype))
 
+
 		// === STANDARD CONVERSIONS
 
-		FFHSetting& operator>>(FFHSetting& stg, bool& value);
-		FFHSetting& operator<<(FFHSetting& stg, const bool& value);
+		FFHSetting& operator>>(FFHSetting& f, bool& value);
+		FFHSetting& operator<<(FFHSetting& f, const bool& value);
 
-		FFHSetting& operator>>(FFHSetting& stg, int& value);
-		FFHSetting& operator<<(FFHSetting& stg, const int& value);
+		FFHSetting& operator>>(FFHSetting& f, int& value);
+		FFHSetting& operator<<(FFHSetting& f, const int& value);
 
-		FFHSetting& operator>>(FFHSetting& stg, std::string& value);
-		FFHSetting& operator<<(FFHSetting& stg, const std::string& value);
+		FFHSetting& operator>>(FFHSetting& f, std::string& value);
+		FFHSetting& operator<<(FFHSetting& f, const std::string& value);
 	}
 }

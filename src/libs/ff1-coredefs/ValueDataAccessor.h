@@ -56,21 +56,23 @@ namespace ffh
 			const std::string destType;
 		};
 
+
 //TODO - DEPRECATED, throw the exception directly instead...
 #define THROW_DVA_TYPE_ERROR(name,srctype,dsttype) throw ffh::acc::vda_typeconversion_exception((name), (srctype), (dsttype))
+
 
 		// === STANDARD TYPE CONVERSIONS
 		// These conversion operators are only used within the context of ValueDataAccessor,
 		// so they're defined here instead of in the header with FFHValue.
 
-		FFHValue& operator>>(FFHValue& stg, bool& value);
-		FFHValue& operator<<(FFHValue& stg, const bool& value);
+		FFHValue& operator>>(FFHValue& f, bool& value);
+		FFHValue& operator<<(FFHValue& f, const bool& value);
 
-		FFHValue& operator>>(FFHValue& stg, std::string& value);
-		FFHValue& operator<<(FFHValue& stg, const std::string& value);
+		FFHValue& operator>>(FFHValue& f, std::string& value);
+		FFHValue& operator<<(FFHValue& f, const std::string& value);
 
-		FFHValue& operator>>(FFHValue& stg, int& value);
-		FFHValue& operator<<(FFHValue& stg, const int& value);
+		FFHValue& operator>>(FFHValue& f, int& value);
+		FFHValue& operator<<(FFHValue& f, const int& value);
 	}
 	// end namespace acc
 }
