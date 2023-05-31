@@ -273,7 +273,7 @@ bool CEnemy::UpdateUsageData(int enemyindex)
 			}
 			return false;
 		};
-		ok = m_usedata.UpdateUseData(enemyindex, includer, UsageDataFormatter2);
+		ok = m_usedata.UpdateUseData(enemyindex, includer, UsageDataFormatter);
 	}
 	catch (std::exception& ex) {
 		ErrorHere << "Can't calculate use data: " << ex.what() << std::endl;
@@ -290,14 +290,7 @@ bool CEnemy::UpdateUsageData(int enemyindex)
 }
 
 //STATIC
-CString CEnemy::UsageDataFormatter(CFFHacksterProject& proj, const sUseData& u)
-{
-	FFH_SWITCH_TO_FFH2;
-	return false;
-}
-
-//STATIC
-CString CEnemy::UsageDataFormatter2(FFH2Project& proj, const sUseData& u)
+CString CEnemy::UsageDataFormatter(FFH2Project& proj, const sUseData& u)
 {
 	CString fmt;
 	switch (u.type)

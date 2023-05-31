@@ -55,8 +55,7 @@ protected:
 	CDataListDialog m_dlgdatalist;
 
 	bool UpdateUsageData(int enemyindex);
-	static CString UsageDataFormatter(CFFHacksterProject& proj, const sUseData& u);
-	static CString UsageDataFormatter2(FFH2Project& proj, const sUseData& u);
+	static CString UsageDataFormatter(FFH2Project& proj, const sUseData& u);
 
 	void LoadCustomizedControls();
 
