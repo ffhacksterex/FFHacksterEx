@@ -4,8 +4,9 @@
 #include "Enemy.h"
 #include "AsmFiles.h"
 #include "collection_helpers.h"
+#include <core_exceptions.h>
 #include "editor_label_functions.h"
-#include "FFHacksterProject.h"
+#include "FFh2Project.h"
 #include "GameSerializer.h"
 #include "general_functions.h"
 #include "imaging_helpers.h"
@@ -14,6 +15,7 @@
 #include "io_functions.h"
 #include "string_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
 
 #include "BattlePatternTables.h"
 #include "EnemyEditorSettings.h"
@@ -143,27 +145,27 @@ BOOL CEnemy::OnInitDialog()
 
 		SetRedraw(FALSE);
 
-		CEnemyEditorSettings stgs(*Project);
+		CEnemyEditorSettings stgs(*Proj2);
 		m_wasflags = stgs.Byte15AsFlags;
 
 		auto sizedelta = CSize(0, GetDistance(&m_atkelem1, &m_statAttackElem).cy);
 		MoveControlBy(&m_statAttackElem, sizedelta);
 		MoveControlBy(&m_unknown, sizedelta);
 
-		LoadCaptions(std::vector<CWnd*>{ &m_cat1, &m_cat2, &m_cat3, &m_cat4, &m_cat5, &m_cat6, &m_cat7, &m_cat8 }, LoadEnemyCategoryLabels(*Project));
-		LoadCaptions(std::vector<CWnd*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 }, LoadAilEffectLabels(*Project));
-		LoadCaptions(std::vector<CWnd*>{ &m_weak1, &m_weak2, &m_weak3, &m_weak4, &m_weak5, &m_weak6, &m_weak7, &m_weak8 }, LoadElementLabels(*Project));
-		LoadCaptions(std::vector<CWnd*>{ &m_weak1, &m_weak2, &m_weak3, &m_weak4, &m_weak5, &m_weak6, &m_weak7, &m_weak8 }, LoadElementLabels(*Project));
-		LoadCaptions(std::vector<CWnd*>{ &m_atkelem1, &m_atkelem2, &m_atkelem3, &m_atkelem4, &m_atkelem5, &m_atkelem6, &m_atkelem7, &m_atkelem8 }, LoadElementLabels(*Project));
+		LoadCaptions(std::vector<CWnd*>{ &m_cat1, &m_cat2, &m_cat3, &m_cat4, &m_cat5, &m_cat6, &m_cat7, &m_cat8 }, Labels2::LoadEnemyCategoryLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 }, Labels2::LoadAilEffectLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_weak1, &m_weak2, &m_weak3, &m_weak4, &m_weak5, &m_weak6, &m_weak7, &m_weak8 }, Labels2::LoadElementLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_weak1, &m_weak2, &m_weak3, &m_weak4, &m_weak5, &m_weak6, &m_weak7, &m_weak8 }, Labels2::LoadElementLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_atkelem1, &m_atkelem2, &m_atkelem3, &m_atkelem4, &m_atkelem5, &m_atkelem6, &m_atkelem7, &m_atkelem8 }, Labels2::LoadElementLabels(*Proj2));
 
-		LoadListBox(m_enemylist, LoadEnemyEntries(*Project));
+		LoadListBox(m_enemylist, LoadEnemyEntries(*Proj2));
 
 		for (auto wnd : { &m_ai_magic1,&m_ai_magic2,&m_ai_magic3,&m_ai_magic4,&m_ai_magic5,&m_ai_magic6,&m_ai_magic7,&m_ai_magic8 })
-			LoadCombo(*wnd, LoadMagicEntries(*Project));
+			LoadCombo(*wnd, LoadMagicEntries(*Proj2));
 		for (auto wnd : { &m_ai_ability1,&m_ai_ability2,&m_ai_ability3,&m_ai_ability4 })
-			LoadCombo(*wnd, LoadAttackEntries(*Project));
+			LoadCombo(*wnd, LoadAttackEntries(*Proj2));
 
-		auto AILabels = get_names(LoadAILabels(*Project));
+		auto AILabels = get_names(Labels2::LoadAILabels(*Proj2));
 		for (int co = 0; co < AI_COUNT; co++)
 			m_ai.InsertString(co, AILabels[co]);
 
@@ -185,7 +187,7 @@ BOOL CEnemy::OnInitDialog()
 		if (m_usagedataon) {
 			try {
 				CWaitCursor wait;
-				m_usedata.SetProject(*Project);
+				m_usedata.SetProject(*Proj2);
 				if (m_dlgdatalist.CreateModeless(this)) {
 					// Put the modeless toward the right edge.
 					//DEVNOTE - ran into some oddities with positioning, I'll deal with this later if it causes problems.
@@ -262,16 +264,16 @@ bool CEnemy::UpdateUsageData(int enemyindex)
 			for (auto i = 0u; i < renm.size(); ++i) {
 				auto ienm = renm[i];
 				auto iqty = rqty[i];
-				auto sloten = Project->ROM[offset + ienm];
+				auto sloten = Proj2->ROM[offset + ienm];
 				if (sloten == keyindex) {
-					auto slotqty = Project->ROM[offset + iqty] & 0xF;
+					auto slotqty = Proj2->ROM[offset + iqty] & 0xF;
 					if (slotqty > 0)
 						return true;
 				}
 			}
 			return false;
 		};
-		ok = m_usedata.UpdateUseData(enemyindex, includer, UsageDataFormatter);
+		ok = m_usedata.UpdateUseData(enemyindex, includer, UsageDataFormatter2);
 	}
 	catch (std::exception& ex) {
 		ErrorHere << "Can't calculate use data: " << ex.what() << std::endl;
@@ -290,31 +292,38 @@ bool CEnemy::UpdateUsageData(int enemyindex)
 //STATIC
 CString CEnemy::UsageDataFormatter(CFFHacksterProject& proj, const sUseData& u)
 {
+	FFH_SWITCH_TO_FFH2;
+	return false;
+}
+
+//STATIC
+CString CEnemy::UsageDataFormatter2(FFH2Project& proj, const sUseData& u)
+{
 	CString fmt;
 	switch (u.type)
 	{
 	case UseDataType::Overworld:
 	{
 		fmt.Format("Overworld %d,%d \tBattle %02X \tSlot %d \tF%d",
-			u.x, u.y, u.battleid, u.slot+1, u.formation);
+			u.x, u.y, u.battleid, u.slot + 1, u.formation);
 		break;
 	}
 	case UseDataType::StdMap:
 	{
-		fmt.Format("%s \tBattle %02X \tSlot %d \tF%d", Editorlabels::LoadMapLabel(proj, (int)u.mapid, false).name,
-			u.battleid, u.slot+1, u.formation);
+		fmt.Format("%s \tBattle %02X \tSlot %d \tF%d", Labels2::LoadMapLabel(proj, (int)u.mapid, false).name,
+			u.battleid, u.slot + 1, u.formation);
 		break;
 	}
 	case UseDataType::SpikedSquare:
 	{
-		fmt.Format("%s [Tile %X,%X] \tBattle %02X \t \tF%d", Editorlabels::LoadMapLabel(proj, (int)u.mapid, false).name,
+		fmt.Format("%s [Tile %X,%X] \tBattle %02X \t \tF%d", Labels2::LoadMapLabel(proj, (int)u.mapid, false).name,
 			u.x, u.y, u.battleid, u.formation);
 		break;
 	}
 	case UseDataType::SpriteDialogue:
 	{
 		fmt.Format("Sprite %02X %s \tBattle %02X \tF%d", u.mapid,
-			Editorlabels::LoadSpriteLabel(proj, (int)u.mapid, false).name, (int)u.battleid, u.formation);
+			Labels2::LoadSpriteLabel(proj, (int)u.mapid, false).name, (int)u.battleid, u.formation);
 		break;
 	}
 	default:
@@ -325,7 +334,7 @@ CString CEnemy::UsageDataFormatter(CFFHacksterProject& proj, const sUseData& u)
 
 void CEnemy::LoadCustomizedControls()
 {
-	CEnemyEditorSettings stgs(*Project);
+	CEnemyEditorSettings stgs(*Proj2);
 	bool isflags = stgs.Byte15AsFlags;
 	CString name15 = stgs.Byte15Name;
 
@@ -362,35 +371,36 @@ void CEnemy::LoadCustomizedControls()
 
 void CEnemy::LoadOffsets()
 {
-	ENEMY_OFFSET = ReadHex(Project->ValuesPath, "ENEMY_OFFSET");
-	ENEMY_BYTES = ReadDec(Project->ValuesPath, "ENEMY_BYTES");
-	AI_OFFSET = ReadHex(Project->ValuesPath, "AI_OFFSET");
-	AI_COUNT = ReadDec(Project->ValuesPath, "AI_COUNT");
-	ENEMYTEXT_OFFSET = ReadHex(Project->ValuesPath, "ENEMYTEXT_OFFSET");
-	BATTLE_OFFSET = ReadHex(Project->ValuesPath, "BATTLE_OFFSET");
-	BATTLE_BYTES = ReadHex(Project->ValuesPath, "BATTLE_BYTES");
+	ffh::acc::ValueDataAccessor v(*Proj2);
+	ENEMY_OFFSET = v.get<int>("ENEMY_OFFSET");
+	ENEMY_BYTES = v.get<int>("ENEMY_BYTES");
+	AI_OFFSET = v.get<int>("AI_OFFSET");
+	AI_COUNT = v.get<int>("AI_COUNT");
+	ENEMYTEXT_OFFSET = v.get<int>("ENEMYTEXT_OFFSET");
+	BATTLE_OFFSET = v.get<int>("BATTLE_OFFSET");
+	BATTLE_BYTES = v.get<int>("BATTLE_BYTES");
 
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
-	BINENEMYDATA_OFFSET = ENEMY_OFFSET; //ReadHex(Project->ValuesPath, "ENEMY_OFFSET");
-	BINAIDATA_OFFSET = ReadHex(Project->ValuesPath, "AI_OFFSET");
-	BINBATTLEFORMATIONS_OFFSET = ReadHex(Project->ValuesPath, "BINBATTLEFORMATIONS_OFFSET");
+	BANK0A_OFFSET = v.get<int>("BANK0A_OFFSET");
+	BINENEMYDATA_OFFSET = ENEMY_OFFSET; //v.get<int>("ENEMY_OFFSET");
+	BINAIDATA_OFFSET = v.get<int>("AI_OFFSET");
+	BINBATTLEFORMATIONS_OFFSET = v.get<int>("BINBATTLEFORMATIONS_OFFSET");
 
 	// used by subeditors
-	BINBATTLEPALETTES_OFFSET = ReadHex(Project->ValuesPath, "BINBATTLEPALETTES_OFFSET");
-	BINCHAOSTSA_OFFSET = ReadHex(Project->ValuesPath, "BINCHAOSTSA_OFFSET");
-	BINFIENDTSA_OFFSET = ReadHex(Project->ValuesPath, "BINFIENDTSA_OFFSET");
-	BANK00_OFFSET = ReadHex(Project->ValuesPath, "BANK00_OFFSET");
-	BANK07_OFFSET = ReadHex(Project->ValuesPath, "BANK07_OFFSET");
+	BINBATTLEPALETTES_OFFSET = v.get<int>("BINBATTLEPALETTES_OFFSET");
+	BINCHAOSTSA_OFFSET = v.get<int>("BINCHAOSTSA_OFFSET");
+	BINFIENDTSA_OFFSET = v.get<int>("BINFIENDTSA_OFFSET");
+	BANK00_OFFSET = v.get<int>("BANK00_OFFSET");
+	BANK07_OFFSET = v.get<int>("BANK07_OFFSET");
 }
 
 void CEnemy::LoadRom()
 {
-	Project->ClearROM();
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.LoadAsmBin(BIN_AIDATA, BINAIDATA_OFFSET);
@@ -409,12 +419,13 @@ void CEnemy::LoadRom()
 			// Used by EnemyBattleUsageData (read-only)
 			//TODO - use CLoading instead?
 			CWaitCursor wait;
-			auto BANK04_OFFSET = ReadHex(Project->ValuesPath, "BANK04_OFFSET");
-			auto BANK05_OFFSET = ReadHex(Project->ValuesPath, "BANK05_OFFSET");
-			auto BANK06_OFFSET = ReadHex(Project->ValuesPath, "BANK06_OFFSET");
-			auto BATTLEDOMAIN_OFFSET = ReadHex(Project->ValuesPath, "BATTLEDOMAIN_OFFSET");
-			unsigned int BATTLEPROBABILITY_OFFSET = ReadHex(Project->ValuesPath, "BATTLEPROBABILITY_OFFSET");
-			auto TALKROUTINEDATA_OFFSET = Ini::ReadHex(Project->ValuesPath, "TALKROUTINEDATA_OFFSET");
+			ffh::acc::ValueDataAccessor v(*Proj2);
+			auto BANK04_OFFSET = v.get<int>("BANK04_OFFSET");
+			auto BANK05_OFFSET = v.get<int>("BANK05_OFFSET");
+			auto BANK06_OFFSET = v.get<int>("BANK06_OFFSET");
+			auto BATTLEDOMAIN_OFFSET = v.get<int>("BATTLEDOMAIN_OFFSET");
+			unsigned int BATTLEPROBABILITY_OFFSET = v.get<int>("BATTLEPROBABILITY_OFFSET");
+			auto TALKROUTINEDATA_OFFSET = v.get<int>("TALKROUTINEDATA_OFFSET");
 			ser.LoadAsmBin(BANK_04, BANK04_OFFSET);
 			ser.LoadAsmBin(BANK_05, BANK05_OFFSET);
 			ser.LoadAsmBin(BANK_06, BANK06_OFFSET);
@@ -425,17 +436,17 @@ void CEnemy::LoadRom()
 		}
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CEnemy::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->SaveROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.SaveAsmBin(BIN_AIDATA, BINAIDATA_OFFSET);
@@ -451,7 +462,7 @@ void CEnemy::SaveRom()
 		ser.SaveAsmBin(BIN_FIENDTSA, BINFIENDTSA_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
@@ -461,68 +472,68 @@ void CEnemy::LoadValues()
 	int temp;
 	CString text;
 
-	temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+	temp = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8);
 	text.Format("%d",temp);
 	m_exp.SetWindowText(text);
 
-	temp = Project->ROM[offset + 2] + (Project->ROM[offset + 3] << 8);
+	temp = Proj2->ROM[offset + 2] + (Proj2->ROM[offset + 3] << 8);
 	text.Format("%d",temp);
 	m_gold.SetWindowText(text);
 
-	temp = Project->ROM[offset + 4] + (Project->ROM[offset + 5] << 8);
+	temp = Proj2->ROM[offset + 4] + (Proj2->ROM[offset + 5] << 8);
 	text.Format("%d",temp);
 	m_hp.SetWindowText(text);
 
-	text.Format("%d",Project->ROM[offset + 6]);
+	text.Format("%d",Proj2->ROM[offset + 6]);
 	m_morale.SetWindowText(text);
 
-	cur_ai = (Project->ROM[offset + 7] + 1) & 0xFF;
+	cur_ai = (Proj2->ROM[offset + 7] + 1) & 0xFF;
 	m_ai.SetCurSel(cur_ai);
 	LoadAI();
 
-	text.Format("%d",Project->ROM[offset + 8]);
+	text.Format("%d",Proj2->ROM[offset + 8]);
 	m_agility.SetWindowText(text);
 
-	text.Format("%d",Project->ROM[offset + 9]);
+	text.Format("%d",Proj2->ROM[offset + 9]);
 	m_def.SetWindowText(text);
 	
-	text.Format("%d",Project->ROM[offset + 10]);
+	text.Format("%d",Proj2->ROM[offset + 10]);
 	m_hits.SetWindowText(text);
 	
-	text.Format("%d",Project->ROM[offset + 11]);
+	text.Format("%d",Proj2->ROM[offset + 11]);
 	m_hit.SetWindowText(text);
 	
-	text.Format("%d",Project->ROM[offset + 12]);
+	text.Format("%d",Proj2->ROM[offset + 12]);
 	m_str.SetWindowText(text);
 	
-	text.Format("%d",Project->ROM[offset + 13]);
+	text.Format("%d",Proj2->ROM[offset + 13]);
 	m_critical.SetWindowText(text);
 
-	CEnemyEditorSettings stgs(*Project);
+	CEnemyEditorSettings stgs(*Proj2);
 	if (stgs.Byte15AsFlags)
 	{
-		SetByte15FlagsFromValue(Project->ROM[offset + 14]);
+		SetByte15FlagsFromValue(Proj2->ROM[offset + 14]);
 	}
 	else {
-		text.Format("%02X", Project->ROM[offset + 14]);
+		text.Format("%02X", Proj2->ROM[offset + 14]);
 		m_unknown.SetWindowText(text);
 	}
 	LoadCustomizedControls();
 
-	temp = Project->ROM[offset + 15];
+	temp = Proj2->ROM[offset + 15];
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 });
 
 	
-	temp = Project->ROM[offset + 16];
+	temp = Proj2->ROM[offset + 16];
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_cat1, &m_cat2, &m_cat3, &m_cat4, &m_cat5, &m_cat6, &m_cat7, &m_cat8 });
 	
-	text.Format("%d",Project->ROM[offset + 17]);
+	text.Format("%d",Proj2->ROM[offset + 17]);
 	m_magdef.SetWindowText(text);
 	
-	temp = Project->ROM[offset + 18];
+	temp = Proj2->ROM[offset + 18];
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_weak1, &m_weak2, &m_weak3, &m_weak4, &m_weak5, &m_weak6, &m_weak7, &m_weak8 });
 	
-	temp = Project->ROM[offset + 19];
+	temp = Proj2->ROM[offset + 19];
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_res1, &m_res2, &m_res3, &m_res4, &m_res5, &m_res6, &m_res7, &m_res8 });
 }
 
@@ -536,48 +547,48 @@ void CEnemy::StoreValues()
 
 	m_exp.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFFFF) temp = 0xFFFF;
-	Project->ROM[offset] = temp & 0xFF; Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+	Proj2->ROM[offset] = temp & 0xFF; Proj2->ROM[offset + 1] = (BYTE)(temp >> 8);
 
 	m_gold.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFFFF) temp = 0xFFFF;
-	Project->ROM[offset + 2] = temp & 0xFF; Project->ROM[offset + 3] = (BYTE)(temp >> 8);
+	Proj2->ROM[offset + 2] = temp & 0xFF; Proj2->ROM[offset + 3] = (BYTE)(temp >> 8);
 
 	m_hp.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFFFF) temp = 0xFFFF;
-	Project->ROM[offset + 4] = temp & 0xFF; Project->ROM[offset + 5] = (BYTE)(temp >> 8);
+	Proj2->ROM[offset + 4] = temp & 0xFF; Proj2->ROM[offset + 5] = (BYTE)(temp >> 8);
 
 	m_morale.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 6] = (BYTE)temp;
+	Proj2->ROM[offset + 6] = (BYTE)temp;
 
 	temp = m_ai.GetCurSel(); if(!temp) temp = 0x100;
-	Project->ROM[offset + 7] = (BYTE)(temp - 1);
+	Proj2->ROM[offset + 7] = (BYTE)(temp - 1);
 
 	m_agility.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 8] = (BYTE)temp;
+	Proj2->ROM[offset + 8] = (BYTE)temp;
 
 	m_def.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 9] = (BYTE)temp;
+	Proj2->ROM[offset + 9] = (BYTE)temp;
 
 	m_hits.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 10] = (BYTE)temp;
+	Proj2->ROM[offset + 10] = (BYTE)temp;
 
 	m_hit.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 11] = (BYTE)temp;
+	Proj2->ROM[offset + 11] = (BYTE)temp;
 
 	m_str.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 12] = (BYTE)temp;
+	Proj2->ROM[offset + 12] = (BYTE)temp;
 
 	m_critical.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 13] = (BYTE)temp;
+	Proj2->ROM[offset + 13] = (BYTE)temp;
 
-	CEnemyEditorSettings stgs(*Project);
+	CEnemyEditorSettings stgs(*Proj2);
 	if (stgs.Byte15AsFlags)
 	{
 		temp = GetByte15ValueFromFlags();
@@ -587,25 +598,25 @@ void CEnemy::StoreValues()
 		temp = StringToInt_HEX(text);
 		if (temp > 0xFF) temp = 0xFF;
 	}
-	Project->ROM[offset + 14] = (BYTE)temp;
+	Proj2->ROM[offset + 14] = (BYTE)temp;
 
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 });
-	Project->ROM[offset + 15] = (BYTE)temp;
+	Proj2->ROM[offset + 15] = (BYTE)temp;
 	
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_cat1, &m_cat2, &m_cat3, &m_cat4, &m_cat5, &m_cat6, &m_cat7, &m_cat8 });
-	Project->ROM[offset + 16] = (BYTE)temp;
+	Proj2->ROM[offset + 16] = (BYTE)temp;
 
 	m_magdef.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 17] = (BYTE)temp;
+	Proj2->ROM[offset + 17] = (BYTE)temp;
 
 	temp = 0;
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_weak1, &m_weak2, &m_weak3, &m_weak4, &m_weak5, &m_weak6, &m_weak7, &m_weak8 });
-	Project->ROM[offset + 18] = (BYTE)temp;
+	Proj2->ROM[offset + 18] = (BYTE)temp;
 
 	temp = 0;
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_res1, &m_res2, &m_res3, &m_res4, &m_res5, &m_res6, &m_res7, &m_res8 });
-	Project->ROM[offset + 19] = (BYTE)temp;
+	Proj2->ROM[offset + 19] = (BYTE)temp;
 }
 
 void CEnemy::LoadAI()
@@ -646,25 +657,25 @@ void CEnemy::LoadAI()
 
 	int ref = AI_OFFSET + ((cur_ai - 1) << 4);
 
-	text.Format("%d",Project->ROM[ref]);
+	text.Format("%d",Proj2->ROM[ref]);
 	m_ai_magicrate.SetWindowText(text);
 	
-	text.Format("%d",Project->ROM[ref + 1]);
+	text.Format("%d",Proj2->ROM[ref + 1]);
 	m_ai_abilityrate.SetWindowText(text);
 
-	m_ai_magic1.SetCurSel((Project->ROM[ref + 2] + 1) & 0xFF);
-	m_ai_magic2.SetCurSel((Project->ROM[ref + 3] + 1) & 0xFF);
-	m_ai_magic3.SetCurSel((Project->ROM[ref + 4] + 1) & 0xFF);
-	m_ai_magic4.SetCurSel((Project->ROM[ref + 5] + 1) & 0xFF);
-	m_ai_magic5.SetCurSel((Project->ROM[ref + 6] + 1) & 0xFF);
-	m_ai_magic6.SetCurSel((Project->ROM[ref + 7] + 1) & 0xFF);
-	m_ai_magic7.SetCurSel((Project->ROM[ref + 8] + 1) & 0xFF);
-	m_ai_magic8.SetCurSel((Project->ROM[ref + 9] + 1) & 0xFF);
+	m_ai_magic1.SetCurSel((Proj2->ROM[ref + 2] + 1) & 0xFF);
+	m_ai_magic2.SetCurSel((Proj2->ROM[ref + 3] + 1) & 0xFF);
+	m_ai_magic3.SetCurSel((Proj2->ROM[ref + 4] + 1) & 0xFF);
+	m_ai_magic4.SetCurSel((Proj2->ROM[ref + 5] + 1) & 0xFF);
+	m_ai_magic5.SetCurSel((Proj2->ROM[ref + 6] + 1) & 0xFF);
+	m_ai_magic6.SetCurSel((Proj2->ROM[ref + 7] + 1) & 0xFF);
+	m_ai_magic7.SetCurSel((Proj2->ROM[ref + 8] + 1) & 0xFF);
+	m_ai_magic8.SetCurSel((Proj2->ROM[ref + 9] + 1) & 0xFF);
 
-	m_ai_ability1.SetCurSel((Project->ROM[ref + 11] + 1) & 0xFF);
-	m_ai_ability2.SetCurSel((Project->ROM[ref + 12] + 1) & 0xFF);
-	m_ai_ability3.SetCurSel((Project->ROM[ref + 13] + 1) & 0xFF);
-	m_ai_ability4.SetCurSel((Project->ROM[ref + 14] + 1) & 0xFF);
+	m_ai_ability1.SetCurSel((Proj2->ROM[ref + 11] + 1) & 0xFF);
+	m_ai_ability2.SetCurSel((Proj2->ROM[ref + 12] + 1) & 0xFF);
+	m_ai_ability3.SetCurSel((Proj2->ROM[ref + 13] + 1) & 0xFF);
+	m_ai_ability4.SetCurSel((Proj2->ROM[ref + 14] + 1) & 0xFF);
 }
 
 void CEnemy::StoreAI()
@@ -675,49 +686,49 @@ void CEnemy::StoreAI()
 
 	m_ai_magicrate.GetWindowText(text);
 	temp = StringToInt(text); if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[ref] = (BYTE)temp;
+	Proj2->ROM[ref] = (BYTE)temp;
 
 	m_ai_abilityrate.GetWindowText(text);
 	temp = StringToInt(text); if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[ref + 1] = (BYTE)temp;
+	Proj2->ROM[ref + 1] = (BYTE)temp;
 
 	temp = m_ai_magic1.GetCurSel();
-	if(temp) Project->ROM[ref + 2] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 2] = 0xFF;
+	if(temp) Proj2->ROM[ref + 2] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 2] = 0xFF;
 	temp = m_ai_magic2.GetCurSel();
-	if(temp) Project->ROM[ref + 3] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 3] = 0xFF;
+	if(temp) Proj2->ROM[ref + 3] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 3] = 0xFF;
 	temp = m_ai_magic3.GetCurSel();
-	if(temp) Project->ROM[ref + 4] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 4] = 0xFF;
+	if(temp) Proj2->ROM[ref + 4] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 4] = 0xFF;
 	temp = m_ai_magic4.GetCurSel();
-	if(temp) Project->ROM[ref + 5] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 5] = 0xFF;
+	if(temp) Proj2->ROM[ref + 5] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 5] = 0xFF;
 	temp = m_ai_magic5.GetCurSel();
-	if(temp) Project->ROM[ref + 6] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 6] = 0xFF;
+	if(temp) Proj2->ROM[ref + 6] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 6] = 0xFF;
 	temp = m_ai_magic6.GetCurSel();
-	if(temp) Project->ROM[ref + 7] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 7] = 0xFF;
+	if(temp) Proj2->ROM[ref + 7] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 7] = 0xFF;
 	temp = m_ai_magic7.GetCurSel();
-	if(temp) Project->ROM[ref + 8] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 8] = 0xFF;
+	if(temp) Proj2->ROM[ref + 8] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 8] = 0xFF;
 	temp = m_ai_magic8.GetCurSel();
-	if(temp) Project->ROM[ref + 9] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 9] = 0xFF;
+	if(temp) Proj2->ROM[ref + 9] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 9] = 0xFF;
 
 	temp = m_ai_ability1.GetCurSel();
-	if(temp) Project->ROM[ref + 11] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 11] = 0xFF;
+	if(temp) Proj2->ROM[ref + 11] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 11] = 0xFF;
 	temp = m_ai_ability2.GetCurSel();
-	if(temp) Project->ROM[ref + 12] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 12] = 0xFF;
+	if(temp) Proj2->ROM[ref + 12] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 12] = 0xFF;
 	temp = m_ai_ability3.GetCurSel();
-	if(temp) Project->ROM[ref + 13] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 13] = 0xFF;
+	if(temp) Proj2->ROM[ref + 13] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 13] = 0xFF;
 	temp = m_ai_ability4.GetCurSel();
-	if(temp) Project->ROM[ref + 14] = (BYTE)(temp - 1);
-	else Project->ROM[ref + 14] = 0xFF;
+	if(temp) Proj2->ROM[ref + 14] = (BYTE)(temp - 1);
+	else Proj2->ROM[ref + 14] = 0xFF;
 }
 
 void CEnemy::PaintClient(CDC & dc)
@@ -770,7 +781,7 @@ void CEnemy::OnSelchangeAi()
 void CEnemy::OnEditlabel() 
 {
 	int temp = m_ai.GetCurSel();
-	ChangeLabel(*Project, -1, LoadAILabel(*Project, temp - 1), WriteAILabel, temp, nullptr, &m_ai);
+	//ChangeLabel(*Proj2, -1, LoadAILabel(*Proj2, temp - 1), WriteAILabel, temp, nullptr, &m_ai); //TODO - ChangeLabel
 }
 
 void CEnemy::OnEditpic()
@@ -786,7 +797,7 @@ void CEnemy::OnEditpic()
 	int co;
 	for(co = BATTLE_OFFSET; battle < 0x80; co += 0x10, battle++){
 		for(temp = 2; temp < 6; temp++){
-			if(Project->ROM[co + temp] == en){
+			if(Proj2->ROM[co + temp] == en){
 				enref = temp - 2;
 				break;}}
 		if(enref != 0xFF) break;}
@@ -795,23 +806,23 @@ void CEnemy::OnEditpic()
 		AfxMessageBox("Enemy is not placed in any battles.\nCould not find enemy pic", MB_ICONERROR);
 		return;}
 
-	battletype = Project->ROM[co] >> 4;
+	battletype = Proj2->ROM[co] >> 4;
 	if(battletype < 3) battletype = 0;
 	else if(battletype == 4) battletype = 5;
-	else battletype = ((Project->ROM[co + 1] >> (enref << 1)) & 3) + 1;
+	else battletype = ((Proj2->ROM[co + 1] >> (enref << 1)) & 3) + 1;
 	
 
-	graphic = Project->ROM[co] & 0x0F;
-	pal[0] = Project->ROM[co + 10];
-	pal[1] = Project->ROM[co + 11];
+	graphic = Proj2->ROM[co] & 0x0F;
+	pal[0] = Proj2->ROM[co + 10];
+	pal[1] = Proj2->ROM[co + 11];
 	if(!battletype){
-		if((Project->ROM[co + 13] >> (7 - enref)) & 1)
+		if((Proj2->ROM[co + 13] >> (7 - enref)) & 1)
 			pal[0] = pal[1];
 		else
 			pal[1] = pal[0];}
 
 	CBattlePatternTables dlg;
-	dlg.cart = Project;
+	dlg.Proj2 = Proj2;
 	dlg.patterntable = graphic;
 	dlg.palvalues[0] = pal[0];
 	dlg.palvalues[1] = pal[1];
@@ -823,12 +834,12 @@ void CEnemy::OnEditpic()
 void CEnemy::OnBnClickedSettings()
 {
 	// Hang on to the current setting, which will become the previous setting if the dialog is OK'd.
-	CEnemyEditorSettings stgs(*Project);
+	CEnemyEditorSettings stgs(*Proj2);
 	bool useflags = stgs.Byte15AsFlags;
 	bool wasViewUsage = stgs.ViewUsage;
 
 	CEnemyEditorSettingsDlg dlg(this);
-	dlg.Project = Project;
+	dlg.Proj2 = Proj2;
 	if (dlg.DoModal() == IDOK) {
 		// Update the previous setting and reload the affected controls.
 		m_wasflags = useflags;

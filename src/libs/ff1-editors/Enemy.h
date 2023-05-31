@@ -5,7 +5,6 @@
 #include <DataListDialog.h>
 #include "EnemyBattleUsageData.h"
 #include <assembly_types.h>
-class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
 // CEnemy dialog
@@ -57,6 +56,7 @@ protected:
 
 	bool UpdateUsageData(int enemyindex);
 	static CString UsageDataFormatter(CFFHacksterProject& proj, const sUseData& u);
+	static CString UsageDataFormatter2(FFH2Project& proj, const sUseData& u);
 
 	void LoadCustomizedControls();
 

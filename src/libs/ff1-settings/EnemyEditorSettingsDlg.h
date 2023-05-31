@@ -2,6 +2,7 @@
 
 #include "resource_settings.h"
 #include <FFBaseDlg.h>
+class FFH2Project;
 class CFFHacksterProject;
 
 // CEnemyEditorSettingsDlg dialog
@@ -14,6 +15,7 @@ public:
 	CEnemyEditorSettingsDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~CEnemyEditorSettingsDlg();
 
+	FFH2Project* Proj2 = nullptr;
 	CFFHacksterProject * Project;
 
 // Dialog Data
