@@ -48,3 +48,5 @@ void DrawTile(CDC* dc, int tX, int tY, CFFHacksterProject* cart, int offset, BYT
 void DrawTile(CDC* dc, int tX, int tY, FFH2Project* proj, int offset, BYTE* palette, BYTE tint = 0);
 
 void DrawTileScale(CDC* dc, int tX, int tY, CFFHacksterProject* cart, int offset, BYTE* palette, int scale, BYTE tint = 0);
+void DrawTileScale(CDC* dc, int tX, int tY, FFH2Project* proj, int offset, BYTE* palette, int scale, BYTE tint = 0);
+

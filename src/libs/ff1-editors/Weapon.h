@@ -2,7 +2,6 @@
 // Weapon.h : header file
 
 #include "EditorWithBackground.h"
-class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
 // CWeapon dialog

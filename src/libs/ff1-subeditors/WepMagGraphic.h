@@ -11,6 +11,7 @@
 #include "DRAW_STRUCT.h"
 #include <SaveableDialog.h>
 class CFFHacksterProject;
+class FFH2Project;
 
 /////////////////////////////////////////////////////////////////////////////
 // CWepMagGraphic dialog
@@ -21,6 +22,7 @@ class CWepMagGraphic : public CSaveableDialog
 public:
 	CWepMagGraphic(CWnd* pParent = nullptr);   // standard constructor
 
+	FFH2Project* Proj2 = nullptr;
 	CFFHacksterProject * Project = nullptr;
 	bool IsWeapon;
 	BYTE paletteref;
