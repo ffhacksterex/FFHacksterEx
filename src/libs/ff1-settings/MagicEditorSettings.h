@@ -8,6 +8,8 @@ class CMagicEditorSettings : public SettingsBase
 public:
 	CMagicEditorSettings(CFFHacksterProject & proj, initflag flag = initflag::read);
 	CMagicEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag = initflag::read);
+	CMagicEditorSettings(FFH2Project& proj, initflag flag = initflag::read);
+	CMagicEditorSettings(FFH2Project& proj, CString sectionname, initflag flag = initflag::read);
 
 	void SetDefaults();
 	bool Read();

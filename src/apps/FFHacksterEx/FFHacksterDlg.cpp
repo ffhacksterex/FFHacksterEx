@@ -289,13 +289,13 @@ void CFFHacksterDlg::EditMagic(CString action, CString params)
 {
 	try {
 		if (action == "edit") {
-			CMagic dlg(this);;
-			dlg.Project = &m_proj;
+			CMagic dlg(this);
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 		else if (action == "rclick") {
 			CMagicEditorSettingsDlg dlg(this);
-			dlg.m_proj = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 	}

@@ -2,6 +2,7 @@
 
 #include "resource_settings.h"
 #include <FFBaseDlg.h>
+class FFH2Project;
 class CFFHacksterProject;
 
 // CMagicEditorSettingsDlg dialog
@@ -14,6 +15,7 @@ public:
 	CMagicEditorSettingsDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~CMagicEditorSettingsDlg();
 
+	FFH2Project* Proj2 = nullptr;
 	CFFHacksterProject * m_proj;
 
 // Dialog Data

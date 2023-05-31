@@ -41,12 +41,7 @@ BOOL CMagicEditorSettingsDlg::OnInitDialog()
 {
 	CFFBaseDlg::OnInitDialog();
 
-	if (m_proj == nullptr) {
-		EndDialog(IDABORT);
-		return TRUE;
-	}
-
-	CMagicEditorSettings stgs(*m_proj);
+	CMagicEditorSettings stgs(*Proj2);
 	m_editMagicByte7.SetWindowText(stgs.Byte7Name);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -64,7 +59,7 @@ void CMagicEditorSettingsDlg::OnOK()
 		return;
 	}
 
-	CMagicEditorSettings stgs(*m_proj);
+	CMagicEditorSettings stgs(*Proj2);
 	stgs.Byte7Name = magicByte7Name;
 	if (stgs.Write())
 		CFFBaseDlg::OnOK();
