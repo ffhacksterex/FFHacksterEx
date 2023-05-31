@@ -4,13 +4,15 @@
 #include "stdafx.h"
 #include "resource_subeditors.h"
 #include "WepMagGraphic.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include <AppSettings.h>
+#include <core_exceptions.h>
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "string_functions.h"
 #include "draw_functions.h"
 #include <ui_helpers.h>
+#include <ValueDataAccessor.h>
 #include "AsmFiles.h"
 #include "GameSerializer.h"
 
@@ -66,35 +68,36 @@ const BYTE ConstPicFormationWep[4] = {
 
 void CWepMagGraphic::LoadRom()
 {
-	WEAPONMAGICGRAPHIC_OFFSET = ReadHex(Project->ValuesPath, "WEAPONMAGICGRAPHIC_OFFSET");
-	BINBANK09GFXDATA_OFFSET = ReadHex(Project->ValuesPath, "BINBANK09GFXDATA_OFFSET");
+	ffh::acc::ValueDataAccessor v(*Proj2);
+	WEAPONMAGICGRAPHIC_OFFSET = v.get<int>("WEAPONMAGICGRAPHIC_OFFSET");
+	BINBANK09GFXDATA_OFFSET = v.get<int>("BINBANK09GFXDATA_OFFSET");
 
 	// Now load the data
-	if (Project->IsRom()) {
+	if (Proj2->IsRom()) {
 	}
-	else if (Project->IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		//DEVNOTE - not needed, all clients currently load BIN_BANK09GFXDATA/BINBANK09GFXDATA_OFFSET
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CWepMagGraphic::SaveRom()
 {
-	if (Project->IsRom()) {
+	if (Proj2->IsRom()) {
 	}
-	else if (Project->IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		//DEVNOTE - not needed, all clients currently save BIN_BANK09GFXDATA/BINBANK09GFXDATA_OFFSET
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
 void CWepMagGraphic::StoreValues()
 {
-	Draw_Buffer_ROM(Project, WEAPONMAGICGRAPHIC_OFFSET + (graphic << 6), &draw);
+	Draw_Buffer_ROM(Proj2, WEAPONMAGICGRAPHIC_OFFSET + (graphic << 6), &draw);
 }
 
 BOOL CWepMagGraphic::OnInitDialog() 
@@ -141,7 +144,7 @@ BOOL CWepMagGraphic::OnInitDialog()
 		if (IsWeapon) palette[3] = paletteref;
 		else palette[3] = 0x30;
 
-		Draw_ROM_Buffer(Project, WEAPONMAGICGRAPHIC_OFFSET + (graphic << 6), &draw);
+		Draw_ROM_Buffer(Proj2, WEAPONMAGICGRAPHIC_OFFSET + (graphic << 6), &draw);
 
 		if (!m_caption.IsEmpty()) SetWindowText(m_caption);
 	}
@@ -158,7 +161,7 @@ BOOL CWepMagGraphic::OnInitDialog()
 void CWepMagGraphic::OnPaint() 
 {
 	CPaintDC dc(this);
-	Draw_DrawAll(&dc,&draw,Project,palette);
+	Draw_DrawAll(&dc,&draw,Proj2,palette);
 }
 
 void CWepMagGraphic::OnLButtonDown(UINT nFlags, CPoint pt) 
@@ -213,12 +216,12 @@ void CWepMagGraphic::SetCaption(CString caption)
 
 void CWepMagGraphic::OnExportbitmap()
 {
-	Draw_ExportToBmp(&draw, Project, palette, FOLDERPREF(Project->AppSettings, PrefImageImportExportFolder));
+	Draw_ExportToBmp(&draw, Proj2, palette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 }
 
 void CWepMagGraphic::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw,Project,palette, FOLDERPREF(Project->AppSettings, PrefImageImportExportFolder));
+	Draw_ImportFromBmp(&draw,Proj2,palette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }

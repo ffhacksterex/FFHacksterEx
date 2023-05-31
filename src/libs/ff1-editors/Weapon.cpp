@@ -3,11 +3,12 @@
 
 #include "stdafx.h"
 #include "Weapon.h"
-#include "FFHacksterProject.h"
 #include "collection_helpers.h"
 #include <copypaste_helpers.h>
+#include <core_exceptions.h>
 #include "draw_functions.h"
 #include "editor_label_functions.h"
+#include <FFH2Project.h>
 #include "general_functions.h"
 #include "imaging_helpers.h"
 #include "ingame_text_functions.h"
@@ -15,6 +16,7 @@
 #include "io_functions.h"
 #include "string_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
 #include "AsmFiles.h"
 #include "GameSerializer.h"
 #include "NewLabel.h"
@@ -113,11 +115,11 @@ BOOL CWeapon::OnInitDialog()
 		this->LoadOffsets();
 		this->LoadRom();
 
-		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, LoadElementLabels(*Project));
-		LoadCaptions(std::vector<CWnd*>{ &m_cat1, &m_cat2, &m_cat3, &m_cat4, &m_cat5, &m_cat6, &m_cat7, &m_cat8 }, LoadEnemyCategoryLabels(*Project));
+		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, Labels2::LoadElementLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_cat1, &m_cat2, &m_cat3, &m_cat4, &m_cat5, &m_cat6, &m_cat7, &m_cat8 }, Labels2::LoadEnemyCategoryLabels(*Proj2));
 
-		LoadListBox(m_weaponlist, LoadWeaponEntries(*Project));
-		LoadCombo(m_spellcast, LoadMagicEntries(*Project) + LoadAttackEntries(*Project));
+		LoadListBox(m_weaponlist, LoadWeaponEntries(*Proj2));
+		LoadCombo(m_spellcast, LoadMagicEntries(*Proj2) + LoadAttackEntries(*Proj2));
 		m_spellcast.InsertString(0, "--None--");
 
 		std::vector<CWnd*> classlists = {
@@ -125,9 +127,9 @@ BOOL CWeapon::OnInitDialog()
 			&m_use7,&m_use8,&m_use9,&m_use10,&m_use11,&m_use12 };
 		ASSERT(classlists.size() == (size_t)CLASS_COUNT);
 		classlists.resize(CLASS_COUNT);
-		LoadCaptions(classlists, LoadClassEntries(*Project));
+		LoadCaptions(classlists, LoadClassEntries(*Proj2));
 
-		LoadCombo(m_gfx, LoadWepMagicLabels(*Project));
+		LoadCombo(m_gfx, Labels2::LoadWepMagicLabels(*Proj2));
 		m_gfx.InsertString(0, "--None--");
 
 		// Position the palette and graphic rectangles relative to the Edit Gfx label button
@@ -167,28 +169,29 @@ BOOL CWeapon::OnInitDialog()
 
 void CWeapon::LoadOffsets()
 {
-	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
-	WEAPON_COUNT = ReadDec(Project->ValuesPath, "WEAPON_COUNT");
-	WEAPON_OFFSET = ReadHex(Project->ValuesPath, "WEAPON_OFFSET");
-	WEAPON_BYTES = ReadDec(Project->ValuesPath, "WEAPON_BYTES");
-	WEAPONPRICE_OFFSET = ReadHex(Project->ValuesPath, "WEAPONPRICE_OFFSET");
-	WEAPONPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "WEAPONPERMISSIONS_OFFSET");
-	WEAPONMAGICGRAPHIC_OFFSET = ReadHex(Project->ValuesPath, "WEAPONMAGICGRAPHIC_OFFSET");
+	ffh::acc::ValueDataAccessor v(*Proj2);
+	CLASS_COUNT = v.get<int>("CLASS_COUNT");
+	WEAPON_COUNT = v.get<int>("WEAPON_COUNT");
+	WEAPON_OFFSET = v.get<int>("WEAPON_OFFSET");
+	WEAPON_BYTES = v.get<int>("WEAPON_BYTES");
+	WEAPONPRICE_OFFSET = v.get<int>("WEAPONPRICE_OFFSET");
+	WEAPONPERMISSIONS_OFFSET = v.get<int>("WEAPONPERMISSIONS_OFFSET");
+	WEAPONMAGICGRAPHIC_OFFSET = v.get<int>("WEAPONMAGICGRAPHIC_OFFSET");
 
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
-	BINBANK09GFXDATA_OFFSET = ReadHex(Project->ValuesPath, "BINBANK09GFXDATA_OFFSET");
-	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
+	BANK0A_OFFSET = v.get<int>("BANK0A_OFFSET");
+	BINBANK09GFXDATA_OFFSET = v.get<int>("BINBANK09GFXDATA_OFFSET");
+	BINPRICEDATA_OFFSET = v.get<int>("BINPRICEDATA_OFFSET");
 }
 
 void CWeapon::LoadRom()
 {
-	Project->ClearROM();
+	Proj2->ClearROM();
 	// Now load the data
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.LoadAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
@@ -197,17 +200,17 @@ void CWeapon::LoadRom()
 		ser.LoadInline(ASM_0E, { { asmlabel, LUT_WEAPONPERMISSIONS, {WEAPONPERMISSIONS_OFFSET} } });
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CWeapon::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->SaveROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.SaveAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
@@ -216,7 +219,7 @@ void CWeapon::SaveRom()
 		ser.SaveInline(ASM_0E, { { asmlabel, LUT_WEAPONPERMISSIONS,{ WEAPONPERMISSIONS_OFFSET } } });
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
@@ -226,29 +229,29 @@ void CWeapon::LoadValues()
 	CString text;
 	int offset = WEAPON_OFFSET + (cur * WEAPON_BYTES);
 
-	text.Format("%d", Project->ROM[offset]);
+	text.Format("%d", Proj2->ROM[offset]);
 	m_hit.SetWindowText(text);
 
-	text.Format("%d", Project->ROM[offset + 1]);
+	text.Format("%d", Proj2->ROM[offset + 1]);
 	m_damage.SetWindowText(text);
 
 	//REMOVE - critrate no longer expressed as hex
-	//text.Format("%X", Project->ROM[offset + 2]);
+	//text.Format("%X", Proj2->ROM[offset + 2]);
 	//if (text.GetLength() == 1) text = "0" + text;
-	text.Format("%d", Project->ROM[offset + 2]);
+	text.Format("%d", Proj2->ROM[offset + 2]);
 	m_critrate.SetWindowText(text);
 
-	temp = Project->ROM[offset + 3];
+	temp = Proj2->ROM[offset + 3];
 	if (temp >= 0x43) temp -= 0x02;
 	m_spellcast.SetCurSel(temp);
 
-	temp = Project->ROM[offset + 4];
+	temp = Proj2->ROM[offset + 4];
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 });
 
-	temp = Project->ROM[offset + 5];
+	temp = Proj2->ROM[offset + 5];
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_cat1,&m_cat2,&m_cat3,&m_cat4,&m_cat5,&m_cat6,&m_cat7,&m_cat8 });
 
-	temp = Project->ROM[offset + 6];
+	temp = Proj2->ROM[offset + 6];
 	if (temp > 0) {
 		temp -= 0x80;
 		temp >>= 2;
@@ -259,17 +262,17 @@ void CWeapon::LoadValues()
 
 	m_editgfx.EnableWindow(m_gfx.GetCurSel());
 
-	cur_pal = Project->ROM[offset + 7] - 0x20;
+	cur_pal = Proj2->ROM[offset + 7] - 0x20;
 
 	offset = WEAPONPRICE_OFFSET + (cur << 1);
-	temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+	temp = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8);
 	text.Format("%d", temp);
 	m_price.SetWindowText(text);
 
 	//N.B. - the check associates class 0 with the highest bit, and equips if flags are cleared.
 	//	Therefore, bitwise-flip the value, then loop the classes in reverse order.
 	offset = WEAPONPERMISSIONS_OFFSET + (cur << 1);
-	temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+	temp = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8);
 	temp = (~temp & 0xFFF);
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_use12, &m_use11, &m_use10, &m_use9, &m_use8, &m_use7, &m_use6, &m_use5, &m_use4, &m_use3, &m_use2, &m_use1});
 
@@ -284,45 +287,45 @@ void CWeapon::StoreValues()
 	int offset = WEAPON_OFFSET + (cur * WEAPON_BYTES);
 
 	m_hit.GetWindowText(text); temp = StringToInt(text);
-	if (temp > 0xFF) temp = 0xFF; Project->ROM[offset] = (BYTE)temp;
+	if (temp > 0xFF) temp = 0xFF; Proj2->ROM[offset] = (BYTE)temp;
 
 	m_damage.GetWindowText(text); temp = StringToInt(text);
-	if (temp > 0xFF) temp = 0xFF; Project->ROM[offset + 1] = (BYTE)temp;
+	if (temp > 0xFF) temp = 0xFF; Proj2->ROM[offset + 1] = (BYTE)temp;
 
 	m_critrate.GetWindowText(text); temp = StringToInt(text);
 	//REMOVE - critrate no longer expressed as hex
 	//temp = StringToInt_HEX(text);
-	if (temp > 0xFF) temp = 0xFF; Project->ROM[offset + 2] = (BYTE)temp;
+	if (temp > 0xFF) temp = 0xFF; Proj2->ROM[offset + 2] = (BYTE)temp;
 
 	temp = m_spellcast.GetCurSel();
 	if (temp >= 0x41) temp += 0x02;
-	Project->ROM[offset + 3] = (BYTE)temp;
+	Proj2->ROM[offset + 3] = (BYTE)temp;
 
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 });
-	Project->ROM[offset + 4] = (BYTE)temp;
+	Proj2->ROM[offset + 4] = (BYTE)temp;
 
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_cat1, &m_cat2, &m_cat3, &m_cat4, &m_cat5, &m_cat6, &m_cat7, &m_cat8 });
-	Project->ROM[offset + 5] = (BYTE)temp;
+	Proj2->ROM[offset + 5] = (BYTE)temp;
 
 	temp = m_gfx.GetCurSel() << 2;
 	if (temp) temp += 0x7C;
-	Project->ROM[offset + 6] = (BYTE)temp;
+	Proj2->ROM[offset + 6] = (BYTE)temp;
 
-	Project->ROM[offset + 7] = (BYTE)(cur_pal + 0x20);
+	Proj2->ROM[offset + 7] = (BYTE)(cur_pal + 0x20);
 
 	offset = WEAPONPRICE_OFFSET + (cur << 1);
 	m_price.GetWindowText(text);
 	temp = StringToInt(text); if (temp > 0xFFFF) temp = 0xFFFF;
-	Project->ROM[offset] = temp & 0xFF;
-	Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+	Proj2->ROM[offset] = temp & 0xFF;
+	Proj2->ROM[offset + 1] = (BYTE)(temp >> 8);
 
 	//N.B. - the check associates class 0 with the highest bit, and equips if flags are cleared.
 	//	Therefore, bitwise-flip the value, then loop the classes in reverse order.
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_use12, &m_use11, &m_use10, &m_use9, &m_use8, &m_use7, &m_use6, &m_use5, &m_use4, &m_use3, &m_use2, &m_use1});
 	temp = (~temp & 0xFFF);
 	offset = WEAPONPERMISSIONS_OFFSET + (cur << 1);
-	Project->ROM[offset] = temp & 0xFF;
-	Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+	Proj2->ROM[offset] = temp & 0xFF;
+	Proj2->ROM[offset + 1] = (BYTE)(temp >> 8);
 }
 
 void CWeapon::PaintClient(CDC & dc)
@@ -339,13 +342,13 @@ void CWeapon::PaintClient(CDC & dc)
 	CRect temp = rcPalette;
 	temp.right = temp.left + 16;
 	for (int co = 0; co < 16; co++, temp.left += 16, temp.right += 16) {
-		br.CreateSolidBrush(Project->Palette[0][32 + co]);
+		br.CreateSolidBrush(Proj2->palette[0][32 + co]);
 		dc.FillRect(temp, &br);
 		br.DeleteObject();
 	}
 
 	CPoint pt(rcFinger.left + (cur_pal << 4), rcFinger.top);
-	Project->Finger.Draw(&dc, 1, pt, ILD_TRANSPARENT);
+	Proj2->Finger.Draw(&dc, 1, pt, ILD_TRANSPARENT);
 
 	if (m_gfx.GetCurSel()) {
 		pt.x = rcGraphic.left;
@@ -353,7 +356,7 @@ void CWeapon::PaintClient(CDC & dc)
 		m_graphics.Draw(&dc, 0, pt, ILD_TRANSPARENT);
 	}
 	else {
-		br.CreateSolidBrush(Project->Palette[0][0x0F]);
+		br.CreateSolidBrush(Proj2->palette[0][0x0F]);
 		dc.FillRect(rcGraphic, &br);
 		br.DeleteObject();
 	}
@@ -375,7 +378,7 @@ void CWeapon::ResetGraphicList()
 	BYTE coX, coY;
 	for(coY = 0; coY < 32; coY += 16){
 	for(coX = 0; coX < 32; coX += 16, offset += 16){
-		DrawTileScale(&mDC,coX,coY,Project,offset,palette,2);}}
+		DrawTileScale(&mDC,coX,coY,Proj2,offset,palette,2);}}
 
 	mDC.DeleteDC();
 	m_graphics.Add(&bmp,RGB(0,0,0));
@@ -403,10 +406,10 @@ void CWeapon::HandleWeaponListContextMenu(CWnd* pWnd, CPoint point)
 		boolvector wepflags(WEAPON_BYTES);
 		std::copy_n(cbegin(flags) + 1, WEAPON_BYTES, begin(wepflags));
 
-		CopySwapBytes(swap, Project->ROM, m_selitem, thisitem, WEAPON_OFFSET, WEAPON_BYTES, 0, wepflags);
+		CopySwapBytes(swap, Proj2->ROM, m_selitem, thisitem, WEAPON_OFFSET, WEAPON_BYTES, 0, wepflags);
 		if (flags[0]) DoCopySwapName(swap, m_selitem, thisitem);
-		if (flags[9]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, WEAPONPRICE_OFFSET, 2, 0, 2);
-		if (flags[10]) CopySwapBuffer(swap, Project->ROM, m_selitem, thisitem, WEAPONPERMISSIONS_OFFSET, 2, 0, 2);
+		if (flags[9]) CopySwapBuffer(swap, Proj2->ROM, m_selitem, thisitem, WEAPONPRICE_OFFSET, 2, 0, 2);
+		if (flags[10]) CopySwapBuffer(swap, Proj2->ROM, m_selitem, thisitem, WEAPONPERMISSIONS_OFFSET, 2, 0, 2);
 
 		m_weaponlist.SetCurSel(cur = thisitem);
 		LoadValues();
@@ -422,10 +425,10 @@ void CWeapon::HandleWeaponListContextMenu(CWnd* pWnd, CPoint point)
 void CWeapon::DoCopySwapName(bool swap, int srcitem, int dstitem)
 {
 	try {
-		Ingametext::PasteSwapStringBytes(swap, *Project, WEAPONS, srcitem, dstitem);
+		Ingametext::PasteSwapStringBytes(swap, *Proj2, WEAPONS, srcitem, dstitem);
 
-		CString srcname = LoadWeaponEntry(*Project, srcitem + 1).name.Trim();
-		CString dstname = LoadWeaponEntry(*Project, dstitem + 1).name.Trim();
+		CString srcname = LoadWeaponEntry(*Proj2, srcitem + 1).name.Trim();
+		CString dstname = LoadWeaponEntry(*Proj2, dstitem + 1).name.Trim();
 
 		// Now, reload the class names in the list box
 		Ui::ReplaceString(m_weaponlist, srcitem, srcname);
@@ -448,7 +451,7 @@ void CWeapon::OnSelchangeWeaponlist()
 void CWeapon::OnEditlabel() 
 {
 	int temp = m_gfx.GetCurSel();
-	ChangeLabel(*Project, -1, LoadWepMagicLabel(*Project, temp - 1), WriteWepMagicLabel, temp, nullptr, &m_gfx);
+	//ChangeLabel(*Proj2, -1, LoadWepMagicLabel(*Proj2, temp - 1), WriteWepMagicLabel, temp, nullptr, &m_gfx); //TODO - ChangeLabel
 }
 
 void CWeapon::OnLButtonDown(UINT nFlags, CPoint pt) 
@@ -472,7 +475,7 @@ void CWeapon::OnSelchangeGfx()
 void CWeapon::OnEditgfx()
 {
 	CWepMagGraphic dlg;
-	dlg.Project = Project;
+	dlg.Proj2 = Proj2;
 	dlg.paletteref = (BYTE)cur_pal;
 	dlg.graphic = (BYTE)(m_gfx.GetCurSel() - 1);
 	dlg.IsWeapon = 1;

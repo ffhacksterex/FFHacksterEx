@@ -90,6 +90,27 @@ void DrawTileScale(CDC* dc, int tX, int tY, CFFHacksterProject* cart, int offset
 		br[temp].DeleteObject();
 }
 
+void DrawTileScale(CDC* dc, int tX, int tY, FFH2Project* proj, int offset, BYTE* palette, int scale, BYTE tint)
+{
+	BYTE temp, coX, coY, line;
+	BYTE pixel[2][2] = { 0,2,1,3 };
+	CRect rc(tX, tY, tX + scale, tY + scale);
+	CBrush br[4];
+	for (temp = 0; temp < 4; temp++)
+		br[temp].CreateSolidBrush(proj->palette[tint][palette[temp]]);
+
+	for (coY = 0; coY < 8; coY++, offset++, rc.top += scale, rc.bottom += scale, rc.left = tX, rc.right = tX + scale) {
+		for (coX = 0, line = 0x80; coX < 8; coX++, line >>= 1, rc.left += scale, rc.right += scale) {
+			dc->FillRect(rc, &br[pixel
+				[(proj->ROM[offset] & line) != 0]
+			[(proj->ROM[offset + 8] & line) != 0]]);
+		}
+	}
+
+	for (temp = 0; temp < 4; temp++)
+		br[temp].DeleteObject();
+}
+
 void Draw_ROM_Buffer(CFFHacksterProject* cart, int offset, DRAW_STRUCT* draw)
 {
 	BYTE coY, coX, line;
