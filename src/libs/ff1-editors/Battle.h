@@ -43,7 +43,8 @@ protected:
 
 	bool UpdateUsageData(int btlindex);
 
-	static CString UsageDataFormatter(CFFHacksterProject& proj, const sUseData& u);
+	static CString UsageDataFormatter(CFFHacksterProject& proj, const sUseData& u); //REMOVE
+	static CString UsageDataFormatter2(FFH2Project& proj, const sUseData& u);
 
 	void UpdatePalettes();
 	void UpdateBattleType(int,bool redraw = 1);
