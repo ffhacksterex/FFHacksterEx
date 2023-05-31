@@ -1,21 +1,18 @@
 #include "stdafx.h"
 #include "ingame_text_functions.h"
-
-#include <DataValueAccessor.h>
 #include <FFHacksterProject.h>
 #include <FFH2Project.h>
-#include <FFHDataValue_dva.hpp>
-
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "path_functions.h"
 #include "string_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Ini;
 using namespace Strings;
 using namespace Ui;
-using namespace ff1coredefs;
 
 namespace Ingametext
 {
@@ -311,6 +308,8 @@ namespace Ingametext
 		//DEVNOTE - If the index isn't found, default to mgbase + indxx
 		dataintnode ReadOutOfBattleMagicAssemblyNode(CFFHacksterProject & proj, int mgbase, std::string name, int index, bool showindex)
 		{
+			FFH_SWITCH_TO_FFH2;
+
 			int MAGICTEXT_OFFSET = ReadHex(proj.ValuesPath, "MAGICTEXT_OFFSET");
 			int BASICTEXT_PTRADD = ReadHex(proj.ValuesPath, "BASICTEXT_PTRADD");
 
@@ -606,7 +605,7 @@ namespace Ingametext // FFH2Project veersions
 			std::string ptrname, std::string ptraddname, std::string startname, std::string countname,
 			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
-			DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			unsigned char* buffer = address(proj.ROM);
 			int ptr = d.get<int>(ptrname);
 			int ptradd = d.get<int>(ptraddname);
@@ -646,7 +645,7 @@ namespace Ingametext // FFH2Project veersions
 			std::string ptrname, std::string ptraddname, std::string startname, std::string countname,
 			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
-			DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			unsigned char* buffer = address(proj.ROM);
 			int ptr = d.get<int>(ptrname);
 			int ptradd = d.get<int>(ptraddname);
@@ -684,9 +683,47 @@ namespace Ingametext // FFH2Project veersions
 			return dvec;
 		}
 
+		dataintnodevector LoadExpandedZeroBasedEntries(FFH2Project& proj, int ptr, int ptradd, int start, int count,
+			int tableindex, bool showindex, StrXform xform = CStrIdentity)
+		{
+			unsigned char* buffer = address(proj.ROM);
+			const std::string* table = proj.GetTable(tableindex);
+
+			dataintnodevector dvec;
+			int offset, co;
+			BYTE temp;
+			CString text, temptext;
+
+			int last = start + count - 1;
+			for (co = start; co <= last; co++, ptr += 2) {
+				offset = buffer[ptr] + (buffer[ptr + 1] << 8) + ptradd;
+				text = "";
+				if (showindex) text.AppendFormat("%02X: ", co);
+
+				while (1) {
+					temp = buffer[offset];
+					if (!temp) break;
+					if (table[temp] == "") {
+						temptext.Format("{%02X}", temp);
+						text += temptext;
+					}
+					else {
+						text += table[temp].c_str();
+					}
+					offset += 1;
+				}
+				CString xformtext = xform(co, text);
+				dvec.push_back({ xformtext, co });
+			}
+
+			return dvec;
+		}
+
+		//TODO - is this comment still relevant?
 		// Weapons IDs start with 0 as None, 1 as Wooden Nunchuk, but weapon text strings start with  0 as Wooden Nunchuk.
 		// LoadExpandedZeroBasedEntries can't be used here because it will start the index at 0, we need it to start at 1.
 		// index has to be passed in the [0,39] range, not [1,40] (at least for now).
+
 		dataintnodevector LoadExpandedOneBasedEntries(FFH2Project& proj, int ptr, int ptradd, int start, int count,
 			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
@@ -723,14 +760,31 @@ namespace Ingametext // FFH2Project veersions
 			return dvec;
 		}
 
+		datanode<int> LoadExpandedZeroBasedEntry(FFH2Project& proj, int index,
+			std::string ptrname, std::string ptraddname,
+			int tableindex, bool showindex, StrXform xform = CStrIdentity)
+		{
+			ffh::acc::ValueDataAccessor d(proj);
+			int ptr = d.get<int>(ptrname);
+			int ptradd = d.get<int>(ptraddname);
+
+			ASSERT(index >= 0);
+			if (index >= 0) {
+				// step forward by 'index' entries in the 2-byte/record pointer table
+				int textindex = index;
+				auto indexedptr = ptr + (textindex * 2);
+				auto vec = LoadExpandedZeroBasedEntries(proj, indexedptr, ptradd, textindex, 1, tableindex, showindex, xform);
+				if (!vec.empty()) return vec.front();
+			}
+			return{ "<!error!>", -1 };
+		}
+
 		// Pass the 1-based index to this function and it will handle the decrement and call to the underlying entries function.
 		datanode<int> LoadExpandedOneBasedEntry(FFH2Project& proj, int index,
 			std::string ptrname, std::string ptraddname,
-			int tableindex, bool showindex, StrXform xform = CStrIdentity
-			//unsigned char* buffer, int index, int ptr, int ptradd, CString table[], bool showindex, StrXform xform
-		)
+			int tableindex, bool showindex, StrXform xform = CStrIdentity)
 		{
-			DataValueAccessor d(proj);
+			ffh::acc::ValueDataAccessor d(proj);
 			int ptr = d.get<int>(ptrname);
 			int ptradd = d.get<int>(ptraddname);
 
@@ -746,7 +800,253 @@ namespace Ingametext // FFH2Project veersions
 			return{ "<!error!>", -1 };
 		}
 
+		//DEVNOTE - If the index isn't found, default to mgbase + indxx
+		dataintnode ReadOutOfBattleMagicAssemblyNode(FFH2Project& proj, int mgbase, std::string name, int index, bool showindex)
+		{
+			ffh::acc::ValueDataAccessor d(proj);
+			//int MAGICTEXT_OFFSET = ReadHex(proj.ValuesPath, "MAGICTEXT_OFFSET");
+			//int BASICTEXT_PTRADD = ReadHex(proj.ValuesPath, "BASICTEXT_PTRADD");
+
+			CString text = name.c_str();
+			auto spindex = find_or_default(proj.m_varmap, name, -1);
+			if (spindex >= 0) {
+				int textindex = spindex - mgbase;
+				//text = LoadExpandedZeroBasedEntry(address(proj.ROM), textindex, MAGICTEXT_OFFSET, BASICTEXT_PTRADD, proj.GetTable(4), showindex).name;
+				text = LoadExpandedZeroBasedEntry(proj, textindex, "MAGICTEXT_OFFSET", "BASICTEXT_PTRADD", 4, showindex).name;
+			}
+			else {
+				spindex = mgbase + index;
+			}
+			return{ text, spindex };
+		}
+
+		dataintnode ReadOutOfBattleMagicROMNode(FFH2Project& proj, int mgbase, std::string name, int index, bool showindex)
+		{
+			ffh::acc::ValueDataAccessor d(proj);
+			//int MAGICTEXT_OFFSET = d.get<int>("MAGICTEXT_OFFSET");
+			//int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+
+			CString text = name.c_str();
+			int spindex = d.get<int>(name);
+			if (spindex >= 0) {
+				int bytevalue = proj.ROM[spindex];
+				int textindex = bytevalue - mgbase;
+				//text = LoadExpandedZeroBasedEntry(address(proj.ROM), textindex, MAGICTEXT_OFFSET, BASICTEXT_PTRADD, proj.GetTable(4), showindex).name;
+				text = LoadExpandedZeroBasedEntry(proj, textindex, "MAGICTEXT_OFFSET", "BASICTEXT_PTRADD", 4, showindex).name;
+			}
+			else {
+				spindex = mgbase + index;
+			}
+			return{ text, spindex };
+		}
+
+		dataintnodevector LoadOutofBattleMagicAssemblyEntries(FFH2Project& proj, bool showindex)
+		{
+			ffh::acc::ValueDataAccessor d(proj);
+			int MG_START = find_or_default(proj.m_varmap, std::string("MG_START"), -1);
+			if (MG_START < 0) {
+				ErrorHere << "could not find MG_START, unable to resolve OOBMAGIC entries" << std::endl;
+				return{};
+			}
+
+			size_t OOBMAGIC_COUNT = (size_t)d.get<int>("OOBMAGIC_COUNT");
+
+			auto symnames = d.get<std::vector<std::string>>("OOBMAGIC_SYMNAMES");
+
+			ASSERT(OOBMAGIC_COUNT > 0);
+			ASSERT(MG_START >= 0);
+			ASSERT(symnames.size() == OOBMAGIC_COUNT);
+			if (symnames.size() != OOBMAGIC_COUNT || symnames.empty()) {
+				ErrorHere << "OOBMAGIC count doesn't match the number of OOBMAGIC names" << std::endl;
+				return{};
+			}
+
+			dataintnodevector dvec;
+			for (size_t st = 0; st < symnames.size(); ++st) {
+				auto name = symnames[st];
+				auto node = ReadOutOfBattleMagicAssemblyNode(proj, MG_START, name, (int)st, showindex);
+				dvec.push_back(node);
+			}
+
+			ASSERT(dvec.size() == OOBMAGIC_COUNT);
+			return dvec;
+		}
+
+		dataintnodevector LoadOutofBattleMagicROMEntries(FFH2Project& proj, bool showindex)
+		{
+			ffh::acc::ValueDataAccessor d(proj);
+			int OOBMAGIC_COUNT = d.get<int>("OOBMAGIC_COUNT");
+			int MG_START = d.get<int>("MG_START");
+			auto symnames = d.get<std::vector<std::string>>("OOBMAGIC_SYMNAMES");
+
+			ASSERT(OOBMAGIC_COUNT > 0);
+			ASSERT(MG_START >= 0);
+
+			dataintnodevector dvec;
+			for (size_t st = 0; st < symnames.size(); ++st) {
+				auto name = symnames[st];
+				auto node = ReadOutOfBattleMagicROMNode(proj, MG_START, name, (int)st, showindex);
+				dvec.push_back(node);
+			}
+			return dvec;
+		}
+
 	} // end namespace (unnamed)
+
+	CString PutHexToList(FFH2Project* cart, int ptr, int ptradd, int last, bool DTE, CListBox* m_list, CComboBox* m_combo)
+	{
+		CString ret = "";
+		int offset, co;
+		BYTE temp;
+		CString text, temptext;
+
+		if (m_list != nullptr) m_list->SetRedraw(FALSE);
+		if (m_combo != nullptr) m_combo->SetRedraw(FALSE);
+
+		for (co = 0; co < last; co++, ptr += 2) {
+			if (co) ret += "\\b";
+			offset = cart->ROM[ptr] + (cart->ROM[ptr + 1] << 8) + ptradd;
+			text = "";
+			while (1) {
+				temp = cart->ROM[offset];
+				if (!temp) break;
+				if (cart->tables[DTE][temp] == "") {
+					if (temp < 0x10) temptext.Format("{0%X}", temp);
+					else temptext.Format("{%X}", temp);
+					text += temptext;
+				}
+				else text += cart->tables[DTE][temp].c_str();
+				offset += 1;
+			}
+			ret += text;
+			if (m_list != nullptr) InsertEntry(*m_list, -1, text, co);
+			if (m_combo != nullptr) InsertEntry(*m_combo, -1, text, co);
+		}
+
+		if (m_list != nullptr) m_list->SetRedraw(TRUE);
+		if (m_combo != nullptr) m_combo->SetRedraw(TRUE);
+		return ret;
+	}
+
+	//TODO - REFCTOR, THIS IS A MESS, THERE ARE TOO MANY OVERLOADS
+	//	collapse this to two overloades (FF2Project and unsigned char*) and use adapters to handle the Zero-vs-One based aspect.
+	//	create a wrapper that takes the names for ptr, ptradd, star, count and calls the above overloads?
+
+	dataintnodevector LoadExpandedZeroBasedEntries(unsigned char* buffer, int ptr, int ptradd, int start, int count, std::string table[], bool showindex, StrXform xform)
+	{
+		dataintnodevector dvec;
+		int offset, co;
+		BYTE temp;
+		CString text, temptext;
+
+		int last = start + count - 1;
+		for (co = start; co <= last; co++, ptr += 2) {
+			offset = buffer[ptr] + (buffer[ptr + 1] << 8) + ptradd;
+			text = "";
+			if (showindex) text.AppendFormat("%02X: ", co);
+
+			while (1) {
+				temp = buffer[offset];
+				if (!temp) break;
+				if (table[temp] == "") {
+					temptext.Format("{%02X}", temp);
+					text += temptext;
+				}
+				else text += table[temp].c_str();
+				offset += 1;
+			}
+			CString xformtext = xform(co, text);
+			dvec.push_back({ xformtext, co });
+		}
+
+		return dvec;
+	}
+
+	datanode<int> LoadExpandedZeroBasedEntry(unsigned char* buffer, int index, int ptr, int ptradd, std::string * table, bool showindex, StrXform xform)
+	{
+		ASSERT(index >= 0);
+		if (index >= 0) {
+			// step forward by 'index' entries in the 2-byte/record pointer table
+			auto indexedptr = ptr + (index * 2);
+			auto vec = LoadExpandedZeroBasedEntries(buffer, indexedptr, ptradd, index, 1, table, showindex, xform);
+			if (!vec.empty()) return vec.front();
+		}
+		return{ "<!error!>", -1 };
+	}
+
+	// Weapons IDs start with 0 as None, 1 as Wooden Nunchuk, but weapon text strings start with  0 as Wooden Nunchuk.
+	// LoadExpandedZeroBasedEntries can't be used here because it will start the index at 0, we need it to start at 1.
+	// index has to be passed in the [0,39] range, not [1,40] (at least for now).
+	dataintnodevector LoadExpandedOneBasedEntries(unsigned char* buffer, int ptr, int ptradd, int start, int count, std::string * table, bool showindex, StrXform xform)
+	{
+		dataintnodevector dvec;
+		int offset, co;
+		BYTE temp;
+		CString text, temptext;
+
+		int last = start + count - 1;
+		for (co = start; co <= last; co++, ptr += 2) {
+			offset = buffer[ptr] + (buffer[ptr + 1] << 8) + ptradd;
+			text = "";
+			if (showindex) text.AppendFormat("%02X: ", co + 1);
+
+			while (1) {
+				temp = buffer[offset];
+				if (!temp) break;
+				if (table[temp] == "") {
+					temptext.Format("{%02X}", temp);
+					text += temptext;
+				}
+				else text += table[temp].c_str();
+				offset += 1;
+			}
+			CString xformtext = xform(co, text);
+			dvec.push_back({ xformtext, co + 1 });
+		}
+
+		return dvec;
+	}
+
+	// Pass the 1-based index to this function and it will handle the decrement and call to the underlying entries function.
+	datanode<int> LoadExpandedOneBasedEntry(unsigned char* buffer, int index, int ptr, int ptradd, std::string * table, bool showindex, StrXform xform)
+	{
+		ASSERT(index >= 0);
+		if (index >= 0) {
+			// decrement the 1-based index by 1 to account for the first entry actually being index 0 (there's no "None" entry)
+			// step forward by 'index' slots in the 2-byte/record pointer table
+			int textindex = index - 1;
+			auto indexedptr = ptr + (textindex * 2);
+			auto vec = LoadExpandedOneBasedEntries(buffer, indexedptr, ptradd, textindex, 1, table, showindex, xform);
+			if (!vec.empty()) return vec.front();
+		}
+		return{ "<!error!>", -1 };
+	}
+
+
+	//TODO - REPLACE WITH AN ADAPTER; an adapter can be used with any loading funciton, not just LoadExpandedZeroBasedEntries
+	dataintnodevector LoadTruncatedDialogueEntries(FFH2Project& proj, int maxlength, bool showindex)
+	{
+		if (showindex) maxlength += 5; // allow at least a 2 digit index, 2 spaces, and a colon.
+		auto xform = [maxlength](int, CString str) -> CString {
+			return str.GetLength() < maxlength ? str : str.Left(maxlength - 3) + "...";
+		};
+		return LoadExpandedZeroBasedEntriesEx(proj, "DIALOGUE_OFFSET", "DIALOGUE_PTRADD", "", "DIALOGUE_COUNT", 8, showindex, xform);
+	}
+
+	//TODO - REPLACE WITH AN ADAPTER
+	dataintnode LoadTruncatedDialogueEntry(FFH2Project& proj, int index, int maxlength, bool showindex)
+	{
+		if (showindex) maxlength += 5; // allow at least a 2 digit index, 2 spaces, and a colon.
+
+		auto xform = [maxlength](int, CString str) -> CString {
+			return str.GetLength() < maxlength ? str : str.Left(maxlength - 3) + "...";
+		};
+
+		return LoadExpandedZeroBasedEntry(proj, index, "DIALOGUE_OFFSET", "DIALOGUE_PTRADD", 8, showindex, xform);
+	}
+
+
+	// LABEL LISTS
 
 	dataintnodevector LoadArmorEntries(FFH2Project& proj, bool showindex)
 	{
@@ -758,9 +1058,51 @@ namespace Ingametext // FFH2Project veersions
 		return LoadExpandedZeroBasedEntriesEx(proj, "ATTACKTEXT_OFFSET", "ATTACKTEXT_PTRADD", "", "ATTACK_COUNT", 6, showindex);
 	}
 
+	dataintnodevector LoadBattleMessageEntries(FFH2Project& proj, bool showindex)
+	{
+	//	int BATTLEMESSAGETEXT_OFFSET = ReadHex(proj.ValuesPath, "BATTLEMESSAGETEXT_OFFSET");
+	//	int BATTLEMESSAGETEXT_PTRADD = ReadHex(proj.ValuesPath, "BATTLEMESSAGETEXT_PTRADD");
+	//	int BATTLEMESSAGE_COUNT = ReadDec(proj.ValuesPath, "BATTLEMESSAGE_COUNT");
+	//	return LoadExpandedZeroBasedEntries(address(proj.ROM), BATTLEMESSAGETEXT_OFFSET, BATTLEMESSAGETEXT_PTRADD, 0, BATTLEMESSAGE_COUNT, proj.GetTable(9), showindex);
+		return LoadExpandedZeroBasedEntriesEx(proj, "BATTLEMESSAGETEXT_OFFSET", "BATTLEMESSAGETEXT_PTRADD", "", "BATTLEMESSAGE_COUNT", 9, showindex);
+	}
+
 	dataintnodevector LoadClassEntries(FFH2Project& proj, bool showindex)
 	{
 		return LoadExpandedZeroBasedEntriesEx(proj, "CLASSTEXT_OFFSET", "BASICTEXT_PTRADD", "", "CLASS_COUNT", 5, showindex);
+	}
+
+	dataintnodevector LoadDialogueEntries(FFH2Project& proj, bool showindex)
+	{
+		//int DIALOGUE_OFFSET = ReadHex(proj.ValuesPath, "DIALOGUE_OFFSET");
+		//int DIALOGUE_PTRADD = ReadHex(proj.ValuesPath, "DIALOGUE_PTRADD");
+		//int DIALOGUE_COUNT = ReadDec(proj.ValuesPath, "DIALOGUE_COUNT");
+		//return LoadExpandedZeroBasedEntries(address(proj.ROM), DIALOGUE_OFFSET, DIALOGUE_PTRADD, 0, DIALOGUE_COUNT, proj.GetTable(8), showindex);
+		return LoadExpandedZeroBasedEntriesEx(proj, "DIALOGUE_OFFSET", "DIALOGUE_PTRADD", "", "DIALOGUE_COUNT", 8, showindex);
+	}
+
+	dataintnodevector LoadDialogueShortEntries(FFH2Project& proj, bool showindex)
+	{
+		//int DIALOGUE_OFFSET = ReadHex(proj.ValuesPath, "DIALOGUE_OFFSET");
+		//int DIALOGUE_PTRADD = ReadHex(proj.ValuesPath, "DIALOGUE_PTRADD");
+		//int DIALOGUE_COUNT = ReadDec(proj.ValuesPath, "DIALOGUE_COUNT");
+		//return LoadExpandedZeroBasedEntries(address(proj.ROM), DIALOGUE_OFFSET, DIALOGUE_PTRADD, 0, DIALOGUE_COUNT, proj.GetTable(8), showindex, XformShortString);
+		return LoadExpandedZeroBasedEntriesEx(proj, "DIALOGUE_OFFSET", "DIALOGUE_PTRADD", "", "DIALOGUE_COUNT", 8, showindex, XformShortString);
+	}
+
+	dataintnodevector LoadEnemyEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadExpandedZeroBasedEntriesEx(proj, "ENEMYTEXT_OFFSET", "ENEMYTEXT_PTRADD", "", "ENEMY_COUNT", 7, showindex);
+	}
+
+	dataintnodevector LoadGoldEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadExpandedZeroBasedEntriesEx(proj, "GOLDITEMTEXT_OFFSET", "BASICTEXT_PTRADD", "", "GOLDITEM_COUNT", 3, showindex);
+	}
+
+	dataintnodevector LoadItemEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadExpandedOneBasedEntriesEx(proj, "BASICTEXT_OFFSET", "BASICTEXT_PTRADD", "", "ITEM_COUNT", 0, showindex);
 	}
 
 	dataintnodevector LoadMagicEntries(FFH2Project& proj, bool showindex)
@@ -768,13 +1110,186 @@ namespace Ingametext // FFH2Project veersions
 		return LoadExpandedZeroBasedEntriesEx(proj, "MAGICTEXT_OFFSET", "BASICTEXT_PTRADD", "", "MAGIC_COUNT", 4, showindex);
 	}
 
+	dataintnodevector LoadOutOfBattleMagicEntries(FFH2Project& proj, bool showindex)
+	{
+		if (proj.IsRom())
+			return LoadOutofBattleMagicROMEntries(proj, showindex);
+		if (proj.IsAsm())
+			return LoadOutofBattleMagicAssemblyEntries(proj, showindex);
+		return {};
+	}
+
+	dataintnodevector LoadPotionEntries(FFH2Project& proj, bool showindex)
+	{
+		ffh::acc::ValueDataAccessor d(proj);
+		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
+		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+		int POTION_COUNT = d.get<int>("POTION_COUNT");
+		int POTIONSTART_INDEX = d.get<int>("POTIONSTART_INDEX");
+
+		auto POTIONTEXT_OFFSET = BASICTEXT_OFFSET + (POTIONSTART_INDEX * 2);
+		auto POTIONTEXT_PTRADD = BASICTEXT_PTRADD;
+		return LoadExpandedZeroBasedEntries(address(proj.ROM), POTIONTEXT_OFFSET, POTIONTEXT_PTRADD, 0, POTION_COUNT, proj.GetTable(0), showindex);
+	}
+
+	dataintnodevector LoadWeaponEntries(FFH2Project& proj, bool showindex)
+	{
+		return LoadExpandedOneBasedEntriesEx(proj, "WEAPONTEXT_OFFSET", "BASICTEXT_PTRADD", "", "WEAPON_COUNT", 1, showindex);
+	}
+
+
+	// SINGLE ENTRIES
 
 	dataintnode LoadArmorEntry(FFH2Project& proj, int index, bool showindex)
 	{
-		DataValueAccessor d(proj);
-		int ARMORTEXT_OFFSET = d.get<int>("ARMORTEXT_OFFSET");
-		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+		//TODO - clean up these functions
+		//ValueDataAccessor d(proj);
+		//int ARMORTEXT_OFFSET = d.get<int>("ARMORTEXT_OFFSET");
+		//int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 		return LoadExpandedOneBasedEntry(proj, index, "ARMORTEXT_OFFSET", "BASICTEXT_PTRADD", 2, showindex);
+	}
+
+	dataintnode LoadAttackEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		//int ATTACKTEXT_OFFSET = ReadHex(proj.ValuesPath, "ATTACKTEXT_OFFSET");
+		//int ATTACKTEXT_PTRADD = ReadHex(proj.ValuesPath, "ATTACKTEXT_PTRADD");
+		return LoadExpandedZeroBasedEntry(proj, index, "ATTACKTEXT_OFFSET", "ATTACKTEXT_PTRADD", 6, showindex);
+	}
+
+	dataintnode LoadBattleMessageEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		//int BATTLEMESSAGETEXT_OFFSET = ReadHex(proj.ValuesPath, "BATTLEMESSAGETEXT_OFFSET");
+		//int BATTLEMESSAGETEXT_PTRADD = ReadHex(proj.ValuesPath, "BATTLEMESSAGETEXT_PTRADD");
+		//return LoadExpandedZeroBasedEntry(address(proj.ROM), index, BATTLEMESSAGETEXT_OFFSET, BATTLEMESSAGETEXT_PTRADD, proj.GetTable(9), showindex);
+		return LoadExpandedZeroBasedEntry(proj, index, "BATTLEMESSAGETEXT_OFFSET", "BATTLEMESSAGETEXT_PTRADD", 9, showindex);
+	}
+
+	dataintnode LoadClassEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		//int CLASSTEXT_OFFSET = ReadHex(proj.ValuesPath, "CLASSTEXT_OFFSET");
+		//int BASICTEXT_PTRADD = ReadHex(proj.ValuesPath, "BASICTEXT_PTRADD");
+		//return LoadExpandedZeroBasedEntry(address(proj.ROM), index, CLASSTEXT_OFFSET, BASICTEXT_PTRADD, proj.GetTable(5), showindex);
+		return LoadExpandedZeroBasedEntry(proj, index, "CLASSTEXT_OFFSET", "BASICTEXT_PTRADD", 5, showindex);
+	}
+
+	dataintnode LoadDialogueEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		//ValueDataAccessor d(proj);
+		//int DIALOGUE_OFFSET = d.get<int>("DIALOGUE_OFFSET");
+		//int DIALOGUE_PTRADD = d.get<int>("DIALOGUE_PTRADD");
+		return LoadExpandedZeroBasedEntry(proj, index, "DIALOGUE_OFFSET", "DIALOGUE_PTRADD", 8, showindex);
+	}
+
+	dataintnode LoadDialogueShortEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		//int DIALOGUE_OFFSET = ReadHex(proj.ValuesPath, "DIALOGUE_OFFSET");
+		//int DIALOGUE_PTRADD = ReadHex(proj.ValuesPath, "DIALOGUE_PTRADD");
+		//return LoadExpandedZeroBasedEntry(address(proj.ROM), index, DIALOGUE_OFFSET, DIALOGUE_PTRADD, proj.GetTable(8), showindex, XformShortString);
+		return LoadExpandedZeroBasedEntry(proj, index, "DIALOGUE_OFFSET", "DIALOGUE_PTRADD", 8, showindex, XformShortString);
+	}
+
+	dataintnode LoadEnemyEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		//int ENEMYTEXT_OFFSET = ReadHex(proj.ValuesPath, "ENEMYTEXT_OFFSET");
+		//int ENEMYTEXT_PTRADD = ReadHex(proj.ValuesPath, "ENEMYTEXT_PTRADD");
+		//return LoadExpandedZeroBasedEntry(address(proj.ROM), index, ENEMYTEXT_OFFSET, ENEMYTEXT_PTRADD, proj.GetTable(7), showindex);
+		return LoadExpandedZeroBasedEntry(proj, index, "ENEMYTEXT_OFFSET", "ENEMYTEXT_PTRADD", 7, showindex);
+	}
+
+	dataintnode LoadGoldEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		//int GOLDITEMTEXT_OFFSET = ReadHex(proj.ValuesPath, "GOLDITEMTEXT_OFFSET");
+		//int BASICTEXT_PTRADD = ReadHex(proj.ValuesPath, "BASICTEXT_PTRADD");
+		//return LoadExpandedZeroBasedEntry(address(proj.ROM), index, GOLDITEMTEXT_OFFSET, BASICTEXT_PTRADD, proj.GetTable(3), showindex);
+		return LoadExpandedZeroBasedEntry(proj, index, "GOLDITEMTEXT_OFFSET", "BASICTEXT_PTRADD", 3, showindex);
+	}
+
+	dataintnode LoadItemEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		ffh::acc::ValueDataAccessor d(proj);
+		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
+		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+
+		auto ITEMTEXT_OFFSET = BASICTEXT_OFFSET;
+		auto ITEMTEXT_PTRADD = BASICTEXT_PTRADD;
+		return LoadExpandedOneBasedEntry(address(proj.ROM), index, ITEMTEXT_OFFSET, ITEMTEXT_PTRADD, proj.GetTable(0), showindex);
+	}
+
+	dataintnode LoadItemHardcodedEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		ffh::acc::ValueDataAccessor d(proj);
+		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
+		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+
+		auto ITEMTEXT_OFFSET = BASICTEXT_OFFSET;
+		auto ITEMTEXT_PTRADD = BASICTEXT_PTRADD;
+		auto node = LoadExpandedOneBasedEntry(address(proj.ROM), index, ITEMTEXT_OFFSET, ITEMTEXT_PTRADD, proj.GetTable(0), showindex);
+		return node;
+	}
+
+	dataintnode LoadMagicEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		//int MAGICTEXT_OFFSET = ReadHex(proj.ValuesPath, "MAGICTEXT_OFFSET");
+		//int BASICTEXT_PTRADD = ReadHex(proj.ValuesPath, "BASICTEXT_PTRADD");
+		//return LoadExpandedZeroBasedEntry(address(proj.ROM), index, MAGICTEXT_OFFSET, BASICTEXT_PTRADD, proj.GetTable(4), showindex);
+		return LoadExpandedZeroBasedEntry(proj, index, "MAGICTEXT_OFFSET", "BASICTEXT_PTRADD", 4, showindex);
+	}
+
+	dataintnode LoadOutOfBattleMagicEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		ffh::acc::ValueDataAccessor d(proj);
+		int OOBMAGIC_COUNT = d.get<int>("OOBMAGIC_COUNT");
+		auto symnames = d.get<std::vector<std::string>>("OOBMAGIC_SYMNAMES");
+
+		if (index >= OOBMAGIC_COUNT) {
+			ErrorHere << "index " << index << " is out of OOBMAGIC range (" << OOBMAGIC_COUNT << ")" << std::endl;
+		}
+		else if (index < (int)symnames.size()) {
+			ErrorHere << "index " << index << " is out of symnames range (" << symnames.size() << ")" << std::endl;
+		}
+		else if (proj.IsRom()) {
+			int MG_START = d.get<int>("MG_START");
+			std::string name = index < (int)symnames.size() ? symnames[index] : "OOBSpell" + std::to_string(index);
+			return ReadOutOfBattleMagicROMNode(proj, MG_START, name, index, showindex);
+		}
+		else if (proj.IsAsm()) {
+			int MG_START = find_or_default(proj.m_varmap, std::string("MG_START"), -1);
+			std::string name = index < (int)symnames.size() ? symnames[index] : "OOBSpell" + std::to_string(index);
+			return ReadOutOfBattleMagicAssemblyNode(proj, MG_START, name, index, showindex);
+		}
+		else {
+			ErrorHere << "unknown project type, can't return OOBMAGIC entry name" << std::endl;
+		}
+		return { "", -1 };
+	}
+
+	dataintnode LoadPotionEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		ffh::acc::ValueDataAccessor d(proj);
+		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
+		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
+		int POTIONSTART_INDEX = d.get<int>("POTIONSTART_INDEX");
+
+		// Only Heal and Pure can be used for magic effects during battle, so only they are represented in this collection.
+		//FUTURE - add POTIONTEXT_OFFSET and POTIONTEXT_PTRADD to the values file?
+		auto POTIONTEXT_OFFSET = BASICTEXT_OFFSET + (POTIONSTART_INDEX * 2);
+		auto POTIONTEXT_PTRADD = BASICTEXT_PTRADD;
+		return LoadExpandedZeroBasedEntry(address(proj.ROM), index, POTIONTEXT_OFFSET, POTIONTEXT_PTRADD, proj.GetTable(0), showindex);
+	}
+
+	dataintnode LoadWeaponEntry(FFH2Project& proj, int index, bool showindex)
+	{
+		//int WEAPONTEXT_OFFSET = ReadHex(proj.ValuesPath, "WEAPONTEXT_OFFSET");
+		//int BASICTEXT_PTRADD = ReadHex(proj.ValuesPath, "BASICTEXT_PTRADD");
+		//// Weapons are range [$01, $28], but there's no string for 0 "None"
+		//// This would make "Wooden Nunchuk" 0 (instead of 1) and "Masmune" is now 39/$27 (instead of 40/$28)
+		//// LoadExpandedOneBasedEntry should handle the indexing.
+		//return LoadExpandedOneBasedEntry(address(proj.ROM), index, WEAPONTEXT_OFFSET, BASICTEXT_PTRADD, proj.GetTable(1), showindex);
+
+		// Weapons are range [$01, $28], but there's no string for 0 "None"
+		// This would make "Wooden Nunchuk" 0 (instead of 1) and "Masmune" is now 39/$27 (instead of 40/$28)
+		// LoadExpandedOneBasedEntry should handle the indexing.
+		return LoadExpandedOneBasedEntry(proj, index, "WEAPONTEXT_OFFSET", "BASICTEXT_PTRADD", 1, showindex);
 	}
 
 
@@ -784,7 +1299,7 @@ namespace Ingametext // FFH2Project veersions
 			return; //TODO - or throw? it's not applicable here
 		}
 
-		DataValueAccessor d(proj);
+		ffh::acc::ValueDataAccessor d(proj);
 		int BASICTEXT_PTRADD = d.get<int>("BASICTEXT_PTRADD");
 		int BASICTEXT_OFFSET = d.get<int>("BASICTEXT_OFFSET");
 		int BASICTEXT_COUNT = d.get<int>("BASICTEXT_COUNT");

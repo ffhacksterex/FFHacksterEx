@@ -64,8 +64,11 @@ namespace dialogue_helpers
 
 	static const int ELEM_PARTCOUNT = 4;
 
+	//TODO - replace with the actual element struct
 	sDialogueElement ReadElement(CString inipath, CString routinename, CString elemname)
-	{;
+	{
+		throw std::runtime_error("Use the actual element instead.");
+
 		auto line = Ini::ReadIni(inipath, routinename, elemname, "");
 		auto parts = Strings::split(line, "|");
 

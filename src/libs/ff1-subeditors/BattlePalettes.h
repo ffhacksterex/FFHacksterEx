@@ -8,6 +8,7 @@
 //
 
 #include <FFBaseDlg.h>
+class FFH2Project;
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -19,6 +20,7 @@ class CBattlePalettes : public CFFBaseDlg
 public:
 	CBattlePalettes(CWnd* pParent = nullptr);   // standard constructor
 
+	FFH2Project* Proj2 = nullptr;
 	CFFHacksterProject* Project;
 	int oldpal;
 	int newpal;

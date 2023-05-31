@@ -8,9 +8,9 @@
 #include <EditorWithBackground.h>
 #include <FilePathRestorer.h>
 #include "afxwin.h"
-class CFFHacksterProject;
 class CEntriesLoader;
 class GameSerializer;
+struct ProjectDialogueTalkHandler;
 
 // CSpriteDialogue2 dialog
 
@@ -19,15 +19,12 @@ class CSpriteDialogue2 : public CEditorWithBackground
 	DECLARE_DYNAMIC(CSpriteDialogue2)
 
 public:
-	CSpriteDialogue2(CFFHacksterProject & project, CWnd* pParent = NULL);   // standard constructor
+	CSpriteDialogue2(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CSpriteDialogue2();
 
 	CEntriesLoader * Enloader = nullptr;
 
 protected:
-	CFFHacksterProject & m_proj;
-	Paths::FilePathRestorer m_dialoguepathrestorer;
-
 	virtual void LoadOffsets();
 	virtual void LoadRom();
 	virtual void SaveRom();
@@ -37,8 +34,8 @@ protected:
 	virtual void SaveAsmTalkData(GameSerializer & ser);
 	virtual void LoadValues();
 	virtual void StoreValues();
-	virtual void LoadElement(int elementindex, int bankaddr, CString routinename);
-	virtual void SaveElement(int elementindex, int bankaddr, CString routinename);
+	virtual void LoadElement(int elementindex, int bankaddr, CString routinename, const ProjectDialogueTalkHandler & handler);
+	virtual void SaveElement(int elementindex, int bankaddr, CString routinename, ProjectDialogueTalkHandler & handler);
 
 	void EnsureValidSpriteHandlers();
 	void EnaureSynchedHandlerTables();
@@ -84,7 +81,7 @@ protected:
 
 	stdstringvector m_asmroutinenames;
 	talknamevectormap m_asmroutinemap;
-	mfcstrintmap m_routineaddrmap;
+	stdstrintmap m_routineaddrmap;
 
 	CSubBanner m_banner;
 	CInplaceCombo m_inplacecombo;

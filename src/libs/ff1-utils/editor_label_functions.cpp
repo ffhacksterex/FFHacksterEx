@@ -9,6 +9,11 @@
 #include "FFHacksterProject.h"
 #include <FFH2Project.h>
 #include <algorithm>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
+
+using ffh::str::tomfc;
+using ffh::str::tostd;
 
 using namespace Ini;
 using namespace std_assembly::shared;
@@ -349,45 +354,202 @@ namespace Editorlabels
 
 namespace Editorlabels
 {
-	namespace {
-		dataintnodevector LoadLabels(FFH2Project& proj, CString section, bool showindex)
-		{
-			dataintnodevector labels;
+	namespace ffh2
+	{
+		namespace {
+			dataintnodevector LoadLabels(FFH2Project& proj, CString section, bool showindex)
+			{
+				dataintnodevector labels;
 
-			std::string group = tostd(section);
-			auto it = proj.strings.entries.find(group);
-			if (it == cend(proj.strings.entries))
-				RAISEEXCEPTION(std::runtime_error, "Failed to load labels, unable to find label group '%s'.", group.c_str());
+				std::string group = tostd(section);
+				auto it = proj.strings.entries.find(group);
+				if (it == cend(proj.strings.entries))
+					RAISEEXCEPTION(std::runtime_error, "Failed to load labels, unable to find label group '%s'.", group.c_str());
 
-			const auto& entries = it->second;
-			auto count = entries.size();
-			if (count < 1)
-				RAISEEXCEPTION(std::runtime_error, "No entires found for label group '%s'.", group.c_str());
+				const auto& entries = it->second;
+				auto count = entries.size();
+				if (count < 1)
+					RAISEEXCEPTION(std::runtime_error, "No entires found for label group '%s'.", group.c_str());
 
-			for (auto index = 0; index < count; ++index) {
-				const auto& entry = entries[index];
-				auto label = FormatLabel(group, entry, index, showindex);
-				labels.push_back({ label, index });
+				for (auto index = 0; index < count; ++index) {
+					const auto& entry = entries[index];
+					auto label = FormatLabel(group, entry, index, showindex);
+					labels.push_back({ label, index });
+				}
+
+				//TODO - would have to introduce a mapping to do this count check, e.g. map [BATTLE_COUNT] => proj.strings.entries["battlelabels"]
+				//		then retrieve BATTLE_COUNT and check that it equals proj.strings.entries["battlelabels"].size()
+
+				//if (count != (int)labels.size()) {
+				//	RAISEEXCEPTION(std::runtime_error,
+				//		"count mismatch: group '%s' expects count %d, but read %d items", (LPCSTR)section, count, labels.size());
+				//}
+
+				return labels;
 			}
 
-			//TODO - would have to introduce a mapping to do this count check, e.g. map [BATTLE_COUNT] => proj.strings.entries["battlelabels"]
-			//		then retrieve BATTLE_COUNT and check that it equals proj.strings.entries["battlelabels"].size()
+			dataintnode LoadLabel(FFH2Project& proj, CString section, int index, bool showindex)
+			{
+				std::string group = tostd(section);
+				auto it = proj.strings.entries.find(group);
+				if (it == cend(proj.strings.entries))
+					RAISEEXCEPTION(std::runtime_error, "Failed to load label, unable to find label group '%s'.", group.c_str());
 
-			//if (count != (int)labels.size()) {
-			//	RAISEEXCEPTION(std::runtime_error,
-			//		"count mismatch: group '%s' expects count %d, but read %d items", (LPCSTR)section, count, labels.size());
-			//}
+				const auto& entries = it->second;
+				auto count = entries.size();
+				if (count < 1)
+					RAISEEXCEPTION(std::runtime_error, "No entires found for label group '%s'.", group.c_str());
 
-			return labels;
+				const auto& entry = entries[index];
+				auto label = FormatLabel(group, entry, index, showindex);
+				return { label, index };
+			}
 		}
-	}
 
-	dataintnodevector LoadAilEffectLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "aileffectlabels", showindex); }
-	dataintnodevector LoadAILabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "ailabels", showindex); }
-	dataintnodevector LoadArmorTypes(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "armortypelabels", showindex); }
-	dataintnodevector LoadBackdropLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "backdroplabels", showindex); }
-	dataintnodevector LoadBattlePatternTableLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "patterntablelabels", showindex); }
-	dataintnodevector LoadElementLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "elementlabels", showindex); }
-	dataintnodevector LoadWepMagicLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "wepmaglabels", showindex); }
+		// COLLECTIONS
 
+		dataintnodevector LoadAilEffectLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "aileffectlabels", showindex); }
+		dataintnodevector LoadAILabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "ailabels", showindex); }
+		dataintnodevector LoadArmorTypes(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "armortypelabels", showindex); }
+		dataintnodevector LoadBackdropLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "backdroplabels", showindex); }
+		dataintnodevector LoadBattleLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "battlelabels", showindex); }
+
+		dataintnodevector LoadBattleLabelsEx(FFH2Project& proj, bool form2only, bool showindex)
+		{
+			auto labels = LoadLabels(proj, "battlelabels", showindex);
+			dataintnodevector v;
+			if (!form2only) {
+				for (const auto& d : labels) {
+					CString name;
+					if (showindex) name.Format("%02X: ", d.value);
+					name.AppendFormat("%s", d.name);
+					dataintnode dx(name, d.value);
+					v.push_back(dx);
+				}
+			}
+			for (const auto& d : labels) {
+				auto value = d.value | 0x80;
+				CString name;
+				if (showindex) name.Format("%02X: ", value);
+				name.AppendFormat("%s (F2)", d.name);
+				dataintnode dx(name, value);
+				v.push_back(dx);
+			}
+			return v;
+		}
+
+		dataintnodevector LoadBattlePatternTableLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "patterntablelabels", showindex); }
+		dataintnodevector LoadElementLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "elementlabels", showindex); }
+		dataintnodevector LoadEnemyCategoryLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "enemycategorylabels", showindex); }
+
+		dataintnodevector LoadFanfareLabels(FFH2Project& proj, bool showindex)
+		{
+			UNREFERENCED_PARAMETER(proj);
+			UNREFERENCED_PARAMETER(showindex);
+			return fanfarevalues; //N.B.   this list is hardcoded, at least for now
+		}
+
+		dataintnodevector LoadFanfareTrueFalseLabels(FFH2Project& proj, bool showindex)
+		{
+			UNREFERENCED_PARAMETER(proj);
+			UNREFERENCED_PARAMETER(showindex);
+			return { fanfarevalues[ASM_FALSE], fanfarevalues[ASM_TRUE] };
+		}
+
+		dataintnodevector LoadMapLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "stdmaplabels", showindex); }
+		dataintnodevector LoadMiscCoordLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "misccoordlabels", showindex); }
+		dataintnodevector LoadNNTeleportLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "nnteleportlabels", showindex); }
+		dataintnodevector LoadNOTeleportLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "noteleportlabels", showindex); }
+		dataintnodevector LoadONTeleportLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "onteleportlabels", showindex); }
+
+		dataintnodevector LoadOnScreenSpriteLabels(FFH2Project& proj, bool showindex)
+		{
+			ffh::acc::ValueDataAccessor d(proj);
+			int count = d.get<int>("MAPSPRITE_COUNT");
+			if (count == 0) return dataintnodevector();
+
+			// Create a temp list in vector<CString> form, and pass that to DoLoadLabels.
+			std::vector<CString> sprites;
+			CString text;
+			for (int co = 0; co < count; co++) {
+				text.Format("Sprite: %d", co);
+				sprites.push_back(text);
+			}
+			return DoLoadLabels(sprites, 0, count, showindex);
+		}
+
+		dataintnodevector LoadShopLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "shoplabels", showindex); }
+		dataintnodevector LoadSpecialTileLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "specialtilelabels", showindex); }
+		dataintnodevector LoadSpriteGraphicLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "spritegraphiclabels", showindex); }
+		dataintnodevector LoadSpriteLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "spritelabels", showindex); }
+		dataintnodevector LoadTextLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "dialoguelabels", showindex); }
+		dataintnodevector LoadTilesetLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "tilesetlabels", showindex); }
+		dataintnodevector LoadTreasureLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "treasurelabels", showindex); }
+		dataintnodevector LoadWepMagicLabels(FFH2Project& proj, bool showindex) { return LoadLabels(proj, "wepmaglabels", showindex); }
+
+		// SINGLES
+
+		dataintnode LoadAILabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "ailabels", index, showindex); }
+		dataintnode LoadAilEffectLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "aileffectlabels", index, showindex); }
+		dataintnode LoadArmorTypeLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "armortypelabels", index, showindex); }
+		dataintnode LoadBackdropLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "backdroplabels", index, showindex); }
+		dataintnode LoadBattleLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "battlelabels", index, showindex); }
+
+		dataintnode LoadBattleLabelEx(FFH2Project& proj, int index, bool showindex)
+		{
+			// In the original game, LoadLabel throws since formation 2 battles have a higher index than the BATTLELABELS values.
+			// So mask out the hight bit, then build the node here.
+			auto d = LoadLabel(proj, "battlelabels", index & 0x7F, false);
+			CString name;
+			if (showindex) name.Format("%02X: ", index);
+			name.AppendFormat("%s", d.name);
+			if (index >= 0x80) name.Append(" (F2)");
+			dataintnode dx(name, d.value);
+			return dx;
+		}
+
+		dataintnode LoadBattlePatternTableLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "patterntablelabels", index, showindex); }
+		dataintnode LoadElementLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "elementlabels", index, showindex); }
+		dataintnode LoadEnemyCategoryLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "enemycategorylabels", index, showindex); }
+
+		dataintnode LoadFanfareLabel(FFH2Project& proj, int index, bool showindex)
+		{
+			UNREFERENCED_PARAMETER(proj);
+			UNREFERENCED_PARAMETER(showindex);
+			if (index < ASM_FALSE && index > ASM_TRUE) index = ASM_IGNORE;
+			return fanfarevalues[index];
+		}
+
+		dataintnode LoadMapLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "stdmaplabels", index, showindex); }
+		dataintnode LoadMiscCoordLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "misccoordlabels", index, showindex); }
+		dataintnode LoadNNTeleportLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "nnteleportlabels", index, showindex); }
+		dataintnode LoadNOTeleportLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "noteleportlabels", index, showindex); }
+		dataintnode LoadONTeleportLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "onteleportlabels", index, showindex); }
+
+		dataintnode LoadOnScreenSpriteLabel(FFH2Project& proj, int index, bool showindex)
+		{
+			ffh::acc::ValueDataAccessor d(proj);
+			int count = d.get<int>("MAPSPRITE_COUNT");
+
+			ASSERT(count > 0);
+			ASSERT(index < count);
+			if (count > 0 && index < count) {
+				CString text;
+				if (showindex) text.AppendFormat("%02X: ", index);
+				text.AppendFormat("Sprite: %d", index);
+				return { text, index };
+			}
+			return{ "", -1 };
+		}
+
+		dataintnode LoadShopLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "shoplabels", index, showindex); }
+		dataintnode LoadSpecialTileLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "specialtilelabels", index, showindex); }
+		dataintnode LoadSpriteLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "spritelabels", index, showindex); }
+		dataintnode LoadSpriteGraphicLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "spritegraphiclabels", index, showindex); }
+		dataintnode LoadTextLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "dialoguelabels", index, showindex); }
+		dataintnode LoadTilesetLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "tilesetlabels", index, showindex); }
+		dataintnode LoadTreasureLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "treasurelabels", index, showindex); }
+		dataintnode LoadWepMagicLabel(FFH2Project& proj, int index, bool showindex) { return LoadLabel(proj, "wepmaglabels", index, showindex); }
+
+	} // end namespace ffh2
 } // end namespace Editorlabels (CFFH2Project)

@@ -7,16 +7,16 @@
 #include <core_exceptions.h>
 #include "editor_label_functions.h"
 #include <FFH2Project.h>
-#include <FFHDataValue_dva.hpp>
 #include "GameSerializer.h"
 #include "general_functions.h"
 #include "imaging_helpers.h"
 #include "ingame_text_functions.h"
 #include "ini_functions.h"
 #include "io_functions.h"
-#include <string_conversions.hpp>
 #include "string_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Editorlabels;
 using namespace Imaging;
@@ -93,8 +93,8 @@ BOOL CAttack::OnInitDialog()
 		this->LoadRom();
 
 		LoadListBox(m_attacklist, LoadAttackEntries(*Proj2));
-		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, LoadElementLabels(*Proj2));
-		LoadCaptions(std::vector<CWnd*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 }, LoadAilEffectLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, Labels2::LoadElementLabels(*Proj2));
+		LoadCaptions(std::vector<CWnd*>{ &m_eff1, &m_eff2, &m_eff3, &m_eff4, &m_eff5, &m_eff6, &m_eff7, &m_eff8 }, Labels2::LoadAilEffectLabels(*Proj2));
 
 		cur = -1;
 		m_attacklist.SetCurSel(0);
@@ -115,7 +115,7 @@ BOOL CAttack::OnInitDialog()
 
 void CAttack::LoadOffsets()
 {
-	ff1coredefs::DataValueAccessor d(*Proj2);
+	ffh::acc::ValueDataAccessor d(*Proj2);
 	ATTACK_OFFSET = d.get<int>("ATTACK_OFFSET");
 	ATTACK_BYTES = d.get<int>("ATTACK_BYTES");
 	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");
@@ -126,7 +126,7 @@ void CAttack::LoadRom()
 {
 	Proj2->ClearROM();
 	if (Proj2->IsRom()) {
-		load_binary(tomfc(Proj2->info.workrom), Proj2->ROM);
+		Proj2->LoadROM();
 	}
 	else if (Proj2->IsAsm()) {
 		GameSerializer ser(*Proj2);
@@ -142,7 +142,7 @@ void CAttack::LoadRom()
 void CAttack::SaveRom()
 {
 	if (Proj2->IsRom()) {
-		save_binary(tomfc(Proj2->info.workrom), Proj2->ROM);
+		Proj2->SaveROM();
 	}
 	else if (Proj2->IsAsm()) {
 		GameSerializer ser(*Proj2);

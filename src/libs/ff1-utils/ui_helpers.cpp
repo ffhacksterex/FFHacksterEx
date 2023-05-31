@@ -305,6 +305,54 @@ namespace Ui
 		box.SetCurSel(prevsel);
 	}
 
+	namespace ffh2
+	{
+		void AddEntry(CComboBox& box, const std::string& string, DWORD_PTR data)
+		{
+			int index = box.AddString(string.c_str());
+			box.SetItemData(index, data);
+		}
+
+		void AddEntry(CListBox& box, const std::string& string, DWORD_PTR data)
+		{
+			int index = box.AddString(string.c_str());
+			box.SetItemData(index, data);
+		}
+
+		void InsertEntry(CComboBox& box, int index, const std::string& string, DWORD_PTR data)
+		{
+			int addedindex = box.InsertString(index, string.c_str());
+			box.SetItemData(addedindex, data);
+		}
+
+		void InsertEntry(CListBox& box, int index, const std::string& string, DWORD_PTR data)
+		{
+			int addedindex = box.InsertString(index, string.c_str());
+			box.SetItemData(addedindex, data);
+		}
+
+		void ReplaceString(CComboBox& box, int index, const std::string& newstring)
+		{
+			RedrawScope rs(&box);
+			auto prevsel = box.GetCurSel();
+			auto data = box.GetItemData(index);
+			box.DeleteString(index);
+			int addedindex = box.InsertString(index, newstring.c_str());
+			box.SetItemData(addedindex, data);
+			box.SetCurSel(prevsel);
+		}
+
+		void ReplaceString(CListBox& box, int index, const std::string& newstring)
+		{
+			auto prevsel = box.GetCurSel();
+			auto data = box.GetItemData(index);
+			box.DeleteString(index);
+			int addedindex = box.InsertString(index, newstring.c_str());
+			box.SetItemData(addedindex, data);
+			box.SetCurSel(prevsel);
+		}
+	}
+
 	CString GetItemText(CListBox& box, int index)
 	{
 		CString text;

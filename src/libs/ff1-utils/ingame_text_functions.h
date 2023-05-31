@@ -68,12 +68,43 @@ namespace Ingametext
 
 namespace Ingametext // FFH2Project versions
 {
+	CString PutHexToList(FFH2Project* cart, int ptr, int ptradd, int last, bool DTE, CListBox* m_list, CComboBox* m_combo);
+
+	datanode<int> LoadExpandedZeroBasedEntry(unsigned char* buffer, int index, int ptr, int ptradd, std::string * table, bool showindex, StrXform xform = CStrIdentity);
+	dataintnodevector LoadExpandedZeroBasedEntries(unsigned char* buffer, int ptr, int ptradd, int start, int count, std::string table[], bool showindex, StrXform xform = CStrIdentity);
+	datanode<int> LoadExpandedOneBasedEntry(unsigned char* buffer, int index, int ptr, int ptradd, std::string* table, bool showindex, StrXform xform = CStrIdentity);
+
+	dataintnodevector LoadTruncatedDialogueEntries(FFH2Project& proj, int maxlength, bool showindex = false);
+	dataintnode LoadTruncatedDialogueEntry(FFH2Project& proj, int index, int maxlength, bool showindex = false);
+
 	dataintnodevector LoadArmorEntries(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadAttackEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadBattleMessageEntries(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadClassEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadDialogueEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadDialogueShortEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadEnemyEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadGoldEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadItemEntries(FFH2Project& proj, bool showindex = false);
 	dataintnodevector LoadMagicEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadOutOfBattleMagicEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadPotionEntries(FFH2Project& proj, bool showindex = false);
+	dataintnodevector LoadWeaponEntries(FFH2Project& proj, bool showindex = false);
 
 	dataintnode LoadArmorEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadAttackEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadBattleMessageEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadClassEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadDialogueEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadDialogueShortEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadEnemyEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadGoldEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadItemEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadItemHardcodedEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadMagicEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadOutOfBattleMagicEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadPotionEntry(FFH2Project& proj, int index, bool showindex = false);
+	dataintnode LoadWeaponEntry(FFH2Project& proj, int index, bool showindex = false);
 
 	void PasteSwapStringBytes(bool swapping, FFH2Project& proj, int context, int sourceindex, int destindex);
 

@@ -4,8 +4,8 @@
 #include "FFH2Project.h"
 #include "asmdll_impl.h"
 #include "collection_helpers.h"
-#include "DataValueAccessor.h"
-#include "std_collections_dva.hpp"
+#include "ValueDataAccessor.h"
+#include "vda_std_collections.h"
 #include "dialogue_helpers.h"
 #include "general_functions.h"
 #include "ini_functions.h"
@@ -16,13 +16,15 @@
 #include "path_functions.h"
 #include "regex_helpers.h"
 #include "std_assembly.h"
-#include "string_conversions.hpp"
 #include "string_functions.h"
 #include "type_support.h"
 #include "IProgress.h"
 #include <fstream>
 #include <regex>
 #include <memory>
+
+using ffh::str::tomfc;
+using ffh::str::tostd;
 
 using namespace asmdll_impl;
 using namespace Ini;
@@ -66,7 +68,7 @@ std::istream& open_asmstream(std::ifstream& ifs, FFH2Project& proj, std::string 
 // CFFHacksterProject versions below
 std::string build_asm_path(CFFHacksterProject & proj, CString relfilename)
 {
-	FFH2_PTR_CHECK(&proj);
+	SWITCH_OLDFFH_PTR_CHECK(&proj);
 	if (!proj.IsAsm())
 
 		return std::string();
@@ -78,7 +80,7 @@ std::string build_asm_path(CFFHacksterProject & proj, CString relfilename)
 
 std::istream & open_asmstream(std::ifstream & ifs, CFFHacksterProject & proj, CString relfilename)
 {
-	FFH2_PTR_CHECK(&proj);
+	SWITCH_OLDFFH_PTR_CHECK(&proj);
 	if (ifs.is_open()) ifs.close();
 
 	if (!proj.IsAsm())
@@ -100,7 +102,7 @@ GameSerializer::GameSerializer(CFFHacksterProject & proj, CWnd* mainwnd)
 	, MainWindow(mainwnd)
 	, m_prj2(ff2dummy)
 {
-	FFH2_PTR_CHECK(&proj);
+	SWITCH_OLDFFH_PTR_CHECK(&proj);
 }
 
 GameSerializer::GameSerializer(FFH2Project& prj2, CWnd* mainwnd)
@@ -434,7 +436,7 @@ stdstringset GameSerializer::read_varnames()
 	stdstringset theset;
 
 	// Read the ram values into the string set (specified  in RAM_NAMES)
-	ff1coredefs::DataValueAccessor d(m_prj2);
+	ffh::acc::ValueDataAccessor d(m_prj2);
 	auto ramnames = d.get<std::vector<std::string>>("RAM_NAMES");
 	for (const auto& name : ramnames) theset.insert(name);
 
@@ -452,7 +454,7 @@ stdstringset GameSerializer::read_varnames()
 stdstringvector GameSerializer::read_prefixes()
 {
 	// Load in the prefix lists (from PREFIX_FILTER)
-	ff1coredefs::DataValueAccessor d(m_prj2);
+	ffh::acc::ValueDataAccessor d(m_prj2);
 	return d.get<std::vector<std::string>>("PREFIX_FILTER");
 }
 

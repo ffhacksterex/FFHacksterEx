@@ -3,7 +3,6 @@
 
 #include <EditorWithBackground.h>
 #include <vector>
-class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
 // CText dialog

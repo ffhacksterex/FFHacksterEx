@@ -4,9 +4,10 @@
 #include "stdafx.h"
 #include "resource_subeditors.h"
 #include "BattlePatternTables.h"
-#include "NESPalette.h"
+#include <core_exceptions.h>
 #include <AppSettings.h>
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
+#include "NESPalette.h"
 #include "general_functions.h"
 #include "ini_functions.h"
 #include "io_functions.h"
@@ -16,6 +17,8 @@
 #include "GameSerializer.h"
 #include <editor_label_functions.h>
 #include <ui_helpers.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Editorlabels;
 using namespace Ini;
@@ -86,28 +89,29 @@ const BYTE ConstPicFormation[120] = {
 
 void CBattlePatternTables::LoadRom()
 {
-	BATTLEPALETTE_OFFSET = ReadHex(cart->ValuesPath, "BATTLEPALETTE_OFFSET");
-	BATTLEPATTERNTABLE_OFFSET = ReadHex(cart->ValuesPath, "BATTLEPATTERNTABLE_OFFSET");
-	CHAOSPALETTE_TABLE = ReadHex(cart->ValuesPath, "CHAOSPALETTE_TABLE");
-	CHAOSDRAW_TABLE = ReadHex(cart->ValuesPath, "CHAOSDRAW_TABLE");
-	FIENDPALETTE_TABLE = ReadHex(cart->ValuesPath, "FIENDPALETTE_TABLE");
-	FIENDDRAW_SHIFT = ReadHex(cart->ValuesPath, "FIENDDRAW_SHIFT");
-	FIENDDRAW_TABLE = ReadHex(cart->ValuesPath, "FIENDDRAW_TABLE");
-	BATTLEBACKDROPPALETTE_OFFSET = ReadHex(cart->ValuesPath, "BATTLEBACKDROPPALETTE_OFFSET");
+	ffh::acc::ValueDataAccessor d(*Proj2);
+	BATTLEPALETTE_OFFSET = d.get<int>("BATTLEPALETTE_OFFSET");
+	BATTLEPATTERNTABLE_OFFSET = d.get<int>("BATTLEPATTERNTABLE_OFFSET");
+	CHAOSPALETTE_TABLE = d.get<int>("CHAOSPALETTE_TABLE");
+	CHAOSDRAW_TABLE = d.get<int>("CHAOSDRAW_TABLE");
+	FIENDPALETTE_TABLE = d.get<int>("FIENDPALETTE_TABLE");
+	FIENDDRAW_SHIFT = d.get<int>("FIENDDRAW_SHIFT");
+	FIENDDRAW_TABLE = d.get<int>("FIENDDRAW_TABLE");
+	BATTLEBACKDROPPALETTE_OFFSET = d.get<int>("BATTLEBACKDROPPALETTE_OFFSET");
 
-	BINBATTLEPALETTES_OFFSET = ReadHex(cart->ValuesPath, "BINBATTLEPALETTES_OFFSET");
-	BINCHAOSTSA_OFFSET = ReadHex(cart->ValuesPath, "BINCHAOSTSA_OFFSET");
-	BINFIENDTSA_OFFSET = ReadHex(cart->ValuesPath, "BINFIENDTSA_OFFSET");
-	BANK00_OFFSET = ReadHex(cart->ValuesPath, "BANK00_OFFSET");
-	BANK07_OFFSET = ReadHex(cart->ValuesPath, "BANK07_OFFSET");
+	BINBATTLEPALETTES_OFFSET = d.get<int>("BINBATTLEPALETTES_OFFSET");
+	BINCHAOSTSA_OFFSET = d.get<int>("BINCHAOSTSA_OFFSET");
+	BINFIENDTSA_OFFSET = d.get<int>("BINFIENDTSA_OFFSET");
+	BANK00_OFFSET = d.get<int>("BANK00_OFFSET");
+	BANK07_OFFSET = d.get<int>("BANK07_OFFSET");
 
 	// Now load the data
-	if (cart->IsRom()) {
+	if (Proj2->IsRom()) {
 	}
-	else if (cart->IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		//REFACTOR - is it sufficient to rely on the caller to do this, or is this just another load bug hanging around?
 		// Instead of writing to the entire buffer, just write to the parts we need
-		//GameSerializer ser(*cart);
+		//GameSerializer ser(*Proj2);
 		//ser.LoadAsmBin(BANK_00, BANK00_OFFSET);
 		//ser.LoadAsmBin(BANK_07, BANK07_OFFSET);
 		//ser.LoadAsmBin(BIN_BATTLEPALETTES, BINBATTLEPALETTES_OFFSET);
@@ -115,21 +119,22 @@ void CBattlePatternTables::LoadRom()
 		//ser.LoadAsmBin(BIN_FIENDTSA, BINFIENDTSA_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CBattlePatternTables::SaveRom()
 {
-	if (cart->IsRom()) {
-		Draw_Buffer_ROM(cart, (patterntable << 11) + BATTLEPATTERNTABLE_OFFSET, &draw);
+	if (Proj2->IsRom()) {
+		Draw_Buffer_ROM(Proj2->ROM, (patterntable << 11) + BATTLEPATTERNTABLE_OFFSET, &draw);
 	}
-	else if (cart->IsAsm()) {
-		Draw_Buffer_ROM(cart, (patterntable << 11) + BATTLEPATTERNTABLE_OFFSET, &draw);
-
+	else if (Proj2->IsAsm()) {
 		//REFACTOR - is it sufficient for the caller to do this, or is this just another save bug hanging around?
+		// This scenario assumes the caller already did th eGameSerialzer calls belows.
+		Draw_Buffer_ROM(Proj2->ROM, (patterntable << 11) + BATTLEPATTERNTABLE_OFFSET, &draw);
+
 		// Instead of writing to the entire buffer, just write to the parts we need
-		//GameSerializer ser(*cart);
+		//GameSerializer ser(*Proj2);
 		//ser.SaveAsmBin(BANK_00, BANK00_OFFSET);
 		//ser.SaveAsmBin(BANK_07, BANK07_OFFSET);
 		//ser.SaveAsmBin(BIN_BATTLEPALETTES, BINBATTLEPALETTES_OFFSET);
@@ -137,13 +142,16 @@ void CBattlePatternTables::SaveRom()
 		//ser.SaveAsmBin(BIN_FIENDTSA, BINFIENDTSA_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
 BOOL CBattlePatternTables::OnInitDialog() 
 {
 	CSaveableDialog::OnInitDialog();
+
+	SWITCH_OLDFFH_PTR_CHECK(cart);
+	MUST_SPECIFY_PROJECT(Proj2, "BattlePatternTables subeditor");
 
 	try {
 		LoadRom();
@@ -152,7 +160,7 @@ BOOL CBattlePatternTables::OnInitDialog()
 		for (co = 0; co < 120; co++)
 			PicFormation[co] = ConstPicFormation[co];
 
-		auto BackdropLabels = LoadBackdropLabels(*cart);
+		auto BackdropLabels = Labels2::LoadBackdropLabels(*Proj2);
 		for (co = 0; co < 16; co++)
 			m_backdrop.InsertString(co, BackdropLabels[co].name);
 		cur_backdrop = -1;
@@ -165,9 +173,9 @@ BOOL CBattlePatternTables::OnInitDialog()
 
 		int temp;
 		temp = BATTLEPALETTE_OFFSET + (palvalues[0] << 2) - 4;
-		for (co = 4; co < 8; co++) palette[co] = cart->ROM[temp + co];
+		for (co = 4; co < 8; co++) palette[co] = Proj2->ROM[temp + co];
 		temp = BATTLEPALETTE_OFFSET + (palvalues[1] << 2) - 8;
-		for (co = 8; co < 12; co++) palette[co] = cart->ROM[temp + co];
+		for (co = 8; co < 12; co++) palette[co] = Proj2->ROM[temp + co];
 
 		rcMaxGraphic.SetRect(20, 27, 20 + 224, 27 + 192);
 
@@ -192,7 +200,7 @@ BOOL CBattlePatternTables::OnInitDialog()
 
 		rcPattern.SetRect(260, 27, 260 + 256, 27 + 128);
 
-		Draw_ROM_Buffer(cart, (patterntable << 11) + BATTLEPATTERNTABLE_OFFSET, &draw);
+		Draw_ROM_Buffer(Proj2, (patterntable << 11) + BATTLEPATTERNTABLE_OFFSET, &draw);
 	}
 	catch (std::exception & ex) {
 		return Ui::AbortInitDialog(this, CString("Failed to load game data:\n") + ex.what());
@@ -221,13 +229,13 @@ void CBattlePatternTables::InitView()
 		draw.Width = 14;
 		draw.Height = 12;
 		draw.PalFormation = PalFormation;
-		draw.PicFormation = &cart->ROM[CHAOSDRAW_TABLE]; break;
+		draw.PicFormation = &Proj2->ROM[CHAOSDRAW_TABLE]; break;
 	default:
 		offset = FIENDPALETTE_TABLE + ((view - 1) * FIENDDRAW_SHIFT);
 		draw.Width = 8;
 		draw.Height = 8;
 		draw.PalFormation = PalFormation;
-		draw.PicFormation = &cart->ROM[FIENDDRAW_TABLE + ((view - 1) * FIENDDRAW_SHIFT)];break;
+		draw.PicFormation = &Proj2->ROM[FIENDDRAW_TABLE + ((view - 1) * FIENDDRAW_SHIFT)];break;
 	}
 
 	draw.rcGraphic.right = draw.rcGraphic.left + (draw.Width << 4);
@@ -239,7 +247,7 @@ void CBattlePatternTables::InitView()
 		int coY, coX, co;
 		for(coY = 0; coY < 8; coY += 2){
 		for(coX = 0; coX < 8; coX += 2, offset++){
-			temp = cart->ROM[offset];
+			temp = Proj2->ROM[offset];
 			TempAssign[coY + 1][coX + 1] = (temp >> 6) & 3;
 			TempAssign[coY + 1][coX] = (temp >> 4) & 3;
 			TempAssign[coY][coX + 1] = (temp >> 2) & 3;
@@ -303,7 +311,7 @@ void CBattlePatternTables::OnPaint()
 	bool drawbox = (m_repalette.GetCheck() == 0) && (m_reshape.GetCheck() == 0);
 	BYTE* temppal = palette;
 	if(!view) temppal = &palette[palview];
-	Draw_DrawGraphic(&dc,&draw,cart,temppal,drawbox,1);
+	Draw_DrawGraphic(&dc,&draw,Proj2,temppal,drawbox,1);
 
 	int coX, coY;
 	if(m_repalette.GetCheck()){
@@ -316,27 +324,27 @@ void CBattlePatternTables::OnPaint()
 		coY = draw.rcGraphic.top + ((draw.curblock / draw.Width) << 4);
 		dc.MoveTo(coX,coY); dc.LineTo(coX + 15,coY); dc.LineTo(coX + 15,coY + 15);
 		dc.LineTo(coX,coY + 15); dc.LineTo(coX,coY);
-		Draw_DrawPatternTables(&dc,&draw,cart,&palette[palview],rcPattern,128,0);
+		Draw_DrawPatternTables(&dc,&draw,Proj2,&palette[palview],rcPattern,128,0);
 
 		coX = rcPattern.left + ((draw.PicFormation[draw.curblock] & 0x0F) << 4);
 		coY = rcPattern.top + (draw.PicFormation[draw.curblock] & 0xF0);
 		dc.MoveTo(coX,coY); dc.LineTo(coX + 15,coY); dc.LineTo(coX + 15,coY + 15);
 		dc.LineTo(coX,coY + 15); dc.LineTo(coX,coY);}
 	else{
-		Draw_DrawPatternTables(&dc,&draw,cart,&palette[palview],rcPattern,128);
-		Draw_DrawCloseup(&dc,&draw,cart,&palette[palview]);}
+		Draw_DrawPatternTables(&dc,&draw,Proj2,&palette[palview],rcPattern,128);
+		Draw_DrawCloseup(&dc,&draw,Proj2,&palette[palview]);}
 
 	long& drawY = draw.rcPalette.top;
-	Draw_DrawPalette(&dc,draw.rcPalette.left,drawY,cart,&palette[0]);
-	Draw_DrawPalette(&dc,draw.rcPalette.left,drawY + 16,cart,&palette[4]);
-	Draw_DrawPalette(&dc,draw.rcPalette.left,drawY + 32,cart,&palette[8]);
-	Draw_DrawPalette(&dc,draw.rcPalette.left,drawY + 48,cart,&palette[12]);
-	Draw_DrawFinger(&dc,&draw,cart);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,drawY,Proj2,&palette[0]);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,drawY + 16,Proj2,&palette[4]);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,drawY + 32,Proj2,&palette[8]);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,drawY + 48,Proj2,&palette[12]);
+	Draw_DrawFinger(&dc,&draw,Proj2);
 
 	CPoint pt;
 	pt.x = rcFinger.left;
 	pt.y = rcFinger.top + (palview << 2);
-	cart->Finger.Draw(&dc,0,pt,ILD_TRANSPARENT);
+	Proj2->Finger.Draw(&dc,0,pt,ILD_TRANSPARENT);
 
 	dc.SelectObject(oldpen);
 	redpen.DeleteObject();
@@ -415,13 +423,13 @@ void CBattlePatternTables::OnSelchangeBackdrop()
 	if(cur_backdrop != -1){
 		offset = BATTLEBACKDROPPALETTE_OFFSET + cur_backdrop;
 		for(BYTE co = 0; co < 4; offset++, co++)
-			cart->ROM[offset] = palette[co];}
+			Proj2->ROM[offset] = palette[co];}
 
 	cur_backdrop = (short)m_backdrop.GetCurSel() << 2;
 	
 	offset = BATTLEBACKDROPPALETTE_OFFSET + cur_backdrop;
 	for(BYTE co = 0; co < 4; offset++, co++)
-		palette[co] = cart->ROM[offset];
+		palette[co] = Proj2->ROM[offset];
 
 	InvalidateRect(draw.rcPalette,0);
 	InvalidateRect(draw.rcGraphic,0);
@@ -512,9 +520,9 @@ void CBattlePatternTables::StoreValues()
 
 	int temp, co;
 	temp = BATTLEPALETTE_OFFSET + (palvalues[0] << 2) - 4;
-	for(co = 4; co < 8; co++) cart->ROM[temp + co] = palette[co];
+	for(co = 4; co < 8; co++) Proj2->ROM[temp + co] = palette[co];
 	temp = BATTLEPALETTE_OFFSET + (palvalues[1] << 2) - 8;
-	for(co = 8; co < 12; co++) cart->ROM[temp + co] = palette[co];
+	for(co = 8; co < 12; co++) Proj2->ROM[temp + co] = palette[co];
 
 
 	int offset, baseoffset;
@@ -532,7 +540,7 @@ void CBattlePatternTables::StoreValues()
 	int coY, coX;
 	for(coY = 0; coY < 8; coY += 2){
 	for(coX = 0; coX < 8; coX += 2, offset++){
-		temp = cart->ROM[offset];
+		temp = Proj2->ROM[offset];
 		TempAssign[coY + 1][coX + 1] = (temp >> 6) & 3;
 		TempAssign[coY + 1][coX] = (temp >> 4) & 3;
 		TempAssign[coY][coX + 1] = (temp >> 2) & 3;
@@ -557,9 +565,9 @@ void CBattlePatternTables::StoreValues()
 		temp += TempAssign[coY + 1][coX] << 4;
 		temp += TempAssign[coY][coX + 1] << 2;
 		temp += TempAssign[coY][coX];
-		cart->ROM[offset] = (BYTE)temp;}}
+		Proj2->ROM[offset] = (BYTE)temp;}}
 
-	Draw_Buffer_ROM(cart,(patterntable << 11) + BATTLEPATTERNTABLE_OFFSET,&draw);
+	Draw_Buffer_ROM(Proj2,(patterntable << 11) + BATTLEPATTERNTABLE_OFFSET,&draw);
 }
 
 void CBattlePatternTables::OnLButtonDblClk(UINT nFlags, CPoint pt) 
@@ -572,7 +580,7 @@ void CBattlePatternTables::OnLButtonDblClk(UINT nFlags, CPoint pt)
 		pt.y = (pt.y - draw.rcPalette.top) >> 4;
 		if(pt.y == 3) return;
 		CNESPalette dlg;
-		dlg.cart = cart;
+		dlg.Proj2 = Proj2;
 		dlg.color = &palette[(pt.y << 2) + pt.x + 1];
 		if(dlg.DoModal() == IDOK){
 			if((palvalues[0] == palvalues[1]) && (pt.y > 0)){
@@ -592,7 +600,7 @@ void CBattlePatternTables::OnExportbitmap()
 		sendpalette = &palette[palview];
 		draw.palmax = 4;
 	}
-	Draw_ExportToBmp(&draw, cart, sendpalette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
+	Draw_ExportToBmp(&draw, Proj2, sendpalette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 	draw.palmax = 16;
 }
 
@@ -602,7 +610,7 @@ void CBattlePatternTables::OnImportbitmap()
 	if(!view){
 		sendpalette = &palette[palview];
 		draw.palmax = 4;}
-	Draw_ImportFromBmp(&draw,cart,sendpalette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
+	Draw_ImportFromBmp(&draw,Proj2,sendpalette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 	draw.palmax = 16;
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);

@@ -6,7 +6,6 @@
 #include "io_functions.h"
 #include "logging_functions.h"
 #include "path_functions.h"
-#include "string_conversions.hpp"
 #include "string_functions.h"
 #include "FFHacksterProject.h"
 #include "FFH2Project.h"
@@ -15,6 +14,9 @@
 #include "FilePathRemover.h"
 #include <filesystem>
 #include <memory>
+
+using ffh::str::tomfc;
+using ffh::str::tostd;
 
 using namespace Io;
 //STDFILESYS - see path_functions.cpp for more info
@@ -440,7 +442,6 @@ namespace asmdll_impl {
 			retcode = ASMFF1_ERR_NOOUTPUTBUFFER;
 
 		if (retcode == ASMFF1_SUCCESS) {
-			std::string strreturn = returndata.get();
 			std::istringstream istr(returndata.get()); // this block throws if the text can't be converted
 			istr >> routinenames;
 			if (istr.get() != '\n') {
@@ -451,7 +452,6 @@ namespace asmdll_impl {
 			}
 		}
 
-		LogHere;
 		EmitResult(retcode, operation, errmessage.get());
 		return retcode == ASMFF1_SUCCESS;
 	}

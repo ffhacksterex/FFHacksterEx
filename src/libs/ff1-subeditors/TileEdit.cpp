@@ -6,6 +6,8 @@
 #include "TileEdit.h"
 #include "NESPalette.h"
 #include "FFHacksterProject.h"
+#include <core_exceptions.h>
+#include <FFH2Project.h>
 #include "DRAW_STRUCT.h"
 #include "draw_functions.h"
 #include "general_functions.h"
@@ -13,6 +15,8 @@
 #include "ini_functions.h"
 #include "io_functions.h"
 #include <ui_helpers.h>
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 #include "AsmFiles.h"
 #include "GameSerializer.h"
 
@@ -44,20 +48,21 @@ void CTileEdit::DoDataExchange(CDataExchange* pDX)
 
 void CTileEdit::LoadRom()
 {
-	OVERWORLDPALETTE_ASSIGNMENT = ReadHex(cart->ValuesPath, "OVERWORLDPALETTE_ASSIGNMENT");
-	OVERWORLDPALETTE_OFFSET = ReadHex(cart->ValuesPath, "OVERWORLDPALETTE_OFFSET");
-	OVERWORLDPATTERNTABLE_ASSIGNMENT = ReadHex(cart->ValuesPath, "OVERWORLDPATTERNTABLE_ASSIGNMENT");
-	OVERWORLDPATTERNTABLE_OFFSET = ReadHex(cart->ValuesPath, "OVERWORLDPATTERNTABLE_OFFSET");
-	TILESETPATTERNTABLE_OFFSET = ReadHex(cart->ValuesPath, "TILESETPATTERNTABLE_OFFSET");
-	TILESETPALETTE_ASSIGNMENT = ReadHex(cart->ValuesPath, "TILESETPALETTE_ASSIGNMENT");
-	TILESETPATTERNTABLE_ASSIGNMENT = ReadHex(cart->ValuesPath, "TILESETPATTERNTABLE_ASSIGNMENT");
-	BANK03_OFFSET = ReadHex(cart->ValuesPath, "BANK03_OFFSET");
+	ffh::acc::ValueDataAccessor d(*Proj2);
+	OVERWORLDPALETTE_ASSIGNMENT = d.get<int>("OVERWORLDPALETTE_ASSIGNMENT");
+	OVERWORLDPALETTE_OFFSET = d.get<int>("OVERWORLDPALETTE_OFFSET");
+	OVERWORLDPATTERNTABLE_ASSIGNMENT = d.get<int>("OVERWORLDPATTERNTABLE_ASSIGNMENT");
+	OVERWORLDPATTERNTABLE_OFFSET = d.get<int>("OVERWORLDPATTERNTABLE_OFFSET");
+	TILESETPATTERNTABLE_OFFSET = d.get<int>("TILESETPATTERNTABLE_OFFSET");
+	TILESETPALETTE_ASSIGNMENT = d.get<int>("TILESETPALETTE_ASSIGNMENT");
+	TILESETPATTERNTABLE_ASSIGNMENT = d.get<int>("TILESETPATTERNTABLE_ASSIGNMENT");
+	BANK03_OFFSET = d.get<int>("BANK03_OFFSET");
 
-	if (cart->IsRom()) {
+	if (Proj2->IsRom()) {
 		// All of ROM has already been loaded by the caller, no need to reload it.
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		if (Invoker == Maps) {
 			// parent loads the needed banks
 		}
@@ -70,17 +75,18 @@ void CTileEdit::LoadRom()
 		}
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CTileEdit::SaveRom()
 {
-	if (cart->IsRom()) {
-		save_binary(cart->WorkRomPath, cart->ROM);
+	if (Proj2->IsRom()) {
+		//save_binary(cart->WorkRomPath, Proj2->ROM);
+		Proj2->SaveROM();
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		// Note that tile data spans from bank 3 through the end of bank 6.
 		if (Invoker == Maps) {
@@ -95,13 +101,16 @@ void CTileEdit::SaveRom()
 		}
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
 BOOL CTileEdit::OnInitDialog()
 {
 	CSaveableDialog::OnInitDialog();
+
+	FFH_THROW_NULL_PROJECT(Proj2, "Tile Subeditor");
+	FFH_THROW_OLD_FFHACKSTERPROJ(cart);
 
 	try {
 		if (Invoker == None) {
@@ -119,11 +128,11 @@ BOOL CTileEdit::OnInitDialog()
 
 		int co;
 		for (co = 0; co < 4; co++, offset += 0x80)
-			PicFormation[co] = cart->ROM[offset];
+			PicFormation[co] = Proj2->ROM[offset];
 
 		if (tileset) offset = TILESETPALETTE_ASSIGNMENT + ((tileset - 1) << 7) + tile;
 		else offset = OVERWORLDPALETTE_ASSIGNMENT + tile;
-		palassign = cart->ROM[offset] & 3;
+		palassign = Proj2->ROM[offset] & 3;
 
 		int co2;
 		for (co2 = 0; co2 < 2; co2++) {
@@ -157,7 +166,7 @@ BOOL CTileEdit::OnInitDialog()
 
 		if (tileset) offset = TILESETPATTERNTABLE_OFFSET + ((tileset - 1) << 11);
 		else offset = OVERWORLDPATTERNTABLE_OFFSET;
-		Draw_ROM_Buffer(cart, offset, &draw);
+		Draw_ROM_Buffer(Proj2, offset, &draw);
 
 		m_showroom.ShowWindow(tileset != 0);
 		m_small.ShowWindow(tileset != 0);
@@ -196,17 +205,17 @@ void CTileEdit::OnPaint()
 	CPen* oldpen = dc.SelectObject(&redpen);
 	
 	BYTE* thispal = &palette[m_showroom.GetCheck()][palassign << 2];
-	Draw_DrawPatternTables(&dc,&draw,cart,thispal,rcPatternTables,draw.Max,1);
-	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top,cart,&palette[m_showroom.GetCheck()][0]);
-	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top + 16,cart,&palette[m_showroom.GetCheck()][4]);
-	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top + 32,cart,&palette[m_showroom.GetCheck()][8]);
-	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top + 48,cart,&palette[m_showroom.GetCheck()][12]);
-	Draw_DrawFinger(&dc,&draw,cart);
-	Draw_DrawCloseup(&dc,&draw,cart,thispal);
-	Draw_DrawGraphic(&dc,&draw,cart,thispal,0,0);
+	Draw_DrawPatternTables(&dc,&draw, Proj2,thispal,rcPatternTables,draw.Max,1);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top, Proj2,&palette[m_showroom.GetCheck()][0]);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top + 16, Proj2,&palette[m_showroom.GetCheck()][4]);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top + 32, Proj2,&palette[m_showroom.GetCheck()][8]);
+	Draw_DrawPalette(&dc,draw.rcPalette.left,draw.rcPalette.top + 48, Proj2,&palette[m_showroom.GetCheck()][12]);
+	Draw_DrawFinger(&dc,&draw, Proj2);
+	Draw_DrawCloseup(&dc,&draw, Proj2,thispal);
+	Draw_DrawGraphic(&dc,&draw, Proj2,thispal,0,0);
 
 	CPoint pt(rcFinger.left,rcFinger.top + (palassign << 4));
-	cart->Finger.Draw(&dc,0,pt,ILD_TRANSPARENT);
+	Proj2->Finger.Draw(&dc,0,pt,ILD_TRANSPARENT);
 
 	pt.x = ((curblock & 1) << 4) + draw.rcGraphic.left;
 	pt.y = ((curblock & 2) << 3) + draw.rcGraphic.top;
@@ -294,7 +303,7 @@ void CTileEdit::OnLButtonDblClk(UINT nFlags, CPoint pt)
 	UNREFERENCED_PARAMETER(nFlags);
 	if(PtInRect(draw.rcPalette,pt)){
 		CNESPalette dlg;
-		dlg.cart = cart;
+		dlg.Proj2 = Proj2;
 		dlg.color = &palette[m_showroom.GetCheck()][(palassign << 2) + draw.curpal];
 		if(dlg.DoModal() == IDOK){
 			InvalidateRect(draw.rcPalette,0);
@@ -312,15 +321,15 @@ void CTileEdit::StoreValues()
 
 	int co;
 	for(co = 0; co < 4; co++, offset += 0x80)
-		cart->ROM[offset] = PicFormation[co];
+		Proj2->ROM[offset] = PicFormation[co];
 
 	if(tileset) offset = TILESETPALETTE_ASSIGNMENT + ((tileset - 1) << 7) + tile;
 	else offset = OVERWORLDPALETTE_ASSIGNMENT + tile;
-	cart->ROM[offset] = (palassign << 6) + (palassign << 4) + (palassign << 2) + (palassign);
+	Proj2->ROM[offset] = (palassign << 6) + (palassign << 4) + (palassign << 2) + (palassign);
 
 	if(tileset) offset = TILESETPATTERNTABLE_OFFSET + ((tileset - 1) << 11);
 	else offset = OVERWORLDPATTERNTABLE_OFFSET;
-	Draw_Buffer_ROM(cart,offset,&draw);
+	Draw_Buffer_ROM(Proj2,offset,&draw);
 	
 	int co2;
 	for(co2 = 0; co2 < 2; co2++){

@@ -10,6 +10,7 @@
 #include "resource_subeditors.h"
 #include <FFBaseDlg.h>
 class CFFHacksterProject;
+class FFH2Project;
 class ICoordMap;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -21,6 +22,7 @@ class CCoords : public CFFBaseDlg
 public:
 	CCoords(CWnd* pParent = nullptr);   // standard constructor
 
+	FFH2Project* Proj2 = nullptr;
 	CFFHacksterProject * cart = nullptr;
 	int Context;
 	int cur;

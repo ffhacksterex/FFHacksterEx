@@ -4,6 +4,7 @@
 #include <map>
 
 class CFFHacksterProject;
+class FFH2Project;
 
 enum UseDataType { Overworld = 0, StdMap = 1, SpikedSquare = 2, SpriteDialogue = 3, UseDataType_Count };
 
@@ -18,8 +19,7 @@ struct sUseData {
 };
 
 
-//TODO - what's the cost of changing CFFHacksterProject & proj to const now?
-using EnemyUsageDataFormatter = std::function<CString(CFFHacksterProject& proj, const sUseData& use)>;
+using EnemyUsageDataFormatter = std::function<CString(FFH2Project& proj, const sUseData& use)>;
 using EnemyUsageDataIncluder = std::function<bool(int keyindex, int battleindex)>;
 
 class EnemyBattleUsageData
@@ -30,6 +30,7 @@ public:
 
 public:
 	void SetProject(CFFHacksterProject& proj);
+	void SetProject(FFH2Project& proj);
 	void Clear();
 	void Reset(bool keepProbabilities = true);
 	bool UpdateUseData(int keyindex, EnemyUsageDataIncluder includer, EnemyUsageDataFormatter formatter);
@@ -50,6 +51,7 @@ private:
 	void UpdateMapSpikedSquares(int mapindex);
 
 	CFFHacksterProject* Project = nullptr;
+	FFH2Project* Proj2 = nullptr;
 
 	int BANK_SIZE = -1;
 	int MAP_COUNT = -1;

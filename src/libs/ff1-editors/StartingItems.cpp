@@ -4,17 +4,17 @@
 #include "stdafx.h"
 #include "resource_editors.h"
 #include "StartingItems.h"
-#include "afxdialogex.h"
-#include "ui_helpers.h"
-#include "GameSerializer.h"
+#include <core_exceptions.h>
 #include "AsmFiles.h"
+#include "GameSerializer.h"
 #include "general_functions.h"
-#include "FFHacksterProject.h"
+#include "imaging_helpers.h"
+#include <FFH2Project.h>
 #include "ini_functions.h"
 #include "ingame_text_functions.h"
 #include "io_functions.h"
 #include "ui_helpers.h"
-#include "imaging_helpers.h"
+#include <ValueDataAccessor.h>
 
 using namespace Ini;
 using namespace Ingametext;
@@ -78,9 +78,9 @@ BOOL CStartingItems::OnInitDialog()
 		m_consumelabelids = { IDC_STARTITEMS_STATIC_CONSUM1, IDC_STARTITEMS_STATIC_CONSUM2, IDC_STARTITEMS_STATIC_CONSUM3,
 			IDC_STARTITEMS_STATIC_CONSUM4,IDC_STARTITEMS_STATIC_CONSUM5,IDC_STARTITEMS_STATIC_CONSUM6 };
 
-		AddEntry(m_comboBridge, "Upon stepping on the bridge (normal setting)", 0);
-		AddEntry(m_comboBridge, "When overworld first displays", 1);
-		AddEntry(m_comboBridge, "Never", 0x80);
+		Ui2::AddEntry(m_comboBridge, (std::string)"Upon stepping on the bridge (normal setting)", 0);
+		Ui2::AddEntry(m_comboBridge, (std::string)"When overworld first displays", 1);
+		Ui2::AddEntry(m_comboBridge, (std::string)"Never", 0x80);
 
 		LoadValues();
 
@@ -99,71 +99,72 @@ BOOL CStartingItems::OnInitDialog()
 
 void CStartingItems::LoadOffsets()
 {
-	HASCANOE_OFFSET = ReadHex(Project->ValuesPath, "HASCANOE_OFFSET");
-	SHIPVIS_OFFSET = ReadHex(Project->ValuesPath, "SHIPVIS_OFFSET");
-	AIRSHIPVIS_OFFSET = ReadHex(Project->ValuesPath, "AIRSHIPVIS_OFFSET");
-	BRIDGEVIS_OFFSET = ReadHex(Project->ValuesPath, "BRIDGEVIS_OFFSET");
-	CANALVIS_OFFSET = ReadHex(Project->ValuesPath, "CANALVIS_OFFSET");
+	ffh::acc::ValueDataAccessor v(*Proj2);
+	HASCANOE_OFFSET = v.get<int>("HASCANOE_OFFSET");
+	SHIPVIS_OFFSET = v.get<int>("SHIPVIS_OFFSET");
+	AIRSHIPVIS_OFFSET = v.get<int>("AIRSHIPVIS_OFFSET");
+	BRIDGEVIS_OFFSET = v.get<int>("BRIDGEVIS_OFFSET");
+	CANALVIS_OFFSET = v.get<int>("CANALVIS_OFFSET");
 
-	BRIDGESCENE_OFFSET = ReadHex(Project->ValuesPath, "BRIDGESCENE_OFFSET");
-	STARTINGITEMS_OFFSET = ReadHex(Project->ValuesPath, "STARTINGITEMS_OFFSET");
-	STARTINGCONSUMABLES_OFFSET = ReadHex(Project->ValuesPath, "STARTINGCONSUMABLES_OFFSET");
+	BRIDGESCENE_OFFSET = v.get<int>("BRIDGESCENE_OFFSET");
+	STARTINGITEMS_OFFSET = v.get<int>("STARTINGITEMS_OFFSET");
+	STARTINGCONSUMABLES_OFFSET = v.get<int>("STARTINGCONSUMABLES_OFFSET");
 
-	BANK00_OFFSET = ReadHex(Project->ValuesPath, "BANK00_OFFSET");
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
+	BANK00_OFFSET = v.get<int>("BANK00_OFFSET");
+	BANK0A_OFFSET = v.get<int>("BANK0A_OFFSET");
 }
 
 void CStartingItems::LoadRom()
 {
-	Project->ClearROM();
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		ser.LoadAsmBin(BANK_00, BANK00_OFFSET);
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CStartingItems::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->SaveROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		ser.SaveAsmBin(BANK_00, BANK00_OFFSET);
 		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
 void CStartingItems::LoadValues()
 {
-	int selindex = FindIndexByData(m_comboBridge, Project->ROM[BRIDGESCENE_OFFSET]);
+	int selindex = FindIndexByData(m_comboBridge, Proj2->ROM[BRIDGESCENE_OFFSET]);
 	m_comboBridge.SetCurSel(__max(0, selindex));
 
-	SetCheckValue(m_checkHasCanoe, Project->ROM[HASCANOE_OFFSET] == 1);
-	SetCheckValue(m_checkHasShip, Project->ROM[SHIPVIS_OFFSET] == 1);
-	SetCheckValue(m_checkHasAirship, Project->ROM[AIRSHIPVIS_OFFSET] == 1);
-	SetCheckValue(m_checkHasBridge, Project->ROM[BRIDGEVIS_OFFSET] == 1);
-	SetCheckValue(m_checkHasCanal, Project->ROM[CANALVIS_OFFSET] == 1);
+	SetCheckValue(m_checkHasCanoe, Proj2->ROM[HASCANOE_OFFSET] == 1);
+	SetCheckValue(m_checkHasShip, Proj2->ROM[SHIPVIS_OFFSET] == 1);
+	SetCheckValue(m_checkHasAirship, Proj2->ROM[AIRSHIPVIS_OFFSET] == 1);
+	SetCheckValue(m_checkHasBridge, Proj2->ROM[BRIDGEVIS_OFFSET] == 1);
+	SetCheckValue(m_checkHasCanal, Proj2->ROM[CANALVIS_OFFSET] == 1);
 
 	int offset = STARTINGITEMS_OFFSET;
 	for (size_t st = 0; st < m_itemids.size(); ++st) {
 		auto id = m_itemids[st];
 		CButton* check = (CButton*)GetDlgItem(id);
 		if (check != nullptr) {
-			bool checked = Project->ROM[offset + st] > 0;
+			bool checked = Proj2->ROM[offset + st] > 0;
 			SetCheckValue(*check, checked);
 
-			CString itemname = LoadItemEntry(*Project, (int)st + 1).name.TrimRight();
+			CString itemname = LoadItemEntry(*Proj2, (int)st + 1).name.TrimRight();
 			if (!itemname.IsEmpty()) check->SetWindowText(itemname);
 		}
 	}
@@ -173,7 +174,7 @@ void CStartingItems::LoadValues()
 		auto id = m_comsumeids[st];
 		CEdit* edit = (CEdit*)GetDlgItem(id);
 		if (edit != nullptr) {
-			int value = Project->ROM[offset + st];
+			int value = Proj2->ROM[offset + st];
 			CString fmt;
 			fmt.Format("%d", value);
 			edit->SetWindowText(fmt);
@@ -183,7 +184,7 @@ void CStartingItems::LoadValues()
 		CStatic* stat = (CStatic*)GetDlgItem(labelid);
 		if (stat != nullptr) {
 			int nameindex = (offset + (int)st + 1) - STARTINGITEMS_OFFSET;
-			CString itemname = LoadItemEntry(*Project, nameindex).name.TrimRight();
+			CString itemname = LoadItemEntry(*Proj2, nameindex).name.TrimRight();
 			if (!itemname.IsEmpty()) stat->SetWindowText(itemname);
 		}
 	}
@@ -193,13 +194,13 @@ void CStartingItems::StoreValues()
 {
 	auto seldata = GetSelectedItemData(m_comboBridge);
 	if (seldata != -1)
-		Project->ROM[BRIDGESCENE_OFFSET] = (unsigned char)seldata;
+		Proj2->ROM[BRIDGESCENE_OFFSET] = (unsigned char)seldata;
 
-	Project->ROM[HASCANOE_OFFSET] = GetCheckValue(m_checkHasCanoe) ? 1 : 0;
-	Project->ROM[SHIPVIS_OFFSET] = GetCheckValue(m_checkHasShip) ? 1 : 0;
-	Project->ROM[AIRSHIPVIS_OFFSET] = GetCheckValue(m_checkHasAirship) ? 1 : 0;
-	Project->ROM[BRIDGEVIS_OFFSET] = GetCheckValue(m_checkHasBridge) ? 1 : 0;
-	Project->ROM[CANALVIS_OFFSET] = GetCheckValue(m_checkHasCanal) ? 1 : 0;
+	Proj2->ROM[HASCANOE_OFFSET] = GetCheckValue(m_checkHasCanoe) ? 1 : 0;
+	Proj2->ROM[SHIPVIS_OFFSET] = GetCheckValue(m_checkHasShip) ? 1 : 0;
+	Proj2->ROM[AIRSHIPVIS_OFFSET] = GetCheckValue(m_checkHasAirship) ? 1 : 0;
+	Proj2->ROM[BRIDGEVIS_OFFSET] = GetCheckValue(m_checkHasBridge) ? 1 : 0;
+	Proj2->ROM[CANALVIS_OFFSET] = GetCheckValue(m_checkHasCanal) ? 1 : 0;
 
 	int offset = STARTINGITEMS_OFFSET;
 	for (size_t st = 0; st < m_itemids.size(); ++st) {
@@ -207,7 +208,7 @@ void CStartingItems::StoreValues()
 		CButton* check = (CButton*)GetDlgItem(id);
 		if (check != nullptr) {
 			bool checked = GetCheckValue(*check);
-			Project->ROM[offset + st] = checked ? 1 : 0;
+			Proj2->ROM[offset + st] = checked ? 1 : 0;
 		}
 	}
 
@@ -221,7 +222,7 @@ void CStartingItems::StoreValues()
 			int value = atol(fmt);
 			if (value > 99) value = 99;
 			else if (value < 0) value = 0;
-			Project->ROM[offset + st] = (unsigned char)value;
+			Proj2->ROM[offset + st] = (unsigned char)value;
 		}
 	}
 }

@@ -6,6 +6,7 @@
 #include "Maps.h"
 #include <AppSettings.h>
 #include <collection_helpers.h>
+#include <core_exceptions.h>
 #include <editor_label_functions.h>
 #include <general_functions.h>
 #include <draw_functions.h>
@@ -20,7 +21,7 @@
 #include <AsmFiles.h>
 #include <DRAW_STRUCT.h>
 #include <EntriesLoader.h>
-#include <FFHacksterProject.h>
+#include <FFH2Project.h>
 #include <GameSerializer.h>
 
 #include "Loading.h"
@@ -34,6 +35,8 @@
 
 #include <SpriteDialogueSettings.h>
 #include "editors_common.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 using namespace Editors;
 using namespace Editorlabels;
@@ -197,50 +200,51 @@ END_MESSAGE_MAP()
 
 void CMaps::LoadOffsets()
 {
-	ITEMPRICE_OFFSET = ReadHex(cart->ValuesPath, "ITEMPRICE_OFFSET");
-	MAPSPRITEPATTERNTABLE_COUNT = ReadDec(cart->ValuesPath, "MAPSPRITEPATTERNTABLE_COUNT");
-	MAPSPRITEPATTERNTABLE_OFFSET = ReadHex(cart->ValuesPath, "MAPSPRITEPATTERNTABLE_OFFSET");
-	MAPSPRITE_PICASSIGNMENT = ReadHex(cart->ValuesPath, "MAPSPRITE_PICASSIGNMENT");
-	MAPTILESET_ASSIGNMENT = ReadHex(cart->ValuesPath, "MAPTILESET_ASSIGNMENT");
-	MAPPALETTE_OFFSET = ReadHex(cart->ValuesPath, "MAPPALETTE_OFFSET");
-	TILESETPATTERNTABLE_OFFSET = ReadHex(cart->ValuesPath, "TILESETPATTERNTABLE_OFFSET");
-	TILESETPALETTE_ASSIGNMENT = ReadHex(cart->ValuesPath, "TILESETPALETTE_ASSIGNMENT");
-	TILESETPATTERNTABLE_ASSIGNMENT = ReadHex(cart->ValuesPath, "TILESETPATTERNTABLE_ASSIGNMENT");
-	TILESET_TILEDATA = ReadHex(cart->ValuesPath, "TILESET_TILEDATA");
-	MAP_END = ReadHex(cart->ValuesPath, "MAP_END");
-	MAP_START = ReadHex(cart->ValuesPath, "MAP_START");
-	MAP_COUNT = ReadDec(cart->ValuesPath, "MAP_COUNT");
-	MAP_OFFSET = ReadHex(cart->ValuesPath, "MAP_OFFSET");
-	MAP_PTRADD = ReadHex(cart->ValuesPath, "MAP_PTRADD");
-	NNTELEPORT_COUNT = ReadDec(cart->ValuesPath, "NNTELEPORT_COUNT");
-	ONTELEPORT_COUNT = ReadDec(cart->ValuesPath, "ONTELEPORT_COUNT");
-	MAPSPRITE_COUNT = ReadDec(cart->ValuesPath, "MAPSPRITE_COUNT");
-	MAPSPRITE_OFFSET = ReadHex(cart->ValuesPath, "MAPSPRITE_OFFSET");
-	BATTLEDOMAIN_OFFSET = ReadHex(cart->ValuesPath, "BATTLEDOMAIN_OFFSET");
-	BATTLEPROBABILITY_OFFSET = ReadHex(cart->ValuesPath, "BATTLEPROBABILITY_OFFSET");
-	TREASURE_OFFSET = ReadHex(cart->ValuesPath, "TREASURE_OFFSET");
-	MAPBATTLERATE_OFFSET = ReadHex(cart->ValuesPath, "MAPBATTLERATE_OFFSET");
+	ffh::acc::ValueDataAccessor d(*Proj2);
+	ITEMPRICE_OFFSET = d.get<int>("ITEMPRICE_OFFSET");
+	MAPSPRITEPATTERNTABLE_COUNT = d.get<int>("MAPSPRITEPATTERNTABLE_COUNT");
+	MAPSPRITEPATTERNTABLE_OFFSET = d.get<int>("MAPSPRITEPATTERNTABLE_OFFSET");
+	MAPSPRITE_PICASSIGNMENT = d.get<int>("MAPSPRITE_PICASSIGNMENT");
+	MAPTILESET_ASSIGNMENT = d.get<int>("MAPTILESET_ASSIGNMENT");
+	MAPPALETTE_OFFSET = d.get<int>("MAPPALETTE_OFFSET");
+	TILESETPATTERNTABLE_OFFSET = d.get<int>("TILESETPATTERNTABLE_OFFSET");
+	TILESETPALETTE_ASSIGNMENT = d.get<int>("TILESETPALETTE_ASSIGNMENT");
+	TILESETPATTERNTABLE_ASSIGNMENT = d.get<int>("TILESETPATTERNTABLE_ASSIGNMENT");
+	TILESET_TILEDATA = d.get<int>("TILESET_TILEDATA");
+	MAP_END = d.get<int>("MAP_END");
+	MAP_START = d.get<int>("MAP_START");
+	MAP_COUNT = d.get<int>("MAP_COUNT");
+	MAP_OFFSET = d.get<int>("MAP_OFFSET");
+	MAP_PTRADD = d.get<int>("MAP_PTRADD");
+	NNTELEPORT_COUNT = d.get<int>("NNTELEPORT_COUNT");
+	ONTELEPORT_COUNT = d.get<int>("ONTELEPORT_COUNT");
+	MAPSPRITE_COUNT = d.get<int>("MAPSPRITE_COUNT");
+	MAPSPRITE_OFFSET = d.get<int>("MAPSPRITE_OFFSET");
+	BATTLEDOMAIN_OFFSET = d.get<int>("BATTLEDOMAIN_OFFSET");
+	BATTLEPROBABILITY_OFFSET = d.get<int>("BATTLEPROBABILITY_OFFSET");
+	TREASURE_OFFSET = d.get<int>("TREASURE_OFFSET");
+	MAPBATTLERATE_OFFSET = d.get<int>("MAPBATTLERATE_OFFSET");
 
-	BANK0A_OFFSET = ReadHex(cart->ValuesPath, "BANK0A_OFFSET");
-	BANK00_OFFSET = ReadHex(cart->ValuesPath, "BANK00_OFFSET");
-	BANK02_OFFSET = ReadHex(cart->ValuesPath, "BANK02_OFFSET");
-	BANK03_OFFSET = ReadHex(cart->ValuesPath, "BANK03_OFFSET");
-	BANK04_OFFSET = ReadHex(cart->ValuesPath, "BANK04_OFFSET");
-	BANK05_OFFSET = ReadHex(cart->ValuesPath, "BANK05_OFFSET");
-	BANK06_OFFSET = ReadHex(cart->ValuesPath, "BANK06_OFFSET");
-	BANK07_OFFSET = ReadHex(cart->ValuesPath, "BANK07_OFFSET");
-	BINBANK01DATA_OFFSET = ReadHex(cart->ValuesPath, "BINBANK01DATA_OFFSET");
-	BINPRICEDATA_OFFSET = ReadHex(cart->ValuesPath, "BINPRICEDATA_OFFSET");
+	BANK0A_OFFSET = d.get<int>("BANK0A_OFFSET");
+	BANK00_OFFSET = d.get<int>("BANK00_OFFSET");
+	BANK02_OFFSET = d.get<int>("BANK02_OFFSET");
+	BANK03_OFFSET = d.get<int>("BANK03_OFFSET");
+	BANK04_OFFSET = d.get<int>("BANK04_OFFSET");
+	BANK05_OFFSET = d.get<int>("BANK05_OFFSET");
+	BANK06_OFFSET = d.get<int>("BANK06_OFFSET");
+	BANK07_OFFSET = d.get<int>("BANK07_OFFSET");
+	BINBANK01DATA_OFFSET = d.get<int>("BINBANK01DATA_OFFSET");
+	BINPRICEDATA_OFFSET = d.get<int>("BINPRICEDATA_OFFSET");
 }
 
 void CMaps::LoadRom()
 {
-	cart->ClearROM();
-	if (cart->IsRom()) {
-		load_binary(cart->WorkRomPath, cart->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		// Note that tile data spans from bank 3 through the end of bank 6.
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
@@ -258,17 +262,17 @@ void CMaps::LoadRom()
 		ser.LoadInline(ASM_0F, { { asmlabel, "lut_FormationWeight", { BATTLEPROBABILITY_OFFSET } } });
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CMaps::SaveRom()
 {
-	if (cart->IsRom()) {
-		save_binary(cart->WorkRomPath, cart->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->SaveROM();
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		// Note that tile data spans from bank 3 through the end of bank 6.
 		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
@@ -286,17 +290,19 @@ void CMaps::SaveRom()
 		ser.SaveInline(ASM_0F, { { asmlabel, "lut_FormationWeight", { BATTLEPROBABILITY_OFFSET } } });
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
 BOOL CMaps::OnInitDialog()
 {
-	cart = Project;
+	Proj2 = Proj2;
 	CEditorWithBackground::OnInitDialog();
 
+	FFH_THROW_NULL_PROJECT(Proj2, "Standard Maps Editor");//TODO - specify editor name in ctor and let base class use it
+
 	try {
-		if (cart == nullptr) throw std::runtime_error("no project was specified for this editor");
+		if (Proj2 == nullptr) throw std::runtime_error("no project was specified for this editor");
 		if (Enloader == nullptr) throw std::runtime_error("No entry loader was specified for this editor");
 
 		this->LoadOffsets();
@@ -309,7 +315,7 @@ BOOL CMaps::OnInitDialog()
 
 		coords_dlg.Context = Coords;
 		coords_dlg.STparent = this;
-		coords_dlg.cart = cart;
+		coords_dlg.Proj2= Proj2;
 		coords_dlg.Create(IDD_COORDS, this);
 		coords_dlg.IsOV = 0;
 		coords_dlg.Boot();
@@ -347,28 +353,28 @@ BOOL CMaps::OnInitDialog()
 		rcPalettes2.SetRect(0, 0, 128, 32);
 		rcPalettes2.OffsetRect(rcPalettes.left, rcPalettes.bottom);
 
-		LoadCombo(m_tcitem_list, Enloader->LoadTreasureItemEntries(*cart, true));
+		LoadCombo(m_tcitem_list, Enloader->LoadTreasureItemEntries(*Proj2, true));
 
-		LoadListBox(m_maplist, LoadMapLabels(*cart));
+		LoadListBox(m_maplist, Labels2::LoadMapLabels(*Proj2));
 		for (auto wnd : { &m_battle1, &m_battle2, &m_battle3,&m_battle4,&m_battle5,&m_battle6,&m_battle7,&m_battle8 })
-			LoadCombo(*wnd, LoadBattleLabels(*cart));
+			LoadCombo(*wnd, Labels2::LoadBattleLabels(*Proj2));
 
-		CSpriteDialogueSettings dlgstgs(*cart);
-		LoadCombo(m_text_list, (dlgstgs.ShowActualText ? LoadGameTextEntries : LoadTextLabels)(*cart, true));
+		CSpriteDialogueSettings dlgstgs(*Proj2);
+		LoadCombo(m_text_list, (dlgstgs.ShowActualText ? LoadGameTextEntries(*Proj2, true) : Labels2::LoadTextLabels(*Proj2, true)));
 
-		LoadCombo(m_tileset, LoadTilesetLabels(*cart));
-		LoadCombo(m_fight_list, LoadBattleLabels(*cart));
+		LoadCombo(m_tileset, Labels2::LoadTilesetLabels(*Proj2));
+		LoadCombo(m_fight_list, Labels2::LoadBattleLabels(*Proj2));
 		m_fight_list.InsertString(0, "--Random Encounters--");
 
-		LoadCombo(m_shop_list, LoadShopLabels(*cart));
-		LoadCombo(m_tc_list, LoadTreasureLabels(*cart));
-		LoadCombo(m_special_list, LoadSpecialTileLabels(*cart));
-		LoadCombo(m_teleport_list, LoadNNTeleportLabels(*cart) + LoadNOTeleportLabels(*cart));
-		LoadCombo(m_sprite_list, LoadOnScreenSpriteLabels(*cart));
-		LoadCombo(m_spritegraphic, LoadSpriteGraphicLabels(*cart));
-		LoadCombo(m_sprite, LoadSpriteLabels(*cart, true));
+		LoadCombo(m_shop_list, Labels2::LoadShopLabels(*Proj2));
+		LoadCombo(m_tc_list, Labels2::LoadTreasureLabels(*Proj2));
+		LoadCombo(m_special_list, Labels2::LoadSpecialTileLabels(*Proj2));
+		LoadCombo(m_teleport_list, Labels2::LoadNNTeleportLabels(*Proj2) + Labels2::LoadNOTeleportLabels(*Proj2));
+		LoadCombo(m_sprite_list, Labels2::LoadOnScreenSpriteLabels(*Proj2));
+		LoadCombo(m_spritegraphic, Labels2::LoadSpriteGraphicLabels(*Proj2));
+		LoadCombo(m_sprite, Labels2::LoadSpriteLabels(*Proj2, true));
 
-		m_showlastclick.SetCheck(cart->ShowLastClick);
+		m_showlastclick.SetCheck(Proj2->session.showLastClick);
 
 		cur_tc = -1;
 		cur_tcitem = -1;
@@ -384,9 +390,9 @@ BOOL CMaps::OnInitDialog()
 		init_popout_map_window();
 
 		if (BootToTeleportFollowup) {
-			m_maplist.SetCurSel(cart->TeleportFollowup[cart->curFollowup][0]);
-			ptLastClick.x = cart->TeleportFollowup[cart->curFollowup][1];
-			ptLastClick.y = cart->TeleportFollowup[cart->curFollowup][2];
+			m_maplist.SetCurSel(Proj2->TeleportFollowup[Proj2->curFollowup][0]);
+			ptLastClick.x = Proj2->TeleportFollowup[Proj2->curFollowup][1];
+			ptLastClick.y = Proj2->TeleportFollowup[Proj2->curFollowup][2];
 			OnHScroll(5, ptLastClick.x - 8, &m_hscroll);
 			OnVScroll(5, ptLastClick.y - 8, &m_vscroll);
 		}
@@ -449,12 +455,12 @@ void CMaps::ReloadSprites(CProgressCtrl* m_prog)
 
 	for(co = 0; co < MAPSPRITEPATTERNTABLE_COUNT; co++){
 		offset = MAPSPRITEPATTERNTABLE_OFFSET + (co << 8);
-		DrawTile(&mDC,0,0,cart,offset     ,SpritePalette[0]);
-		DrawTile(&mDC,8,0,cart,offset + 16,SpritePalette[0]);
-		DrawTile(&mDC,0,8,cart,offset + 32,SpritePalette[1]);
-		DrawTile(&mDC,8,8,cart,offset + 48,SpritePalette[1]);
+		DrawTile(&mDC,0,0,Proj2,offset     ,SpritePalette[0]);
+		DrawTile(&mDC,8,0,Proj2,offset + 16,SpritePalette[0]);
+		DrawTile(&mDC,0,8,Proj2,offset + 32,SpritePalette[1]);
+		DrawTile(&mDC,8,8,Proj2,offset + 48,SpritePalette[1]);
 		mDC.SelectObject(&dummy);
-		m_sprites.Add(&bmp,cart->Palette[0][0x40]);
+		m_sprites.Add(&bmp,Proj2->palette[0][0x40]);
 		mDC.SelectObject(&bmp);
 		m_prog->OffsetPos(1);
 	}
@@ -466,9 +472,9 @@ void CMaps::ReloadSprites(CProgressCtrl* m_prog)
 
 void CMaps::ReloadImages(CProgressCtrl* m_prog)
 {
-	if(!cart->OK_tiles[cur_map]){
-		cart->GetStandardTiles(cur_map,false).Create(16, 16, ILC_COLOR16, 64, 0);
-		cart->GetStandardTiles(cur_map,true).Create(16, 16, ILC_COLOR16, 64, 0);
+	if(!Proj2->OK_tiles[cur_map]){
+		Proj2->GetStandardTiles(cur_map,false).Create(16, 16, ILC_COLOR16, 64, 0);
+		Proj2->GetStandardTiles(cur_map,true).Create(16, 16, ILC_COLOR16, 64, 0);
 		CPaintDC dc(this);
 		CDC mDC; mDC.CreateCompatibleDC(&dc);
 		CBitmap bmp; bmp.CreateCompatibleBitmap(&dc,16,16);
@@ -479,19 +485,20 @@ void CMaps::ReloadImages(CProgressCtrl* m_prog)
 		int co;
 		int pal;
 		int temp = (cur_tileset << 11) + TILESETPATTERNTABLE_OFFSET;
+		const auto& tints = Proj2->session.tintTiles;
 
 		for(int showrm = 0; showrm < 2; showrm++){
 		for(co = 0; co < 128; co++){
-				pal = cart->ROM[TILESETPALETTE_ASSIGNMENT + co + (cur_tileset << 7)] & 3;
+				pal = Proj2->ROM[TILESETPALETTE_ASSIGNMENT + co + (cur_tileset << 7)] & 3;
 				offset = TILESETPATTERNTABLE_ASSIGNMENT + co + (cur_tileset << 9);
 
-				DrawTile(&mDC,0,0,cart,temp + (cart->ROM[offset] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
-				DrawTile(&mDC,8,0,cart,temp + (cart->ROM[offset + 128] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
-				DrawTile(&mDC,0,8,cart,temp + (cart->ROM[offset + 256] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
-				DrawTile(&mDC,8,8,cart,temp + (cart->ROM[offset + 384] << 4),MapPalette[showrm][pal],cart->TintTiles[cur_tileset + 1][co]);
+				DrawTile(&mDC,0,0,Proj2,temp + (Proj2->ROM[offset] << 4),MapPalette[showrm][pal],tints[cur_tileset + 1][co]);
+				DrawTile(&mDC,8,0,Proj2,temp + (Proj2->ROM[offset + 128] << 4),MapPalette[showrm][pal],tints[cur_tileset + 1][co]);
+				DrawTile(&mDC,0,8,Proj2,temp + (Proj2->ROM[offset + 256] << 4),MapPalette[showrm][pal],tints[cur_tileset + 1][co]);
+				DrawTile(&mDC,8,8,Proj2,temp + (Proj2->ROM[offset + 384] << 4),MapPalette[showrm][pal],tints[cur_tileset + 1][co]);
 
 				mDC.SelectObject(&dummy);
-				cart->GetStandardTiles(cur_map,showrm).Add(&bmp,RGB(255,1,255));
+				Proj2->GetStandardTiles(cur_map,showrm).Add(&bmp,RGB(255,1,255));
 				mDC.SelectObject(&bmp);
 				m_prog->OffsetPos(1);
 			}}
@@ -499,7 +506,7 @@ void CMaps::ReloadImages(CProgressCtrl* m_prog)
 		mDC.DeleteDC();
 		bmp.DeleteObject();
 		dummy.DeleteObject();
-		cart->OK_tiles[cur_map] = 1;
+		Proj2->OK_tiles[cur_map] = 1;
 	}
 	else m_prog->OffsetPos(256);
 }
@@ -507,20 +514,20 @@ void CMaps::ReloadImages(CProgressCtrl* m_prog)
 void CMaps::LoadValues()
 {
 	//load the tileset
-	cur_tileset = cart->ROM[MAPTILESET_ASSIGNMENT + cur_map];
+	cur_tileset = Proj2->ROM[MAPTILESET_ASSIGNMENT + cur_map];
 	m_tileset.SetCurSel(cur_tileset);
 
 	//load the palettes
 	int offset = MAPPALETTE_OFFSET + (cur_map * 0x30) + 0x10;
 	int co;
-	for(co = 0; co < 8; co++, offset++) ControlPalette[co] = cart->ROM[offset];
-	for(co = 0; co < 8; co++, offset++) SpritePalette[0][co] = cart->ROM[offset];
+	for(co = 0; co < 8; co++, offset++) ControlPalette[co] = Proj2->ROM[offset];
+	for(co = 0; co < 8; co++, offset++) SpritePalette[0][co] = Proj2->ROM[offset];
 	SpritePalette[0][0] = 0x40; SpritePalette[1][0] = 0x40;
 	offset -= 0x20;
 	for(co = 0; co < 0x20; co++, offset++){
 		if(co == 0x10) offset += 0x10;
 		if((co & 3) == 0) MapPalette[0][0][co] = ControlPalette[0];
-		else MapPalette[0][0][co] = cart->ROM[offset];}
+		else MapPalette[0][0][co] = Proj2->ROM[offset];}
 
 	CLoading dlg; dlg.Create(IDD_LOADING,this);
 	dlg.m_progress.SetRange(0,286);
@@ -533,35 +540,35 @@ void CMaps::LoadValues()
 	dlg.ShowWindow(0);
 
 	BYTE temp;
-	Maps::DecompressMap(*Project, cur_map, MAP_OFFSET, MAP_PTRADD, DecompressedMap);
+	Maps::DecompressMap(*Proj2, cur_map, MAP_OFFSET, MAP_PTRADD, DecompressedMap);
 
 	//load the 16 sprites
 	offset = MAPSPRITE_OFFSET + (cur_map * 0x30);
 	for(auto coX = 0; coX < MAPSPRITE_COUNT; offset += 3, coX++){
-		Sprite_Value[coX] = cart->ROM[offset];
-		temp = cart->ROM[offset + 1];
+		Sprite_Value[coX] = Proj2->ROM[offset];
+		temp = Proj2->ROM[offset + 1];
 		Sprite_Coords[coX].x = temp & 0x3F;
 		Sprite_InRoom[coX] = (temp & 0x80) != 0;
 		Sprite_StandStill[coX] = (temp & 0x40) != 0;
-		Sprite_Coords[coX].y = cart->ROM[offset + 2];}
+		Sprite_Coords[coX].y = Proj2->ROM[offset + 2];}
 
 	OnSelchangeSpriteList();
 
 	//load the battle formations (from domain data).
 	offset = BATTLEDOMAIN_OFFSET + 0x200 + (cur_map << 3);
-	m_battle1.SetCurSel(cart->ROM[offset] & 0x7F); m_formation1.SetCheck(cart->ROM[offset] & 0x80); offset += 1;
-	m_battle2.SetCurSel(cart->ROM[offset] & 0x7F); m_formation2.SetCheck(cart->ROM[offset] & 0x80); offset += 1;
-	m_battle3.SetCurSel(cart->ROM[offset] & 0x7F); m_formation3.SetCheck(cart->ROM[offset] & 0x80); offset += 1;
-	m_battle4.SetCurSel(cart->ROM[offset] & 0x7F); m_formation4.SetCheck(cart->ROM[offset] & 0x80); offset += 1;
-	m_battle5.SetCurSel(cart->ROM[offset] & 0x7F); m_formation5.SetCheck(cart->ROM[offset] & 0x80); offset += 1;
-	m_battle6.SetCurSel(cart->ROM[offset] & 0x7F); m_formation6.SetCheck(cart->ROM[offset] & 0x80); offset += 1;
-	m_battle7.SetCurSel(cart->ROM[offset] & 0x7F); m_formation7.SetCheck(cart->ROM[offset] & 0x80); offset += 1;
-	m_battle8.SetCurSel(cart->ROM[offset] & 0x7F); m_formation8.SetCheck(cart->ROM[offset] & 0x80);
+	m_battle1.SetCurSel(Proj2->ROM[offset] & 0x7F); m_formation1.SetCheck(Proj2->ROM[offset] & 0x80); offset += 1;
+	m_battle2.SetCurSel(Proj2->ROM[offset] & 0x7F); m_formation2.SetCheck(Proj2->ROM[offset] & 0x80); offset += 1;
+	m_battle3.SetCurSel(Proj2->ROM[offset] & 0x7F); m_formation3.SetCheck(Proj2->ROM[offset] & 0x80); offset += 1;
+	m_battle4.SetCurSel(Proj2->ROM[offset] & 0x7F); m_formation4.SetCheck(Proj2->ROM[offset] & 0x80); offset += 1;
+	m_battle5.SetCurSel(Proj2->ROM[offset] & 0x7F); m_formation5.SetCheck(Proj2->ROM[offset] & 0x80); offset += 1;
+	m_battle6.SetCurSel(Proj2->ROM[offset] & 0x7F); m_formation6.SetCheck(Proj2->ROM[offset] & 0x80); offset += 1;
+	m_battle7.SetCurSel(Proj2->ROM[offset] & 0x7F); m_formation7.SetCheck(Proj2->ROM[offset] & 0x80); offset += 1;
+	m_battle8.SetCurSel(Proj2->ROM[offset] & 0x7F); m_formation8.SetCheck(Proj2->ROM[offset] & 0x80);
 
 	offset = BATTLEPROBABILITY_OFFSET;
 	int buffer[8] = {0,0,0,0,0,0,0,0};
 	for(co = 0; co < 64; co++)
-		buffer[cart->ROM[offset + co]] += 1;
+		buffer[Proj2->ROM[offset + co]] += 1;
 	CString text;
 	CEdit* m_edit[8] = {&m_probability1,&m_probability2,&m_probability3,&m_probability4,
 		&m_probability5,&m_probability6,&m_probability7,&m_probability8};
@@ -570,7 +577,7 @@ void CMaps::LoadValues()
 		m_edit[co]->SetWindowText(text);}
 
 	offset = MAPBATTLERATE_OFFSET + cur_map + 1; // skip first entry (overworld)
-	Ui::SetControlInt(m_encounterrateedit, (int)Project->ROM[offset]);
+	Ui::SetControlInt(m_encounterrateedit, (int)Proj2->ROM[offset]);
 
 	//load tile data
 	if(BootToTeleportFollowup){
@@ -584,8 +591,8 @@ void CMaps::LoadValues()
 void CMaps::LoadTileData()
 {
 	int offset = TILESET_TILEDATA + (cur_tileset << 8) + (cur_tile << 1);
-	BYTE temp = cart->ROM[offset];
-	BYTE byte2 = cart->ROM[offset + 1];
+	BYTE temp = Proj2->ROM[offset];
+	BYTE byte2 = Proj2->ROM[offset + 1];
 
 	m_teleport_list.SetCurSel(byte2);
 	m_text_list.SetCurSel(byte2);
@@ -646,43 +653,43 @@ void CMaps::StoreValues()
 	StoreTileData();
 
 	//store the tileset
-	cart->ROM[MAPTILESET_ASSIGNMENT + cur_map] = (BYTE)cur_tileset;
+	Proj2->ROM[MAPTILESET_ASSIGNMENT + cur_map] = (BYTE)cur_tileset;
 
 	//store the palettes
 	int offset = MAPPALETTE_OFFSET + (cur_map * 0x30) + 0x10;
 	int co;
-	for (co = 0; co < 8; co++, offset++) cart->ROM[offset] = ControlPalette[co];
-	for (co = 0; co < 8; co++, offset++) cart->ROM[offset] = SpritePalette[0][co];
-	cart->ROM[offset - 8] = 0x0F; cart->ROM[offset - 4] = 0x0F;
+	for (co = 0; co < 8; co++, offset++) Proj2->ROM[offset] = ControlPalette[co];
+	for (co = 0; co < 8; co++, offset++) Proj2->ROM[offset] = SpritePalette[0][co];
+	Proj2->ROM[offset - 8] = 0x0F; Proj2->ROM[offset - 4] = 0x0F;
 	offset -= 0x20;
 	for (co = 0; co < 0x20; co++, offset++) {
 		if (co == 0x10) offset += 0x10;
-		cart->ROM[offset] = MapPalette[0][0][co];
+		Proj2->ROM[offset] = MapPalette[0][0][co];
 	}
 
 	//store the 16 sprites
 	offset = MAPSPRITE_OFFSET + (cur_map * 0x30);
 	BYTE temp = 0;
 	for (co = 0; co < MAPSPRITE_COUNT; offset += 3, co++) {
-		cart->ROM[offset] = (BYTE)Sprite_Value[co];
+		Proj2->ROM[offset] = (BYTE)Sprite_Value[co];
 		temp = (BYTE)Sprite_Coords[co].x;
 		if (Sprite_InRoom[co]) temp |= 0x80;
 		if (Sprite_StandStill[co]) temp |= 0x40;
-		cart->ROM[offset + 1] = temp;
-		cart->ROM[offset + 2] = (BYTE)Sprite_Coords[co].y;
+		Proj2->ROM[offset + 1] = temp;
+		Proj2->ROM[offset + 2] = (BYTE)Sprite_Coords[co].y;
 	}
 
 	//store the domains
 	int ref = BATTLEDOMAIN_OFFSET + 0x200 + (cur_map << 3);
 
-	cart->ROM[ref] = (BYTE)(m_battle1.GetCurSel() + (m_formation1.GetCheck() << 7));
-	cart->ROM[ref + 1] = (BYTE)(m_battle2.GetCurSel() + (m_formation2.GetCheck() << 7));
-	cart->ROM[ref + 2] = (BYTE)(m_battle3.GetCurSel() + (m_formation3.GetCheck() << 7));
-	cart->ROM[ref + 3] = (BYTE)(m_battle4.GetCurSel() + (m_formation4.GetCheck() << 7));
-	cart->ROM[ref + 4] = (BYTE)(m_battle5.GetCurSel() + (m_formation5.GetCheck() << 7));
-	cart->ROM[ref + 5] = (BYTE)(m_battle6.GetCurSel() + (m_formation6.GetCheck() << 7));
-	cart->ROM[ref + 6] = (BYTE)(m_battle7.GetCurSel() + (m_formation7.GetCheck() << 7));
-	cart->ROM[ref + 7] = (BYTE)(m_battle8.GetCurSel() + (m_formation8.GetCheck() << 7));
+	Proj2->ROM[ref] = (BYTE)(m_battle1.GetCurSel() + (m_formation1.GetCheck() << 7));
+	Proj2->ROM[ref + 1] = (BYTE)(m_battle2.GetCurSel() + (m_formation2.GetCheck() << 7));
+	Proj2->ROM[ref + 2] = (BYTE)(m_battle3.GetCurSel() + (m_formation3.GetCheck() << 7));
+	Proj2->ROM[ref + 3] = (BYTE)(m_battle4.GetCurSel() + (m_formation4.GetCheck() << 7));
+	Proj2->ROM[ref + 4] = (BYTE)(m_battle5.GetCurSel() + (m_formation5.GetCheck() << 7));
+	Proj2->ROM[ref + 5] = (BYTE)(m_battle6.GetCurSel() + (m_formation6.GetCheck() << 7));
+	Proj2->ROM[ref + 6] = (BYTE)(m_battle7.GetCurSel() + (m_formation7.GetCheck() << 7));
+	Proj2->ROM[ref + 7] = (BYTE)(m_battle8.GetCurSel() + (m_formation8.GetCheck() << 7));
 
 	int hold[8] = { 0,0,0,0,0,0,0,0 };
 	CString text;
@@ -701,14 +708,14 @@ void CMaps::StoreValues()
 	int bigco;
 	for (bigco = 0; bigco < 8; bigco++) {
 		for (co = 0; co < hold[bigco] && ref < max; co++, ref++)
-			cart->ROM[ref] = (BYTE)bigco;
+			Proj2->ROM[ref] = (BYTE)bigco;
 	}
 
 	for (;ref < max; ref++)
-		cart->ROM[ref] = 0;
+		Proj2->ROM[ref] = 0;
 
 	offset = MAPBATTLERATE_OFFSET + cur_map + 1; // skip first entry (overworld)
-	Project->ROM[offset] = (unsigned char)(Ui::GetControlInt(m_encounterrateedit) & 0xFF);
+	Proj2->ROM[offset] = (unsigned char)(Ui::GetControlInt(m_encounterrateedit) & 0xFF);
 
 	OnFindkab();
 	if (kab < 0)
@@ -756,8 +763,8 @@ void CMaps::StoreTileData()
 			temp |= 0x40;
 			byte2 -= NNTELEPORT_COUNT;}}
 
-	cart->ROM[offset] = temp;
-	cart->ROM[offset + 1] = (BYTE)byte2;
+	Proj2->ROM[offset] = temp;
+	Proj2->ROM[offset + 1] = (BYTE)byte2;
 }
 
 void CMaps::OnPaint()
@@ -834,10 +841,10 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 		if (!(tile & 0x03)) tile = 0;
 
 		CNESPalette dlg;
-		dlg.cart = cart;
+		dlg.Proj2 = Proj2;
 		int temp = MAPPALETTE_OFFSET + (cur_map * 0x30) + tile;
 		if (!tile) temp += 0x18;
-		dlg.color = &cart->ROM[temp];
+		dlg.color = &Proj2->ROM[temp];
 		if (dlg.DoModal() == IDOK) {
 			MapPalette[pt.y >= 0x10][0][pt.x] = *dlg.color;
 			if (!tile) {
@@ -860,8 +867,8 @@ void CMaps::OnLButtonDown(UINT nFlags, CPoint pt)
 		else tile += 8;
 
 		CNESPalette dlg;
-		dlg.cart = cart;
-		dlg.color = &cart->ROM[MAPPALETTE_OFFSET + (cur_map * 0x30) + tile + 0x10];
+		dlg.Proj2 = Proj2;
+		dlg.color = &Proj2->ROM[MAPPALETTE_OFFSET + (cur_map * 0x30) + tile + 0x10];
 		if (dlg.DoModal() == IDOK) {
 			if (tile < 8) ControlPalette[tile] = *dlg.color;
 			else SpritePalette[0][tile - 8] = *dlg.color;
@@ -894,16 +901,16 @@ void CMaps::OnLButtonDblClk(UINT nFlags, CPoint pt)
 	if (PtInRect(rcTiles, pt)) {
 		CTileEdit dlg;
 		dlg.Invoker = CTileEdit::Maps;
-		dlg.cart = cart;
+		dlg.Proj2 = Proj2;
 		dlg.tileset = (BYTE)(cur_tileset + 1);
 		dlg.tile = (BYTE)cur_tile;
 		dlg.pal[0] = MapPalette[0][0];
 		dlg.pal[1] = MapPalette[1][0];
 		OnSave();
 		if (dlg.DoModal() == IDOK) {
-			cart->OK_tiles[cur_map] = 0;
-			cart->GetStandardTiles(cur_map, 0).DeleteImageList();
-			cart->GetStandardTiles(cur_map, 1).DeleteImageList();
+			Proj2->OK_tiles[cur_map] = 0;
+			Proj2->GetStandardTiles(cur_map, 0).DeleteImageList();
+			Proj2->GetStandardTiles(cur_map, 1).DeleteImageList();
 			CLoading load; load.Create(IDD_LOADING, this);
 			load.m_progress.SetRange(0, 124);
 			load.m_progress.SetPos(0);
@@ -948,20 +955,20 @@ void CMaps::OnRButtonDblClk(UINT nFlags, CPoint pt)
 		pt.y = (pt.y - rcTiles.top) & 0xF0;
 		ref = pt.x + pt.y;}
 	if(ref != -1){
-		int old = cart->TintTiles[cur_tileset + 1][ref];
+		int old = Proj2->session.tintTiles[cur_tileset + 1][ref];
 		CTint dlg;
 		dlg.tintvalue = old;
-		dlg.m_tintvariant = cart->TintVariant;
+		dlg.m_tintvariant = Proj2->session.tintVariant;
 		if (dlg.DoModal() == IDOK) {
 
-			cart->OK_tiles[cur_map] = 0;
-			cart->GetStandardTiles(cur_map, 0).DeleteImageList();
-			cart->GetStandardTiles(cur_map, 1).DeleteImageList();
+			Proj2->OK_tiles[cur_map] = 0;
+			Proj2->GetStandardTiles(cur_map, 0).DeleteImageList();
+			Proj2->GetStandardTiles(cur_map, 1).DeleteImageList();
 
-			cart->TintTiles[cur_tileset + 1][ref] = (BYTE)dlg.tintvalue;
-			if (cart->TintVariant != dlg.m_tintvariant) {
-				cart->TintVariant = (BYTE)dlg.m_tintvariant;
-				cart->ReTintPalette();
+			Proj2->session.tintTiles[cur_tileset + 1][ref] = (BYTE)dlg.tintvalue;
+			if (Proj2->session.tintVariant != dlg.m_tintvariant) {
+				Proj2->session.tintVariant = (BYTE)dlg.m_tintvariant;
+				Proj2->ReTintPalette();
 			}
 
 			CLoading dlgmaps;
@@ -1002,9 +1009,9 @@ void CMaps::UpdatePics()
 	dlg.m_progress.SetPos(0);
 	dlg.ShowWindow(1);
 
-	cart->OK_tiles[cur_map] = 0;
-	cart->GetStandardTiles(cur_map,0).DeleteImageList();
-	cart->GetStandardTiles(cur_map,1).DeleteImageList();
+	Proj2->OK_tiles[cur_map] = 0;
+	Proj2->GetStandardTiles(cur_map,0).DeleteImageList();
+	Proj2->GetStandardTiles(cur_map,1).DeleteImageList();
 
 	ReloadImages(&dlg.m_progress);
 	ReloadSprites(&dlg.m_progress);
@@ -1086,12 +1093,12 @@ void CMaps::OnSelchangeTcitemList()
 void CMaps::StoreTC()
 {
 	StoreTCItem();
-	cart->ROM[TREASURE_OFFSET + cur_tc] = (BYTE)(cur_tcitem + 1);
+	Proj2->ROM[TREASURE_OFFSET + cur_tc] = (BYTE)(cur_tcitem + 1);
 }
 
 void CMaps::LoadTC()
 {
-	cur_tcitem = cart->ROM[TREASURE_OFFSET + cur_tc] - 1;
+	cur_tcitem = Proj2->ROM[TREASURE_OFFSET + cur_tc] - 1;
 	m_tcitem_list.SetCurSel(cur_tcitem);
 	LoadTCItem();
 }
@@ -1102,14 +1109,14 @@ void CMaps::StoreTCItem()
 	int temp;
 	CString text; m_tcitem_price.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFFFF) temp = 0xFFFF;
-	cart->ROM[offset] = temp & 0xFF;
-	cart->ROM[offset + 1] = (BYTE)(temp >> 8);
+	Proj2->ROM[offset] = temp & 0xFF;
+	Proj2->ROM[offset + 1] = (BYTE)(temp >> 8);
 }
 
 void CMaps::LoadTCItem()
 {
 	int offset = ITEMPRICE_OFFSET + (cur_tcitem << 1);
-	CString text; text.Format("%d",cart->ROM[offset] + (cart->ROM[offset + 1] << 8));
+	CString text; text.Format("%d",Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8));
 	m_tcitem_price.SetWindowText(text);
 }
 
@@ -1122,9 +1129,9 @@ void CMaps::OnSelchangeTileset()
 	dlg.m_progress.SetPos(0);
 	dlg.ShowWindow(1);
 
-	cart->OK_tiles[cur_map] = 0;
-	cart->GetStandardTiles(cur_map,0).DeleteImageList();
-	cart->GetStandardTiles(cur_map,1).DeleteImageList();
+	Proj2->OK_tiles[cur_map] = 0;
+	Proj2->GetStandardTiles(cur_map,0).DeleteImageList();
+	Proj2->GetStandardTiles(cur_map,1).DeleteImageList();
 
 	ReloadImages(&dlg.m_progress);
 	ReloadSprites(&dlg.m_progress);
@@ -1145,14 +1152,14 @@ void CMaps::OnSelchangeSpriteList()
 	text.Format("%X",Sprite_Coords[temp].y);
 	m_spritecoordy.SetWindowText(text);
 	m_sprite.SetCurSel(Sprite_Value[temp]);
-	m_spritegraphic.SetCurSel(cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[temp]]);
+	m_spritegraphic.SetCurSel(Proj2->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[temp]]);
 }
 
 void CMaps::OnEditspritegfx()
 {
 	OnSave();
 	CMapman dlg;
-	dlg.cart = cart;
+	dlg.Proj2 = Proj2;
 	dlg.graphicoffset = MAPSPRITEPATTERNTABLE_OFFSET + (m_spritegraphic.GetCurSel() << 8);
 	dlg.paletteoffset = MAPPALETTE_OFFSET + (cur_map * 0x30) + 0x18;
 	dlg.DoModal();
@@ -1188,13 +1195,13 @@ void CMaps::OnChangeSpritecoordy()
 void CMaps::OnSelchangeSprite()
 {
 	Sprite_Value[m_sprite_list.GetCurSel()] = (short)m_sprite.GetCurSel();
-	m_spritegraphic.SetCurSel(cart->ROM[MAPSPRITE_PICASSIGNMENT + m_sprite.GetCurSel()]);
+	m_spritegraphic.SetCurSel(Proj2->ROM[MAPSPRITE_PICASSIGNMENT + m_sprite.GetCurSel()]);
 	invalidate_maps();
 }
 
 void CMaps::OnSelchangeSpritegraphic()
 {
-	cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[m_sprite_list.GetCurSel()]] = (BYTE)m_spritegraphic.GetCurSel();
+	Proj2->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[m_sprite_list.GetCurSel()]] = (BYTE)m_spritegraphic.GetCurSel();
 	invalidate_maps();
 }
 
@@ -1215,7 +1222,7 @@ CPoint CMaps::fix_map_point(CPoint point)
 
 void CMaps::OnShowlastclick()
 {
-	cart->ShowLastClick = (m_showlastclick.GetCheck() != 0);
+	Proj2->session.showLastClick = (m_showlastclick.GetCheck() != 0);
 	invalidate_maps();
 }
 
@@ -1242,8 +1249,8 @@ int CMaps::GetByteCount(int map,bool compressed)
 	if(compressed)
 	{
 		temp = MAP_OFFSET + (map << 1);
-		co = MAP_PTRADD + cart->ROM[temp] + (cart->ROM[temp + 1] << 8);
-		for(;cart->ROM[co] != 0xFF; co++, count++);
+		co = MAP_PTRADD + Proj2->ROM[temp] + (Proj2->ROM[temp + 1] << 8);
+		for(;Proj2->ROM[co] != 0xFF; co++, count++);
 	}
 	else
 	{
@@ -1278,22 +1285,22 @@ void CMaps::CompressMap()
 	//shift maps accordingly
 	int mapptr = MAP_OFFSET + (cur_map << 1);
 	int mapptrend = MAP_OFFSET + (MAP_COUNT << 1);
-	int mapstart = cart->ROM[mapptr] + (cart->ROM[mapptr + 1] << 8) + MAP_PTRADD;
+	int mapstart = Proj2->ROM[mapptr] + (Proj2->ROM[mapptr + 1] << 8) + MAP_PTRADD;
 	int co, temp;
 	if(shift > 0){
 		for(co = MAP_END - 1; co >= mapstart; co--)
-			cart->ROM[co] = cart->ROM[co - shift];}
+			Proj2->ROM[co] = Proj2->ROM[co - shift];}
 	if(shift < 0){
 		for(co = mapstart; co < MAP_END; co++)
-			cart->ROM[co] = cart->ROM[co - shift];}
+			Proj2->ROM[co] = Proj2->ROM[co - shift];}
 
 	//shift pointers
 	if(shift != 0){
 		for(mapptr += 2; mapptr < mapptrend; mapptr += 2){
-			temp = cart->ROM[mapptr] + (cart->ROM[mapptr + 1] << 8);
+			temp = Proj2->ROM[mapptr] + (Proj2->ROM[mapptr + 1] << 8);
 			temp += shift;
-			cart->ROM[mapptr] = temp & 0xFF;
-			cart->ROM[mapptr + 1] = (BYTE)(temp >> 8);}
+			Proj2->ROM[mapptr] = temp & 0xFF;
+			Proj2->ROM[mapptr + 1] = (BYTE)(temp >> 8);}
 	}
 
 	//compress and insert the new map
@@ -1307,61 +1314,61 @@ void CMaps::CompressMap()
 		else{ co++; RunLength = 1;}
 
 		if(RunLength == 1){
-			cart->ROM[mapstart] = (BYTE)ThisRun;
+			Proj2->ROM[mapstart] = (BYTE)ThisRun;
 			mapstart += 1;}
 		else if(RunLength == 255){
-			cart->ROM[mapstart] = (BYTE)ThisRun;
-			cart->ROM[mapstart + 1] = (BYTE)(ThisRun | 0x80);
-			cart->ROM[mapstart + 2] = 254;
+			Proj2->ROM[mapstart] = (BYTE)ThisRun;
+			Proj2->ROM[mapstart + 1] = (BYTE)(ThisRun | 0x80);
+			Proj2->ROM[mapstart + 2] = 254;
 			mapstart += 3;}
 		else{
-			cart->ROM[mapstart] = (BYTE)(ThisRun | 0x80);
-			cart->ROM[mapstart + 1] = (BYTE)RunLength;
-			if(RunLength == 256) cart->ROM[mapstart + 1] = 0;
+			Proj2->ROM[mapstart] = (BYTE)(ThisRun | 0x80);
+			Proj2->ROM[mapstart + 1] = (BYTE)RunLength;
+			if(RunLength == 256) Proj2->ROM[mapstart + 1] = 0;
 			mapstart += 2;}
 	}
-	cart->ROM[mapstart] = 0xFF;
+	Proj2->ROM[mapstart] = 0xFF;
 }
 
 void CMaps::OnEditSpriteLabel()
 {
 	int temp = m_sprite.GetCurSel();
-	ChangeLabel(*cart, -1, LoadSpriteLabel(*cart, temp), WriteSpriteLabel, temp, nullptr, &m_sprite);
+	//ChangeLabel(*Proj2, -1, LoadSpriteLabel(*Proj2, temp), WriteSpriteLabel, temp, nullptr, &m_sprite); //TODO  -implement
 }
 
 void CMaps::OnEditgfxlabel()
 {
 	int temp = m_spritegraphic.GetCurSel();
-	ChangeLabel(*cart, -1, LoadSpriteGraphicLabel(*cart, temp), WriteSpriteGraphicLabel, temp, nullptr, &m_spritegraphic);
+	//ChangeLabel(*Proj2, -1, LoadSpriteGraphicLabel(*Proj2, temp), WriteSpriteGraphicLabel, temp, nullptr, &m_spritegraphic);
 }
 
 void CMaps::OnMaplabel()
 {
 	int themap = m_maplist.GetCurSel();
-	ChangeLabel(*cart, -1, LoadMapLabel(*cart, themap), WriteMapLabel, themap, &m_maplist, nullptr);
+	//ChangeLabel(*Proj2, -1, LoadMapLabel(*Proj2, themap), WriteMapLabel, themap, &m_maplist, nullptr); //TODO - implement
 
 	int temp = coords_dlg.m_coord_l.GetCurSel();
 	coords_dlg.m_coord_l.DeleteString(themap);
-	coords_dlg.m_coord_l.InsertString(themap, LoadMapLabel(*cart, themap).name);
+	coords_dlg.m_coord_l.InsertString(themap, Labels2::LoadMapLabel(*Proj2, themap).name);
 	coords_dlg.m_coord_l.SetCurSel(temp);
 }
 
 void CMaps::OnEditlabel()
 {
 	int temp = m_tc_list.GetCurSel();
-	ChangeLabel(*cart, -1, LoadTreasureLabel(*cart, temp), WriteTreasureLabel, temp, nullptr, &m_tc_list);
+	//ChangeLabel(*Proj2, -1, LoadTreasureLabel(*Proj2, temp), WriteTreasureLabel, temp, nullptr, &m_tc_list); //TODO - implement
 }
 
 void CMaps::OnTilesetlabel()
 {
 	int temp = m_tileset.GetCurSel();
-	ChangeLabel(*cart, -1, LoadTilesetLabel(*cart, temp), WriteTilesetLabel, temp, nullptr, &m_tileset);
+	//ChangeLabel(*Proj2, -1, LoadTilesetLabel(*Proj2, temp), WriteTilesetLabel, temp, nullptr, &m_tileset);
 }
 
 void CMaps::OnMapExport()
 {
-	CString text = LoadMapLabel(*cart, cur_map).name + " Map." + CString(FFH_MAP_EXT);
-	CString filename = Paths::Combine({ FOLDERPREF(Project->AppSettings, PrefMapImportExportFolder), text });
+	CString text = Labels2::LoadMapLabel(*Proj2, cur_map).name + " Map." + CString(FFH_MAP_EXT);
+	CString filename = Paths::Combine({ FOLDERPREF(Proj2->AppSettings, PrefMapImportExportFolder), text });
 	auto result = Ui::SaveFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Export Standard Map", filename);
 	if (!result) return;
 
@@ -1376,7 +1383,7 @@ void CMaps::OnMapExport()
 void CMaps::OnMapImport()
 {
 	auto result = OpenFilePromptExt(this, FFH_MAP_FILTER, FFH_MAP_EXT, "Import Standard Map",
-		FOLDERPREF(Project->AppSettings, PrefMapImportExportFolder));
+		FOLDERPREF(Proj2->AppSettings, PrefMapImportExportFolder));
 	if (!result) return;
 
 	FILE* file = fopen(result.value, "r+b");
@@ -1398,11 +1405,11 @@ void CMaps::UpdateTeleportLabel(int arid, bool NNTele)
 	int temp = m_teleport_list.GetCurSel();
 	if (NNTele) {
 		m_teleport_list.DeleteString(arid);
-		m_teleport_list.InsertString(arid, LoadNNTeleportLabel(*cart, arid).name);
+		m_teleport_list.InsertString(arid, Labels2::LoadNNTeleportLabel(*Proj2, arid).name);
 	}
 	else {
 		m_teleport_list.DeleteString(arid + NNTELEPORT_COUNT);
-		m_teleport_list.InsertString(arid + NNTELEPORT_COUNT, LoadNOTeleportLabel(*cart, arid).name);
+		m_teleport_list.InsertString(arid + NNTELEPORT_COUNT, Labels2::LoadNOTeleportLabel(*Proj2, arid).name);
 	}
 	m_teleport_list.SetCurSel(temp);
 }
@@ -1487,7 +1494,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 			//flood fill
 			for (coY = rcToolRect.top; coY <= rcToolRect.bottom; coY++) {
 				for (coX = rcToolRect.left; coX <= rcToolRect.right; coX++)
-					DecompressedMap[coY][coX] = cart->SmartTools[temp][4];
+					DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][4];
 			}
 			//"smart" top edge
 			coY = rcToolRect.top;
@@ -1495,10 +1502,10 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 				draw = 1;
 				if (coY) {
 					for (co = 0; co < 6 && draw; co++) {
-						if (DecompressedMap[coY - 1][coX] == cart->SmartTools[temp][co]) draw = 0;
+						if (DecompressedMap[coY - 1][coX] == Proj2->session.smartTools[temp][co]) draw = 0;
 					}
 				}
-				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][1];
+				if (draw) DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][1];
 			}
 			//"smart" bottom edge
 			coY = rcToolRect.bottom;
@@ -1506,10 +1513,10 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 				draw = 1;
 				if (coY < 255) {
 					for (co = 3; co < 9 && draw; co++) {
-						if (DecompressedMap[coY + 1][coX] == cart->SmartTools[temp][co]) draw = 0;
+						if (DecompressedMap[coY + 1][coX] == Proj2->session.smartTools[temp][co]) draw = 0;
 					}
 				}
-				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][7];
+				if (draw) DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][7];
 			}
 			//"smart" left edge
 			coX = rcToolRect.left;
@@ -1518,10 +1525,10 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 				if (coX) {
 					for (co = 0; co < 8 && draw; co++) {
 						if (co % 3 == 2) co++;
-						if (DecompressedMap[coY][coX - 1] == cart->SmartTools[temp][co]) draw = 0;
+						if (DecompressedMap[coY][coX - 1] == Proj2->session.smartTools[temp][co]) draw = 0;
 					}
 				}
-				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][3];
+				if (draw) DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][3];
 			}
 			//"smart" right edge
 			coX = rcToolRect.right;
@@ -1530,10 +1537,10 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 				if (coX < 255) {
 					for (co = 1; co < 9 && draw; co++) {
 						if (co % 3 == 0) co++;
-						if (DecompressedMap[coY][coX + 1] == cart->SmartTools[temp][co]) draw = 0;
+						if (DecompressedMap[coY][coX + 1] == Proj2->session.smartTools[temp][co]) draw = 0;
 					}
 				}
-				if (draw) DecompressedMap[coY][coX] = cart->SmartTools[temp][5];
+				if (draw) DecompressedMap[coY][coX] = Proj2->session.smartTools[temp][5];
 			}
 			//"smart" NW corner
 			co = 0;
@@ -1542,7 +1549,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 				coY = DecompressedMap[rcToolRect.top][rcToolRect.left - 1];
 				for (coX = 0; draw && coX < 8; coX++) {
 					if (coX % 3 == 2) coX++;
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) co = 1;
@@ -1550,14 +1557,14 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 			if (rcToolRect.top) {
 				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.left];
 				for (coX = 0; draw && coX < 6; coX++) {
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) {
 				if (co == 1) co = 4;
 				else co = 3;
 			}
-			DecompressedMap[rcToolRect.top][rcToolRect.left] = cart->SmartTools[temp][co];
+			DecompressedMap[rcToolRect.top][rcToolRect.left] = Proj2->session.smartTools[temp][co];
 			//"smart" SW corner
 			co = 6;
 			draw = 1;
@@ -1565,7 +1572,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.left - 1];
 				for (coX = 0; draw && coX < 8; coX++) {
 					if (coX % 3 == 2) coX++;
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) co = 7;
@@ -1573,14 +1580,14 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 			if (rcToolRect.bottom < 255) {
 				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.left];
 				for (coX = 3; draw && coX < 9; coX++) {
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) {
 				if (co == 7) co = 4;
 				else co = 3;
 			}
-			DecompressedMap[rcToolRect.bottom][rcToolRect.left] = cart->SmartTools[temp][co];
+			DecompressedMap[rcToolRect.bottom][rcToolRect.left] = Proj2->session.smartTools[temp][co];
 			//"smart" NE corner
 			co = 2;
 			draw = 1;
@@ -1588,7 +1595,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 				coY = DecompressedMap[rcToolRect.top][rcToolRect.right + 1];
 				for (coX = 1; draw && coX < 9; coX++) {
 					if (coX % 3 == 0) coX++;
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) co = 1;
@@ -1596,14 +1603,14 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 			if (rcToolRect.top) {
 				coY = DecompressedMap[rcToolRect.top - 1][rcToolRect.right];
 				for (coX = 0; draw && coX < 6; coX++) {
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) {
 				if (co == 1) co = 4;
 				else co = 5;
 			}
-			DecompressedMap[rcToolRect.top][rcToolRect.right] = cart->SmartTools[temp][co];
+			DecompressedMap[rcToolRect.top][rcToolRect.right] = Proj2->session.smartTools[temp][co];
 			//"smart" SE corner
 			co = 8;
 			draw = 1;
@@ -1611,7 +1618,7 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 				coY = DecompressedMap[rcToolRect.bottom][rcToolRect.right + 1];
 				for (coX = 1; draw && coX < 9; coX++) {
 					if (coX % 3 == 0) coX++;
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) co = 7;
@@ -1619,14 +1626,14 @@ void CMaps::HandleLButtonUp(UINT nFlags, CPoint point)
 			if (rcToolRect.bottom < 255) {
 				coY = DecompressedMap[rcToolRect.bottom + 1][rcToolRect.right];
 				for (coX = 3; draw && coX < 9; coX++) {
-					if (coY == cart->SmartTools[temp][coX]) draw = 0;
+					if (coY == Proj2->session.smartTools[temp][coX]) draw = 0;
 				}
 			}
 			if (!draw) {
 				if (co == 7) co = 4;
 				else co = 5;
 			}
-			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = cart->SmartTools[temp][co];
+			DecompressedMap[rcToolRect.bottom][rcToolRect.right] = Proj2->session.smartTools[temp][co];
 
 			invalidate_maps();
 		}break;
@@ -1755,8 +1762,8 @@ void CMaps::HandleMapExport()
 bool CMaps::HandleCustomizeTool()
 {
 	CCustomTool dlg;
-	dlg.dat = cart;
-	dlg.m_tiles = &cart->GetStandardTiles(cur_map, m_showrooms.GetCheck());
+	dlg.Proj2 = Proj2;
+	dlg.m_tiles = &Proj2->GetStandardTiles(cur_map, m_showrooms.GetCheck());
 	dlg.tool = cur_tool - 2 + (cur_tileset << 1);
 	auto result = dlg.DoModal();
 	return result == IDOK;
@@ -1799,20 +1806,20 @@ void CMaps::DoSelchangeMaplist()
 
 void CMaps::ApplyTileTint(int ref)
 {
-	int old = cart->TintTiles[cur_tileset + 1][ref];
+	int old = Proj2->session.tintTiles[cur_tileset + 1][ref];
 	CTint dlg;
 	dlg.tintvalue = old;
-	dlg.m_tintvariant = cart->TintVariant;
+	dlg.m_tintvariant = Proj2->session.tintVariant;
 	if (dlg.DoModal() == IDOK) {
 
-		cart->OK_tiles[cur_map] = 0;
-		cart->GetStandardTiles(cur_map, 0).DeleteImageList();
-		cart->GetStandardTiles(cur_map, 1).DeleteImageList();
+		Proj2->OK_tiles[cur_map] = 0;
+		Proj2->GetStandardTiles(cur_map, 0).DeleteImageList();
+		Proj2->GetStandardTiles(cur_map, 1).DeleteImageList();
 
-		cart->TintTiles[cur_tileset + 1][ref] = (BYTE)dlg.tintvalue;
-		if (cart->TintVariant != dlg.m_tintvariant) {
-			cart->TintVariant = (BYTE)dlg.m_tintvariant;
-			cart->ReTintPalette();
+		Proj2->session.tintTiles[cur_tileset + 1][ref] = (BYTE)dlg.tintvalue;
+		if (Proj2->session.tintVariant != dlg.m_tintvariant) {
+			Proj2->session.tintVariant = (BYTE)dlg.m_tintvariant;
+			Proj2->ReTintPalette();
 		}
 
 		CLoading dlgmaps;
@@ -2014,7 +2021,7 @@ void CMaps::handle_paint(CDC& dc)
 	//Draw the Source Tiles on the screen (8 rows of 16 tiles)
 	for(coY = 0, tile = 0, pt.y = rcTiles.top; coY < 0x08; coY++, pt.y += 16){
 	for(coX = 0, pt.x = rcTiles.left; coX < 0x10; coX++, pt.x += 16, tile++)
-			cart->GetStandardTiles(cur_map,room).Draw(&dc,tile,pt,ILD_NORMAL);}
+			Proj2->GetStandardTiles(cur_map,room).Draw(&dc,tile,pt,ILD_NORMAL);}
 	pt.x = ((cur_tile & 0x0F) << 4) + rcTiles.left;
 	pt.y = (cur_tile & 0xF0) + rcTiles.top;
 	dc.MoveTo(pt); pt.x += 15;
@@ -2058,19 +2065,19 @@ void CMaps::handle_paint(CDC& dc)
 	for(coY = 0; coY < 2; coY++,rc.top += 16, rc.bottom += 16){
 		rc.left = rcPalettes.left; rc.right = rc.left + 16;
 		for(coX = 0; coX < 16; coX++, rc.left += 16, rc.right += 16){
-			br.CreateSolidBrush(cart->Palette[0][MapPalette[coY][0][coX]]);
+			br.CreateSolidBrush(Proj2->palette[0][MapPalette[coY][0][coX]]);
 			dc.FillRect(rc,&br);
 			br.DeleteObject();}}
 	rc = rcPalettes2; rc.right = rc.left + 16; rc.bottom = rc.top + 16;
 	for(coX = 0; coX < 8; coX++, rc.left += 16, rc.right += 16){
 		if(!(coX & 3)) continue;
-		br.CreateSolidBrush(cart->Palette[0][SpritePalette[0][coX]]);
+		br.CreateSolidBrush(Proj2->palette[0][SpritePalette[0][coX]]);
 		dc.FillRect(rc,&br);
 		br.DeleteObject();}
 	rc = rcPalettes2; rc.right = rc.left + 16; rc.bottom = rc.top + 16;
 	rc.top += 16; rc.bottom += 16;
 	for(coX = 0; coX < 8; coX++, rc.left += 16, rc.right += 16){
-		br.CreateSolidBrush(cart->Palette[0][ControlPalette[coX]]);
+		br.CreateSolidBrush(Proj2->palette[0][ControlPalette[coX]]);
 		dc.FillRect(rc,&br);
 		br.DeleteObject();}
 
@@ -2113,7 +2120,7 @@ void CMaps::paint_map_elements(CDC& dc, CRect displayrect, CPoint scrolloff, CSi
 	for (coY = 0, pt.y = displayarea.top; coY < gridvis.cy; coY++, pt.y += tiledims.cy, copt.y += 1) {
 		for (coX = 0, pt.x = displayarea.left, copt.x = gridanchor.x; coX < gridvis.cx; coX++, pt.x += tiledims.cx, copt.x += 1) {
 			if (!(mousedown && cur_tool && PtInRect(rcTemp, copt))) {
-				cart->GetStandardTiles(cur_map, room).Draw(&dc, DecompressedMap[copt.y][copt.x], pt, ILD_NORMAL);
+				Proj2->GetStandardTiles(cur_map, room).Draw(&dc, DecompressedMap[copt.y][copt.x], pt, ILD_NORMAL);
 			}
 		}
 	}
@@ -2130,7 +2137,10 @@ void CMaps::paint_map_elements(CDC& dc, CRect displayrect, CPoint scrolloff, CSi
 			for (; coY < copt.y; coY++) {
 				for (coX = tile; coX < copt.x; coX++) {
 					pt.x = displayarea.left + (coX << 4); pt.y = displayarea.top + (coY << 4);
-					cart->m_overworldtiles.Draw(&dc, cur_tile, pt, ILD_NORMAL);
+					Proj2->m_overworldtiles.Draw(&dc, cur_tile, pt, ILD_NORMAL); //TODO - this is a bug, use standard tiles instead
+					//	add an issue to address this so it can be checked in testing
+					//	it should do the following instead of using the overworld tiles:
+					//Proj2->GetStandardTiles(cur_map, room).Draw(&dc, cur_tile, pt, ILD_NORMAL);
 				}
 			}
 		}break;
@@ -2157,10 +2167,10 @@ void CMaps::paint_map_elements(CDC& dc, CRect displayrect, CPoint scrolloff, CSi
 		pt.y = ((Sprite_Coords[coX].y - gridanchor.y) * tiledims.cy) + displayarea.top;
 		if(!PtInRect(displayarea, pt)) continue;
 
-		m_sprites.Draw(&dc,cart->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[coX]],pt,ILD_TRANSPARENT);
+		m_sprites.Draw(&dc,Proj2->ROM[MAPSPRITE_PICASSIGNMENT + Sprite_Value[coX]],pt,ILD_TRANSPARENT);
 	}
 
-	if (cart->ShowLastClick) {
+	if (Proj2->session.showLastClick) {
 		// Draw the rect with our pen if it's in the display rect.
 		pt.x = ((ptLastClick.x - gridanchor.x) * tiledims.cx) + displayarea.left;
 		pt.y = ((ptLastClick.y - gridanchor.y) * tiledims.cy) + displayarea.top;

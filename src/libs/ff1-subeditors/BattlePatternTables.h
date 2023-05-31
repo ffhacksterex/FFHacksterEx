@@ -11,6 +11,7 @@
 #include "resource_subeditors.h"
 #include "DRAW_STRUCT.h"
 class CFFHacksterProject;
+class FFH2Project;
 
 /////////////////////////////////////////////////////////////////////////////
 // CBattlePatternTables dialog
@@ -22,6 +23,7 @@ public:
 	CBattlePatternTables(CWnd* pParent = nullptr);   // standard constructor
 
 	CFFHacksterProject* cart = nullptr;
+	FFH2Project* Proj2 = nullptr;
 	BYTE palette[16];
 	BYTE patterntable;
 	BYTE view;

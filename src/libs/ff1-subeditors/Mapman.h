@@ -11,6 +11,7 @@
 #include "DRAW_STRUCT.h"
 #include "resource_subeditors.h"
 class CFFHacksterProject;
+class FFH2Project;
 
 /////////////////////////////////////////////////////////////////////////////
 // CMapman dialog
@@ -22,6 +23,7 @@ public:
 	CMapman(CWnd* pParent = nullptr);   // standard constructor
 
 	CFFHacksterProject* cart = nullptr;
+	FFH2Project* Proj2 = nullptr;
 	bool InMemory = false;
 	int graphicoffset;
 	int paletteoffset;

@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "EnemyEditorSettingsDlg.h"
 #include "afxdialogex.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "EnemyEditorSettings.h"
 #include "ui_helpers.h"
 
@@ -44,12 +44,7 @@ BOOL CEnemyEditorSettingsDlg::OnInitDialog()
 {
 	CFFBaseDlg::OnInitDialog();
 
-	if (Project == nullptr) {
-		EndDialog(IDABORT);
-		return TRUE;
-	}
-
-	CEnemyEditorSettings stgs(*Project);
+	CEnemyEditorSettings stgs(*Proj2);
 	SetCheckValue(m_checkEnemyByte15hex, stgs.Byte15AsFlags);
 	m_editByte15name.SetWindowText(stgs.Byte15Name);
 	SetCheckValue(m_viewusage, stgs.ViewUsage);
@@ -69,7 +64,7 @@ void CEnemyEditorSettingsDlg::OnOK()
 		return;
 	}
 
-	CEnemyEditorSettings stgs(*Project);
+	CEnemyEditorSettings stgs(*Proj2);
 	stgs.Byte15AsFlags = GetCheckValue(m_checkEnemyByte15hex);
 	stgs.Byte15Name = enemiesByte15Name;
 	stgs.ViewUsage = GetCheckValue(m_viewusage);

@@ -10,7 +10,7 @@
 #include <SaveableDialog.h>
 #include "DRAW_STRUCT.h"
 #include <vector>
-class CFFHacksterProject;
+class FFH2Project;
 
 /////////////////////////////////////////////////////////////////////////////
 // CBackdrop dialog
@@ -25,9 +25,8 @@ public:
 
 	bool NeedsRefresh() const;
 
-	CFFHacksterProject* Project;
+	FFH2Project* Proj2 = nullptr;
 	BYTE backdrop;
-
 	BYTE bitmap[0x400];
 	BYTE palette[4];
 	DRAW_STRUCT draw;

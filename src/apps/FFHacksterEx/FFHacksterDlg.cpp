@@ -18,7 +18,6 @@
 #include <io_functions.h>
 #include <LoadLibraryHandleScope.h>
 #include <ram_value_functions.h>
-#include <string_conversions.hpp>
 #include <string_functions.h>
 #include <ui_helpers.h>
 #include <ui_prompts.h>
@@ -65,6 +64,8 @@
 #include <MapsOrig.h>
 #include <OverworldMapOrig.h>
 
+using ffh::str::tomfc; //REMOVE - scope these names below
+using ffh::str::tostd;
 
 using namespace Imaging;
 using namespace Io;
@@ -267,12 +268,12 @@ void CFFHacksterDlg::EditEnemies(CString action, CString params)
 	try {
 		if (action == "edit") {
 			CEnemy dlg;
-			dlg.Project = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 		else if (action == "rclick") {
 			CEnemyEditorSettingsDlg dlg;
-			dlg.Project = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 	}
@@ -288,13 +289,13 @@ void CFFHacksterDlg::EditMagic(CString action, CString params)
 {
 	try {
 		if (action == "edit") {
-			CMagic dlg(this);;
-			dlg.Project = &m_proj;
+			CMagic dlg(this);
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 		else if (action == "rclick") {
 			CMagicEditorSettingsDlg dlg(this);
-			dlg.m_proj = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 	}
@@ -332,14 +333,14 @@ void CFFHacksterDlg::EditSpriteDialogue(CString action, CString params)
 {
 	try {
 		if (action == "edit") {
-			CSpriteDialogue2 dlg(m_proj, this);
-			dlg.Project = &m_proj;
+			CSpriteDialogue2 dlg(this);
+			dlg.Proj2 = &m_prj2;
 			dlg.Enloader = &m_loader;
 			dlg.DoModal();
 		}
 		else if (action == "rclick") {
 			CSpriteDialogueSettingsDlg dlg(this);
-			dlg.m_proj = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 	}
@@ -807,7 +808,7 @@ bool CFFHacksterDlg::WantsToReload() const
 
 namespace {
 	template <class ODLG, class NDLG>
-	void RunMapScreenLoop(CWnd & parent, CFFHacksterProject & proj, ODLG& dlg, NDLG& ndlg, bool OV)
+	void RunMapScreenLoop(CWnd & parent, FFH2Project & proj, ODLG& dlg, NDLG& ndlg, bool OV)
 	{
 		bool teleport = 0;
 		bool loop = true;
@@ -817,7 +818,7 @@ namespace {
 			if (OV) {
 				dlg.BootToTeleportFollowup = teleport;
 				if (dlg.DoModal() == IDOK) {
-					proj.SaveSharedSettings();
+					//proj.SaveSharedSettings(); //TODO - this is now Proj2->session, currently always saves
 					teleport = dlg.BootToTeleportFollowup;
 					if (teleport) {
 						OV = false;
@@ -828,7 +829,7 @@ namespace {
 			else {
 				ndlg.BootToTeleportFollowup = teleport;
 				if (ndlg.DoModal() == IDOK) {
-					proj.SaveSharedSettings();
+					//proj.SaveSharedSettings(); //TODO - this is now Proj2->session, currently always saves
 					teleport = ndlg.BootToTeleportFollowup;
 					if (teleport) {
 						OV = true;
@@ -844,52 +845,23 @@ namespace {
 void CFFHacksterDlg::GoToMapScreen(bool OV)
 {
 	COverworldMapOrig dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	CMapsOrig ndlg;
-	ndlg.Project = &m_proj;
+	ndlg.Proj2 = &m_prj2;
 	ndlg.Enloader = &m_loader;
 
-	RunMapScreenLoop(*this, m_proj, dlg, ndlg, OV);
+	RunMapScreenLoop(*this, m_prj2, dlg, ndlg, OV);
 }
 
 void CFFHacksterDlg::GoToNewMapScreen(bool OV)
 {
 	COverworldMap dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	CMaps ndlg;
-	ndlg.Project = &m_proj;
+	ndlg.Proj2 = &m_prj2;
 	ndlg.Enloader = &m_loader;
 
-	RunMapScreenLoop(*this, m_proj, dlg, ndlg, OV);
-	//bool teleport = 0;
-	//bool loop = true;
-	//do {
-	//	// Don't loop unless there's a cross-editor teleport
-	//	loop = false;
-	//	if (OV) {
-	//		dlg.BootToTeleportFollowup = teleport;
-	//		if (dlg.DoModal() == IDOK) {
-	//			m_proj.SaveSharedSettings();
-	//			teleport = dlg.BootToTeleportFollowup;
-	//			if (teleport) {
-	//				OV = false;
-	//				loop = true;
-	//			}
-	//		}
-	//	}
-	//	else {
-	//		ndlg.BootToTeleportFollowup = teleport;
-	//		if (ndlg.DoModal() == IDOK) {
-	//			m_proj.SaveSharedSettings();
-	//			teleport = ndlg.BootToTeleportFollowup;
-	//			if (teleport) {
-	//				OV = true;
-	//				loop = true;
-	//			}
-	//		}
-	//	}
-	//} while (loop);
-	//this->BringWindowToTop();
+	RunMapScreenLoop(*this, m_prj2, dlg, ndlg, OV);
 }
 
 void CFFHacksterDlg::OnArmor() 
@@ -909,7 +881,7 @@ void CFFHacksterDlg::OnAttack()
 void CFFHacksterDlg::OnBattle()
 {
 	CBattle dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
@@ -931,7 +903,7 @@ void CFFHacksterDlg::OnMagic()
 void CFFHacksterDlg::OnShop()
 {
 	CShop dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.Enloader = &m_loader;
 	dlg.DoModal();
 }
@@ -939,7 +911,7 @@ void CFFHacksterDlg::OnShop()
 void CFFHacksterDlg::OnText()
 {
 	CText dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	if (dlg.DoModal() == IDOK) {
 		m_proj.SaveSharedSettings();
 	}
@@ -948,7 +920,7 @@ void CFFHacksterDlg::OnText()
 void CFFHacksterDlg::OnWeapon() 
 {
 	CWeapon dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
@@ -960,7 +932,7 @@ void CFFHacksterDlg::OnDialogue()
 void CFFHacksterDlg::OnStartingItems()
 {
 	CStartingItems dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
@@ -987,14 +959,14 @@ void CFFHacksterDlg::OnLocalMap()
 void CFFHacksterDlg::OnPartySetup()
 {
 	CPartySetup dlg;
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
 void CFFHacksterDlg::OnImportHacksterDAT()
 {
 	CDlgImport dlg(this);
-	dlg.Project = &m_proj;
+	dlg.Proj2 = &m_prj2;
 	dlg.DoModal();
 }
 
@@ -1195,6 +1167,8 @@ LRESULT CFFHacksterDlg::OnFfeditRclick(WPARAM wparam, LPARAM lparam)
 
 void CFFHacksterDlg::EditProjectLabels()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	Paths::FilePathRestorer fprestore(m_proj.StringsPath);
 	ASSERT(fprestore.CanSave());
 
@@ -1206,6 +1180,8 @@ void CFFHacksterDlg::EditProjectLabels()
 
 void CFFHacksterDlg::EditProjectValues()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	Paths::FilePathRestorer fprestore(m_proj.ValuesPath);
 	ASSERT(fprestore.CanSave());
 
@@ -1220,6 +1196,8 @@ void CFFHacksterDlg::EditProjectValues()
 
 void CFFHacksterDlg::EditProjectRamValues()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	Paths::FilePathRestorer fprestore(m_proj.ValuesPath);
 	ASSERT(fprestore.CanSave());
 
@@ -1253,6 +1231,8 @@ void CFFHacksterDlg::EditAppSettings()
 
 void CFFHacksterDlg::EditProjectSettings()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	CDlgProjectSettings dlg(this);
 	dlg.m_proj = &m_proj;
 	dlg.ShowBackgroundArt = AppStgs->ShowBackgroundArt;
@@ -1263,6 +1243,8 @@ void CFFHacksterDlg::EditProjectSettings()
 
 void CFFHacksterDlg::EditProjectEditorsList()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	//N.B. - if an exception is thrown here, catching it renders the CDialog unresponsive AND leaks memory
 	//		when the object is destroyed. Not sure why the derived-class destructors aren't being called
 	//		yet, but that's the apparent reason. Exceptions in these diallogs will currently terminate
@@ -1287,6 +1269,8 @@ void CFFHacksterDlg::EditProjectEditorsList()
 
 void CFFHacksterDlg::OnCloneProject()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	CDlgPickNamedDestination pick(this);
 	pick.Title = "Clone Project";
 	pick.Blurb = "Select a parent folder to host the cloned project folder.\n"
@@ -1318,6 +1302,8 @@ void CFFHacksterDlg::OnCloneProject()
 
 void CFFHacksterDlg::OnArchiveProject()
 {
+	FFH_SWITCH_TO_FFH2;
+
 	if (!m_proj.IsAsm() && !m_proj.IsRom()) {
 		AfxMessageBox("The project type does not support archiving.", MB_ICONERROR);
 		return;

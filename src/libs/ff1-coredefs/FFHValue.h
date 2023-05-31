@@ -2,8 +2,9 @@
 
 #include <string>
 
-struct FFHDataValue {
-	std::string name; // unserialized
+struct FFHValue
+{
+	std::string name;
 	std::string type;
 	std::string format;
 	std::string data;
