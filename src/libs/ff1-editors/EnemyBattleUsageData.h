@@ -19,9 +19,7 @@ struct sUseData {
 };
 
 
-//TODO - what's the cost of changing CFFHacksterProject & proj to const now?
-using EnemyUsageDataFormatter = std::function<CString(CFFHacksterProject& proj, const sUseData& use)>;
-using EnemyUsageDataFormatter2 = std::function<CString(FFH2Project& proj, const sUseData& use)>;
+using EnemyUsageDataFormatter = std::function<CString(FFH2Project& proj, const sUseData& use)>;
 using EnemyUsageDataIncluder = std::function<bool(int keyindex, int battleindex)>;
 
 class EnemyBattleUsageData
@@ -36,7 +34,6 @@ public:
 	void Clear();
 	void Reset(bool keepProbabilities = true);
 	bool UpdateUseData(int keyindex, EnemyUsageDataIncluder includer, EnemyUsageDataFormatter formatter);
-	bool UpdateUseData(int keyindex, EnemyUsageDataIncluder includer, EnemyUsageDataFormatter2 formatter);
 
 	void UpdateTileset(int tilesetindex);
 	void UpdateMapSpikedSquaresForTileset(int tilesetindex);

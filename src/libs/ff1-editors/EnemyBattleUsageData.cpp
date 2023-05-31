@@ -86,12 +86,6 @@ void EnemyBattleUsageData::Reset(bool keepProbabilities)
 
 bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder includer, EnemyUsageDataFormatter formatter)
 {
-	FFH_SWITCH_TO_FFH2;
-	return false;
-}
-
-bool EnemyBattleUsageData::UpdateUseData(int keyindex, EnemyUsageDataIncluder includer, EnemyUsageDataFormatter2 formatter)
-{
 	if (Proj2 == nullptr) {
 		ErrorHere << "Can't generate use data without a project." << std::endl;
 		throw std::runtime_error("Can't generate use data without a project.");

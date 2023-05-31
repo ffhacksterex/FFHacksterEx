@@ -268,12 +268,12 @@ void CFFHacksterDlg::EditEnemies(CString action, CString params)
 	try {
 		if (action == "edit") {
 			CEnemy dlg;
-			dlg.Project = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 		else if (action == "rclick") {
 			CEnemyEditorSettingsDlg dlg;
-			dlg.Project = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 	}
