@@ -2,7 +2,6 @@
 
 #include <EditorWithBackground.h>
 #include <vector>
-class CFFHacksterProject;
 
 // CStartingItems dialog
 
