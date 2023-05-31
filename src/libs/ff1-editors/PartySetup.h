@@ -1,7 +1,6 @@
 #pragma once
 
 #include <EditorWithBackground.h>
-class CFFHacksterProject;
 
 // CPartySetup dialog
 
