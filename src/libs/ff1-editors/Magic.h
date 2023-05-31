@@ -4,7 +4,6 @@
 #include <EditorWithBackground.h>
 #include <vector>
 #include "afxlinkctrl.h"
-class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
 // CMagic dialog

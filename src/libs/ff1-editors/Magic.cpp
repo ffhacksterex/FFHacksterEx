@@ -5,11 +5,12 @@
 #include "Magic.h"
 #include "AsmFiles.h"
 #include "collection_helpers.h"
+#include <core_exceptions.h>
 #include "DRAW_STRUCT.h"
 #include "draw_functions.h"
 #include "editor_label_functions.h"
 #include "editor_label_defaults.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "GameSerializer.h"
 #include "general_functions.h"
 #include "imaging_helpers.h"
@@ -19,6 +20,7 @@
 #include "path_functions.h"
 #include "string_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
 #include "DlgPasteTargets.h"
 #include "MagicEditorSettings.h"
 #include "MagicEditorSettingsDlg.h"
@@ -209,14 +211,14 @@ BOOL CMagic::OnInitDialog()
 		}
 
 		m_graphics.Create(32, 32, ILC_COLOR16, 1, 0);
-		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, LoadElementLabels(*Project));
+		LoadCaptions(std::vector<CWnd*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 }, Labels2::LoadElementLabels(*Proj2));
 		LoadCustomizedControls();
-		LoadListBox(m_magiclist, LoadMagicEntries(*Project) + LoadPotionEntries(*Project));
-		LoadCombo(m_battlemessage, LoadBattleMessageEntries(*Project));
+		LoadListBox(m_magiclist, LoadMagicEntries(*Proj2) + LoadPotionEntries(*Proj2));
+		LoadCombo(m_battlemessage, LoadBattleMessageEntries(*Proj2));
 
 		// Load out-of-battle data and controls
-		if (Project->IsRom()) {
-			LoadCombo(m_outbattlelist, LoadOutOfBattleMagicEntries(*Project));
+		if (Proj2->IsRom()) {
+			LoadCombo(m_outbattlelist, LoadOutOfBattleMagicEntries(*Proj2));
 			m_oobmagicoffsets = { MG_CURE, MG_CUR2, MG_CUR3, MG_CUR4, MG_HEAL, MG_HEL3, MG_HEL2, MG_PURE, MG_LIFE, MG_LIF2, MG_WARP, MG_SOFT, MG_EXIT };
 			ASSERT(m_oobmagicoffsets.size() == (size_t)OOBMAGIC_COUNT);
 
@@ -240,8 +242,8 @@ BOOL CMagic::OnInitDialog()
 		ASSERT(classlists.size() == (size_t)CLASS_COUNT);
 		classlists.resize(CLASS_COUNT);
 
-		LoadCaptions(classlists, LoadClassEntries(*Project));
-		LoadCombo(m_gfx, LoadWepMagicLabels(*Project));
+		LoadCaptions(classlists, LoadClassEntries(*Proj2));
+		LoadCombo(m_gfx, Labels2::LoadWepMagicLabels(*Proj2));
 
 		m_gfx.InsertString(0, "--None--");
 		m_battlemessage.InsertString(0, "--None--");
@@ -299,64 +301,65 @@ void CMagic::ShowHideOutOfBattleControls()
 
 void CMagic::LoadOffsets()
 {
-	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
-	MAGIC_OFFSET = ReadHex(Project->ValuesPath, "MAGIC_OFFSET");
-	MAGIC_BYTES = ReadDec(Project->ValuesPath, "MAGIC_BYTES");
-	MAGIC_COUNT = ReadDec(Project->ValuesPath, "MAGIC_COUNT");
-	MAGICPRICE_OFFSET = ReadHex(Project->ValuesPath, "MAGICPRICE_OFFSET");
-	BATTLEMESSAGETEXT_START = ReadHex(Project->ValuesPath, "BATTLEMESSAGETEXT_START");
-	NOTHINGHAPPENS_OFFSET = ReadHex(Project->ValuesPath, "NOTHINGHAPPENS_OFFSET");
-	MAGICPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "MAGICPERMISSIONS_OFFSET");
-	SPELLLEVEL_COUNT = ReadDec(Project->ValuesPath, "SPELLLEVEL_COUNT");
-	BATTLEMESSAGE_OFFSET = ReadHex(Project->ValuesPath, "BATTLEMESSAGE_OFFSET");
-	WEAPONMAGICGRAPHIC_OFFSET = ReadHex(Project->ValuesPath, "WEAPONMAGICGRAPHIC_OFFSET");
+	ffh::acc::ValueDataAccessor v(*Proj2);
+	CLASS_COUNT = v.get<int>("CLASS_COUNT");
+	MAGIC_OFFSET = v.get<int>("MAGIC_OFFSET");
+	MAGIC_BYTES = v.get<int>("MAGIC_BYTES");
+	MAGIC_COUNT = v.get<int>("MAGIC_COUNT");
+	MAGICPRICE_OFFSET = v.get<int>("MAGICPRICE_OFFSET");
+	BATTLEMESSAGETEXT_START = v.get<int>("BATTLEMESSAGETEXT_START");
+	NOTHINGHAPPENS_OFFSET = v.get<int>("NOTHINGHAPPENS_OFFSET");
+	MAGICPERMISSIONS_OFFSET = v.get<int>("MAGICPERMISSIONS_OFFSET");
+	SPELLLEVEL_COUNT = v.get<int>("SPELLLEVEL_COUNT");
+	BATTLEMESSAGE_OFFSET = v.get<int>("BATTLEMESSAGE_OFFSET");
+	WEAPONMAGICGRAPHIC_OFFSET = v.get<int>("WEAPONMAGICGRAPHIC_OFFSET");
 
-	OOBMAGIC_COUNT = ReadDec(Project->ValuesPath, "OOBMAGIC_COUNT");
-	auto mgstartnode = find(Project->m_varmap, std::string("MG_START"));
-	MG_START = mgstartnode.result ? mgstartnode.value : ReadHex(Project->ValuesPath, "MG_START");
-	MG_CURE = ReadHex(Project->ValuesPath, "MG_CURE");
-	MG_CUR2 = ReadHex(Project->ValuesPath, "MG_CUR2");
-	MG_CUR3 = ReadHex(Project->ValuesPath, "MG_CUR3");
-	MG_CUR4 = ReadHex(Project->ValuesPath, "MG_CUR4");
-	MG_HEAL = ReadHex(Project->ValuesPath, "MG_HEAL");
-	MG_HEL3 = ReadHex(Project->ValuesPath, "MG_HEL3");
-	MG_HEL2 = ReadHex(Project->ValuesPath, "MG_HEL2");
-	MG_PURE = ReadHex(Project->ValuesPath, "MG_PURE");
-	MG_LIFE = ReadHex(Project->ValuesPath, "MG_LIFE");
-	MG_LIF2 = ReadHex(Project->ValuesPath, "MG_LIF2");
-	MG_WARP = ReadHex(Project->ValuesPath, "MG_WARP");
-	MG_SOFT = ReadHex(Project->ValuesPath, "MG_SOFT");
-	MG_EXIT = ReadHex(Project->ValuesPath, "MG_EXIT");
+	OOBMAGIC_COUNT = v.get<int>("OOBMAGIC_COUNT");
+	auto mgstartnode = find(Proj2->m_varmap, std::string("MG_START"));
+	MG_START = mgstartnode.result ? mgstartnode.value : v.get<int>("MG_START");
+	MG_CURE = v.get<int>("MG_CURE");
+	MG_CUR2 = v.get<int>("MG_CUR2");
+	MG_CUR3 = v.get<int>("MG_CUR3");
+	MG_CUR4 = v.get<int>("MG_CUR4");
+	MG_HEAL = v.get<int>("MG_HEAL");
+	MG_HEL3 = v.get<int>("MG_HEL3");
+	MG_HEL2 = v.get<int>("MG_HEL2");
+	MG_PURE = v.get<int>("MG_PURE");
+	MG_LIFE = v.get<int>("MG_LIFE");
+	MG_LIF2 = v.get<int>("MG_LIF2");
+	MG_WARP = v.get<int>("MG_WARP");
+	MG_SOFT = v.get<int>("MG_SOFT");
+	MG_EXIT = v.get<int>("MG_EXIT");
 
-	OOBMAGICRANGE_COUNT = ReadDec(Project->ValuesPath, "OOBMAGICRANGE_COUNT");
-	MGRANGEMIN_CURE = ReadHex(Project->ValuesPath, "MGRANGEMIN_CURE");
-	MGRANGEMAX_CURE = ReadHex(Project->ValuesPath, "MGRANGEMAX_CURE");
-	MGRANGEMIN_CUR2 = ReadHex(Project->ValuesPath, "MGRANGEMIN_CUR2");
-	MGRANGEMAX_CUR2 = ReadHex(Project->ValuesPath, "MGRANGEMAX_CUR2");
-	MGRANGEMIN_CUR3 = ReadHex(Project->ValuesPath, "MGRANGEMIN_CUR3");
-	MGRANGEMAX_CUR3 = ReadHex(Project->ValuesPath, "MGRANGEMAX_CUR3");
-	MGRANGEMIN_CUREP = ReadHex(Project->ValuesPath, "MGRANGEMIN_CUREP");
-	MGRANGEMAX_CUREP = ReadHex(Project->ValuesPath, "MGRANGEMAX_CUREP"); //N.B. - not actually used by vanilla FF1, it's identical to MIN_CUREP here
-	MGRANGEMIN_HEAL = ReadHex(Project->ValuesPath, "MGRANGEMIN_HEAL");
-	MGRANGEMAX_HEAL = ReadHex(Project->ValuesPath, "MGRANGEMAX_HEAL");
-	MGRANGEMIN_HEL2 = ReadHex(Project->ValuesPath, "MGRANGEMIN_HEL2");
-	MGRANGEMAX_HEL2 = ReadHex(Project->ValuesPath, "MGRANGEMAX_HEL2");
-	MGRANGEMIN_HEL3 = ReadHex(Project->ValuesPath, "MGRANGEMIN_HEL3");
-	MGRANGEMAX_HEL3 = ReadHex(Project->ValuesPath, "MGRANGEMAX_HEL3");
+	OOBMAGICRANGE_COUNT = v.get<int>("OOBMAGICRANGE_COUNT");
+	MGRANGEMIN_CURE = v.get<int>("MGRANGEMIN_CURE");
+	MGRANGEMAX_CURE = v.get<int>("MGRANGEMAX_CURE");
+	MGRANGEMIN_CUR2 = v.get<int>("MGRANGEMIN_CUR2");
+	MGRANGEMAX_CUR2 = v.get<int>("MGRANGEMAX_CUR2");
+	MGRANGEMIN_CUR3 = v.get<int>("MGRANGEMIN_CUR3");
+	MGRANGEMAX_CUR3 = v.get<int>("MGRANGEMAX_CUR3");
+	MGRANGEMIN_CUREP = v.get<int>("MGRANGEMIN_CUREP");
+	MGRANGEMAX_CUREP = v.get<int>("MGRANGEMAX_CUREP"); //N.B. - not actually used by vanilla FF1, it's identical to MIN_CUREP here
+	MGRANGEMIN_HEAL = v.get<int>("MGRANGEMIN_HEAL");
+	MGRANGEMAX_HEAL = v.get<int>("MGRANGEMAX_HEAL");
+	MGRANGEMIN_HEL2 = v.get<int>("MGRANGEMIN_HEL2");
+	MGRANGEMAX_HEL2 = v.get<int>("MGRANGEMAX_HEL2");
+	MGRANGEMIN_HEL3 = v.get<int>("MGRANGEMIN_HEL3");
+	MGRANGEMAX_HEL3 = v.get<int>("MGRANGEMAX_HEL3");
 
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
-	BINBANK09GFXDATA_OFFSET = ReadHex(Project->ValuesPath, "BINBANK09GFXDATA_OFFSET");
-	BINPRICEDATA_OFFSET = ReadHex(Project->ValuesPath, "BINPRICEDATA_OFFSET");
+	BANK0A_OFFSET = v.get<int>("BANK0A_OFFSET");
+	BINBANK09GFXDATA_OFFSET = v.get<int>("BINBANK09GFXDATA_OFFSET");
+	BINPRICEDATA_OFFSET = v.get<int>("BINPRICEDATA_OFFSET");
 }
 
 void CMagic::LoadRom()
 {
-	Project->ClearROM();
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
 		ser.LoadAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
@@ -369,17 +372,17 @@ void CMagic::LoadRom()
 		ShowHideOutOfBattleControls();
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CMagic::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->SaveROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.SaveAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
 		ser.SaveAsmBin(BIN_MAGICDATA, MAGIC_OFFSET);
@@ -390,7 +393,7 @@ void CMagic::SaveRom()
 		ser.SaveInline(ASM_0E, { { asmtable, "lut_MagicPermissions", { MAGICPERMISSIONS_OFFSET } } });
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
@@ -400,17 +403,17 @@ void CMagic::LoadValues()
 	int temp;
 	int offset = MAGIC_OFFSET + (MAGIC_BYTES * cur);
 
-	temp = Project->ROM[offset];
+	temp = Proj2->ROM[offset];
 	if (temp < 0x10) text.Format("0%X", temp);
 	else text.Format("%X", temp);
 	m_accuracy.SetWindowText(text);
 
-	temp = Project->ROM[offset + 2];
+	temp = Proj2->ROM[offset + 2];
 	SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 });
 
-	UpdateTarget(Project->ROM[offset + 3]);
+	UpdateTarget(Proj2->ROM[offset + 3]);
 
-	temp = Project->ROM[offset + 5];
+	temp = Proj2->ROM[offset + 5];
 	if (temp > 0) {
 		temp -= 0x80;
 		temp >>= 2;
@@ -419,24 +422,24 @@ void CMagic::LoadValues()
 	}
 	else m_gfx.SetCurSel(0);
 
-	temp = Project->ROM[offset + 4];
+	temp = Proj2->ROM[offset + 4];
 	UpdateEffect(temp);
 	if (UsesChecks(temp)) {
-		temp = Project->ROM[offset + 1];
+		temp = Proj2->ROM[offset + 1];
 		SetCheckFlags(temp, std::vector<CStrikeCheck*>{ &m_effect1, &m_effect2, &m_effect3, &m_effect4, &m_effect5, &m_effect6, &m_effect7, &m_effect8 });
 	}
 	else {
-		text.Format("%d", Project->ROM[offset + 1]);
+		text.Format("%d", Proj2->ROM[offset + 1]);
 		m_damage.SetWindowText(text);
 	}
 
-	cur_pal = Project->ROM[offset + 6] - 0x20;
+	cur_pal = Proj2->ROM[offset + 6] - 0x20;
 
-	text.Format("%d", Project->ROM[offset + 7]);
+	text.Format("%d", Proj2->ROM[offset + 7]);
 	m_editByte7.SetWindowText(text);
 
 	offset = MAGICPRICE_OFFSET + (cur << 1);
-	temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+	temp = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8);
 	text.Format("%d", temp);
 	m_price.SetWindowText(text);
 
@@ -446,12 +449,12 @@ void CMagic::LoadValues()
 	std::vector<CStrikeCheck*> vchecks{ &m_use1, &m_use2, &m_use3, &m_use4, &m_use5, &m_use6, &m_use7, &m_use8,
 		&m_use9, &m_use10, &m_use11, &m_use12};
 	for (int step = 0, off = 0; step < 12; ++step, off += 0x08) {
-		bool set = !(Project->ROM[offset + off] & temp);
+		bool set = !(Proj2->ROM[offset + off] & temp);
 		vchecks[step]->SetCheck(set ? BST_CHECKED : BST_UNCHECKED);
 		vchecks[step]->Invalidate();
 	}
 
-	m_battlemessage.SetCurSel(Project->ROM[BATTLEMESSAGE_OFFSET + cur]);
+	m_battlemessage.SetCurSel(Proj2->ROM[BATTLEMESSAGE_OFFSET + cur]);
 
 	m_editgfx.EnableWindow(m_gfx.GetCurSel());
 
@@ -459,9 +462,9 @@ void CMagic::LoadValues()
 	temp = -1;
 
 	m_outbattlelist.SetCurSel(0);
-	if (Project->IsRom()) {
+	if (Proj2->IsRom()) {
 		for (int co = 0; co < OOBMAGIC_COUNT; co++) {
-			if (Project->ROM[m_oobmagicoffsets[co]] == offset) {
+			if (Proj2->ROM[m_oobmagicoffsets[co]] == offset) {
 				m_outbattlelist.SetCurSel(co + 1);
 				temp = co;
 				break;
@@ -507,7 +510,7 @@ void CMagic::StoreValues()
 
 	m_accuracy.GetWindowText(text); temp = StringToInt_HEX(text);
 	if (temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset] = (BYTE)temp;
+	Proj2->ROM[offset] = (BYTE)temp;
 
 	if (UsesChecks(cur_eff)) {
 		temp = 0;
@@ -517,14 +520,14 @@ void CMagic::StoreValues()
 		m_damage.GetWindowText(text); temp = StringToInt(text);
 		if (temp > 0xFF) temp = 0xFF;
 	}
-	Project->ROM[offset + 1] = (BYTE)temp;
+	Proj2->ROM[offset + 1] = (BYTE)temp;
 
 	temp = 0;
 	temp = GetCheckFlags(std::vector<CStrikeCheck*>{ &m_elem1, &m_elem2, &m_elem3, &m_elem4, &m_elem5, &m_elem6, &m_elem7, &m_elem8 });
-	Project->ROM[offset + 2] = (BYTE)temp;
+	Proj2->ROM[offset + 2] = (BYTE)temp;
 
-	Project->ROM[offset + 3] = (BYTE)cur_targ;
-	Project->ROM[offset + 4] = (BYTE)cur_eff;
+	Proj2->ROM[offset + 3] = (BYTE)cur_targ;
+	Proj2->ROM[offset + 4] = (BYTE)cur_eff;
 
 	temp = m_gfx.GetCurSel();
 	if (temp) {
@@ -532,18 +535,18 @@ void CMagic::StoreValues()
 		temp <<= 2;
 		temp += 0x80;
 	}
-	Project->ROM[offset + 5] = (BYTE)temp;
-	Project->ROM[offset + 6] = (BYTE)(cur_pal + 0x20);
+	Proj2->ROM[offset + 5] = (BYTE)temp;
+	Proj2->ROM[offset + 6] = (BYTE)(cur_pal + 0x20);
 
 	m_editByte7.GetWindowText(text);
 	temp = atol(text) & 0xff;
-	Project->ROM[offset + 7] = (BYTE)temp;
+	Proj2->ROM[offset + 7] = (BYTE)temp;
 
 	offset = MAGICPRICE_OFFSET + (cur << 1);
 	m_price.GetWindowText(text); temp = StringToInt(text);
 	if (temp > 0xFFFF) temp = 0xFFFF;
-	Project->ROM[offset] = temp & 0xFF;
-	Project->ROM[offset + 1] = (BYTE)(temp >> 8);
+	Proj2->ROM[offset] = temp & 0xFF;
+	Proj2->ROM[offset + 1] = (BYTE)(temp >> 8);
 
 	offset = (cur >> 3) + MAGICPERMISSIONS_OFFSET;
 	std::vector<CStrikeCheck*> vchecks{ &m_use1, &m_use2, &m_use3, &m_use4, &m_use5, &m_use6, &m_use7, &m_use8,
@@ -551,23 +554,23 @@ void CMagic::StoreValues()
 	for (int co = 0, off = 0; co < (int)vchecks.size(); ++co, off += 0x08) {
 		bool checked = GetCheckValue(*vchecks[co]);
 		int bit = 1 << (7 - (cur & 7));  // slot 0 is the most significant bit, slot 7 is the least
-		temp = Project->ROM[offset + off];
+		temp = Proj2->ROM[offset + off];
 		if (!checked) bit = 0;           // when flipped, this preserves the "can't equip" bit
 		temp &= ~bit;
 
-		Project->ROM[offset + off] = 0xFF & temp;
+		Proj2->ROM[offset + off] = 0xFF & temp;
 	}
 	int co;
 
-	Project->ROM[BATTLEMESSAGE_OFFSET + cur] = (BYTE)m_battlemessage.GetCurSel();
+	Proj2->ROM[BATTLEMESSAGE_OFFSET + cur] = (BYTE)m_battlemessage.GetCurSel();
 
-	if (Project->IsRom()) {
+	if (Proj2->IsRom()) {
 		temp = cur + MG_START;
 		for (co = 0; co < OOBMAGIC_COUNT; co++) {
 			if (m_outbattlelist.GetCurSel() == (co + 1))
-				Project->ROM[m_oobmagicoffsets[co]] = (BYTE)temp;
-			else if (Project->ROM[m_oobmagicoffsets[co]] == temp)
-				Project->ROM[m_oobmagicoffsets[co]] = 0xFF;
+				Proj2->ROM[m_oobmagicoffsets[co]] = (BYTE)temp;
+			else if (Proj2->ROM[m_oobmagicoffsets[co]] == temp)
+				Proj2->ROM[m_oobmagicoffsets[co]] = 0xFF;
 		}
 	}
 }
@@ -586,14 +589,14 @@ void CMagic::PaintClient(CDC & dc)
 	CRect temp = rcPalette;
 	temp.right = temp.left + 16;
 	for (int co = 0; co < 16; co++, temp.left += 16, temp.right += 16) {
-		br.CreateSolidBrush(Project->Palette[0][32 + co]);
+		br.CreateSolidBrush(Proj2->palette[0][32 + co]);
 		dc.FillRect(temp, &br);
 		br.DeleteObject();
 	}
 
 	CPoint pt(rcFinger.left + (cur_pal << 4), rcFinger.top);
 	if (cur_pal < 0) pt.x = rcFinger.left;
-	Project->Finger.Draw(&dc, 1, pt, ILD_TRANSPARENT);
+	Proj2->Finger.Draw(&dc, 1, pt, ILD_TRANSPARENT);
 
 	pt.x = rcGraphic.left;
 	pt.y = rcGraphic.top;
@@ -667,11 +670,11 @@ void CMagic::UpdateEffect(int temp)
 		// flow into next cases
 	case 1:
 	case 4:
-		LoadCaptions(m_effect, PrefixNodes(LoadAilEffectLabels(*Project), prefix));
+		LoadCaptions(m_effect, PrefixNodes(Labels2::LoadAilEffectLabels(*Proj2), prefix));
 		break;
 	case 3:
-		//LoadCaptions(m_effect, LoadAilEffectLabels(*Project));
-		LoadCaptions(m_effect, LoadElementLabels(*Project));
+		//LoadCaptions(m_effect, LoadAilEffectLabels(*Proj2));
+		LoadCaptions(m_effect, Labels2::LoadElementLabels(*Proj2));
 		break;
 	}
 
@@ -686,7 +689,7 @@ void CMagic::UpdateEffect(int temp)
 
 void CMagic::LoadCustomizedControls()
 {
-	CMagicEditorSettings stgs(*Project);
+	CMagicEditorSettings stgs(*Proj2);
 	m_staticByte7.SetWindowText(stgs.Byte7Name);
 }
 
@@ -721,11 +724,11 @@ void CMagic::ResetGraphicList()
 		for(co = 0; co < 64; co += 32){
 		for(coY = 0; coY < 32; coY += 16){
 		for(coX = 0; coX < 32; coX += 16, offset += 16){
-			DrawTileScale(&mDC,co + coX,coY,Project,offset,palette,2);}}}
+			DrawTileScale(&mDC,co + coX,coY,Proj2,offset,palette,2);}}}
 	}
 	else{
 		CRect rec(0,0,64,32);
-		CBrush br; br.CreateSolidBrush(Project->Palette[0][0x0F]);
+		CBrush br; br.CreateSolidBrush(Proj2->palette[0][0x0F]);
 		mDC.FillRect(rec,&br);
 		br.DeleteObject();}
 	mDC.DeleteDC();
@@ -807,14 +810,14 @@ void CMagic::OnEff17()
 void CMagic::OnEditlabel() 
 {
 	int temp = m_gfx.GetCurSel();
-	ChangeLabel(*Project, -1, LoadWepMagicLabel(*Project, temp - 1), WriteWepMagicLabel, temp, nullptr, &m_gfx);
+	//ChangeLabel(*Proj2, -1, LoadWepMagicLabel(*Proj2, temp - 1), WriteWepMagicLabel, temp, nullptr, &m_gfx); //TODO - ChangeLabel
 }
 
 void CMagic::OnEditgfx()
 {
 	KillTimer(1);
 	CWepMagGraphic dlg;
-	dlg.Project = Project;
+	dlg.Proj2 = Proj2;
 	dlg.paletteref = (BYTE)cur_pal;
 	dlg.graphic = (short)(m_gfx.GetCurSel() - 1);
 	dlg.IsWeapon = 0;
@@ -826,7 +829,7 @@ void CMagic::OnEditgfx()
 
 void CMagic::OnSelchangeOutbattlelist() 
 {
-	if (!Project->IsRom()) return; // only handle out-of-battle in ROM projects
+	if (!Proj2->IsRom()) return; // only handle out-of-battle in ROM projects
 
 	haltwrite = 1;
 	m_outmin.SetWindowText("");
@@ -838,9 +841,9 @@ void CMagic::OnSelchangeOutbattlelist()
 		m_outmaxbox.ShowWindow(1);
 		m_outmin.ShowWindow(0);
 		m_outmax.ShowWindow(0);
-		text.Format("%d",Project->ROM[m_oobmagicranges[temp][0]]);
+		text.Format("%d",Proj2->ROM[m_oobmagicranges[temp][0]]);
 		m_outminbox.SetWindowText(text);
-		text.Format("%d",Project->ROM[m_oobmagicranges[temp][1]]);
+		text.Format("%d",Proj2->ROM[m_oobmagicranges[temp][1]]);
 		m_outmaxbox.SetWindowText(text);
 	}
 	else if((temp >= 4) && (temp <= 6)){
@@ -850,9 +853,9 @@ void CMagic::OnSelchangeOutbattlelist()
 		m_outmax.ShowWindow(1);
 		m_outmin.EnableWindow(1);
 		m_outmax.EnableWindow(1);
-		text.Format("%d",Project->ROM[m_oobmagicranges[temp][0]]);
+		text.Format("%d",Proj2->ROM[m_oobmagicranges[temp][0]]);
 		m_outmin.SetWindowText(text);
-		text.Format("%d",Project->ROM[m_oobmagicranges[temp][1]]);
+		text.Format("%d",Proj2->ROM[m_oobmagicranges[temp][1]]);
 		m_outmax.SetWindowText(text);
 	}
 	else if(cur == MAGIC_COUNT){
@@ -863,7 +866,7 @@ void CMagic::OnSelchangeOutbattlelist()
 		m_outmin.EnableWindow(1);
 		m_outmax.EnableWindow(0);
 		m_outmax.SetWindowText(text);
-		text.Format("%d",Project->ROM[m_oobmagicranges[3][0]]);
+		text.Format("%d",Proj2->ROM[m_oobmagicranges[3][0]]);
 		m_outmin.SetWindowText(text);
 	}
 	else{
@@ -883,7 +886,7 @@ void CMagic::OnChangeOutmin()
 
 void CMagic::ChangeOutBattles(bool minmax)
 {
-	if (!Project->IsRom()) return; // only handle out-of-battle in ROM projects
+	if (!Proj2->IsRom()) return; // only handle out-of-battle in ROM projects
 
 	if(haltwrite) return;
 	int temp = m_outbattlelist.GetCurSel() - 1;
@@ -900,14 +903,14 @@ void CMagic::ChangeOutBattles(bool minmax)
 		else m_outmin.GetWindowText(text);}
 
 	int value = StringToInt(text); if(value > 255) value = 255;
-	Project->ROM[m_oobmagicranges[temp][minmax]] = (BYTE)value;
+	Proj2->ROM[m_oobmagicranges[temp][minmax]] = (BYTE)value;
 }
 
 void CMagic::HandleMagicListContextMenu(CWnd* pWnd, CPoint point)
 {
 	using namespace copypaste_helpers;
 
-	CMagicEditorSettings stgs(*Project);
+	CMagicEditorSettings stgs(*Proj2);
 	auto optionnames = mfcstringvector{ "Name", "Accuracy", "Effectivity", "Element", "Target", "Effect",
 		"Graphic", "Palette", stgs.Byte7Name, "Price", "Spell Permissions" };
 	auto result = InvokeCopySwap(m_magiclist, point, m_copiedspell, optionnames);
@@ -924,10 +927,10 @@ void CMagic::HandleMagicListContextMenu(CWnd* pWnd, CPoint point)
 		boolvector magflags(MAGIC_BYTES);
 		std::copy_n(cbegin(flags) + 1, MAGIC_BYTES, begin(magflags));
 
-		CopySwapBytes(swap, Project->ROM, m_copiedspell, thisitem, MAGIC_OFFSET, MAGIC_BYTES, 0, magflags);
+		CopySwapBytes(swap, Proj2->ROM, m_copiedspell, thisitem, MAGIC_OFFSET, MAGIC_BYTES, 0, magflags);
 		if (flags[0]) DoCopySwapName(swap, m_copiedspell, thisitem);
-		if (flags[9]) CopySwapBuffer(swap, Project->ROM, m_copiedspell, thisitem, MAGICPRICE_OFFSET, 2, 0, 2);
-		if (flags[10]) CopySwapSpellPermissions(swap, Project->ROM, m_copiedspell, thisitem,
+		if (flags[9]) CopySwapBuffer(swap, Proj2->ROM, m_copiedspell, thisitem, MAGICPRICE_OFFSET, 2, 0, 2);
+		if (flags[10]) CopySwapSpellPermissions(swap, Proj2->ROM, m_copiedspell, thisitem,
 			MAGICPERMISSIONS_OFFSET, 8, SPELLLEVEL_COUNT, 0, CLASS_COUNT);
 
 		m_magiclist.SetCurSel(cur = thisitem);
@@ -949,10 +952,10 @@ void CMagic::HandleMagicListContextMenu(CWnd* pWnd, CPoint point)
 void CMagic::DoCopySwapName(bool swap, int srcitem, int dstitem)
 {
 	try {
-		Ingametext::PasteSwapStringBytes(swap, *Project, STDMAGIC, srcitem, dstitem);
+		Ingametext::PasteSwapStringBytes(swap, *Proj2, STDMAGIC, srcitem, dstitem);
 
-		CString srcname = LoadMagicEntry(*Project, srcitem + 1).name.Trim();
-		CString dstname = LoadMagicEntry(*Project, dstitem + 1).name.Trim();
+		CString srcname = LoadMagicEntry(*Proj2, srcitem + 1).name.Trim();
+		CString dstname = LoadMagicEntry(*Proj2, dstitem + 1).name.Trim();
 
 		// Now, reload the class names in the list box
 		Ui::ReplaceString(m_magiclist, srcitem, srcname);
@@ -985,7 +988,7 @@ void CMagic::OnSelchangeOutminbox()
 void CMagic::OnBnClickedClassesSettings()
 {
 	CMagicEditorSettingsDlg dlg(this);
-	dlg.m_proj = Project;
+	dlg.Proj2 = Proj2;
 	if (dlg.DoModal() == IDOK) {
 		LoadCustomizedControls();
 	}
