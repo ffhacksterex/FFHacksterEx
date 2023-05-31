@@ -589,7 +589,7 @@ bool CBattle::UpdateUsageData(int btlindex)
 				return true;
 			return false;
 		};
-		ok = m_usedata.UpdateUseData(btlindex, includer, UsageDataFormatter);
+		ok = m_usedata.UpdateUseData(btlindex, includer, UsageDataFormatter2);
 	}
 	catch (std::exception& ex) {
 		ErrorHere << "Can't calculate use data: " << ex.what() << std::endl;
@@ -631,6 +631,41 @@ CString CBattle::UsageDataFormatter(CFFHacksterProject& proj, const sUseData& u)
 	case UseDataType::SpriteDialogue:
 	{
 		fmt.Format("Sprite %02X %s \tF%d", u.mapid, Editorlabels::LoadSpriteLabel(proj, (int)u.mapid, false).name,
+			u.formation);
+		break;
+	}
+	default:
+		throw std::runtime_error("Unknown UseData type " + std::to_string((int)u.type));
+	}
+	return fmt;
+}
+
+//STATIC
+CString CBattle::UsageDataFormatter2(FFH2Project& proj, const sUseData& u)
+{
+	CString fmt;
+	switch (u.type)
+	{
+	case UseDataType::Overworld:
+	{
+		fmt.Format("Overworld %d,%d \tSlot %d \tF%d", u.x, u.y, u.slot + 1, u.formation);
+		break;
+	}
+	case UseDataType::StdMap:
+	{
+		fmt.Format("%s \tSlot %d \tF%d", Labels2::LoadMapLabel(proj, (int)u.mapid, false).name,
+			u.slot + 1, u.formation);
+		break;
+	}
+	case UseDataType::SpikedSquare:
+	{
+		fmt.Format("%s [Tile %X,%X] \t \tF%d", Labels2::LoadMapLabel(proj, (int)u.mapid, false).name,
+			u.x, u.y, u.formation);
+		break;
+	}
+	case UseDataType::SpriteDialogue:
+	{
+		fmt.Format("Sprite %02X %s \tF%d", u.mapid, Labels2::LoadSpriteLabel(proj, (int)u.mapid, false).name,
 			u.formation);
 		break;
 	}
