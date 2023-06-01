@@ -2,12 +2,15 @@
 
 #include "common_symbols.h"
 #include "SettingsBase.h"
+#include <SettingDataAccessor.h>
 
 class CClassesEditorSettings : public SettingsBase
 {
 public:
 	CClassesEditorSettings(CFFHacksterProject & proj, initflag flag = initflag::read);
 	CClassesEditorSettings(CFFHacksterProject& proj, CString sectionname, initflag flag = initflag::read);
+	CClassesEditorSettings(FFH2Project& proj, initflag flag = initflag::read);
+	CClassesEditorSettings(FFH2Project& proj, CString sectionname, initflag flag = initflag::read);
 
 	virtual void SetDefaults();
 	virtual bool Read();
@@ -20,4 +23,7 @@ public:
 	bool IgnoreMPRange = false;
 	bool IgnoreBBMA1 = false;
 	bool IgnoreBBMA2 = false;
+
+private:
+	ffh::acc::SettingDataAccessor s;
 };

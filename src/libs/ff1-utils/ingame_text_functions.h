@@ -107,5 +107,7 @@ namespace Ingametext // FFH2Project versions
 	dataintnode LoadWeaponEntry(FFH2Project& proj, int index, bool showindex = false);
 
 	void PasteSwapStringBytes(bool swapping, FFH2Project& proj, int context, int sourceindex, int destindex);
+	void SwapStringBytes(FFH2Project& proj, int context, int sourceindex, int destindex);
+	void OverwriteStringBytes(FFH2Project& proj, int context, int sourceindex, int destindex);
 
 } // end namespace Ingametext // FFH2Project versions

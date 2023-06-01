@@ -5,8 +5,9 @@
 #include "AsmFiles.h"
 #include "collection_helpers.h"
 #include <copypaste_helpers.h>
+#include <core_exceptions.h>
 #include "DRAW_STRUCT.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "GameSerializer.h"
 #include "general_functions.h"
 #include "imaging_helpers.h"
@@ -18,6 +19,8 @@
 #include "std_project_properties.h"
 #include "type_support.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
+#include <vda_std_collections.h>
 
 #include "BattlePic.h"
 #include "ClassesEditorSettingsDlg.h"
@@ -353,7 +356,7 @@ BOOL CClasses::OnInitDialog()
 		ar_totalluc[0] = &m_totalluc1;ar_totalluc[1] = &m_totalluc2;ar_totalluc[2] = &m_totalluc3;ar_totalluc[3] = &m_totalluc4;
 		ar_totalmagic[0] = &m_totalmag1;ar_totalmagic[1] = &m_totalmag2;ar_totalmagic[2] = &m_totalmag3;ar_totalmagic[3] = &m_totalmag4;
 
-		LoadListBox(m_classlist, LoadClassEntries(*Project));
+		LoadListBox(m_classlist, LoadClassEntries(*Proj2));
 		ViewScale = 1;
 		m_max.SetCheck(0);
 		m_min.SetCheck(0);
@@ -385,85 +388,86 @@ void CClasses::InitButtons()
 
 void CClasses::LoadOffsets()
 {
-	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
-	CLASS_OFFSET = ReadHex(Project->ValuesPath, "CLASS_OFFSET");
-	CLASS_BYTES = ReadDec(Project->ValuesPath, "CLASS_BYTES");
-	HITPCTINCREASE_OFFSET = ReadHex(Project->ValuesPath, "HITPCTINCREASE_OFFSET");
-	MAGDEFINCREASE_OFFSET = ReadHex(Project->ValuesPath, "MAGDEFINCREASE_OFFSET");
-	STARTINGMP_OFFSET = ReadHex(Project->ValuesPath, "STARTINGMP_OFFSET");
-	MPCAP_OFFSET = ReadHex(Project->ValuesPath, "MPCAP_OFFSET");
-	MAGICMIN_OFFSET = ReadHex(Project->ValuesPath, "MAGICMIN_OFFSET");
-	MAGICMAX_OFFSET = ReadHex(Project->ValuesPath, "MAGICMAX_OFFSET");
-	HPMAX_OFFSET = ReadHex(Project->ValuesPath, "HPMAX_OFFSET");
-	HPRANGEMIN_OFFSET = ReadHex(Project->ValuesPath, "HPRANGEMIN_OFFSET");
-	HPRANGEMAX_OFFSET = ReadHex(Project->ValuesPath, "HPRANGEMAX_OFFSET");
-	LEVELUP_OFFSET = ReadHex(Project->ValuesPath, "LEVELUP_OFFSET");
-	EXP_OFFSET = ReadHex(Project->ValuesPath, "EXP_OFFSET");
-	MAPMANGRAPHIC_OFFSET = ReadHex(Project->ValuesPath, "MAPMANGRAPHIC_OFFSET");
+	ffh::acc::ValueDataAccessor v(*Proj2);
+	CLASS_COUNT = v.get<int>("CLASS_COUNT");
+	CLASS_OFFSET = v.get<int>("CLASS_OFFSET");
+	CLASS_BYTES = v.get<int>("CLASS_BYTES");
+	HITPCTINCREASE_OFFSET = v.get<int>("HITPCTINCREASE_OFFSET");
+	MAGDEFINCREASE_OFFSET = v.get<int>("MAGDEFINCREASE_OFFSET");
+	STARTINGMP_OFFSET = v.get<int>("STARTINGMP_OFFSET");
+	MPCAP_OFFSET = v.get<int>("MPCAP_OFFSET");
+	MAGICMIN_OFFSET = v.get<int>("MAGICMIN_OFFSET");
+	MAGICMAX_OFFSET = v.get<int>("MAGICMAX_OFFSET");
+	HPMAX_OFFSET = v.get<int>("HPMAX_OFFSET");
+	HPRANGEMIN_OFFSET = v.get<int>("HPRANGEMIN_OFFSET");
+	HPRANGEMAX_OFFSET = v.get<int>("HPRANGEMAX_OFFSET");
+	LEVELUP_OFFSET = v.get<int>("LEVELUP_OFFSET");
+	EXP_OFFSET = v.get<int>("EXP_OFFSET");
+	MAPMANGRAPHIC_OFFSET = v.get<int>("MAPMANGRAPHIC_OFFSET");
 
-	HOLDMPCODE_OFFSET = ReadHex(Project->ValuesPath, "HOLDMPCODE_OFFSET");
-	HOLDMPCLASS1_OFFSET = ReadHex(Project->ValuesPath, "HOLDMPCLASS1_OFFSET");
-	HOLDMPCLASS2_OFFSET = ReadHex(Project->ValuesPath, "HOLDMPCLASS2_OFFSET");
-	HOLDMPCLASSID2_OFFSET = ReadHex(Project->ValuesPath, "HOLDMPCLASSID2_OFFSET");
+	HOLDMPCODE_OFFSET = v.get<int>("HOLDMPCODE_OFFSET");
+	HOLDMPCLASS1_OFFSET = v.get<int>("HOLDMPCLASS1_OFFSET");
+	HOLDMPCLASS2_OFFSET = v.get<int>("HOLDMPCLASS2_OFFSET");
+	HOLDMPCLASSID2_OFFSET = v.get<int>("HOLDMPCLASSID2_OFFSET");
 
-	CAPMPCODE_OFFSET = ReadHex(Project->ValuesPath, "CAPMPCODE_OFFSET");
-	CAPMPCLASS1_OFFSET = ReadHex(Project->ValuesPath, "CAPMPCLASS1_OFFSET");
-	CAPMPCLASSID1_OFFSET = ReadHex(Project->ValuesPath, "CAPMPCLASSID1_OFFSET");
-	CAPMPCLASS2_OFFSET = ReadHex(Project->ValuesPath, "CAPMPCLASS2_OFFSET");
-	CAPMPCLASSID2_OFFSET = ReadHex(Project->ValuesPath, "CAPMPCLASSID2_OFFSET");
-	CAPMPLIMIT_OFFSET = ReadHex(Project->ValuesPath, "CAPMPLIMIT_OFFSET");
+	CAPMPCODE_OFFSET = v.get<int>("CAPMPCODE_OFFSET");
+	CAPMPCLASS1_OFFSET = v.get<int>("CAPMPCLASS1_OFFSET");
+	CAPMPCLASSID1_OFFSET = v.get<int>("CAPMPCLASSID1_OFFSET");
+	CAPMPCLASS2_OFFSET = v.get<int>("CAPMPCLASS2_OFFSET");
+	CAPMPCLASSID2_OFFSET = v.get<int>("CAPMPCLASSID2_OFFSET");
+	CAPMPLIMIT_OFFSET = v.get<int>("CAPMPLIMIT_OFFSET");
 
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
-	BANK00_OFFSET = ReadHex(Project->ValuesPath, "BANK00_OFFSET");
-	BANK02_OFFSET = ReadHex(Project->ValuesPath, "BANK02_OFFSET");
+	BANK0A_OFFSET = v.get<int>("BANK0A_OFFSET");
+	BANK00_OFFSET = v.get<int>("BANK00_OFFSET");
+	BANK02_OFFSET = v.get<int>("BANK02_OFFSET");
 
-	BBMACLASS1STATS_OFFSET = ReadHex(Project->ValuesPath, "BBMACLASS1STATS_OFFSET");
-	BBMACLASS1UNADJ_OFFSET = ReadHex(Project->ValuesPath, "BBMACLASS1UNADJ_OFFSET");
-	BBMACLASS1READJ_OFFSET = ReadHex(Project->ValuesPath, "BBMACLASS1READJ_OFFSET");
-	BBMACLASS1HITS_OFFSET = ReadHex(Project->ValuesPath, "BBMACLASS1HITS_OFFSET");
-	BBMACLASS2STATS_OFFSET = ReadHex(Project->ValuesPath, "BBMACLASS2STATS_OFFSET");
-	BBMACLASS2UNADJ_OFFSET = ReadHex(Project->ValuesPath, "BBMACLASS2UNADJ_OFFSET");
-	BBMACLASS2READJ_OFFSET = ReadHex(Project->ValuesPath, "BBMACLASS2READJ_OFFSET");
-	BBMACLASS2HITS_OFFSET = ReadHex(Project->ValuesPath, "BBMACLASS2HITS_OFFSET");
+	BBMACLASS1STATS_OFFSET = v.get<int>("BBMACLASS1STATS_OFFSET");
+	BBMACLASS1UNADJ_OFFSET = v.get<int>("BBMACLASS1UNADJ_OFFSET");
+	BBMACLASS1READJ_OFFSET = v.get<int>("BBMACLASS1READJ_OFFSET");
+	BBMACLASS1HITS_OFFSET = v.get<int>("BBMACLASS1HITS_OFFSET");
+	BBMACLASS2STATS_OFFSET = v.get<int>("BBMACLASS2STATS_OFFSET");
+	BBMACLASS2UNADJ_OFFSET = v.get<int>("BBMACLASS2UNADJ_OFFSET");
+	BBMACLASS2READJ_OFFSET = v.get<int>("BBMACLASS2READJ_OFFSET");
+	BBMACLASS2HITS_OFFSET = v.get<int>("BBMACLASS2HITS_OFFSET");
 
-	CHARBATTLEPALETTE_ASSIGNMENT1 = ReadHex(Project->ValuesPath, "CHARBATTLEPALETTE_ASSIGNMENT1");
-	CHARBATTLEPALETTE_ASSIGNMENT2 = ReadHex(Project->ValuesPath, "CHARBATTLEPALETTE_ASSIGNMENT2");
-	CHARBATTLEPIC_OFFSET = ReadHex(Project->ValuesPath, "CHARBATTLEPIC_OFFSET");
-	CHARBATTLEPALETTE_OFFSET = ReadHex(Project->ValuesPath, "CHARBATTLEPALETTE_OFFSET");
-	BINBANK09DATA_OFFSET = ReadHex(Project->ValuesPath, "BINBANK09DATA_OFFSET");
-	BINBANK09GFXDATA_OFFSET = ReadHex(Project->ValuesPath, "BINBANK09GFXDATA_OFFSET");
+	CHARBATTLEPALETTE_ASSIGNMENT1 = v.get<int>("CHARBATTLEPALETTE_ASSIGNMENT1");
+	CHARBATTLEPALETTE_ASSIGNMENT2 = v.get<int>("CHARBATTLEPALETTE_ASSIGNMENT2");
+	CHARBATTLEPIC_OFFSET = v.get<int>("CHARBATTLEPIC_OFFSET");
+	CHARBATTLEPALETTE_OFFSET = v.get<int>("CHARBATTLEPALETTE_OFFSET");
+	BINBANK09DATA_OFFSET = v.get<int>("BINBANK09DATA_OFFSET");
+	BINBANK09GFXDATA_OFFSET = v.get<int>("BINBANK09GFXDATA_OFFSET");
 
-	OVERWORLDPALETTE_OFFSET = ReadHex(Project->ValuesPath, "OVERWORLDPALETTE_OFFSET");
-	MAPMANPALETTE_OFFSET = ReadHex(Project->ValuesPath, "MAPMANPALETTE_OFFSET");
+	OVERWORLDPALETTE_OFFSET = v.get<int>("OVERWORLDPALETTE_OFFSET");
+	MAPMANPALETTE_OFFSET = v.get<int>("MAPMANPALETTE_OFFSET");
 
-	BATTLESPRITETILE_COUNT = ReadDec(Project->ValuesPath, "BATTLESPRITETILE_COUNT");
-	BATTLESPRITETILE_BYTES = ReadDec(Project->ValuesPath, "BATTLESPRITETILE_BYTES");
-	MAPMANSPRITETILE_COUNT = ReadDec(Project->ValuesPath, "MAPMANSPRITETILE_COUNT");
-	MAPMANSPRITETILE_BYTES = ReadDec(Project->ValuesPath, "MAPMANSPRITETILE_BYTES");
+	BATTLESPRITETILE_COUNT = v.get<int>("BATTLESPRITETILE_COUNT");
+	BATTLESPRITETILE_BYTES = v.get<int>("BATTLESPRITETILE_BYTES");
+	MAPMANSPRITETILE_COUNT = v.get<int>("MAPMANSPRITETILE_COUNT");
+	MAPMANSPRITETILE_BYTES = v.get<int>("MAPMANSPRITETILE_BYTES");
 
-	WEAPON_COUNT = ReadDec(Project->ValuesPath, "WEAPON_COUNT");
-	WEAPONPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "WEAPONPERMISSIONS_OFFSET");
-	ARMOR_COUNT = ReadDec(Project->ValuesPath, "ARMOR_COUNT");
-	ARMORPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "ARMORPERMISSIONS_OFFSET");
-	MAGIC_COUNT = ReadDec(Project->ValuesPath, "MAGIC_COUNT");
-	MAGICPERMISSIONS_OFFSET = ReadHex(Project->ValuesPath, "MAGICPERMISSIONS_OFFSET");
-	SPELLLEVEL_COUNT = ReadDec(Project->ValuesPath, "SPELLLEVEL_COUNT");
-	SPELLSPERLEVEL_COUNT = ReadDec(Project->ValuesPath, "SPELLSPERLEVEL_COUNT");
+	WEAPON_COUNT = v.get<int>("WEAPON_COUNT");
+	WEAPONPERMISSIONS_OFFSET = v.get<int>("WEAPONPERMISSIONS_OFFSET");
+	ARMOR_COUNT = v.get<int>("ARMOR_COUNT");
+	ARMORPERMISSIONS_OFFSET = v.get<int>("ARMORPERMISSIONS_OFFSET");
+	MAGIC_COUNT = v.get<int>("MAGIC_COUNT");
+	MAGICPERMISSIONS_OFFSET = v.get<int>("MAGICPERMISSIONS_OFFSET");
+	SPELLLEVEL_COUNT = v.get<int>("SPELLLEVEL_COUNT");
+	SPELLSPERLEVEL_COUNT = v.get<int>("SPELLSPERLEVEL_COUNT");
 }
 
 void CClasses::LoadRom()
 {
 	CWaitCursor wait;
-	Project->ClearROM();
+	Proj2->ClearROM();
 
 	// Now load the data
-	GameSerializer ser(*Project);
+	GameSerializer ser(*Proj2);
 
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 		LoadClassEngineData(ser);
 	}
-	else if (Project->IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		// Instead of writing to the entire buffer, just write to the parts we need
 		CWaitingDlg waiting(this);
 		waiting.Init();
@@ -499,7 +503,7 @@ void CClasses::LoadRom()
 		waiting.DestroyWindow();
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
@@ -507,13 +511,13 @@ void CClasses::SaveRom()
 {
 	CWaitCursor wait;
 
-	GameSerializer ser(*Project);
+	GameSerializer ser(*Proj2);
 
-	if (Project->IsRom()) {
+	if (Proj2->IsRom()) {
 		SaveClassEngineData(ser);
-		save_binary(Project->WorkRomPath, Project->ROM);
+		Proj2->SaveROM();
 	}
-	else if (Project->IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		// Instead of writing to the entire buffer, just write to the parts we need
 		CWaitingDlg waiting(this);
 		waiting.Init();
@@ -546,14 +550,14 @@ void CClasses::SaveRom()
 		});
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
 void CClasses::LoadClassEngineData(GameSerializer & ser)
 {
 	auto LoadIgnorableClassCombo = [this](CComboBox & box) {
-		LoadCombo(box, LoadClassEntries(*Project));
+		LoadCombo(box, LoadClassEntries(*Proj2));
 		AddEntry(box, "<ignore>", CLASS_COUNT);
 	};
 	auto CopyRange = [](const bytevector & src, size_t offset, size_t count) {
@@ -567,7 +571,7 @@ void CClasses::LoadClassEngineData(GameSerializer & ser)
 		return checked;
 	};
 
-	CClassesEditorSettings stgs(*Project);
+	CClassesEditorSettings stgs(*Proj2);
 	auto hold1 = EnableControls(!stgs.IgnoreHoldMP1, { &m_comboclass1 });
 	auto hold2 = EnableControls(!stgs.IgnoreHoldMP2, { &m_comboclass2 });
 	auto cap1 = EnableControls(!stgs.IgnoreCapMP1, { &m_combopost1 });
@@ -577,7 +581,7 @@ void CClasses::LoadClassEngineData(GameSerializer & ser)
 	auto mprange = EnableControls(!stgs.IgnoreMPRange, { &m_mpmincombo, &m_mpmaxcombo });
 
 	// Load the combos with the class names
-	AddEntry(m_comboclass1, LoadClassEntry(*Project, 0), 0);
+	AddEntry(m_comboclass1, LoadClassEntry(*Proj2, 0), 0);
 	AddEntry(m_comboclass1, "<ignore>", CLASS_COUNT);
 	LoadIgnorableClassCombo(m_comboclass2);
 	LoadIgnorableClassCombo(m_combopost1);
@@ -586,9 +590,9 @@ void CClasses::LoadClassEngineData(GameSerializer & ser)
 	LoadIgnorableClassCombo(m_bbmacombo2);
 	LoadIgnorableClassCombo(m_2xhitscombo1);
 	LoadIgnorableClassCombo(m_2xhitscombo2);
-	LoadCombo(m_mpmincombo, LoadClassEntries(*Project));
+	LoadCombo(m_mpmincombo, LoadClassEntries(*Proj2));
 	AddEntry(m_mpmincombo, "<none>", CLASS_COUNT);
-	LoadCombo(m_mpmaxcombo, LoadClassEntries(*Project));
+	LoadCombo(m_mpmaxcombo, LoadClassEntries(*Proj2));
 
 	m_holdmpbytes.clear();
 	m_capmpbytes.clear();
@@ -610,13 +614,15 @@ void CClasses::LoadClassEngineData(GameSerializer & ser)
 		box.SetCurSel(classid);
 	};
 
-	if (Project->IsRom()) {
+	ffh::acc::ValueDataAccessor v(*Proj2);
+
+	if (Proj2->IsRom()) {
 		// If a check box is unchecked, the bytes for the related field are not modified.
 		// Otherwise; if the bytes match, the class is selected, else <ignore> is selected.
 		if (hold1 || hold2) {
-			auto holdlength = ReadDec(Project->ValuesPath, "HoldMPCodeLength");
-			auto holdmpbytes = ReadIni(Project->ValuesPath, HoldMPCode, PROP_VALUE, bytevector{});
-			m_holdmpbytes = CopyRange(Project->ROM, HOLDMPCODE_OFFSET, holdlength);
+			auto holdlength = v.get<int>("HoldMPCodeLength");
+			auto holdmpbytes = v.get<bytevector>(HoldMPCode);
+			m_holdmpbytes = CopyRange(Proj2->ROM, HOLDMPCODE_OFFSET, holdlength);
 
 			ASSERT(holdmpbytes.size() == m_holdmpbytes.size());
 			if (holdlength == 0) THROWEXCEPTION(std::runtime_error, "HoldMP length cannot be zero length.");
@@ -635,9 +641,9 @@ void CClasses::LoadClassEngineData(GameSerializer & ser)
 			}
 		}
 		if (cap1 || cap2) {
-			auto caplength = ReadDec(Project->ValuesPath, "CapMPCodeLength");
-			auto capmpbytes = ReadIni(Project->ValuesPath, CapMPCode, PROP_VALUE, bytevector{});
-			m_capmpbytes = CopyRange(Project->ROM, CAPMPCODE_OFFSET, caplength);
+			auto caplength = v.get<int>("CapMPCodeLength");
+			auto capmpbytes = v.get<bytevector>(CapMPCode);
+			m_capmpbytes = CopyRange(Proj2->ROM, CAPMPCODE_OFFSET, caplength);
 
 			ASSERT(capmpbytes.size() == m_capmpbytes.size());
 			if (caplength == 0) THROWEXCEPTION(std::runtime_error, "CapMP length cannot be zero length.");
@@ -657,30 +663,30 @@ void CClasses::LoadClassEngineData(GameSerializer & ser)
 
 		// For BBMA, unadjust and readjust aren't read, as they are synched to stats when saved.
 		if (bbma1) {
-			auto statid = Project->ROM[BBMACLASS1STATS_OFFSET];
+			auto statid = Proj2->ROM[BBMACLASS1STATS_OFFSET];
 			if (!SelectItemByData(m_bbmacombo1, statid))
 				if (m_bbmacombo1.GetCount() > 0) m_bbmacombo1.SetCurSel(0);
-			auto hitid = Project->ROM[BBMACLASS1HITS_OFFSET];
+			auto hitid = Proj2->ROM[BBMACLASS1HITS_OFFSET];
 			if (!SelectItemByData(m_2xhitscombo1, hitid))
 				if (m_2xhitscombo1.GetCount() > 0) m_2xhitscombo1.SetCurSel(0);
 		}
 		if (bbma2) {
-			auto statid = Project->ROM[BBMACLASS2STATS_OFFSET];
+			auto statid = Proj2->ROM[BBMACLASS2STATS_OFFSET];
 			if (!SelectItemByData(m_bbmacombo2, statid))
 				if (m_bbmacombo2.GetCount() > 0) m_bbmacombo2.SetCurSel(0);
-			auto hitid = Project->ROM[BBMACLASS2HITS_OFFSET];
+			auto hitid = Proj2->ROM[BBMACLASS2HITS_OFFSET];
 			if (!SelectItemByData(m_2xhitscombo2, hitid))
 				if (m_2xhitscombo2.GetCount() > 0) m_2xhitscombo2.SetCurSel(0);
 		}
 
 		if (mprange) {
-			auto minid = Project->ROM[MAGICMIN_OFFSET];
+			auto minid = Proj2->ROM[MAGICMIN_OFFSET];
 			SelectMPRangeClass(m_mpmincombo, minid);
-			SelectMPRangeClass(m_mpmaxcombo, Project->ROM[MAGICMAX_OFFSET] - 1, minid); // end range is exclusive, subtract 1 to get the class ID
+			SelectMPRangeClass(m_mpmaxcombo, Proj2->ROM[MAGICMAX_OFFSET] - 1, minid); // end range is exclusive, subtract 1 to get the class ID
 		}
 	}
-	else if (Project->IsAsm()) {
-		Project->ROM[HOLDMPCLASSID2_OFFSET] = (unsigned char)CLASS_COUNT; //(unsigned char)NopResult::Error;
+	else if (Proj2->IsAsm()) {
+		Proj2->ROM[HOLDMPCLASSID2_OFFSET] = (unsigned char)CLASS_COUNT; //(unsigned char)NopResult::Error;
 		asmsourcemappingvector vasminlineb, vasminlinec, vasminlinef;
 		if (hold1) {
 			vasminlineb.push_back({ asmcond, "nop_HoldMpClass1", {HOLDMPCLASS1_OFFSET} });
@@ -723,56 +729,56 @@ void CClasses::LoadClassEngineData(GameSerializer & ser)
 
 		if (hold1) {
 			//DEVNOTE = by default, HoldMP1 implies the first class due to the structure of the assembly source code.
-			auto value = Project->ROM[HOLDMPCLASS1_OFFSET];
+			auto value = Proj2->ROM[HOLDMPCLASS1_OFFSET];
 			auto matched = value == ASM_TRUE; //(unsigned char)NopResult::Match;
 			auto classid = matched ? 0 : CLASS_COUNT;
 			SelectItemByData(m_comboclass1, classid);
 		}
 		if (hold2) {
-			auto value = Project->ROM[HOLDMPCLASS2_OFFSET];
+			auto value = Proj2->ROM[HOLDMPCLASS2_OFFSET];
 			auto matched = value == ASM_TRUE;
-			auto classid = matched ? Project->ROM[HOLDMPCLASSID2_OFFSET] : CLASS_COUNT;
+			auto classid = matched ? Proj2->ROM[HOLDMPCLASSID2_OFFSET] : CLASS_COUNT;
 			SelectItemByData(m_comboclass2, classid);
 		}
 		if (cap1) {
 			//DEVNOTE = by default, HoldMP1 implies the first class due to the structure of the assembly source code.
-			auto value = Project->ROM[CAPMPCLASS1_OFFSET];
+			auto value = Proj2->ROM[CAPMPCLASS1_OFFSET];
 			auto matched = value == ASM_TRUE;
-			auto classid = matched ? Project->ROM[CAPMPCLASSID1_OFFSET] : CLASS_COUNT;
+			auto classid = matched ? Proj2->ROM[CAPMPCLASSID1_OFFSET] : CLASS_COUNT;
 			SelectItemByData(m_combopost1, classid);
 		}
 		if (cap2) {
-			auto value = Project->ROM[CAPMPCLASS2_OFFSET];
+			auto value = Proj2->ROM[CAPMPCLASS2_OFFSET];
 			auto matched = value == ASM_TRUE;
-			auto classid = matched ? Project->ROM[CAPMPCLASSID2_OFFSET] : CLASS_COUNT;
+			auto classid = matched ? Proj2->ROM[CAPMPCLASSID2_OFFSET] : CLASS_COUNT;
 			SelectItemByData(m_combopost2, classid);
 		}
 		// For BBMA, unadjust and readjust aren't read, as they are synched to stats when saved.
 		if (bbma1) {
-			auto statid = Project->ROM[BBMACLASS1STATS_OFFSET];
+			auto statid = Proj2->ROM[BBMACLASS1STATS_OFFSET];
 			if (!SelectItemByData(m_bbmacombo1, statid))
 				if (m_bbmacombo1.GetCount() > 0) m_bbmacombo1.SetCurSel(0);
-			auto hitid = Project->ROM[BBMACLASS1HITS_OFFSET];
+			auto hitid = Proj2->ROM[BBMACLASS1HITS_OFFSET];
 			if (!SelectItemByData(m_2xhitscombo1, hitid))
 				if (m_2xhitscombo1.GetCount() > 0) m_2xhitscombo1.SetCurSel(0);
 		}
 		if (bbma2) {
-			auto statid = Project->ROM[BBMACLASS2STATS_OFFSET];
+			auto statid = Proj2->ROM[BBMACLASS2STATS_OFFSET];
 			if (!SelectItemByData(m_bbmacombo2, statid))
 				if (m_bbmacombo2.GetCount() > 0) m_bbmacombo2.SetCurSel(0);
-			auto hitid = Project->ROM[BBMACLASS2HITS_OFFSET];
+			auto hitid = Proj2->ROM[BBMACLASS2HITS_OFFSET];
 			if (!SelectItemByData(m_2xhitscombo2, hitid))
 				if (m_2xhitscombo2.GetCount() > 0) m_2xhitscombo2.SetCurSel(0);
 		}
 
 		if (mprange) {
-			auto minid = Project->ROM[MAGICMIN_OFFSET];
+			auto minid = Proj2->ROM[MAGICMIN_OFFSET];
 			SelectMPRangeClass(m_mpmincombo, minid);
-			SelectMPRangeClass(m_mpmaxcombo, Project->ROM[MAGICMAX_OFFSET] - 1, minid); // end range is exclusive, subtract 1 to get the class ID
+			SelectMPRangeClass(m_mpmaxcombo, Proj2->ROM[MAGICMAX_OFFSET] - 1, minid); // end range is exclusive, subtract 1 to get the class ID
 		}
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
@@ -790,7 +796,9 @@ void CClasses::SaveClassEngineData(GameSerializer & ser)
 	if (!hold1 && !hold2 && !cap1 && !cap2 && !bbma1 && !bbma2 && !mprange)
 		return;
 
-	if (Project->IsRom()) {
+	ffh::acc::ValueDataAccessor v(*Proj2);
+
+	if (Proj2->IsRom()) {
 		auto OverwriteRange = [](const bytevector & src, bytevector & dest, size_t offset, size_t count) {
 			for (size_t st = 0, index = offset; st < count; ++st, ++index) {
 				dest[index] = src[st];
@@ -802,12 +810,12 @@ void CClasses::SaveClassEngineData(GameSerializer & ser)
 
 		// Copy the bytes in question into the arrays as needed
 		if (hold1 || hold2) {
-			auto holdlength = ReadDec(Project->ValuesPath, "HoldMPCodeLength");
+			auto holdlength = v.get<int>("HoldMPCodeLength");
 			ASSERT(holdlength == (int)m_holdmpbytes.size());
 			if (holdlength == 0) THROWEXCEPTION(std::runtime_error, "HoldMP length cannot be zero length.");
 			if (holdlength != (int)m_holdmpbytes.size()) THROWEXCEPTION(std::runtime_error, "Can't save; HoldMP Values bytes length doesn't match the declared length.");
 
-			auto holdmpbytes = ReadIni(Project->ValuesPath, HoldMPCode, PROP_VALUE, bytevector{});
+			auto holdmpbytes = v.get<bytevector>(HoldMPCode);
 			ASSERT(holdmpbytes.size() == m_holdmpbytes.size());
 
 			if (hold1) {
@@ -834,16 +842,16 @@ void CClasses::SaveClassEngineData(GameSerializer & ser)
 			// Don't write the EAs to the INI file, but do replace the class IDs.
 			// Only write the class ID bytes to the INI entry, not the lock bytes.
 			UpdateIni(m_holdmpbytes, holdmpbytes, { (int)(HOLDMPCLASSID2_OFFSET - HOLDMPCODE_OFFSET) });
-			WriteIni(Project->ValuesPath, HoldMPCode, PROP_VALUE, holdmpbytes);
-			OverwriteRange(m_holdmpbytes, Project->ROM, HOLDMPCODE_OFFSET, holdlength);
+			v.set<bytevector>(HoldMPCode, holdmpbytes);
+			OverwriteRange(m_holdmpbytes, Proj2->ROM, HOLDMPCODE_OFFSET, holdlength);
 		}
 		if (cap1 || cap2) {
-			auto caplength = ReadDec(Project->ValuesPath, "CapMPCodeLength");
+			auto caplength = v.get<int>("CapMPCodeLength");
 			ASSERT(caplength == (int)m_capmpbytes.size());
 			if (caplength == 0) THROWEXCEPTION(std::runtime_error, "CapMP length cannot be zero length.");
 			if (caplength != (int)m_capmpbytes.size()) THROWEXCEPTION(std::runtime_error, "Can't save; CapMP Values bytes length doesn't match the declared length.");
 
-			auto capmpbytes = ReadIni(Project->ValuesPath, CapMPCode, PROP_VALUE, bytevector{});
+			auto capmpbytes = v.get<bytevector>(CapMPCode);
 			ASSERT(capmpbytes.size() == m_capmpbytes.size());
 
 			if (cap1) {
@@ -868,90 +876,90 @@ void CClasses::SaveClassEngineData(GameSerializer & ser)
 			// Don't write the EAs to the INI file, but do replace the class IDs.
 			// Only write the class ID bytes to the INI entry, not the lock bytes.
 			UpdateIni(m_capmpbytes, capmpbytes, { (int)(CAPMPCLASSID1_OFFSET - CAPMPCODE_OFFSET), (int)(CAPMPCLASSID2_OFFSET - CAPMPCODE_OFFSET) });
-			WriteIni(Project->ValuesPath, CapMPCode, PROP_VALUE, capmpbytes);
-			OverwriteRange(m_capmpbytes, Project->ROM, CAPMPCODE_OFFSET, caplength);
+			v.set<bytevector>(CapMPCode, capmpbytes);
+			OverwriteRange(m_capmpbytes, Proj2->ROM, CAPMPCODE_OFFSET, caplength);
 		}
 		// The unadjust and readjust IDs are synched to stats when saving. Hits is independent.
 		if (bbma1) {
 			auto id = (unsigned char)GetSelectedItemData(m_bbmacombo1);
 			auto idhits = (unsigned char)GetSelectedItemData(m_2xhitscombo1);
-			Project->ROM[BBMACLASS1STATS_OFFSET] = id;
-			Project->ROM[BBMACLASS1UNADJ_OFFSET] = id;
-			Project->ROM[BBMACLASS1READJ_OFFSET] = id;
-			Project->ROM[BBMACLASS1HITS_OFFSET] = idhits;
+			Proj2->ROM[BBMACLASS1STATS_OFFSET] = id;
+			Proj2->ROM[BBMACLASS1UNADJ_OFFSET] = id;
+			Proj2->ROM[BBMACLASS1READJ_OFFSET] = id;
+			Proj2->ROM[BBMACLASS1HITS_OFFSET] = idhits;
 		}
 		if (bbma2) {
 			auto id = (unsigned char)GetSelectedItemData(m_bbmacombo2);
 			auto idhits = (unsigned char)GetSelectedItemData(m_2xhitscombo2);
-			Project->ROM[BBMACLASS2STATS_OFFSET] = id;
-			Project->ROM[BBMACLASS2UNADJ_OFFSET] = id;
-			Project->ROM[BBMACLASS2READJ_OFFSET] = id;
-			Project->ROM[BBMACLASS2HITS_OFFSET] = idhits;
+			Proj2->ROM[BBMACLASS2STATS_OFFSET] = id;
+			Proj2->ROM[BBMACLASS2UNADJ_OFFSET] = id;
+			Proj2->ROM[BBMACLASS2READJ_OFFSET] = id;
+			Proj2->ROM[BBMACLASS2HITS_OFFSET] = idhits;
 		}
 		if (mprange) {
 			auto temp = m_mpmincombo.GetCurSel();
-			Project->ROM[MAGICMIN_OFFSET] = (BYTE)temp;
+			Proj2->ROM[MAGICMIN_OFFSET] = (BYTE)temp;
 			temp = m_mpmaxcombo.GetCurSel();
-			Project->ROM[MAGICMAX_OFFSET] = (BYTE)(temp + 1); // end range is exclusive, so add 1 to set the proper value
+			Proj2->ROM[MAGICMAX_OFFSET] = (BYTE)(temp + 1); // end range is exclusive, so add 1 to set the proper value
 		}
 	}
-	else if (Project->IsAsm()) {
+	else if (Proj2->IsAsm()) {
 		unsigned char skipval = ASM_IGNORE;
 		if (hold1) {
 			auto id = GetSelectedItemData(m_comboclass1);
-			Project->ROM[HOLDMPCLASS1_OFFSET] = id == CLASS_COUNT ? skipval : ASM_TRUE;
+			Proj2->ROM[HOLDMPCLASS1_OFFSET] = id == CLASS_COUNT ? skipval : ASM_TRUE;
 		}
 		if (hold2) {
 			auto id = (unsigned char)GetSelectedItemData(m_comboclass2);
-			Project->ROM[HOLDMPCLASS2_OFFSET] = id == CLASS_COUNT ? skipval : ASM_TRUE;
-			Project->ROM[HOLDMPCLASSID2_OFFSET] = id;
+			Proj2->ROM[HOLDMPCLASS2_OFFSET] = id == CLASS_COUNT ? skipval : ASM_TRUE;
+			Proj2->ROM[HOLDMPCLASSID2_OFFSET] = id;
 		}
 		if (cap1) {
 			auto id = (unsigned char)GetSelectedItemData(m_combopost1);
-			Project->ROM[CAPMPCLASS1_OFFSET] = id == CLASS_COUNT ? skipval : ASM_TRUE;
-			Project->ROM[CAPMPCLASSID1_OFFSET] = id;
+			Proj2->ROM[CAPMPCLASS1_OFFSET] = id == CLASS_COUNT ? skipval : ASM_TRUE;
+			Proj2->ROM[CAPMPCLASSID1_OFFSET] = id;
 		}
 		if (cap2) {
 			auto id = (unsigned char)GetSelectedItemData(m_combopost2);
-			Project->ROM[CAPMPCLASS2_OFFSET] = id == CLASS_COUNT ? skipval : ASM_TRUE;
-			Project->ROM[CAPMPCLASSID2_OFFSET] = id;
+			Proj2->ROM[CAPMPCLASS2_OFFSET] = id == CLASS_COUNT ? skipval : ASM_TRUE;
+			Proj2->ROM[CAPMPCLASSID2_OFFSET] = id;
 		}
 		// All three values (stats, unadjust, readjust) are synched to the same class ID when saving.
 		if (bbma1) {
 			auto id = (unsigned char)GetSelectedItemData(m_bbmacombo1);
 			auto idhits = (unsigned char)GetSelectedItemData(m_2xhitscombo1);
-			Project->ROM[BBMACLASS1STATS_OFFSET] = id;
-			Project->ROM[BBMACLASS1UNADJ_OFFSET] = id;
-			Project->ROM[BBMACLASS1READJ_OFFSET] = id;
-			Project->ROM[BBMACLASS1HITS_OFFSET] = idhits;
+			Proj2->ROM[BBMACLASS1STATS_OFFSET] = id;
+			Proj2->ROM[BBMACLASS1UNADJ_OFFSET] = id;
+			Proj2->ROM[BBMACLASS1READJ_OFFSET] = id;
+			Proj2->ROM[BBMACLASS1HITS_OFFSET] = idhits;
 		}
 		if (bbma2) {
 			auto id = (unsigned char)GetSelectedItemData(m_bbmacombo2);
 			auto idhits = (unsigned char)GetSelectedItemData(m_2xhitscombo2);
-			Project->ROM[BBMACLASS2STATS_OFFSET] = id;
-			Project->ROM[BBMACLASS2UNADJ_OFFSET] = id;
-			Project->ROM[BBMACLASS2READJ_OFFSET] = id;
-			Project->ROM[BBMACLASS2HITS_OFFSET] = idhits;
+			Proj2->ROM[BBMACLASS2STATS_OFFSET] = id;
+			Proj2->ROM[BBMACLASS2UNADJ_OFFSET] = id;
+			Proj2->ROM[BBMACLASS2READJ_OFFSET] = id;
+			Proj2->ROM[BBMACLASS2HITS_OFFSET] = idhits;
 		}
 		if (mprange) {
 			auto temp = m_mpmincombo.GetCurSel();
-			Project->ROM[MAGICMIN_OFFSET] = (BYTE)temp;
+			Proj2->ROM[MAGICMIN_OFFSET] = (BYTE)temp;
 			temp = m_mpmaxcombo.GetCurSel();
-			Project->ROM[MAGICMAX_OFFSET] = (BYTE)(temp + 1); // end range is exclusive, so add 1 to set the proper value
+			Proj2->ROM[MAGICMAX_OFFSET] = (BYTE)(temp + 1); // end range is exclusive, so add 1 to set the proper value
 		}
 
 		asmsourcemappingvector vasminlineb;
 		asmsourcemappingvector vasminlinec;
 		asmsourcemappingvector vasminlinef;
-		auto vholdid2 = GetClassIdVector(Project->ROM[HOLDMPCLASSID2_OFFSET]);
-		auto vcapid1 = GetClassIdVector(Project->ROM[CAPMPCLASSID1_OFFSET]);
-		auto vcapid2 = GetClassIdVector(Project->ROM[CAPMPCLASSID2_OFFSET]);
-		auto vbbma1 = GetClassIdVector(Project->ROM[BBMACLASS1STATS_OFFSET]);
-		auto vbbma2 = GetClassIdVector(Project->ROM[BBMACLASS2STATS_OFFSET]);
-		auto vhits1 = GetClassIdVector(Project->ROM[BBMACLASS1HITS_OFFSET]);
-		auto vhits2 = GetClassIdVector(Project->ROM[BBMACLASS2HITS_OFFSET]);
-		auto vmpmin = GetClassIdVector(Project->ROM[MAGICMIN_OFFSET]);
-		auto vmpmax = GetClassIdVector(Project->ROM[MAGICMAX_OFFSET]);
+		auto vholdid2 = GetClassIdVector(Proj2->ROM[HOLDMPCLASSID2_OFFSET]);
+		auto vcapid1 = GetClassIdVector(Proj2->ROM[CAPMPCLASSID1_OFFSET]);
+		auto vcapid2 = GetClassIdVector(Proj2->ROM[CAPMPCLASSID2_OFFSET]);
+		auto vbbma1 = GetClassIdVector(Proj2->ROM[BBMACLASS1STATS_OFFSET]);
+		auto vbbma2 = GetClassIdVector(Proj2->ROM[BBMACLASS2STATS_OFFSET]);
+		auto vhits1 = GetClassIdVector(Proj2->ROM[BBMACLASS1HITS_OFFSET]);
+		auto vhits2 = GetClassIdVector(Proj2->ROM[BBMACLASS2HITS_OFFSET]);
+		auto vmpmin = GetClassIdVector(Proj2->ROM[MAGICMIN_OFFSET]);
+		auto vmpmax = GetClassIdVector(Proj2->ROM[MAGICMAX_OFFSET]);
 
 		// Add mappings as dictated by the UI.
 		auto GetClassIdVectorRef = [](stdstringvector & vec) -> stdstringvector& //DEVNOTE - this is mostly for testing purposes (it just returns a ref to the param)
@@ -1005,7 +1013,7 @@ void CClasses::SaveClassEngineData(GameSerializer & ser)
 		if (!vasminlinef.empty()) ser.SaveInline(ASM_0F, vasminlinef);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
@@ -1021,57 +1029,57 @@ void CClasses::LoadValues()
 	CString text;
 
 	//basic stats
-	temp = Project->ROM[offset];
+	temp = Proj2->ROM[offset];
 	text.Format("%02X", temp);
 	m_classid.SetWindowText(text);
 
-	text.Format("%d",Project->ROM[offset + 1]);
+	text.Format("%d",Proj2->ROM[offset + 1]);
 	m_startinghp.SetWindowText(text);
-	text.Format("%d",Project->ROM[offset + 2]);
+	text.Format("%d",Proj2->ROM[offset + 2]);
 	m_str.SetWindowText(text);
-	text.Format("%d",Project->ROM[offset + 3]);
+	text.Format("%d",Proj2->ROM[offset + 3]);
 	m_agility.SetWindowText(text);
-	text.Format("%d",Project->ROM[offset + 4]);
+	text.Format("%d",Proj2->ROM[offset + 4]);
 	m_int.SetWindowText(text);
-	text.Format("%d",Project->ROM[offset + 5]);
+	text.Format("%d",Proj2->ROM[offset + 5]);
 	m_vit.SetWindowText(text);
-	text.Format("%d",Project->ROM[offset + 6]);
+	text.Format("%d",Proj2->ROM[offset + 6]);
 	m_luck.SetWindowText(text);
-	text.Format("%d",Project->ROM[offset + 7]);
+	text.Format("%d",Proj2->ROM[offset + 7]);
 	m_damage.SetWindowText(text);
-	text.Format("%d",Project->ROM[offset + 8]);
+	text.Format("%d",Proj2->ROM[offset + 8]);
 	m_hit.SetWindowText(text);
-	text.Format("%d",Project->ROM[offset + 9]);
+	text.Format("%d",Proj2->ROM[offset + 9]);
 	m_evade.SetWindowText(text);
-	text.Format("%d",Project->ROM[offset + 10]);
+	text.Format("%d",Proj2->ROM[offset + 10]);
 	m_magdef.SetWindowText(text);
-	text.Format("%d",Project->ROM[HITPCTINCREASE_OFFSET + cur_class]);
+	text.Format("%d",Proj2->ROM[HITPCTINCREASE_OFFSET + cur_class]);
 	m_hitpctup.SetWindowText(text);
-	text.Format("%d", Project->ROM[MAGDEFINCREASE_OFFSET + cur_class]);
+	text.Format("%d", Proj2->ROM[MAGDEFINCREASE_OFFSET + cur_class]);
 	m_editMagDefUp.SetWindowText(text);
 
 	// Ranges, Start MP, and HoldMP are editable in ROM projects.
 	// Assembly projects are better off just editing the assembly.
-	text.Format("%d", Project->ROM[STARTINGMP_OFFSET]);
+	text.Format("%d", Proj2->ROM[STARTINGMP_OFFSET]);
 	m_magic.SetWindowText(text);
 
 	// This value axtually holds MaxHP + 1, so if it's not 0, subtract 1.
-	auto maxhp = Project->ROM[HPMAX_OFFSET] | (Project->ROM[HPMAX_OFFSET + 1] << 8);
+	auto maxhp = Proj2->ROM[HPMAX_OFFSET] | (Proj2->ROM[HPMAX_OFFSET + 1] << 8);
 	if (maxhp > 0) --maxhp;
 	text.Format("%d", maxhp);
 	m_maxhpedit.SetWindowText(text);
 
-	text.Format("%d", Project->ROM[HPRANGEMIN_OFFSET]);
+	text.Format("%d", Proj2->ROM[HPRANGEMIN_OFFSET]);
 	m_hprangemin.SetWindowText(text);
-	text.Format("%d", Project->ROM[HPRANGEMAX_OFFSET]);
+	text.Format("%d", Proj2->ROM[HPRANGEMAX_OFFSET]);
 	m_hprangemax.SetWindowText(text);
 
 	// Caps are stored as 1 greater than the limit, subtract 1 to display the actual limit in the UI.
-	temp = Project->ROM[MPCAP_OFFSET] - 1; if (temp < 0) temp = 0;
+	temp = Proj2->ROM[MPCAP_OFFSET] - 1; if (temp < 0) temp = 0;
 	text.Format("%d", temp);
 	m_editMpMaxAllChars.SetWindowText(text);
 
-	temp = Project->ROM[CAPMPLIMIT_OFFSET] - 1;
+	temp = Proj2->ROM[CAPMPLIMIT_OFFSET] - 1;
 	if (temp < 0) temp = 0; // should store N+1, but if 0 is entered, avoid underflow
 	text.Format("%d", temp);
 	m_editHoldMpMax.SetWindowText(text);
@@ -1080,14 +1088,14 @@ void CClasses::LoadValues()
 	for(int co = 0; co < 4; co++){
 		offset = ((cur_class % 6) * 98) + ((level_offset + co) << 1) + GetLevelOffset(cur_class);
 
-		temp = Project->ROM[offset];
+		temp = Proj2->ROM[offset];
 		SetCheckFlags(temp, std::vector<CStrikeCheck*>{ ar_luc[co], ar_vit[co], ar_int[co], ar_agi[co], ar_str[co], ar_strong[co] });
 
-		temp = Project->ROM[offset + 1];
+		temp = Proj2->ROM[offset + 1];
 		SetCheckFlags(temp, std::vector<CStrikeCheck*>{ ar_1m[co], ar_2m[co], ar_3m[co], ar_4m[co], ar_5m[co], ar_6m[co], ar_7m[co], ar_8m[co] });
 
 		offset = EXP_OFFSET + ((level_offset + co) * 3);
-		temp = Project->ROM[offset] + (Project->ROM[offset + 1] << 8) + (Project->ROM[offset + 2] << 16);
+		temp = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8) + (Proj2->ROM[offset + 2] << 16);
 		text.Format("%d",temp);
 		ar_exp[co]->SetWindowText(text);
 	}
@@ -1103,66 +1111,66 @@ void CClasses::StoreValues()
 	//basic stats
 	m_classid.GetWindowText(text); temp = StringToInt_HEX(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset] = (BYTE)temp;
+	Proj2->ROM[offset] = (BYTE)temp;
 	m_startinghp.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 1] = (BYTE)temp;
+	Proj2->ROM[offset + 1] = (BYTE)temp;
 	m_str.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 2] = (BYTE)temp;
+	Proj2->ROM[offset + 2] = (BYTE)temp;
 	m_agility.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 3] = (BYTE)temp;
+	Proj2->ROM[offset + 3] = (BYTE)temp;
 	m_int.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 4] = (BYTE)temp;
+	Proj2->ROM[offset + 4] = (BYTE)temp;
 	m_vit.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 5] = (BYTE)temp;
+	Proj2->ROM[offset + 5] = (BYTE)temp;
 	m_luck.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 6] = (BYTE)temp;
+	Proj2->ROM[offset + 6] = (BYTE)temp;
 	m_damage.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 7] = (BYTE)temp;
+	Proj2->ROM[offset + 7] = (BYTE)temp;
 	m_hit.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 8] = (BYTE)temp;
+	Proj2->ROM[offset + 8] = (BYTE)temp;
 	m_evade.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 9] = (BYTE)temp;
+	Proj2->ROM[offset + 9] = (BYTE)temp;
 	m_magdef.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[offset + 10] = (BYTE)temp;
+	Proj2->ROM[offset + 10] = (BYTE)temp;
 	m_hitpctup.GetWindowText(text); temp = StringToInt(text);
 	if(temp > 0xFF) temp = 0xFF;
-	Project->ROM[HITPCTINCREASE_OFFSET + cur_class] = (BYTE)temp;
+	Proj2->ROM[HITPCTINCREASE_OFFSET + cur_class] = (BYTE)temp;
 	m_editMagDefUp.GetWindowText(text); temp = StringToInt(text);
 	if (temp > 0xFF) temp = 0xFF;
-	Project->ROM[MAGDEFINCREASE_OFFSET + cur_class] = (BYTE)temp;
+	Proj2->ROM[MAGDEFINCREASE_OFFSET + cur_class] = (BYTE)temp;
 
 	// Ranges, Start MP, and HoldMP are editable in ROM projects.
 	// Assembly projects are better off just editing the assembly.
 	m_magic.GetWindowText(text); temp = StringToInt(text);
-	if (temp > 0xFF) temp = 0xFF; Project->ROM[STARTINGMP_OFFSET] = (BYTE)temp;
+	if (temp > 0xFF) temp = 0xFF; Proj2->ROM[STARTINGMP_OFFSET] = (BYTE)temp;
 
 	// This value actually holds MaxHP + 1, so add 1 if it's not already at the 16-bit max value
 	m_maxhpedit.GetWindowText(text); temp = StringToInt(text);
 	if (temp < 0xFFFF) ++temp;
-	Project->ROM[HPMAX_OFFSET] = (BYTE)temp;
-	Project->ROM[HPMAX_OFFSET + 1] = (BYTE)((temp >> 8) & 0xFF);
+	Proj2->ROM[HPMAX_OFFSET] = (BYTE)temp;
+	Proj2->ROM[HPMAX_OFFSET + 1] = (BYTE)((temp >> 8) & 0xFF);
 
 	m_hprangemin.GetWindowText(text); temp = StringToInt(text);
-	if (temp > 0xFF) temp = 0xFF; Project->ROM[HPRANGEMIN_OFFSET] = (BYTE)temp;
+	if (temp > 0xFF) temp = 0xFF; Proj2->ROM[HPRANGEMIN_OFFSET] = (BYTE)temp;
 	m_hprangemax.GetWindowText(text); temp = StringToInt(text);
-	if (temp > 0xFF) temp = 0xFF; Project->ROM[HPRANGEMAX_OFFSET] = (BYTE)temp;
+	if (temp > 0xFF) temp = 0xFF; Proj2->ROM[HPRANGEMAX_OFFSET] = (BYTE)temp;
 
 	m_editMpMaxAllChars.GetWindowText(text);
 	temp = StringToInt(text) + 1;
-	if (temp > 0xFF) temp = 0xFF; Project->ROM[MPCAP_OFFSET] = (BYTE)temp;
+	if (temp > 0xFF) temp = 0xFF; Proj2->ROM[MPCAP_OFFSET] = (BYTE)temp;
 
 	m_editHoldMpMax.GetWindowText(text); temp = atol(text) + 1;
-	if (temp > 0xFF) temp = 0xFF; Project->ROM[CAPMPLIMIT_OFFSET] = (BYTE)temp;
+	if (temp > 0xFF) temp = 0xFF; Proj2->ROM[CAPMPLIMIT_OFFSET] = (BYTE)temp;
 
 	//level up data
 	for(int co = 0; co < 4; co++){
@@ -1172,18 +1180,18 @@ void CClasses::StoreValues()
 			wnd->Invalidate();
 
 		temp = GetCheckFlags(std::vector<CStrikeCheck*>{ ar_luc[co], ar_vit[co], ar_int[co], ar_agi[co], ar_str[co], ar_strong[co] });
-		Project->ROM[offset] = (BYTE)temp;
+		Proj2->ROM[offset] = (BYTE)temp;
 
 		temp = GetCheckFlags(std::vector<CStrikeCheck*>{ ar_1m[co], ar_2m[co], ar_3m[co], ar_4m[co], ar_5m[co], ar_6m[co], ar_7m[co], ar_8m[co] });
-		Project->ROM[offset + 1] = (BYTE)temp;
+		Proj2->ROM[offset + 1] = (BYTE)temp;
 
 		offset = EXP_OFFSET + ((level_offset + co) * 3);
 		ar_exp[co]->GetWindowText(text);
 		temp = StringToInt(text);
 		if(temp > 0xFFFFFF) temp = 0xFFFFFF;
-		Project->ROM[offset] = temp & 0xFF;
-		Project->ROM[offset + 1] = (temp >> 8) & 0xFF;
-		Project->ROM[offset + 2] = (BYTE)(temp >> 16);
+		Proj2->ROM[offset] = temp & 0xFF;
+		Proj2->ROM[offset + 1] = (temp >> 8) & 0xFF;
+		Proj2->ROM[offset + 2] = (BYTE)(temp >> 16);
 	}
 }
 
@@ -1312,7 +1320,7 @@ void CClasses::RecalculateRunningTotals()
 	for(int co = 0; co < 49; co++, offset += 2)
 	{
 		RunningHP += 1 + (RunningVit >> 3);
-		temp = Project->ROM[offset];
+		temp = Proj2->ROM[offset];
 		if(temp & 0x20) //if strong level up
 			RunningHP += (short)HPGain;
 		if(ViewScale == 2){
@@ -1333,7 +1341,7 @@ void CClasses::RecalculateRunningTotals()
 			if(temp & 0x01) RunningLuc += 2;
 			else RunningLuc += ViewScale;}
 
-		temp = Project->ROM[offset + 1];
+		temp = Proj2->ROM[offset + 1];
 		for (tco = 0, line = 1; tco < 8; tco++, line <<= 1) {
 			RunningMag[tco] += (temp & line) != 0;
 		}
@@ -1372,12 +1380,12 @@ stdstringvector CClasses::GetClassIdVector(unsigned char classid)
 {
 	stdstringvector vec;
 
-	auto it = std::find_if(cbegin(Project->m_varmap), cend(Project->m_varmap), [classid](const auto & kv) {
+	auto it = std::find_if(cbegin(Proj2->m_varmap), cend(Proj2->m_varmap), [classid](const auto & kv) {
 		bool matched = kv.second == classid && kv.first.find("CLS_") == 0;
 		return matched;
 	});
 
-	if (it != cend(Project->m_varmap)) vec.push_back(it->first);
+	if (it != cend(Proj2->m_varmap)) vec.push_back(it->first);
 	return vec;
 }
 
@@ -1412,12 +1420,12 @@ void CClasses::HandleClassListContextMenu(CWnd * pWnd, CPoint point)
 	auto selclass = m_classlist.ItemFromPoint(listpoint, bOutside);
 	if (selclass == LB_ERR) return;
 
-	CString strselclass = LoadClassEntry(*Project, selclass).name;
+	CString strselclass = LoadClassEntry(*Proj2, selclass).name;
 	m_classesmenu.AppendMenu(MF_STRING, CLASS_COPY, "&Copy " + strselclass);
 	if (m_copiedclass != -1 && m_copiedclass != (int)selclass) {
 		// if pasting, the clicked index is actually the destination
-		CString strdestclass = LoadClassEntry(*Project, selclass).name.Trim();
-		strselclass = LoadClassEntry(*Project, m_copiedclass).name.Trim();
+		CString strdestclass = LoadClassEntry(*Proj2, selclass).name.Trim();
+		strselclass = LoadClassEntry(*Proj2, m_copiedclass).name.Trim();
 		m_classesmenu.AppendMenu(MF_STRING, CLASS_PASTE, "&" + FormText(CLASS_PASTE, strselclass, strdestclass) + "...");
 		m_classesmenu.AppendMenu(MF_STRING, CLASS_SWAP, "&" + FormText(CLASS_SWAP, strselclass, strdestclass) + "...");
 	}
@@ -1432,7 +1440,7 @@ void CClasses::HandleClassListContextMenu(CWnd * pWnd, CPoint point)
 					return;
 			}
 
-			CString strdestclass = LoadClassEntry(*Project, selclass).name.Trim();
+			CString strdestclass = LoadClassEntry(*Proj2, selclass).name.Trim();
 			CString method = selop == CLASS_PASTE ? "Paste" : "Swap";
 			CDlgPasteTargets dlg(this);
 			dlg.Title = FormText(selop, strselclass, strdestclass);
@@ -1490,12 +1498,12 @@ void CClasses::CopySwapBytes(bool swapping, size_t srcoffset, size_t destoffset,
 		auto src = srcoffset + i;
 		auto dst = destoffset + i;
 		if (swapping) {
-			auto temp = Project->ROM[dst];
-			Project->ROM[dst] = Project->ROM[src];
-			Project->ROM[src] = temp;
+			auto temp = Proj2->ROM[dst];
+			Proj2->ROM[dst] = Proj2->ROM[src];
+			Proj2->ROM[src] = temp;
 		}
 		else {
-			Project->ROM[dst] = Project->ROM[src];
+			Proj2->ROM[dst] = Proj2->ROM[src];
 		}
 	}
 }
@@ -1510,8 +1518,8 @@ void CClasses::CopySwapBits16(bool swapping, size_t baseoffset, size_t srcindex,
 
 	for (size_t i = start, end = start + count; i < end; ++i) {
 		size_t offset = baseoffset + (i * step);
-		unsigned short origoctet = Project->ROM[offset];
-		unsigned short octet = Project->ROM[offset] + (Project->ROM[offset + 1] << 8);
+		unsigned short origoctet = Proj2->ROM[offset];
+		unsigned short octet = Proj2->ROM[offset] + (Proj2->ROM[offset + 1] << 8);
 
 		// I invert the byte to make it a little more intuitive.
 		// So now, the class can use the item if the bit is SET.
@@ -1538,8 +1546,8 @@ void CClasses::CopySwapBits16(bool swapping, size_t baseoffset, size_t srcindex,
 
 		// Reverse the inversion and store the change
 		auto newoctet = (unsigned short)(~invoct & valuemask);
-		Project->ROM[offset] = newoctet & 0xFF;
-		if (bits > 8) Project->ROM[offset + 1] = (newoctet >> 8) & 0xFF;
+		Proj2->ROM[offset] = newoctet & 0xFF;
+		if (bits > 8) Proj2->ROM[offset + 1] = (newoctet >> 8) & 0xFF;
 	}
 }
 
@@ -1664,7 +1672,7 @@ void CClasses::PasteUsables(int srcindex, int destindex, int flags)
 	}
 	if ((flags & PASTE_MAGICPERM) == PASTE_MAGICPERM) {
 		int SPELLSPERLEVEL_COUNT = 8;
-		copypaste_helpers::CopySwapBuffer(swapping, Project->ROM, srcindex, destindex,
+		copypaste_helpers::CopySwapBuffer(swapping, Proj2->ROM, srcindex, destindex,
 			MAGICPERMISSIONS_OFFSET, SPELLSPERLEVEL_COUNT, 0, SPELLLEVEL_COUNT);
 	}
 }
@@ -1676,14 +1684,14 @@ void CClasses::PasteName(int srcindex, int destindex, int flags)
 	bool swapping = (flags & PASTE_OP_SWAP) == PASTE_OP_SWAP;
 	try {
 		if (swapping) {
-			Ingametext::SwapStringBytes(*Project, CLASSES, srcindex, destindex);
+			Ingametext::SwapStringBytes(*Proj2, CLASSES, srcindex, destindex);
 		}
 		else {
-			Ingametext::OverwriteStringBytes(*Project, CLASSES, srcindex, destindex);
+			Ingametext::OverwriteStringBytes(*Proj2, CLASSES, srcindex, destindex);
 		}
 
-		CString srcname = LoadClassEntry(*Project, srcindex).name.Trim();
-		CString dstname = LoadClassEntry(*Project, destindex).name.Trim();
+		CString srcname = LoadClassEntry(*Proj2, srcindex).name.Trim();
+		CString dstname = LoadClassEntry(*Proj2, destindex).name.Trim();
 
 		// Now, reload the class names in the list box...
 		Ui::ReplaceString(m_classlist, srcindex, srcname);
@@ -1830,7 +1838,7 @@ void CClasses::ChangeSaivlCheckGroup(int group, bool checked)
 bool CClasses::UsingHoldMP(int slot)
 {
 	ASSERT(slot == 1 || slot == 2);
-	CClassesEditorSettings stgs(*Project);
+	CClassesEditorSettings stgs(*Proj2);
 	auto nChecked = slot == 1 ? stgs.IgnoreHoldMP1 : stgs.IgnoreHoldMP2;
 	return !nChecked;
 }
@@ -1838,14 +1846,14 @@ bool CClasses::UsingHoldMP(int slot)
 bool CClasses::UsingCapMP(int slot)
 {
 	ASSERT(slot == 1 || slot == 2);
-	CClassesEditorSettings stgs(*Project);
+	CClassesEditorSettings stgs(*Proj2);
 	auto nChecked = slot == 1 ? stgs.IgnoreCapMP1 : stgs.IgnoreCapMP2;
 	return !nChecked;
 }
 
 bool CClasses::UsingMPRange()
 {
-	CClassesEditorSettings stgs(*Project);
+	CClassesEditorSettings stgs(*Proj2);
 	auto nChecked = stgs.IgnoreMPRange;
 	return !nChecked;
 }
@@ -1853,7 +1861,7 @@ bool CClasses::UsingMPRange()
 bool CClasses::UsingBBMA(int slot)
 {
 	ASSERT(slot == 1 || slot == 2);
-	CClassesEditorSettings stgs(*Project);
+	CClassesEditorSettings stgs(*Proj2);
 	auto nChecked = slot == 1 ? stgs.IgnoreBBMA1 : stgs.IgnoreBBMA2;
 	return !nChecked;
 }
@@ -1879,7 +1887,7 @@ void CClasses::OnBattlepic()
 {
 	CWaitCursor wait;
 	CBattlePic dlg;
-	dlg.cart = Project;
+	dlg.Proj2 = Proj2;
 	dlg.Class = cur_class;
 	dlg.InMemory = true;
 	dlg.DoModal();
@@ -1889,7 +1897,7 @@ void CClasses::OnMapmanpic()
 {
 	CWaitCursor wait;
 	CMapman dlg;
-	dlg.cart = Project;
+	dlg.Proj2 = Proj2;
 	dlg.graphicoffset = MAPMANGRAPHIC_OFFSET + (cur_class << 8);
 	dlg.paletteoffset = -cur_class - 1;
 	dlg.InMemory = true;
@@ -1970,7 +1978,7 @@ void CClasses::OnBnClickedClassesSettings()
 {
 	try {
 		CClassesEditorSettingsDlg dlg(this);
-		dlg.m_proj = Project;
+		dlg.Proj2 = Proj2;
 		dlg.PreSaveOKCancelPrompt = "The Classes editor must reload if these settings are saved.\nDo you still want to save these changes?";
 		if (dlg.DoModal() == IDOK) {
 			//FUTURE - reloading is such a pain, so close the caller and reopen manually to

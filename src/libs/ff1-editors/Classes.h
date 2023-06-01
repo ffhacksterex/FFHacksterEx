@@ -5,7 +5,6 @@
 #include "vector_types.h"
 #include "map_types.h"
 #include "afxwin.h"
-class CFFHacksterProject;
 class GameSerializer;
 
 /////////////////////////////////////////////////////////////////////////////

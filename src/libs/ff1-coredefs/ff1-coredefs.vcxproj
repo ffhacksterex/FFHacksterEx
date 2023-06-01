@@ -183,6 +183,7 @@
     <ClCompile Include="aseembly_types.cpp" />
     <ClCompile Include="ci_support.cpp" />
     <ClCompile Include="cnv_primitives.cpp" />
+    <ClCompile Include="cnv_std_collections.cpp" />
     <ClCompile Include="collection_conversions.cpp" />
     <ClCompile Include="collection_helpers.cpp" />
     <ClCompile Include="core_exceptions.cpp" />

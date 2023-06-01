@@ -5,6 +5,7 @@
 #include "resource_settings.h"
 #include <FFBaseDlg.h>
 class CFFHacksterProject;
+class FFH2Project;
 
 class CClassesEditorSettingsDlg : public CFFBaseDlg
 {
@@ -14,6 +15,7 @@ public:
 	CClassesEditorSettingsDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~CClassesEditorSettingsDlg();
 
+	FFH2Project* Proj2 = nullptr;
 	CFFHacksterProject * m_proj;
 	CString PreSaveOKCancelPrompt;
 

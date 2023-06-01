@@ -4,7 +4,8 @@
 #include "stdafx.h"
 #include "BattlePic.h"
 #include "AsmFiles.h"
-#include "FFHacksterProject.h"
+#include <core_exceptions.h>
+#include <FFH2Project.h>
 #include <AppSettings.h>
 #include "GameSerializer.h"
 #include "NESPalette.h"
@@ -13,6 +14,7 @@
 #include "ini_functions.h"
 #include "string_functions.h"
 #include "ui_helpers.h"
+#include <ValueDataAccessor.h>
 
 using namespace Ini;
 using namespace Ui;
@@ -70,12 +72,13 @@ const BYTE ConstPicFormation[39] = {	//3 x 13 pic formation
 
 void CBattlePic::LoadRom()
 {
-		CHARBATTLEPALETTE_ASSIGNMENT1 = ReadHex(cart->ValuesPath, "CHARBATTLEPALETTE_ASSIGNMENT1");
-		CHARBATTLEPALETTE_ASSIGNMENT2 = ReadHex(cart->ValuesPath, "CHARBATTLEPALETTE_ASSIGNMENT2");
-		CHARBATTLEPIC_OFFSET = ReadHex(cart->ValuesPath, "CHARBATTLEPIC_OFFSET");
-		CHARBATTLEPALETTE_OFFSET = ReadHex(cart->ValuesPath, "CHARBATTLEPALETTE_OFFSET");
-		BINBANK09DATA_OFFSET = ReadHex(cart->ValuesPath, "BINBANK09DATA_OFFSET");
-		BINBANK09GFXDATA_OFFSET = ReadHex(cart->ValuesPath, "BINBANK09GFXDATA_OFFSET");
+	ffh::acc::ValueDataAccessor v(*Proj2);
+	CHARBATTLEPALETTE_ASSIGNMENT1 = v.get<int>("CHARBATTLEPALETTE_ASSIGNMENT1");
+	CHARBATTLEPALETTE_ASSIGNMENT2 = v.get<int>("CHARBATTLEPALETTE_ASSIGNMENT2");
+	CHARBATTLEPIC_OFFSET = v.get<int>("CHARBATTLEPIC_OFFSET");
+	CHARBATTLEPALETTE_OFFSET = v.get<int>("CHARBATTLEPALETTE_OFFSET");
+	BINBANK09DATA_OFFSET = v.get<int>("BINBANK09DATA_OFFSET");
+	BINBANK09GFXDATA_OFFSET = v.get<int>("BINBANK09GFXDATA_OFFSET");
 
 	// In-memory operations ignore loading and saving to the file(s) and assume that the client has intiialized ROM
 	// and will handle the loading and saving details.
@@ -83,10 +86,10 @@ void CBattlePic::LoadRom()
 		return;
 
 	// Now load the data
-	if (cart->IsRom()) {
+	if (Proj2->IsRom()) {
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of reading to the entire buffer, just read to the parts we need
 		ser.LoadInline(ASM_0C, { { asmlabel, LUT_INBATTLECHARPALETTEASSIGN, { CHARBATTLEPALETTE_ASSIGNMENT1 } } });
 		ser.LoadInline(ASM_0F, { { asmlabel, LUT_BATTLESPRITEPALETTES, { CHARBATTLEPALETTE_OFFSET } },
@@ -95,7 +98,7 @@ void CBattlePic::LoadRom()
 		ser.LoadAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
@@ -106,10 +109,10 @@ void CBattlePic::SaveRom()
 	if (InMemory)
 		return;
 
-	if (cart->IsRom()) {
+	if (Proj2->IsRom()) {
 	}
-	else if (cart->IsAsm()) {
-		GameSerializer ser(*cart);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.SaveInline(ASM_0C, { { asmlabel, LUT_INBATTLECHARPALETTEASSIGN, { CHARBATTLEPALETTE_ASSIGNMENT1 } } });
 		ser.SaveInline(ASM_0F, { { asmlabel, LUT_BATTLESPRITEPALETTES, { CHARBATTLEPALETTE_OFFSET } },
@@ -118,7 +121,7 @@ void CBattlePic::SaveRom()
 		ser.SaveAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)cart->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
@@ -127,7 +130,7 @@ BOOL CBattlePic::OnInitDialog()
 	CSaveableDialog::OnInitDialog();
 
 	try {
-		if (cart == nullptr) THROWEXCEPTION(std::runtime_error, "A valid FFH2017 project must be specified before editing battle sprites.");
+		if (Proj2 == nullptr) THROWEXCEPTION(std::runtime_error, "A valid FFH2017 project must be specified before editing battle sprites.");
 		if (Class == -1) THROWEXCEPTION(std::runtime_error, "A class most be specified before its battle sprites can be edited.");
 
 		LoadRom();
@@ -154,9 +157,9 @@ BOOL CBattlePic::OnInitDialog()
 		palette[0] = 0x0F;
 
 		PalAssign = 255;
-		UpdatePalAssignment(cart->ROM[CHARBATTLEPALETTE_ASSIGNMENT1 + Class] & 0x03);
+		UpdatePalAssignment(Proj2->ROM[CHARBATTLEPALETTE_ASSIGNMENT1 + Class] & 0x03);
 
-		Draw_ROM_Buffer(cart, CHARBATTLEPIC_OFFSET + (Class << 9), &draw);
+		Draw_ROM_Buffer(Proj2, CHARBATTLEPIC_OFFSET + (Class << 9), &draw);
 	}
 	catch (std::exception & ex) {
 		return Ui::AbortInitDialog(this, CString("Failed to load game data:\n") + ex.what());
@@ -172,20 +175,20 @@ void CBattlePic::ReLoadPalette()
 {
 	int offset = CHARBATTLEPALETTE_OFFSET + (PalAssign << 2) + 1;
 	for(int co = 1; co < 4; offset++, co++)
-		palette[co] = cart->ROM[offset];
+		palette[co] = Proj2->ROM[offset];
 }
 
 void CBattlePic::StorePalette()
 {
 	int offset = CHARBATTLEPALETTE_OFFSET + (PalAssign << 2) + 1;
 	for(int co = 1; co < 4; offset++, co++)
-		cart->ROM[offset] = palette[co];
+		Proj2->ROM[offset] = palette[co];
 }
 
 void CBattlePic::OnPaint() 
 {
 	CPaintDC dc(this);
-	Draw_DrawAll(&dc,&draw,cart,palette);
+	Draw_DrawAll(&dc,&draw,Proj2,palette);
 }
 
 void CBattlePic::OnLButtonDown(UINT nFlags, CPoint pt) 
@@ -262,7 +265,7 @@ void CBattlePic::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 	if(PtInRect(draw.rcPalette,pt)){
 		CNESPalette dlg;
-		dlg.cart = cart;
+		dlg.Proj2 = Proj2;
 		dlg.color = &palette[draw.curpal];
 		if(dlg.DoModal() == IDOK){
 			InvalidateRect(draw.rcPalette,0);
@@ -273,22 +276,22 @@ void CBattlePic::OnLButtonDblClk(UINT nFlags, CPoint pt)
 
 void CBattlePic::StoreValues()
 {
-	Draw_Buffer_ROM(cart,CHARBATTLEPIC_OFFSET + (Class << 9),&draw);
+	Draw_Buffer_ROM(Proj2,CHARBATTLEPIC_OFFSET + (Class << 9),&draw);
 
-	cart->ROM[CHARBATTLEPALETTE_ASSIGNMENT1 + Class] = PalAssign;
-	cart->ROM[CHARBATTLEPALETTE_ASSIGNMENT2 + Class] = PalAssign;
+	Proj2->ROM[CHARBATTLEPALETTE_ASSIGNMENT1 + Class] = PalAssign;
+	Proj2->ROM[CHARBATTLEPALETTE_ASSIGNMENT2 + Class] = PalAssign;
 
 	StorePalette();
 }
 
 void CBattlePic::OnExportbitmap()
 {
-	Draw_ExportToBmp(&draw, cart, palette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
+	Draw_ExportToBmp(&draw, Proj2, palette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 }
 
 void CBattlePic::OnImportbitmap() 
 {
-	Draw_ImportFromBmp(&draw, cart, palette, FOLDERPREF(cart->AppSettings, PrefImageImportExportFolder));
+	Draw_ImportFromBmp(&draw, Proj2, palette, FOLDERPREF(Proj2->AppSettings, PrefImageImportExportFolder));
 	InvalidateRect(draw.rcGraphic,0);
 	InvalidateRect(draw.rcCloseup,0);
 }
