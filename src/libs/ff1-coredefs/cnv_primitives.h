@@ -10,6 +10,7 @@ namespace ffh
 		int hex(const std::string& text);
 		int hex(const std::string& text, const std::string& format);
 		std::string hex(int value, int digits = 4);
-		std::string hex(int value, std::string format);		
+		std::string hex(int value, std::string format);
+		std::string build_hex_format(int digits);
 	}
 }

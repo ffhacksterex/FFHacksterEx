@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "ClassesEditorSettingsDlg.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
 #include "ClassesEditorSettings.h"
 #include "ui_helpers.h"
 
@@ -16,7 +16,7 @@ IMPLEMENT_DYNAMIC(CClassesEditorSettingsDlg, CFFBaseDlg)
 
 CClassesEditorSettingsDlg::CClassesEditorSettingsDlg(CWnd* pParent /*= nullptr */)
 	: CFFBaseDlg(IDD, pParent)
-	, m_proj(nullptr)
+	, Proj2(nullptr)
 {
 }
 
@@ -26,7 +26,7 @@ CClassesEditorSettingsDlg::~CClassesEditorSettingsDlg()
 
 bool CClassesEditorSettingsDlg::Load()
 {
-	CClassesEditorSettings stgs(*m_proj, initflag::dontread);
+	CClassesEditorSettings stgs(*Proj2, initflag::dontread);
 	bool read = stgs.Read();
 	SetCheckValue(m_checkIgnoreHoldMp1, stgs.IgnoreHoldMP1);
 	SetCheckValue(m_checkIgnoreHoldMp2, stgs.IgnoreHoldMP2);
@@ -40,7 +40,7 @@ bool CClassesEditorSettingsDlg::Load()
 
 bool CClassesEditorSettingsDlg::Save()
 {
-	CClassesEditorSettings stgs(*m_proj);
+	CClassesEditorSettings stgs(*Proj2);
 	stgs.IgnoreHoldMP1 = GetCheckValue(m_checkIgnoreHoldMp1);
 	stgs.IgnoreHoldMP2 = GetCheckValue(m_checkIgnoreHoldMp2);
 	stgs.IgnoreCapMP1 = GetCheckValue(m_checkIgnoreCapMp1);
@@ -74,7 +74,7 @@ BOOL CClassesEditorSettingsDlg::OnInitDialog()
 {
 	CFFBaseDlg::OnInitDialog();
 
-	if (m_proj == nullptr) {
+	if (Proj2 == nullptr) {
 		EndDialog(IDABORT);
 		return TRUE;
 	}

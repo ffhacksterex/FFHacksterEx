@@ -4,13 +4,15 @@
 #include "stdafx.h"
 #include "PartySetup.h"
 #include "AsmFiles.h"
-#include "FFHacksterProject.h"
+#include <core_exceptions.h>
+#include <FFH2Project.h>
 #include "GameSerializer.h"
 #include "general_functions.h"
 #include "imaging_helpers.h"
 #include "ingame_text_functions.h"
 #include "ini_functions.h"
 #include "io_functions.h"
+#include <ValueDataAccessor.h>
 #include "ui_helpers.h"
 
 using namespace Imaging;
@@ -36,21 +38,22 @@ CPartySetup::~CPartySetup()
 
 void CPartySetup::LoadOffsets()
 {
-	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
-	NEWPARTYCLASSCOUNT_OFFSET = ReadHex(Project->ValuesPath, "NEWPARTYCLASSCOUNT_OFFSET");
-	NEWPARTYCLASSINC_OFFSET = ReadHex(Project->ValuesPath, "NEWPARTYCLASSINC_OFFSET");
-	PTYGEN_OFFSET = ReadHex(Project->ValuesPath, "PTYGEN_OFFSET");
-	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
+	ffh::acc::ValueDataAccessor v(*Proj2);
+	CLASS_COUNT = v.get<int>("CLASS_COUNT");
+	NEWPARTYCLASSCOUNT_OFFSET = v.get<int>("NEWPARTYCLASSCOUNT_OFFSET");
+	NEWPARTYCLASSINC_OFFSET = v.get<int>("NEWPARTYCLASSINC_OFFSET");
+	PTYGEN_OFFSET = v.get<int>("PTYGEN_OFFSET");
+	BANK0A_OFFSET = v.get<int>("BANK0A_OFFSET");
 }
 
 void CPartySetup::LoadRom()
 {
-	Project->ClearROM();
-	if (Project->IsRom()) {
-		load_binary(Project->WorkRomPath, Project->ROM);
+	Proj2->ClearROM();
+	if (Proj2->IsRom()) {
+		Proj2->LoadROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		//ser.ReadConstants("constants.inc");
 		// Instead of writing to the entire buffer, just write to the parts we need
 		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
@@ -61,17 +64,17 @@ void CPartySetup::LoadRom()
 		});
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, Proj2->info.type);
 	}
 }
 
 void CPartySetup::SaveRom()
 {
-	if (Project->IsRom()) {
-		save_binary(Project->WorkRomPath, Project->ROM);
+	if (Proj2->IsRom()) {
+		Proj2->SaveROM();
 	}
-	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+	else if (Proj2->IsAsm()) {
+		GameSerializer ser(*Proj2);
 		//ser.ReadConstants("constants.inc");
 		// Instead of writing to the entire buffer, just write to the parts we need
 		//NOTE: bank A is read-only in this editor, no need to write it
@@ -82,7 +85,7 @@ void CPartySetup::SaveRom()
 		});
 	}
 	else {
-		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);
+		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, Proj2->info.type);
 	}
 }
 
@@ -105,11 +108,11 @@ void CPartySetup::StoreValues()
 	auto SaveCombo = [this](CComboBox & box, int classoffset) {
 		int offset = this->PTYGEN_OFFSET + classoffset;
 		int iclass = box.GetCurSel();
-		Project->ROM[offset] = (BYTE)iclass;
+		Proj2->ROM[offset] = (BYTE)iclass;
 	};
 
-	Project->ROM[NEWPARTYCLASSINC_OFFSET] = enabled ? 0 : 1;
-	Project->ROM[NEWPARTYCLASSCOUNT_OFFSET] = (BYTE)newpartyclasscount;
+	Proj2->ROM[NEWPARTYCLASSINC_OFFSET] = enabled ? 0 : 1;
+	Proj2->ROM[NEWPARTYCLASSCOUNT_OFFSET] = (BYTE)newpartyclasscount;
 	SaveCombo(m_classcombo1, 0x00);
 	SaveCombo(m_classcombo2, 0x10);
 	SaveCombo(m_classcombo3, 0x20);
@@ -152,9 +155,9 @@ BOOL CPartySetup::OnInitDialog()
 		m_banner.Set(this, COLOR_BLACK, COLOR_ORANGE, "Party Setup");
 
 		auto LoadClassCombo = [this](CComboBox & box, int classoffset) {
-			int offset = Project->ROM[this->PTYGEN_OFFSET + classoffset];
+			int offset = Proj2->ROM[this->PTYGEN_OFFSET + classoffset];
 			box.ResetContent();
-			LoadCombo(box, LoadClassEntries(*Project));
+			LoadCombo(box, LoadClassEntries(*Proj2));
 			if (offset >= 0 && offset < box.GetCount())
 				box.SetCurSel(offset);
 			else if (box.GetCount() > 0)
@@ -162,10 +165,10 @@ BOOL CPartySetup::OnInitDialog()
 		};
 
 		CString text;
-		text.Format("%d", Project->ROM[NEWPARTYCLASSCOUNT_OFFSET]);
+		text.Format("%d", Proj2->ROM[NEWPARTYCLASSCOUNT_OFFSET]);
 		m_newgamecountedit.SetWindowText(text);
 
-		bool enabled = Project->ROM[NEWPARTYCLASSINC_OFFSET] == 0;
+		bool enabled = Proj2->ROM[NEWPARTYCLASSINC_OFFSET] == 0;
 		m_fixedpartycheck.SetCheck(enabled ? BST_CHECKED : BST_UNCHECKED);
 		LoadClassCombo(m_classcombo1, 0x00);
 		LoadClassCombo(m_classcombo2, 0x10);

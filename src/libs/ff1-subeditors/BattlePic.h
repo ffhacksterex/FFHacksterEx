@@ -10,6 +10,7 @@
 #include <SaveableDialog.h>
 #include "DRAW_STRUCT.h"
 #include "resource_subeditors.h"
+class FFH2Project;
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -21,6 +22,7 @@ class CBattlePic : public CSaveableDialog
 public:
 	CBattlePic(CWnd* pParent = nullptr);   // standard constructor
 
+	FFH2Project* Proj2 = nullptr;
 	CFFHacksterProject * cart = nullptr;
 	int Class = -1;
 	bool InMemory = false;

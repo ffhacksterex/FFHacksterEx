@@ -153,6 +153,9 @@
     <ClCompile Include="vda_std_collections.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cnv_std_collections.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ff1-coredefs.rc">

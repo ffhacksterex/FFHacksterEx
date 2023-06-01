@@ -244,14 +244,14 @@ void CFFHacksterDlg::EditClasses(CString action, CString params)
 	try {
 		if (action == "edit") {
 			CClasses dlg;
-			dlg.Project = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			do {
 				dlg.DoModal();
 			} while (dlg.WantsToReload());
 		}
 		else if (action == "rclick") {
 			CClassesEditorSettingsDlg dlg(this);
-			dlg.m_proj = &m_proj;
+			dlg.Proj2 = &m_prj2;
 			dlg.DoModal();
 		}
 	}

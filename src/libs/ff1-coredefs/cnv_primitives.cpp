@@ -49,9 +49,8 @@ namespace ffh
 		// Handles negative values using the form "-0x%X", e.g. -0X12AB.
 		std::string hex(int value, int digits)
 		{
-			std::string format = "0x%" + std::to_string(digits) + "X";
-			auto text = hex(value, format);
-			return text;
+			auto format = build_hex_format(digits);
+			return hex(value, format);
 		}
 
 		std::string hex(int value, std::string format)
@@ -64,6 +63,12 @@ namespace ffh
 			std::string data = sign == -1 ? "-" : "";
 			data += buf;
 			return data;
+		}
+
+		std::string build_hex_format(int digits)
+		{
+			std::string format = "0x%0" + std::to_string(digits) + "X";
+			return format;
 		}
 	}
 }
