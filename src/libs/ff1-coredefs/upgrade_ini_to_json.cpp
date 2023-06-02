@@ -145,14 +145,20 @@ namespace {
 
 		auto strfname = Ini::ReadIni(inipath, "FILES", "strings", "");
 		auto stringpath = Paths::ReplaceFileName(inipath, strfname);
-
 		auto keys = Ini::ReadIniKeyNames(inipath, "STRINGCOUNTS");
+
 		for (const auto& key : keys) {
-			auto label = key;
-			label.MakeLower();
+			auto cslabel = key;
+			cslabel.MakeLower();
+			auto label = ffh::str::tostd(key);
+
+			if (p.strings.entries.find(label) != cend(p.strings.entries))
+				throw std::domain_error("Project strings cannot add a duplicate label named '" + label + "'.");
+
+			p.strings.order.push_back(label);
 
 			auto valkeys = Ini::ReadIniKeyNames(stringpath, key);
-			auto& v = (p.strings.entries[(LPCSTR)label] = std::vector<std::string>());
+			auto& v = (p.strings.entries[label] = std::vector<std::string>());
 			v.reserve(valkeys.size());
 			for (const auto& vk : valkeys) {
 				auto value = Ini::ReadIni(stringpath, key, vk, "");

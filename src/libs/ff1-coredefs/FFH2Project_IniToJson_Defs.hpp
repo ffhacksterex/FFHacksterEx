@@ -28,7 +28,7 @@ extern void from_json(const ujson& j, FFHValue& p);
 //=== Ordered macro declarations
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectHeader, name, version, pragma);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectInfo, type, publishTo, asmdll, additionalModulesPath, cleanfile, workrom);
-EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectStrings, entries);
+EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectStrings, order, entries);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, ProjectSession,
 	suppressWarnOnAssemblyMismatch, textViewInDTE,
 	showLastClick, drawDomainGrid, tintVariant,
@@ -49,7 +49,7 @@ EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ojson, FFH2Project, ffheader, info, strin
 //=== Unordered macro declarations
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectHeader, name, version, pragma);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectInfo, type, publishTo, asmdll, additionalModulesPath, cleanfile, workrom);
-EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectStrings, entries);
+EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectStrings, order, entries);
 EXP_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ujson, ProjectSession,
 	suppressWarnOnAssemblyMismatch, textViewInDTE,
 	showLastClick, drawDomainGrid, tintVariant,

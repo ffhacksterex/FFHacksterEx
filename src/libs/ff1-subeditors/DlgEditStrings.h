@@ -1,12 +1,11 @@
 #pragma once
 
+#include <FFBaseDlg.h>
 #include "resource_subeditors.h"
-#include "vector_types.h"
 #include "function_types.h"
 #include "InplaceEdit.h"
-#include "afxwin.h"
-#include <FFBaseDlg.h>
-class CFFHacksterProject;
+#include "vector_types.h"
+#include <FFH2Project.h>
 
 // CDlgEditStrings dialog
 
@@ -18,8 +17,9 @@ public:
 	CDlgEditStrings(CWnd* pParent = nullptr, UINT helpid = 0);   // standard constructor
 	virtual ~CDlgEditStrings();
 
+	FFH2Project* Proj2 = nullptr;
 	CFFHacksterProject * m_proj = nullptr;
-	BoolAction SaveAction = nullptr;
+	bool ReadOnly = true;
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -32,11 +32,12 @@ public:
 
 protected:
 	CStatic m_countstatric;
+	ProjectStrings m_projstrings;
 
 	void InitMainList();
 	void LoadValues();
 	void StoreValues();
-	bool SaveIni();
+	bool Save();
 
 	void PrepTextEdit(int item, int subitem);
 	void BeginTextEdit(int item, int subitem, StringTransformFunc xformfunc);

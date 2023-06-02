@@ -3,11 +3,10 @@
 
 #include "stdafx.h"
 #include "DlgEditStrings.h"
-#include "afxdialogex.h"
-#include "FFHacksterProject.h"
+#include <FFH2Project.h>
+#include "general_functions.h"
 #include "ini_functions.h"
 #include "string_functions.h"
-#include "general_functions.h"
 #include "ui_helpers.h"
 
 using namespace Ini;
@@ -49,67 +48,51 @@ void CDlgEditStrings::InitMainList()
 
 void CDlgEditStrings::LoadValues()
 {
-	CString inifile = m_proj->StringsPath;
-	CString section;
-	CString strslot;
-	CString key;
-	CString text;
-
 	m_elementlist.DeleteAllItems();
-	m_listgroups.GetText(m_curindex, section);
 
-	auto countname = ReadIni(m_proj->ProjectPath, "STRINGCOUNTS", section, "");
-	if (countname.IsEmpty()) THROWEXCEPTION(std::runtime_error, std::string("no count variable was specified for group ") + (LPCSTR)section);
-
-	// Read this value from the ValuesPath
-	auto count = ReadDec(m_proj->ValuesPath, countname, 0);
-	if (count < 1) {
-		CString err;
-		err.Format("group '%s' count variable '%s' must be a positive value (not %d)", (LPCSTR)section, (LPCSTR)countname, count);
-		THROWEXCEPTION(std::runtime_error, (LPCSTR)err);
-	}
+	auto section = m_projstrings.order[m_curindex];
+	auto& entries = m_projstrings.entries[section];
+	auto count = entries.size();
+	if (count < 1)
+		throw std::runtime_error("Project string group '" + section + "' has no entries.");
 
 	CString strcount;
-	strcount.Format("Count = %d (%s)", count, (LPCSTR)countname);
+	strcount.Format("Count = %d", count);
 	m_countstatric.SetWindowText(strcount);
 
 	for (int index = 0; index < count; ++index) {
-		CString thiskey;
 		CString theslot;
-		thiskey.Format("%lu", index);
 		theslot.Format("%lu", index + 1);
-		auto thetext = ReadIni(inifile, section, thiskey, "");
 		int rowindex = m_elementlist.InsertItem(index, theslot);
-		m_elementlist.SetItemText(rowindex, 1, thetext);
+		m_elementlist.SetItemText(rowindex, 1, entries[index].c_str());
 		m_elementlist.SetItemData(rowindex, index);
 	}
 }
 
 void CDlgEditStrings::StoreValues()
 {
-	CString inifile = m_proj->StringsPath;
-	CString section;
-	m_listgroups.GetText(m_curindex, section);
+	auto section = m_projstrings.order[m_curindex];
+	auto& entries = m_projstrings.entries[section];
 
-	for (int item = 0, count = m_elementlist.GetItemCount(); item < count; ++item) {
-		auto rowindex = m_elementlist.GetItemData(item);
-		CString desc = m_elementlist.GetItemText(item, 1);
-		CString key;
-		key.Format("%lu", rowindex);
-		WriteIni(inifile, section, key, desc);
+	ASSERT((size_t)m_elementlist.GetItemCount() == entries.size());
+	if ((size_t)m_elementlist.GetItemCount() != entries.size())
+		throw std::runtime_error("Cannot save because entry count (" + std::to_string(entries.size()) +
+			") and list count (" + std::to_string(entries.size()) + ") don't match.");
+
+	for (auto index = 0; index < entries.size(); ++index) {
+		auto rowindex = m_elementlist.GetItemData(index);
+		CString desc = m_elementlist.GetItemText(index, 1);
+		entries[index] = ffh::str::tostd(desc);
 	}
 }
 
-bool CDlgEditStrings::SaveIni()
+bool CDlgEditStrings::Save()
 {
-	if (SaveAction == nullptr)
-		return true; // read-only dialog doesn't save, this isn't a failure
+	if (ReadOnly) return false;
 
 	StoreValues();
-	bool saved = SaveAction();
-	if (!saved)
-		AfxMessageBox("Unable to save the changes.", MB_ICONERROR);
-	return saved;
+	Proj2->strings = m_projstrings;
+	return true;
 }
 
 void CDlgEditStrings::PrepTextEdit(int item, int subitem)
@@ -152,7 +135,7 @@ BOOL CDlgEditStrings::OnInitDialog()
 {
 	CFFBaseDlg::OnInitDialog();
 
-	if (SaveAction == nullptr) {
+	if (ReadOnly) {
 		CString title;
 		GetWindowText(title);
 		title += " (Read-only)";
@@ -167,12 +150,14 @@ BOOL CDlgEditStrings::OnInitDialog()
 	CenterToParent(this);
 	m_inplaceedit.Create(m_inplaceedit.IDD, &m_elementlist);
 
+	m_projstrings = Proj2->strings;
+
 	InitMainList();
 
-	auto sections = ReadIniSectionNames(m_proj->StringsPath);
-	for (auto name : sections)
+	for (const auto & name : m_projstrings.order)
 	{
-		m_listgroups.AddString(name);
+		CString csname = ffh::str::tomfc(name);
+		m_listgroups.AddString(csname);
 	}
 
 	if (m_listgroups.GetCount() > 0) {
@@ -185,7 +170,7 @@ BOOL CDlgEditStrings::OnInitDialog()
 
 void CDlgEditStrings::OnOK()
 {
-	if (SaveIni())
+	if (Save())
 		CFFBaseDlg::OnOK();
 }
 
@@ -195,7 +180,7 @@ void CDlgEditStrings::OnOK()
 
 void CDlgEditStrings::OnBnClickedSave()
 {
-	SaveIni();
+	Save();
 }
 
 void CDlgEditStrings::OnLbnSelchangeListgroups()

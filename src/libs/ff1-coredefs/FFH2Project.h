@@ -45,6 +45,7 @@ struct ProjectInfo
 
 struct ProjectStrings
 {
+	std::vector<std::string> order;
 	std::map<std::string, std::vector<std::string>> entries;
 };
 

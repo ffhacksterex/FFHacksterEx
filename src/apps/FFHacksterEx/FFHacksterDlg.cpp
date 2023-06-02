@@ -1167,14 +1167,12 @@ LRESULT CFFHacksterDlg::OnFfeditRclick(WPARAM wparam, LPARAM lparam)
 
 void CFFHacksterDlg::EditProjectLabels()
 {
-	FFH_SWITCH_TO_FFH2;
-
 	Paths::FilePathRestorer fprestore(m_proj.StringsPath);
 	ASSERT(fprestore.CanSave());
 
 	CDlgEditStrings dlg(this, IDD_EDIT_LABELS);
-	dlg.m_proj = &m_proj;
-	dlg.SaveAction = [&fprestore]() { return fprestore.Save(); };
+	dlg.Proj2 = &m_prj2;
+	dlg.ReadOnly = false;
 	dlg.DoModal();
 }
 
