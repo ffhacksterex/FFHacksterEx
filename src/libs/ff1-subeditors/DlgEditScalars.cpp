@@ -448,6 +448,10 @@ CString CDlgEditScalars::PromptForImportFile(CWnd * parent)
 
 void CDlgEditScalars::PrepTextEdit(int item, int subitem)
 {
+	auto itemdata = m_elementlist.GetItemData(item);
+	if (itemdata & ITEM_RESERVED)
+		return;
+
 	CRect client(0, 0, 0, 0);
 	m_elementlist.GetClientRect(&client);
 	CRect rcitem(0, 0, 0, 0);
