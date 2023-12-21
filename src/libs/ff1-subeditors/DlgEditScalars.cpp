@@ -384,7 +384,7 @@ void CDlgEditScalars::LoadValues()
 
 			int index = m_elementlist.InsertItem(linenumber, number);
 			int itemdata = node.reserved ? ITEM_RESERVED : 0;
-			itemdata = ReadIniBool(inipath, node.name, "ishidden", false) ? ITEM_HIDDEN : 0;
+			itemdata |= ReadIniBool(inipath, node.name, "ishidden", false) ? ITEM_HIDDEN : 0;
 			m_elementlist.SetItemData(index, itemdata);
 			m_elementlist.SetItemText(index, COL_NAME, node.name);
 			m_elementlist.SetItemText(index, COL_VALUE, value);
@@ -871,6 +871,8 @@ void CDlgEditScalars::OnCustomdrawScalarsListelements(NMHDR* pNMHDR, LRESULT* pR
 
 void CDlgEditScalars::OnBnClickedCheckShowhidden()
 {
+	CWaitCursor wait;
+	RedrawScope redraw(&m_elementlist);
 	StoreValues();
 	LoadValues();
 }
