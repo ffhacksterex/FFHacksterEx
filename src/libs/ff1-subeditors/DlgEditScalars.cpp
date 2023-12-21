@@ -280,11 +280,13 @@ void CDlgEditScalars::LoadGroups(const mfcstringvector & groupnames)
 		else rest.push_back(group);
 	}
 
-	// Put the special case groups at the front of the list.
-	// Then sort the rest alphabetically.
-	m_listgroups.AddString(GROUP_SYS);
-	m_listgroups.AddString(GROUP_ALL);
-	if (ungroupcount > 0) m_listgroups.AddString(GROUP_NONE);
+	if (ShowBuiltinGroups) {
+		// Put the special case groups at the front of the list.
+		// Then sort the rest alphabetically.
+		m_listgroups.AddString(GROUP_SYS);
+		m_listgroups.AddString(GROUP_ALL);
+		if (ungroupcount > 0) m_listgroups.AddString(GROUP_NONE);
+	}
 
 	std::sort(begin(rest), end(rest));
 	for (const auto & group : rest) m_listgroups.AddString(group);

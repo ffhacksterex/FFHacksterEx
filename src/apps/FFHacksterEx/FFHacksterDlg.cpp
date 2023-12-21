@@ -1228,6 +1228,7 @@ void CFFHacksterDlg::EditProjectRamValues()
 	dlg.SaveAction = [&fprestore, this]() { m_proj.UpdateVarsAndConstants(); return fprestore.Save(); };
 	dlg.GroupNames = { "Ram Values" }; // will include ONLY RAM Values
 	dlg.EditLabels = true;
+	dlg.ShowBuiltinGroups = false;
 	dlg.DoModal();
 }
 

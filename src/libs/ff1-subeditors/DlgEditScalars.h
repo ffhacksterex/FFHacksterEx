@@ -28,6 +28,7 @@ public:
 	bool Exclude = false;
 	bool EditLabels = false;
 	bool HexUppercase = false;
+	bool ShowBuiltinGroups = true;
 
 protected:
 // Dialog Data
