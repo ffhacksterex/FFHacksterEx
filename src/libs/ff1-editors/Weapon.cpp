@@ -19,6 +19,8 @@
 #include "GameSerializer.h"
 #include "NewLabel.h"
 #include "WepMagGraphic.h"
+#include <RomAsmSerializer.h>
+#include <RomAsmMappingFactory.h>
 
 using namespace Editorlabels;
 using namespace Ingametext;
@@ -167,6 +169,9 @@ BOOL CWeapon::OnInitDialog()
 
 void CWeapon::LoadOffsets()
 {
+	RomAsmMappingFactory factory;
+	m_mappings = factory.ReadMappings(*Project, "weapon");
+
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	WEAPON_COUNT = ReadDec(Project->ValuesPath, "WEAPON_COUNT");
 	WEAPON_OFFSET = ReadHex(Project->ValuesPath, "WEAPON_OFFSET");
@@ -188,13 +193,20 @@ void CWeapon::LoadRom()
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
+		RomAsmMappingFactory factory;
+		RomAsmSerializer ras(factory, (LPCSTR)Project->ProjectFolder, Project->ROM);
+		auto result = ras.Load((LPCSTR)Project->ProjectTypeName, m_mappings, m_options, Project->ROM);
+		if (!result.empty()) throw std::runtime_error(result);
+
+		// ---> ras is WORKING !!!
+
+		//GameSerializer ser(*Project);
 		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.LoadAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
-		ser.LoadAsmBin(BIN_WEAPONDATA, WEAPON_OFFSET);
-		ser.LoadAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
-		ser.LoadInline(ASM_0E, { { asmlabel, LUT_WEAPONPERMISSIONS, {WEAPONPERMISSIONS_OFFSET} } });
+		//ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
+		//ser.LoadAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
+		//ser.LoadAsmBin(BIN_WEAPONDATA, WEAPON_OFFSET);
+		//ser.LoadAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
+		//ser.LoadInline(ASM_0E, { { asmlabel, LUT_WEAPONPERMISSIONS, {WEAPONPERMISSIONS_OFFSET} } });
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
@@ -207,12 +219,20 @@ void CWeapon::SaveRom()
 		save_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
+		RomAsmMappingFactory factory;
+		RomAsmSerializer ras(factory, (LPCSTR)Project->ProjectFolder, Project->ROM);
+		auto result = ras.Save((LPCSTR)Project->ProjectTypeName, m_mappings, m_options, Project->ROM);
+		if (!result.empty()) throw std::runtime_error(result);
+
 		GameSerializer ser(*Project);
 		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.SaveAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
-		ser.SaveAsmBin(BIN_WEAPONDATA, WEAPON_OFFSET);
-		ser.SaveAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
+		//ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
+
+
+		//ser.SaveAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
+		//ser.SaveAsmBin(BIN_WEAPONDATA, WEAPON_OFFSET);
+		//ser.SaveAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
+
 		ser.SaveInline(ASM_0E, { { asmlabel, LUT_WEAPONPERMISSIONS,{ WEAPONPERMISSIONS_OFFSET } } });
 	}
 	else {

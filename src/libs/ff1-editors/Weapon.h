@@ -1,6 +1,8 @@
 #pragma once
 // Weapon.h : header file
 
+#include <memory>
+#include "RomAsmMapping.h"
 #include "EditorWithBackground.h"
 class CFFHacksterProject;
 
@@ -33,6 +35,9 @@ protected:
 
 	int m_selitem = -1;
 	CImageList m_graphics;
+
+	std::map<std::string, std::string> m_options;
+	std::vector<std::unique_ptr<RomAsmMapping>> m_mappings;
 
 // Dialog Data
 	//{{AFX_DATA(CWeapon)

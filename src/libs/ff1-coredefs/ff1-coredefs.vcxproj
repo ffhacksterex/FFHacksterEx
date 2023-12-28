@@ -188,6 +188,7 @@
     <ClCompile Include="DirPathRemover.cpp" />
     <ClCompile Include="draw_functions.cpp" />
     <ClCompile Include="Editors2.cpp" />
+    <ClCompile Include="FailedMapping.cpp" />
     <ClCompile Include="FFHacksterProject.cpp" />
     <ClCompile Include="FilePathRemover.cpp" />
     <ClCompile Include="FilePathRestorer.cpp" />
@@ -205,6 +206,13 @@
     <ClCompile Include="regex_helpers.cpp" />
     <ClCompile Include="ResourceHandleScope.cpp" />
     <ClCompile Include="EditorSettingsSerializer.cpp" />
+    <ClCompile Include="RomAsmMappingBinary.cpp" />
+    <ClCompile Include="RomAsmMappingDatFile.cpp" />
+    <ClCompile Include="RomAsmMapping.cpp" />
+    <ClCompile Include="RomAsmMappingFactory.cpp" />
+    <ClCompile Include="RomAsmMappingIncbin.cpp" />
+    <ClCompile Include="RomAsmSerializer.cpp" />
+    <ClCompile Include="romasm_helpers.cpp" />
     <ClCompile Include="SetResourceHandleScope.cpp" />
     <ClCompile Include="set_types.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -250,6 +258,7 @@
     <ClInclude Include="EditorInterop.h" />
     <ClInclude Include="Editors2.h" />
     <ClInclude Include="EditorSettingsSerializer.h" />
+    <ClInclude Include="FailedMapping.h" />
     <ClInclude Include="FFHacksterProject.h" />
     <ClInclude Include="FilePathRemover.h" />
     <ClInclude Include="FilePathRestorer.h" />
@@ -274,6 +283,13 @@
     <ClInclude Include="regex_helpers.h" />
     <ClInclude Include="ResourceHandleScope.h" />
     <ClInclude Include="resource_coredefs.h" />
+    <ClInclude Include="romasm_helpers.h" />
+    <ClInclude Include="RomAsmMappingBinary.h" />
+    <ClInclude Include="RomAsmMappingDatFile.h" />
+    <ClInclude Include="RomAsmMapping.h" />
+    <ClInclude Include="RomAsmMappingFactory.h" />
+    <ClInclude Include="RomAsmMappingIncbin.h" />
+    <ClInclude Include="RomAsmSerializer.h" />
     <ClInclude Include="SetResourceHandleScope.h" />
     <ClInclude Include="set_types.h" />
     <ClInclude Include="shared_resids.h" />

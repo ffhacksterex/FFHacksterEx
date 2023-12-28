@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <locale>
 #include <codecvt>
+#include <regex>
 
 #define TRUESTR "true"
 #define FALSESTR "false"
@@ -104,6 +105,34 @@ namespace Strings
 		return convert(split(srcstring, separator));
 	}
 
+	mfcstringvector splitrx(CString srcstring, CString separators, bool removeEmptyElements)
+	{
+		std::string stdsrcstring = (LPCSTR)srcstring;
+		std::string stdseparators = (LPCSTR)separators;
+		return convert(splitrx(stdsrcstring, stdseparators, removeEmptyElements));
+	}
+
+	stdstringvector splitrx(std::string srcstring, std::string rxseparators, bool removeEmptyElements)
+	{
+		if (rxseparators.empty())
+			throw std::domain_error(__FUNCTION__ " separators cannot be empty.");
+
+		// Build the RX string as a [abc...]
+		std::string restring = "[" + rxseparators + "]";
+
+		auto const re = std::regex{ restring };
+		auto vec = std::vector<std::string>(
+			std::sregex_token_iterator{ std::begin(srcstring), std::end(srcstring), re, -1 },
+			std::sregex_token_iterator{}
+		);
+
+		if (removeEmptyElements) {
+			vec.erase(
+				std::remove_if(vec.begin(), vec.end(), [](const auto& s) { return s.empty(); }),
+				vec.end());
+		}
+		return vec;
+	}
 
 	CString extract_term(CString str, CString prefix)
 	{

@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="RomAsm">
+      <UniqueIdentifier>{778f56ee-b55d-4903-87df-98b2eda60321}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomAsm\Mappings">
+      <UniqueIdentifier>{ca9fdedd-e8d1-4287-9df6-ad08f5310834}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -122,6 +128,30 @@
     </ClCompile>
     <ClCompile Include="dialogue_helpers.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMappingFactory.cpp">
+      <Filter>RomAsm</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmSerializer.cpp">
+      <Filter>RomAsm</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMapping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMappingDatFile.cpp">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMappingIncbin.cpp">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClCompile>
+    <ClCompile Include="FailedMapping.cpp">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMappingBinary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="romasm_helpers.cpp">
+      <Filter>RomAsm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -314,6 +344,30 @@
     </ClInclude>
     <ClInclude Include="dialogue_helpers.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingFactory.h">
+      <Filter>RomAsm</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmSerializer.h">
+      <Filter>RomAsm</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingDatFile.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMapping.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingIncbin.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="FailedMapping.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingBinary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="romasm_helpers.h">
+      <Filter>RomAsm</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

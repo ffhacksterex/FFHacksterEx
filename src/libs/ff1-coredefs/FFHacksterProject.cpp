@@ -771,6 +771,10 @@ CString CFFHacksterProject::GetIniFilePath(CString key) const
 //STATIC
 CString CFFHacksterProject::GetIniFilePath(CString projectini, CString key)
 {
+	//TODO - temporary, figure out how to do this permanently
+	if (key == "romasmmappings")
+		return Paths::Combine({ Paths::GetDirectoryPath(projectini), Paths::GetFileStem(projectini) + "." + key});
+
 	if (inipath_allowedkeys.find(key) == cend(inipath_allowedkeys))
 		THROWEXCEPTION(std::invalid_argument, "can't call " __FUNCTION__ " with key " + std::string((LPCSTR)key));
 
