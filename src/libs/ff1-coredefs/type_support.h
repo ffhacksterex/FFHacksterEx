@@ -31,8 +31,8 @@ namespace Types
 	const std::string STRTAG{ "str[]" };
 
 	int to_int(CString text);
+	int to_int(std::string text);
 
-	// Wrappers used when passing the function as an argument to other functions
 	CString from_dec(int value);
 	CString from_addr(int value);
 	CString from_hex(int value);

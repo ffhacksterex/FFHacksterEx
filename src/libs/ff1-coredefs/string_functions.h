@@ -17,6 +17,10 @@ namespace Strings
 	mfcstringvector split(CString srcstring, CString separator);
 	stdstringvector split(std::string srcstring, std::string separator);
 
+	// Split with a list of regex separators.
+	mfcstringvector splitrx(CString srcstring, CString separators, bool removeEmptyElements);
+	stdstringvector splitrx(std::string srcstring, std::string separators, bool removeEmptyElements);
+
 	std::string join(const stdstringset & strings, std::string separator);
 	CString join(const mfcstringset & strings, CString separator);
 

@@ -336,8 +336,12 @@ namespace Types
 		if (is_bin(text))
 			return bin(text);
 
-		THROWEXCEPTION(std::invalid_argument, "unknown type format for " + std::string((LPCSTR)text));
-		//return 0;
+		THROWEXCEPTION(std::invalid_argument, "unknown integer type format for " + std::string((LPCSTR)text));
+	}
+
+	int to_int(std::string text)
+	{
+		return to_int((CString)text.c_str());
 	}
 
 	CString from_dec(int value)
