@@ -2,6 +2,7 @@
 // Weapon.h : header file
 
 #include "EditorWithBackground.h"
+#include <RomAsmMapping_t.h>
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -33,6 +34,7 @@ protected:
 
 	int m_selitem = -1;
 	CImageList m_graphics;
+	RomAsmGropuedMappingRefs m_groupedmappings;
 
 // Dialog Data
 	//{{AFX_DATA(CWeapon)

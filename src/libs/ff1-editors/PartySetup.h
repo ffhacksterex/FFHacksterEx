@@ -1,6 +1,7 @@
 #pragma once
 
 #include <EditorWithBackground.h>
+#include <RomAsmMapping_t.h>
 class CFFHacksterProject;
 
 // CPartySetup dialog
@@ -19,6 +20,8 @@ public:
 #endif
 
 protected:
+	RomAsmGropuedMappingRefs m_groupedmappings;
+
 	int CLASS_COUNT = -1;
 	int BANK0A_OFFSET = -1;
 	unsigned int NEWPARTYCLASSCOUNT_OFFSET = (unsigned int)-1;

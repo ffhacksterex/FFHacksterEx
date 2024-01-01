@@ -18,6 +18,9 @@
 #include "copypaste_helpers.h"
 #include <DlgPasteTargets.h>
 
+#include <RomAsmMappingFactory.h>
+#include <RomAsmSerializer.h>
+
 using namespace Ingametext;
 using namespace Ini;
 using namespace Io;
@@ -146,6 +149,9 @@ void CArmor::OnSelchangeArmorlist()
 
 void CArmor::LoadOffsets()
 {
+	RomAsmMappingFactory fac;
+	m_groupedmappings = fac.ReadGroupedMappings(*Project, "armor");
+
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	ARMORTEXT_OFFSET = ReadHex(Project->ValuesPath, "ARMORTEXT_OFFSET");
 	BASICTEXT_PTRADD = ReadHex(Project->ValuesPath, "BASICTEXT_PTRADD");
@@ -169,19 +175,14 @@ void CArmor::LoadOffsets()
 void CArmor::LoadRom()
 {
 	Project->ClearROM();
+	RomAsmSerializer ras(*Project);
+	ras.Load(m_groupedmappings, Project->ROM);
+
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.LoadAsmBin(BIN_ARMORDATA, ARMOR_OFFSET);
-		ser.LoadAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
-		ser.LoadInline(ASM_0E, {
-			{ asmlabel, "lut_ArmorTypes",{ ARMORTYPE_OFFSET } },
-			{ asmlabel, LUT_ARMORPERMISSIONS,{ ARMORPERMISSIONS_OFFSET } },
-			});
+		//TODO - eventually add rom support the serializer
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);

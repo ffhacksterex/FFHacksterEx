@@ -2,6 +2,7 @@
 // Armor.h : header file
 
 #include <EditorWithBackground.h>
+#include <RomAsmMapping_t.h>
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -17,6 +18,7 @@ public:
 
 protected:
 	int m_selitem = -1;
+	RomAsmGropuedMappingRefs m_groupedmappings;
 
 	virtual void LoadOffsets();
 	virtual void LoadRom();

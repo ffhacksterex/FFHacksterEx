@@ -13,6 +13,9 @@
 #include "io_functions.h"
 #include "ui_helpers.h"
 
+#include <RomAsmMappingFactory.h>
+#include <RomAsmSerializer.h>
+
 using namespace Imaging;
 using namespace Ini;
 using namespace Ingametext;
@@ -36,6 +39,9 @@ CPartySetup::~CPartySetup()
 
 void CPartySetup::LoadOffsets()
 {
+	RomAsmMappingFactory fac;
+	m_groupedmappings = fac.ReadGroupedMappings(*Project, "partysetup");
+
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	NEWPARTYCLASSCOUNT_OFFSET = ReadHex(Project->ValuesPath, "NEWPARTYCLASSCOUNT_OFFSET");
 	NEWPARTYCLASSINC_OFFSET = ReadHex(Project->ValuesPath, "NEWPARTYCLASSINC_OFFSET");
@@ -46,19 +52,14 @@ void CPartySetup::LoadOffsets()
 void CPartySetup::LoadRom()
 {
 	Project->ClearROM();
+	RomAsmSerializer ras(*Project);
+	ras.Load(m_groupedmappings, Project->ROM);
+
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		//ser.ReadConstants("constants.inc");
-		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.LoadInline(ASM_0E, {
-			{ asmopval, "op_NewPartyClassCount",{ NEWPARTYCLASSCOUNT_OFFSET } },
-			{ asmopval, "op_NewPartyClassInc",{ NEWPARTYCLASSINC_OFFSET } },
-			{ asmlabel, "lut_PtyGenBuf",{ PTYGEN_OFFSET } },
-		});
+		//TODO - eventually add rom support the serializer
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);

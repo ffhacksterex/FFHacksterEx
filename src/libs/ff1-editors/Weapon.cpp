@@ -20,6 +20,9 @@
 #include "NewLabel.h"
 #include "WepMagGraphic.h"
 
+#include <RomAsmMappingFactory.h>
+#include <RomAsmSerializer.h>
+
 using namespace Editorlabels;
 using namespace Ingametext;
 using namespace Ini;
@@ -167,6 +170,9 @@ BOOL CWeapon::OnInitDialog()
 
 void CWeapon::LoadOffsets()
 {
+	RomAsmMappingFactory fac;
+	m_groupedmappings = fac.ReadGroupedMappings(*Project, "weapon");
+
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	WEAPON_COUNT = ReadDec(Project->ValuesPath, "WEAPON_COUNT");
 	WEAPON_OFFSET = ReadHex(Project->ValuesPath, "WEAPON_OFFSET");
@@ -183,18 +189,15 @@ void CWeapon::LoadOffsets()
 void CWeapon::LoadRom()
 {
 	Project->ClearROM();
+	RomAsmSerializer ras(*Project);
+	ras.Load(m_groupedmappings, Project->ROM);
+
 	// Now load the data
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.LoadAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
-		ser.LoadAsmBin(BIN_WEAPONDATA, WEAPON_OFFSET);
-		ser.LoadAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
-		ser.LoadInline(ASM_0E, { { asmlabel, LUT_WEAPONPERMISSIONS, {WEAPONPERMISSIONS_OFFSET} } });
+		//TODO - eventually add rom support the serializer
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
