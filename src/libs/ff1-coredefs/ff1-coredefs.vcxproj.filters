@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="RomAsm">
+      <UniqueIdentifier>{96a11d2e-7162-4568-aa23-8cb3c8971743}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomAsm\Mappings">
+      <UniqueIdentifier>{d956e2c6-e412-4426-ae16-0adde34e4f76}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -122,6 +128,33 @@
     </ClCompile>
     <ClCompile Include="dialogue_helpers.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMappingFactory.cpp">
+      <Filter>RomAsm</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmSerializer.cpp">
+      <Filter>RomAsm</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMapping.cpp">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMappingDatfile.cpp">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmFailedMappingException.cpp">
+      <Filter>RomAsm</Filter>
+    </ClCompile>
+    <ClCompile Include="romasm_functions.cpp">
+      <Filter>RomAsm</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMappingIncbin.cpp">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMappingBinary.cpp">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClCompile>
+    <ClCompile Include="RomAsmMappingImmed.cpp">
+      <Filter>RomAsm\Mappings</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -314,6 +347,36 @@
     </ClInclude>
     <ClInclude Include="dialogue_helpers.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingFactory.h">
+      <Filter>RomAsm</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmSerializer.h">
+      <Filter>RomAsm</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMapping_t.h">
+      <Filter>RomAsm</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMapping.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingDatfile.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmFailedMappingException.h">
+      <Filter>RomAsm</Filter>
+    </ClInclude>
+    <ClInclude Include="romasm_functions.h">
+      <Filter>RomAsm</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingIncbin.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingBinary.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingImmed.h">
+      <Filter>RomAsm\Mappings</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

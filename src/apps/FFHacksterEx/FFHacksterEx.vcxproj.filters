@@ -187,6 +187,9 @@
     <None Include="ff-content.targets">
       <Filter>Packaging</Filter>
     </None>
+    <None Include="FFHacksterEx.romasmmappings.template">
+      <Filter>Content\Templates</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
