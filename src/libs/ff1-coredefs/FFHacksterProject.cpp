@@ -757,7 +757,8 @@ CString CFFHacksterProject::GetContentFolder() const
 namespace {
 	const mfcstringset inipath_allowedkeys{
 		FFHFILE_ValuesPath, FFHFILE_RevertValuesPath, FFHFILE_StringsPath, FFHFILE_EditorSettingsPath,
-		FFHFILE_PalettePath, FFHFILE_StdTablePath, FFHFILE_DteTablePath, FFHFILE_DialoguePath
+		FFHFILE_PalettePath, FFHFILE_StdTablePath, FFHFILE_DteTablePath, FFHFILE_DialoguePath,
+		FFHFILE_RomAsmMappingsPath
 	};
 }
 
@@ -771,6 +772,12 @@ CString CFFHacksterProject::GetIniFilePath(CString key) const
 //STATIC
 CString CFFHacksterProject::GetIniFilePath(CString projectini, CString key)
 {
+	//TODO - temporary, figure out how to do this permanently
+	// Since this isn't in the FILES section of the project,
+	// we have to check for it up front and explicitly build the path.
+	if (key == FFHFILE_RomAsmMappingsPath)
+		return Paths::Combine({ Paths::GetDirectoryPath(projectini), Paths::GetFileStem(projectini) + "." + key });
+
 	if (inipath_allowedkeys.find(key) == cend(inipath_allowedkeys))
 		THROWEXCEPTION(std::invalid_argument, "can't call " __FUNCTION__ " with key " + std::string((LPCSTR)key));
 

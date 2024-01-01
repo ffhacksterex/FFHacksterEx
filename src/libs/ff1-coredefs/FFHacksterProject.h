@@ -20,6 +20,7 @@ class AppSettings;
 #define FFHFILE_StdTablePath       "stdtable"
 #define FFHFILE_DteTablePath       "dtetable"
 #define FFHFILE_DialoguePath       "dialogue"
+#define FFHFILE_RomAsmMappingsPath "romasmmappings"
 
 // use CFFHacksterProject Get/SetIniRefDir to access these
 #define FFHREFDIR_AsmDLLPath       "asmdll"
