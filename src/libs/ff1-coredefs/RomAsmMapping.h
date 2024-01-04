@@ -14,7 +14,9 @@ public:
 	virtual ~RomAsmMapping();
 
 	virtual void Load(std::istream& sourcefile, std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options) = 0;
-	virtual void Save(std::istream& sourcefile, std::ostream & destfile, std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options) = 0;
+	virtual void Save(std::istream& sourcefile, std::ostream & destfile, const std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options) = 0;
+
+	std::string Name() const;
 
 protected:
 	std::string name;

@@ -68,19 +68,14 @@ void CPartySetup::LoadRom()
 
 void CPartySetup::SaveRom()
 {
+	RomAsmSerializer ras(*Project);
+	ras.Save(m_groupedmappings, Project->ROM);
+
 	if (Project->IsRom()) {
 		save_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		//ser.ReadConstants("constants.inc");
-		// Instead of writing to the entire buffer, just write to the parts we need
-		//NOTE: bank A is read-only in this editor, no need to write it
-		ser.SaveInline(ASM_0E, {
-			{ asmopval, "op_NewPartyClassCount",{ NEWPARTYCLASSCOUNT_OFFSET } },
-			{ asmopval, "op_NewPartyClassInc",{ NEWPARTYCLASSINC_OFFSET } },
-			{ asmlabel, "lut_PtyGenBuf",{ PTYGEN_OFFSET } },
-		});
+		//TODO - eventually add rom support the serializer
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);

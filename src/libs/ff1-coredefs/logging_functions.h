@@ -13,14 +13,15 @@
 #define HERE __FILE__<< "(" << __LINE__ << "): " << __FUNCTION__ << " - "
 #define LOGAT(file,line,func) file << "(" << line << "): " << func << " - "
 
-#define LogMsg			std::cout
-#define LogHere			std::cout << HERE
-#define WarnMsg			std::cerr << "WARNING: "
-#define WarnHere		std::cerr << HERE << "WARNING: "
-#define ErrorMsg    	std::cerr << "ERROR! "
-#define ErrorHere		std::cerr << HERE << "ERROR! "
-#define FatalMsg    	std::cerr << "FATAL!!! "
-#define FatalHere		std::cerr << HERE << "FATAL!!! "
+#define LogMsg			std::clog
+#define LogHere			std::clog << HERE
+#define WarnMsg			std::clog << "WARNING: "
+#define WarnHere		std::clog << HERE << "WARNING: "
+#define ErrorMsg    	std::clog << "ERROR! "
+#define ErrorHere		std::clog << HERE << "ERROR! "
+#define FatalMsg    	std::clog << "FATAL!!! "
+#define FatalHere		std::clog << HERE << "FATAL!!! "
+#define LogFlush        std::clog.flush()
 constexpr auto nl = '\n';
 
 // Use in a return statement or assignment, e.g.

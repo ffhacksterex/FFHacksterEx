@@ -38,6 +38,11 @@ RomAsmMappingDatfile::~RomAsmMappingDatfile()
 {
 }
 
+// Reads the entire source stream and copies its contents into a portion of rom[].
+// Throws:
+// runtime_error if the source stream size does not match the expected byte count.
+// Details:
+// This function does not rewind the stream position before returning.
 void RomAsmMappingDatfile::Load(std::istream& sourcefile, std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options)
 {
     UNREFERENCED_PARAMETER(sourcefile);
@@ -48,13 +53,42 @@ void RomAsmMappingDatfile::Load(std::istream& sourcefile, std::vector<unsigned c
         throw std::runtime_error(
             "Mapping '" + this->name + "' count property must equal datfile '" + this->source + "' length " + std::to_string(ifs.tellg()) + ".");
 
+    // Read the entire datfile into a buffer.
+    // Then overwrite the mapped portion of rom[] with that buffer.
     std::vector<unsigned char> v(this->count);
     ifs.seekg(0);
     ifs.read((char*)&v[0], v.size());
     overwrite(rom, v, this->romoffset, this->count);
 }
 
-void RomAsmMappingDatfile::Save(std::istream& sourcefile, std::ostream& destfile, std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options)
+// Copies a portion of rom[] to the entire dest stream.
+// The dest stream is expected to refer to an open, truncated stream (at position 0).
+// Throws:
+// runtime_error if destfile is not zero-length.
+// runtime_error if the source stream size does not match the expected byte count.
+// Details:
+// This function does not rewind the dest stream position before returning.
+void RomAsmMappingDatfile::Save(std::istream& sourcefile, std::ostream& destfile, const std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options)
 {
-    throw std::runtime_error(__FUNCTION__ " coming soon.");
+    UNREFERENCED_PARAMETER(sourcefile);
+    UNREFERENCED_PARAMETER(destfile);
+
+    if (readonly)
+        return;
+
+    //TODO - this is an indication that I need to split the interface so that params don' tneed to be ignored.
+    //      IRomAsmMappingDiscrete and IRomAsmMappingSequential will help here.
+
+    // Ignore the incoming streams and copy rom to the file directly
+    std::fstream ofs(m_destfile, std::ios::binary | std::ios::ate);
+    if ((int)ofs.tellp() != this->count)
+        throw std::runtime_error(
+            "Mapping '" + this->name + "' count property must equal datfile '" + this->source + "' length " + std::to_string(ofs.tellp()) + ".");
+
+    // Copy the mapped portion of rom[] into a buffer.
+    // Then overwrite the entire datfile with that buffer.
+    std::vector<unsigned char> v(this->count);
+    overwrite(v, rom, this->romoffset, this->count);
+    ofs.seekp(0);
+    ofs.write((char*)&v[0], v.size());
 }

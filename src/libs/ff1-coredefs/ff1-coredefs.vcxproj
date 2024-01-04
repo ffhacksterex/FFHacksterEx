@@ -273,6 +273,8 @@
     <ClInclude Include="interop_assembly_interface.h" />
     <ClInclude Include="io_functions.h" />
     <ClInclude Include="IProgress.h" />
+    <ClInclude Include="IRomAsmDiscreteMapping.h" />
+    <ClInclude Include="IRomAsmSequentialMapping.h" />
     <ClInclude Include="LoadLibraryHandleScope.h" />
     <ClInclude Include="logging_functions.h" />
     <ClInclude Include="map_types.h" />
@@ -283,6 +285,7 @@
     <ClInclude Include="regex_helpers.h" />
     <ClInclude Include="ResourceHandleScope.h" />
     <ClInclude Include="resource_coredefs.h" />
+    <ClInclude Include="RomAsmSequentialMappingBase.h" />
     <ClInclude Include="RomAsmFailedMappingException.h" />
     <ClInclude Include="RomAsmMapping.h" />
     <ClInclude Include="RomAsmMappingBinary.h" />

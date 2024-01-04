@@ -191,19 +191,23 @@ void CArmor::LoadRom()
 
 void CArmor::SaveRom()
 {
+	RomAsmSerializer ras(*Project);
+	ras.Save(m_groupedmappings, Project->ROM);
 	if (Project->IsRom()) {
 		save_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.SaveAsmBin(BIN_ARMORDATA, ARMOR_OFFSET);
-		ser.SaveAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
-		ser.SaveInline(ASM_0E, {
-			{ asmlabel, "lut_ArmorTypes",{ ARMORTYPE_OFFSET } },
-			{ asmlabel, LUT_ARMORPERMISSIONS,{ ARMORPERMISSIONS_OFFSET } }
-			});
+		//TODO - eventually add rom support the serializer
+
+		//GameSerializer ser(*Project);
+		//// Instead of writing to the entire buffer, just write to the parts we need
+		//ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
+		//ser.SaveAsmBin(BIN_ARMORDATA, ARMOR_OFFSET);
+		//ser.SaveAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
+		//ser.SaveInline(ASM_0E, {
+		//	{ asmlabel, "lut_ArmorTypes",{ ARMORTYPE_OFFSET } },
+		//	{ asmlabel, LUT_ARMORPERMISSIONS,{ ARMORPERMISSIONS_OFFSET } }
+		//	});
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);

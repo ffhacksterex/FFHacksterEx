@@ -1,17 +1,20 @@
 #pragma once
 #include "RomAsmMapping.h"
+//#include "IRomAsmSequentialMapping.h"
+#include "RomAsmSequentialMappingBase.h"
 
 class CFFHacksterProject;
 class RomAsmMappingFactory;
 
-class RomAsmMappingBinary : public RomAsmMapping
+class RomAsmMappingBinary : public RomAsmSequentialMappingBase
+	//public RomAsmMapping, public IRomAsmSequentialMapping
 {
 public:
 	RomAsmMappingBinary(CFFHacksterProject& project, std::string mapping);
 	virtual ~RomAsmMappingBinary();
 
 	virtual void Load(std::istream& sourcefile, std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options) override;
-	virtual void Save(std::istream& sourcefile, std::ostream& destfile, std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options) override;
+	virtual void Save(std::istream& sourcefile, std::ostream& destfile, const std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options) override;
 
 protected:
 	const std::string maptype = "binary";

@@ -8,3 +8,8 @@ RomAsmMapping::RomAsmMapping()
 RomAsmMapping::~RomAsmMapping()
 {
 }
+
+std::string RomAsmMapping::Name() const
+{
+    return name;
+}

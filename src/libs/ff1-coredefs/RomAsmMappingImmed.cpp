@@ -10,6 +10,12 @@
 
 #include <fstream>
 
+namespace {
+    std::regex rxImmed(R"==(\s*(?::|@\w+:)?\s*(\w{3})\s+#([$%]?[A-Fa-f0-9]+)\s*(?:;.*)?)==");
+
+    std::regex rxImmedReplace(R"==(\s*(?::|@\w+:)?\s*(?:\w{3})\s+#([$%]?[A-Fa-f0-9]+)\s*(?:;.*)?)==");
+}
+
 RomAsmMappingImmed::RomAsmMappingImmed(CFFHacksterProject& project, std::string mapping)
 {
     CString romasmini = project.GetIniFilePath(FFHFILE_RomAsmMappingsPath);
@@ -49,46 +55,48 @@ void RomAsmMappingImmed::Load(std::istream& sourcefile, std::vector<unsigned cha
 {
     auto testpos = sourcefile.tellg();
 
-    bool found = true;
-    auto markers = RomAsm::BuildLabelQueue(label, sublabel);
-    while (found && !markers.empty()) {
-        found = RomAsm::LabelSearch(sourcefile, markers.front());
-        markers.pop_front();
-    }
+    RomAsm::Traverse::SeekToInstruction(sourcefile, name, label, sublabel, instoffset);
 
-    found = found && RomAsm::InstructionSearch(sourcefile, instoffset);
+    // The line must be formatted as an immediate command.
+    // Immediate instructions in 6502 are as follows:
+    // ADC AND CMP CPX CPY EOR LDA LDX LDY ORA SBC
+    //TODO - for the moment, we don't enforce the instruction supporting an immediate addressing mode.
+    //  If that becomes a requirement, add an issue to track the effort.
 
-    // A marker/instoffset referring to the last line of the file is unusable and is reported as not found.
-    if (sourcefile.eof()) {
-        throw std::runtime_error("Mapping '" + this->name + "' did not find its specified marker in the file.");
-    }
-    else if (!sourcefile) {
-        throw std::runtime_error("Mapping '" + this->name + "' failed due to an unexpected error while reading the source file.");
-    }
-    else {
-        // The line must be formatted as an immediate command.
-        // Immediate instructions in 6502 are as follows:
-        // ADC AND CMP CPX CPY EOR LDA LDX LDY ORA SBC
-        //TODO - for the moment, we don't enforce the instruction supporting an immediate addressing mode.
-        //  If that becomes a requirement, add an issue to track the effort.
+    auto bookmark = sourcefile.tellg();
+    std::string line;
+    std::getline(sourcefile, line);
 
-        auto bookmark = sourcefile.tellg();
-        std::string line;
-        std::getline(sourcefile, line);
+    std::smatch m;
+    if (!std::regex_match(line, m, rxImmed))
+        throw std::runtime_error("Unable to parse the immediate command at file position " + std::to_string(bookmark) + ".");
 
-        std::regex rxImmed(R"==(\s*(?::|@\w+:)?\s*(\w{3})\s+#([$%]?[A-Fa-f0-9]+)\s*(?:;.*)?)==");
-        std::smatch m;
-        if (!std::regex_match(line, m, rxImmed))
-            throw std::runtime_error("Unable to parse the immediate command at file position " + std::to_string(bookmark) + ".");
-
-        auto instruction = m[1].str();
-        auto operand = m[2].str();
-        int value = Types::to_int(operand);
-        rom[this->romoffset] = (unsigned char)(value & 0xFF);
-    }
+    auto instruction = m[1].str();
+    auto operand = m[2].str();
+    int value = Types::to_int(operand);
+    rom[this->romoffset] = (unsigned char)(value & 0xFF);
 }
 
-void RomAsmMappingImmed::Save(std::istream& sourcefile, std::ostream& destfile, std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options)
+void RomAsmMappingImmed::Save(std::istream& sourcefile, std::ostream& destfile, const std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options)
 {
-    throw std::runtime_error(__FUNCTION__ " coming soon");
+    // Go to the label and instruction offset, then retrieve the line.
+    auto bookmark = sourcefile.tellg();
+    RomAsm::Traverse::SeekToInstruction(sourcefile, name, label, sublabel, instoffset);
+    RomAsm::Modify::SyncDestToCurrent(sourcefile, destfile, bookmark);
+    std::string line;
+    std::getline(sourcefile, line);
+
+    // Convert the ROM[] bytes into an int value, then format thatinto assembly source-compatible text
+    auto newvalue = RomAsm::Parse::RomToInt(rom, this->romoffset, 1, line);
+    auto replacement = RomAsm::Parse::IntToAsm(newvalue, this->format);
+
+    // Find the immediate value...
+    std::regex rx3(R"==((\s*(?::|@\w+:)?\s*(?:\w{3})\s+#)([$%]?[A-Fa-f0-9]+)(\s*(?:;.*)?))==");
+    std::smatch m;
+    if (!std::regex_match(line, m, rx3))
+        throw std::runtime_error("Unable to parse the immediate command at file position " + std::to_string(bookmark) + ".");
+
+    // ... then replace it with out formatted replacement text.
+    std::string newline = m[1].str() + replacement + m[3].str();
+    destfile << newline << '\n';
 }

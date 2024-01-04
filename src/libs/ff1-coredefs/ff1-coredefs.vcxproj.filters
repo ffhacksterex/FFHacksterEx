@@ -378,5 +378,14 @@
     <ClInclude Include="RomAsmMappingImmed.h">
       <Filter>RomAsm\Mappings</Filter>
     </ClInclude>
+    <ClInclude Include="RomAsmSequentialMappingBase.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="IRomAsmDiscreteMapping.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="IRomAsmSequentialMapping.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

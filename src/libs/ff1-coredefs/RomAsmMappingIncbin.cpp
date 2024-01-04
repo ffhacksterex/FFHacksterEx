@@ -46,35 +46,57 @@ void RomAsmMappingIncbin::Load(std::istream& sourcefile, std::vector<unsigned ch
 {
     auto testpos = sourcefile.tellg();
 
-    bool found = true;
-    auto markers = RomAsm::BuildLabelQueue(label, sublabel);
-    while (found && !markers.empty()) {
-        found = RomAsm::LabelSearch(sourcefile, markers.front());
-        markers.pop_front();
-    }
+    RomAsm::Traverse::SeekToInstruction(sourcefile, name, label, sublabel, instoffset);
 
-    found = found && RomAsm::InstructionSearch(sourcefile, instoffset);
+    // Extract the incbin path from this line.
+    std::string instruction;
+    std::getline(sourcefile, instruction);
+    std::string asmrelpath = (LPCSTR)Paths::Combine({ "asm", RomAsm::ExtractIncbinPath(name, instruction).c_str() });
 
-    // A marker/instoffset referring to the last line of the file is unusable and is reported as not found.
-    if (!found || sourcefile.eof()) {
-        throw std::runtime_error("Mapping '" + this->name + "' did not find its specified marker in the file.");
-    }
-    else if (!sourcefile) {
-        throw std::runtime_error("Mapping '" + this->name + "' failed due to an unexpected error while reading the source file.");
-    }
-    else {
-        // This is the position, now extract the incbin path from this line.
-        std::string instruction;
-        std::getline(sourcefile, instruction);
-        auto asmrelpath = RomAsm::ExtractIncbinPath(name, instruction);
-        auto binpath = Paths::Combine({ projectfolder.c_str(), "asm", asmrelpath.c_str() });
-        auto status = RomAsm::LoadFromBinFile((LPCSTR)binpath, this->romoffset, this->count, rom);
-        if (!status.empty())
-            throw std::runtime_error("Mapping '" + this->name + "' " + status);
-    }
+    // Map the binary file to a destination temp file (used during Save below).
+    // We do it on each load since we don't know the actual incbin at time of construction
+    // (i.e. the constructor doesn't read the assembly source file).
+    savefilemappings.clear();
+    savefilemappings[asmrelpath] = asmrelpath + ".~new";
+
+    // Form the full path to the live binary file, then load it into rom[]
+    auto binpath = Paths::Combine({ projectfolder.c_str(), asmrelpath.c_str() });
+    auto status = RomAsm::LoadFromBinFile((LPCSTR)binpath, this->romoffset, this->count, rom);
+    if (!status.empty())
+        throw std::runtime_error("Mapping '" + this->name + "' " + status);
 }
 
-void RomAsmMappingIncbin::Save(std::istream& sourcefile, std::ostream& destfile, std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options)
+void RomAsmMappingIncbin::Save(std::istream& sourcefile, std::ostream& destfile,
+    const std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options)
 {
-    throw std::runtime_error(__FUNCTION__ " coming soon");
+    auto bookmark = sourcefile.tellg();
+    RomAsm::Traverse::SeekToInstruction(sourcefile, name, label, sublabel, instoffset);
+    RomAsm::Modify::SyncDestToCurrent(sourcefile, destfile, bookmark);
+
+    // Write the incbin statement from the source file to dest
+    std::string instruction;
+    std::getline(sourcefile, instruction);
+    destfile << instruction << '\n';
+
+    // Add a save file mapping for the **TEMP** binary file.
+    // We write to the temp file and let the serializer do the file ratification.
+    std::string incbinrelpath = RomAsm::ExtractIncbinPath(name, instruction);
+    std::string asmrelpathkey = (LPCSTR)Paths::Combine({ "asm", incbinrelpath.c_str() });
+    auto iter = savefilemappings.find(asmrelpathkey);
+    if (iter == savefilemappings.end())
+        throw std::runtime_error("Mapping '" + this->name + "' cannot find savefile mapping for '" + asmrelpathkey + "'.");
+
+    // Specify the TEMP binary file as the destination and build its fullpath.
+    auto asmrelpath = iter->second;
+    CString binpath = Paths::Combine({ projectfolder.c_str(), asmrelpath.c_str() });
+
+    // Now save the portion of rom[] to that file.
+    auto status = RomAsm::Modify::SaveToBinFile((LPCSTR)binpath, this->romoffset, this->count, rom);
+    if (!status.empty())
+        throw std::runtime_error("Mapping '" + this->name + "' " + status);
+}
+
+std::map<std::string, std::string> RomAsmMappingIncbin::GetSaveFileMappings() const
+{
+    return savefilemappings;
 }
