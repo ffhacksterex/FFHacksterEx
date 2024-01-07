@@ -71,10 +71,18 @@ namespace RomAsm
         void SeekToInstruction(std::istream& is, std::string nappingname, std::string label, std::string sublabel, int instoffset)
         {
             bool found = true;
+            std::string lastlabel;
             auto markers = RomAsm::BuildLabelQueue(label, sublabel);
             while (found && !markers.empty()) {
-                found = RomAsm::LabelSearch(is, markers.front());
+                lastlabel = markers.front();
+                found = RomAsm::LabelSearch(is, lastlabel);
                 markers.pop_front();
+            }
+
+            // Step past the label (note that the next instruction might be on the same line as the label)
+            if (!lastlabel.empty()) {
+                auto steplen = lastlabel.size();
+                is.seekg(steplen, std::ios::cur);
             }
 
             found = found && RomAsm::InstructionSearch(is, instoffset);
@@ -114,15 +122,6 @@ namespace RomAsm
             if (to == sourcestart)
                 return true; // already synched, don't count as EOF
 
-            //auto size = to - sourcestart;
-            //std::vector<unsigned char> v(size);
-            //source.seekg(sourcestart);
-            //source.read((char*)&v[0], v.size());
-            ////----
-            //std::string copied(v.begin(), v.end());
-            ////----
-            //dest.write((char*)& v[0], v.size());
-
             source.seekg(sourcestart);
 
             auto size = to - sourcestart;
@@ -159,7 +158,6 @@ namespace RomAsm
         {
             std::ofstream ofs(binpath, std::ios::binary);
             std::vector<unsigned char> v(count);
-            //overwrite(v, rom, offset, count);
             overwrite(v, rom, 0, count, offset);
             ofs.seekp(0);
             ofs.write((char*)&v[0], v.size());
@@ -261,10 +259,11 @@ namespace RomAsm
             std::string line;
             std::getline(is, line);
             done = std::regex_match(line, m, rx);
-            //TODO - if regex keeps failing, then do the label vs. semicolon search and compare positions
         }
 
-        if (done) is.seekg(pos);
+        if (done) {
+            is.seekg(pos);
+        }
         else {
             is.clear(std::ios_base::eofbit);
             is.seekg(origpos);
@@ -283,15 +282,10 @@ namespace RomAsm
         auto origpos = is.tellg();
         auto pos = origpos;
 
-        //---
-        std::string lastline;
-        //---
-
         while (count > 0 && is && !is.eof()) {
             pos = is.tellg();
             std::string line;
             std::getline(is, line);
-            lastline = line;
             //TODO - if regex keeps failing, then do the label vs. semicolon search and compare positions
             auto isinstruction = !line.empty() && !std::regex_match(line, m, rx);   // If the line matches, then it is NOT an instruction
             if (isinstruction)
@@ -303,11 +297,6 @@ namespace RomAsm
 
         if (done) {
             is.seekg(pos);
-            //---
-            std::string sanitycheck;
-            std::getline(is, sanitycheck);
-            is.seekg(pos);
-            //---
         }
         else {
             is.clear(std::ios_base::eofbit);
@@ -326,7 +315,7 @@ namespace RomAsm
         return m[1].str();
     }
 
-    //TODO _ move to Modifu
+    //TODO - move to RomAsm::Modify namespace?  Not sure if anything else needs to use this pattern
     std::string LoadFromBinFile(std::string binpath, int offset, int count, std::vector<unsigned char>& rom)
     {
         if (!Paths::FileExists(binpath.c_str()))

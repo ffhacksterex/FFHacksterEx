@@ -121,7 +121,7 @@ void RomAsmMappingBinary::Load(std::istream& sourcefile, std::vector<unsigned ch
                 }
             }
             //TODO - review IsComment
-            else if (!RomAsm::Query::IsComment(rawline)) {
+            else if (!RomAsm::Query::IsComment(rawline) && !Strings::trimleft(rawline).empty()) {
                 // the comment check only happens if the data row check failed first.
                 // If this row is anything but a data row or comment at this point, we're done.
                 break;
