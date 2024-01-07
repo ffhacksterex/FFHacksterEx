@@ -4,6 +4,7 @@
 #include <EditorWithBackground.h>
 #include <vector>
 #include "afxlinkctrl.h"
+#include <RomAsmMapping_t.h>
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -29,6 +30,7 @@ protected:
 	virtual void StoreValues();
 	virtual void PaintClient(CDC& dc);
 
+	RomAsmGropuedMappingRefs m_groupedmappings;
 	bool m_initialized = false;
 	CRect rcPalette;
 	CRect rcFinger;

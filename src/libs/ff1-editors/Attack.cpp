@@ -15,6 +15,9 @@
 #include "string_functions.h"
 #include "ui_helpers.h"
 
+#include <RomAsmMappingFactory.h>
+#include <RomAsmSerializer.h>
+
 using namespace Editorlabels;
 using namespace Imaging;
 using namespace Ini;
@@ -112,6 +115,9 @@ BOOL CAttack::OnInitDialog()
 
 void CAttack::LoadOffsets()
 {
+	RomAsmMappingFactory fac;
+	m_groupedmappings = fac.ReadGroupedMappings(*Project, "attacks");
+
 	ATTACK_OFFSET = ReadHex(Project->ValuesPath, "ATTACK_OFFSET");
 	ATTACK_BYTES = ReadDec(Project->ValuesPath, "ATTACK_BYTES");
 	BANK0A_OFFSET = ReadHex(Project->ValuesPath, "BANK0A_OFFSET");
@@ -121,14 +127,14 @@ void CAttack::LoadOffsets()
 void CAttack::LoadRom()
 {
 	Project->ClearROM();
+	RomAsmSerializer ras(*Project);
+	ras.Load(m_groupedmappings, Project->ROM);
+
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.LoadAsmBin(BIN_MAGICDATA, MAGIC_OFFSET);
+		//TODO - eventually add rom support the serializer
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);
@@ -137,13 +143,14 @@ void CAttack::LoadRom()
 
 void CAttack::SaveRom()
 {
+	RomAsmSerializer ras(*Project);
+	ras.Save(m_groupedmappings, Project->ROM);
+
 	if (Project->IsRom()) {
 		save_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.SaveAsmBin(BIN_MAGICDATA, MAGIC_OFFSET);
+		//TODO - eventually add rom support the serializer
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::reading, (LPCSTR)Project->ProjectTypeName);

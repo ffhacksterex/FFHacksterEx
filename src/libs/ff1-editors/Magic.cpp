@@ -25,6 +25,9 @@
 #include "NewLabel.h"
 #include "WepMagGraphic.h"
 
+#include <RomAsmMappingFactory.h>
+#include <RomAsmSerializer.h>
+
 using namespace Editorlabels;
 using namespace Imaging;
 using namespace Ingametext;
@@ -299,6 +302,9 @@ void CMagic::ShowHideOutOfBattleControls()
 
 void CMagic::LoadOffsets()
 {
+	RomAsmMappingFactory fac;
+	m_groupedmappings = fac.ReadGroupedMappings(*Project, "magic");
+
 	CLASS_COUNT = ReadDec(Project->ValuesPath, "CLASS_COUNT");
 	MAGIC_OFFSET = ReadHex(Project->ValuesPath, "MAGIC_OFFSET");
 	MAGIC_BYTES = ReadDec(Project->ValuesPath, "MAGIC_BYTES");
@@ -352,20 +358,14 @@ void CMagic::LoadOffsets()
 void CMagic::LoadRom()
 {
 	Project->ClearROM();
+	RomAsmSerializer ras(*Project);
+	ras.Load(m_groupedmappings, Project->ROM);
+
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.LoadAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
-		ser.LoadAsmBin(BIN_MAGICDATA, MAGIC_OFFSET);
-		ser.LoadAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
-		ser.LoadAsmBin(BIN_BATTLEMESSAGES, BATTLEMESSAGETEXT_START);
-		ser.LoadAsmBin(BIN_NOTHINGHAPPENS, NOTHINGHAPPENS_OFFSET);
-		ser.LoadInline(ASM_0C, { { asmlabel, "lut_MagicBattleMessages", { BATTLEMESSAGE_OFFSET } } });
-		ser.LoadInline(ASM_0E, { { asmtable, "lut_MagicPermissions", { MAGICPERMISSIONS_OFFSET } } });
+		//TODO - eventually add rom support the serializer
 		ShowHideOutOfBattleControls();
 	}
 	else {
@@ -375,19 +375,14 @@ void CMagic::LoadRom()
 
 void CMagic::SaveRom()
 {
+	RomAsmSerializer ras(*Project);
+	ras.Save(m_groupedmappings, Project->ROM);
+
 	if (Project->IsRom()) {
 		save_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.SaveAsmBin(BIN_BANK09GFXDATA, BINBANK09GFXDATA_OFFSET);
-		ser.SaveAsmBin(BIN_MAGICDATA, MAGIC_OFFSET);
-		ser.SaveAsmBin(BIN_PRICEDATA, BINPRICEDATA_OFFSET);
-		ser.SaveAsmBin(BIN_BATTLEMESSAGES, BATTLEMESSAGETEXT_START);
-		ser.SaveAsmBin(BIN_NOTHINGHAPPENS, NOTHINGHAPPENS_OFFSET);
-		ser.SaveInline(ASM_0C, { { asmlabel, "lut_MagicBattleMessages", { BATTLEMESSAGE_OFFSET } } });
-		ser.SaveInline(ASM_0E, { { asmtable, "lut_MagicPermissions", { MAGICPERMISSIONS_OFFSET } } });
+		//TODO - eventually add rom support the serializer
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);

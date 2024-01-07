@@ -8,6 +8,7 @@
 //
 
 #include <EditorWithBackground.h>
+#include <RomAsmMapping_t.h>
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -22,6 +23,12 @@ public:
 	int cur;
 
 protected:
+	RomAsmGropuedMappingRefs m_groupedmappings;
+	int ATTACK_OFFSET = -1;
+	int ATTACK_BYTES = -1;
+	int BANK0A_OFFSET = -1;
+	int MAGIC_OFFSET = -1;
+
 	virtual void LoadOffsets();
 	virtual void LoadRom();
 	virtual void SaveRom();
@@ -63,11 +70,6 @@ protected:
 	CClearButton m_cancelbutton;
 	CCloseButton m_closebutton;
 	CHelpbookButton m_helpbookbutton;
-
-	int ATTACK_OFFSET = -1;
-	int ATTACK_BYTES = -1;
-	int BANK0A_OFFSET = -1;
-	int MAGIC_OFFSET = -1;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
