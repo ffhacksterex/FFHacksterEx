@@ -156,6 +156,9 @@
     <ClCompile Include="RomAsmMappingImmed.cpp">
       <Filter>RomAsm\Mappings</Filter>
     </ClCompile>
+    <ClCompile Include="RomAsmMappingCond.cpp">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ff1-coredefs.rc">
@@ -385,6 +388,9 @@
       <Filter>RomAsm\Mappings</Filter>
     </ClInclude>
     <ClInclude Include="IRomAsmSequentialMapping.h">
+      <Filter>RomAsm\Mappings</Filter>
+    </ClInclude>
+    <ClInclude Include="RomAsmMappingCond.h">
       <Filter>RomAsm\Mappings</Filter>
     </ClInclude>
   </ItemGroup>

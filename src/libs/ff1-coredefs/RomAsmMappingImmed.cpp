@@ -53,8 +53,6 @@ RomAsmMappingImmed::~RomAsmMappingImmed()
 
 void RomAsmMappingImmed::Load(std::istream& sourcefile, std::vector<unsigned char>& rom, const std::map<std::string, std::string>& options)
 {
-    auto testpos = sourcefile.tellg();
-
     RomAsm::Traverse::SeekToInstruction(sourcefile, name, label, sublabel, instoffset);
 
     // The line must be formatted as an immediate command.

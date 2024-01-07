@@ -9,6 +9,7 @@
 #include "RomAsmMappingIncbin.h"
 #include "RomAsmMappingBinary.h"
 #include "RomAsmMappingImmed.h"
+#include "RomAsmMappingCond.h"
 
 RomAsmMappingFactory::RomAsmMappingFactory()
 {
@@ -27,18 +28,19 @@ namespace // LOCAL HELPER DECLARATIONS
     RomAsmMappingRef ToIncbin(CFFHacksterProject& project, CString romasmini, CString editorname);
     RomAsmMappingRef ToBinary(CFFHacksterProject& project, CString romasmini, CString editorname);
     RomAsmMappingRef ToImmed(CFFHacksterProject& project, CString romasmini, CString editorname);
+    RomAsmMappingRef ToCond(CFFHacksterProject& project, CString romasmini, CString editorname);
 }
 
 // Read all mappiongs from the file.
 RomAsmMappingRefs RomAsmMappingFactory::ReadMappings(CFFHacksterProject& project)
 {
-    return RomAsmMappingRefs();
+    throw std::runtime_error(__FUNCTION__ " not implemented yet.");
 }
 
 // Read all mappings from the file that are tied to the specified editor.
 RomAsmMappingRefs RomAsmMappingFactory::ReadMappings(CFFHacksterProject& project, std::string editor)
 {
-    return RomAsmMappingRefs();
+    throw std::runtime_error(__FUNCTION__ " not implemented yet.");
 }
 
 // Read all mappings from the file that are tied to the specified editor.
@@ -85,6 +87,7 @@ namespace // LOCAL HELPER IMPLEMENTATION
         { "incbin", ToIncbin },
         { "binary", ToBinary },
         { "immed", ToImmed },
+        { "cond", ToCond }
     };
 
     RomAsmMappingRef DeserializeMapping(CFFHacksterProject& project, CString romasmini, CString editorname)
@@ -121,5 +124,10 @@ namespace // LOCAL HELPER IMPLEMENTATION
     RomAsmMappingRef ToImmed(CFFHacksterProject& project, CString romasmini, CString editorname)
     {
         return std::make_shared<RomAsmMappingImmed>(project, (LPCSTR)editorname);
+    }
+
+    RomAsmMappingRef ToCond(CFFHacksterProject& project, CString romasmini, CString editorname)
+    {
+        return std::make_shared< RomAsmMappingCond>(project, (LPCSTR)editorname);
     }
 }
