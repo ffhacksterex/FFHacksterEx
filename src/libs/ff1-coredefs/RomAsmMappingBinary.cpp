@@ -29,6 +29,8 @@ RomAsmMappingBinary::RomAsmMappingBinary(CFFHacksterProject& project, std::strin
     instoffset = atol(Ini::ReadIni(romasmini, section, "instoffset", "-1")); //TODO - is atol safe here?
     recwidth = atol(Ini::ReadIni(romasmini, section, "recwidth", ""));
     format = Ini::ReadIni(romasmini, section, "format", format.c_str());
+    groupsize = RomAsm::ReadIniInt(romasmini, valini, section, "groupsize");
+    groupspacecount = RomAsm::ReadIniInt(romasmini, valini, section, "groupspacecount");
 
     std::vector<std::string> errors;
     if (type != maptype) errors.push_back("type should be " + maptype + ", not '" + edtype + "'");
@@ -38,6 +40,15 @@ RomAsmMappingBinary::RomAsmMappingBinary(CFFHacksterProject& project, std::strin
     if (recwidth < 1) errors.push_back("recwidth must be greater than zero");
     if (!errors.empty())
         throw std::runtime_error("Editor '" + mapping + "' config is malformed: " + Strings::join(errors, "; "));
+
+    // If not using groups, set both to zero; otherwise, if grouping, ensure groupspacecount is at least 1
+    if (groupsize < 1) {
+        groupsize = -1;
+        groupspacecount = 0;
+    }
+    else if (groupspacecount < 1) {
+        groupspacecount = 1;
+    }
 }
 
 RomAsmMappingBinary::~RomAsmMappingBinary()
@@ -53,7 +64,6 @@ namespace // DECLARATIONS
 
     // Used for explicit data row comparison and extraction.
     // Use with regex_match.
-    //std::regex rxAsmDataRow(R"==((\s*(?::|@\w+:)?\s*\.)(BYTE|WORD|FARADDR)(\s*)((?:[$%]?[A-Fa-f0-9]+(?:,\s*)?)+)(\s*;.*)?)==", std::regex::icase);
     std::regex rxAsmDataRow(R"==((\s*(?::|@\w+:)?\s*)(\.(?:BYTE|WORD|FARADDR))(\s*)((?:[$%]?[A-Fa-f0-9]+(?:,\s*)?)+)(\s*;.*)?)==", std::regex::icase);
 
     const std::map<std::string, int> l_datarowwidths = {
@@ -68,9 +78,6 @@ namespace // DECLARATIONS
     int TermToInt(const std::string& term, int recwidth);
 
     void AddToBuffer(int recwidth, int value, std::vector<unsigned char>& v); //TODO - add to RomAsm
-
-    std::string FormatBinarySourceLine (std::string line, int recwidth, int totalsize, std::string format,
-        const std::vector<unsigned char>& rom, int& offset);
 
 } // end namespace / DECLARATIONS
 
@@ -170,9 +177,8 @@ void RomAsmMappingBinary::Save(std::istream& sourcefile, std::ostream& destfile,
         if (rawline.empty() || RomAsm::Query::IsWhitespaceLine(rawline) || RomAsm::Query::IsComment(rawline)) {
             destfile << rawline << '\n';
         } else if (LooksLikeDataRow(rawline)) {
-            //TODO - replace the line
+            auto newline = FormatAsmSourceLine(rawline, rom, offset);
             //TODO - need to be careful about adding a newline to dest if there isn't one at end of source.
-            auto newline = FormatBinarySourceLine(rawline, this->recwidth, totalsize, this->format, rom, offset);
             destfile << newline << '\n';
             byteswritten = offset - this->romoffset;
 
@@ -191,10 +197,53 @@ void RomAsmMappingBinary::Save(std::istream& sourcefile, std::ostream& destfile,
     // Ff the number of values written is incorrect, ERROR*****
     if (byteswritten != totalsize)
         throw std::runtime_error("Wrote " + std::to_string(byteswritten) + " bytes instead of the expected " + std::to_string(totalsize) + ".");
+}
 
-    //TODO - REMOVE
-    //if (source.find("0E.asm") != std::string::npos)
-    //    throw std::runtime_error("intentional test exception, please ignore.");
+std::string RomAsmMappingBinary::FormatAsmSourceLine(std::string line, const std::vector<unsigned char>& rom, int& offset)
+{
+    std::string asmline;
+    std::smatch m;
+    //TODO - potentially shorten the exception message to just the first 30 characters
+    if (!std::regex_match(line, m, rxAsmDataRow))
+        throw std::runtime_error("Unable to parse this data row (" + asmline + ").");
+
+    auto prefix = m[1].str();
+    auto type = m[2].str();
+    auto typespace = m[3].str();
+    auto terms = m[4].str();
+    auto suffix = m[5].str();
+    int valsize = DataDirectiveToByteWidth(type);
+
+    // the terms come in as a comm-separated list
+    auto newterms = terms;
+    auto textvalues = Strings::split(terms, ",");
+
+    //TODO - is using -1 a cleaner solution than 1 << 31?
+    //int grpcounter = groupsize > 0 ? groupsize : 1 << 31; //N.B. - use a large number to avoid mod and if checks in the false case
+    int grpcounter = groupsize;
+    std::string grpws(groupspacecount, ' ');
+    std::vector<std::string> newvalues;
+
+    //TODO - while this does work, there's a cleaner way... build newterms in pieces amd do grouping at that point
+    //      instead of inside the lambda.
+    
+    // Replace each of the extracted values from the sourcefile into a formatted value from rom[]
+    std::transform(textvalues.begin(), textvalues.end(), std::back_inserter(newvalues),
+        [&offset, &rom, &grpcounter, &grpws, valsize, this](const std::string& s)
+        {
+            auto newvalue = RomAsm::Parse::RomToInt(rom, offset, valsize, s);
+            auto replacement = RomAsm::Parse::IntToAsm(newvalue, format);
+            if (grpcounter-- == 0) {
+                replacement.insert(0, grpws);
+                grpcounter = groupsize - 1;
+            }
+            offset += valsize;
+            return replacement;
+        });
+
+    // Join the terms into string, then combined the parts to form the new assembly source line and return.
+    newterms = Strings::join(newvalues, ","); //TODO - add option: space after separator
+    return prefix + type + typespace + newterms + suffix;
 }
 
 
@@ -228,15 +277,7 @@ namespace // IMPLEMENTATION
         if (!std::regex_search(line, m, rxDatarowLook)) //TODO  might need a more concise regex for this then rxDatarowLook
             return false;
 
-        //auto rawkey = m[1].str();
-        //auto key = Strings::to_lower(rawkey);
-        //auto iter = l_datarowwidths.find(key);
-        //if (iter == l_datarowwidths.end())
-        //    throw std::runtime_error("'" + rawkey + "' is not a data row header supported by binary mappings.");
-        //--
         auto recwidth = DataDirectiveToByteWidth(m[1].str());
-        //--
-
         auto newline = m[2].str();
 
         //TODO - not sure why comments aren't being trimmed off by the regex, see rx call above.
@@ -251,10 +292,7 @@ namespace // IMPLEMENTATION
         }
         //--
 
-        //return iter->second;
-        //--
         return recwidth;
-        //--
     }
 
     int TermToInt(const std::string& term, int recwidth)
@@ -302,46 +340,5 @@ namespace // IMPLEMENTATION
 
         throw std::domain_error("Data row terms with a recwidth that isn't 1, 2, or 3 are not supported.");
     }
-
-    std::string FormatBinarySourceLine(std::string line, int recwidth, int totalsize, std::string format,
-        const std::vector<unsigned char>& rom, int& offset)
-    {
-        std::string asmline;
-        std::smatch m;
-        //TODO - potentially shorten the exception message to just the first 30 characters
-        if (!std::regex_match(line, m, rxAsmDataRow))
-            throw std::runtime_error("Unable to parse this data row (" + asmline + ").");
-
-        auto prefix = m[1].str();
-        auto type = m[2].str();
-        auto typespace = m[3].str();
-        auto terms = m[4].str();
-        auto suffix = m[5].str();
-
-        //TODO - verify width against recwidth? for now, no
-        //TODO - use a case insensitive test for this and wrap it into a local helper
-        //int valsize = 1;
-        //if (type == "WORD") valsize = 2;
-        //else if (type == "FARADDR") valsize = 3;
-        //--
-        int valsize = DataDirectiveToByteWidth(type);
-        //--
-
-        auto newterms = terms;
-        // the terms come in as a comm-separated list
-        auto textvalues = Strings::split(terms, ",");
-
-        std::vector<std::string> newvalues;
-        std::transform(textvalues.begin(), textvalues.end(), std::back_inserter(newvalues),
-            [&offset, &rom, valsize, format](const std::string& s) {
-                auto newvalue = RomAsm::Parse::RomToInt(rom, offset, valsize, s);
-                auto replacement = RomAsm::Parse::IntToAsm(newvalue, format);
-                offset += valsize;
-                return replacement;
-            });
-
-        newterms = Strings::join(newvalues, ","); //TODO - add options: group by N, space after separator
-        return prefix + type + typespace + newterms + suffix;
-    };
 
 } // end namespace (unnamed)

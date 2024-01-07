@@ -1,13 +1,11 @@
 #pragma once
 #include "RomAsmMapping.h"
-//#include "IRomAsmSequentialMapping.h"
 #include "RomAsmSequentialMappingBase.h"
 
 class CFFHacksterProject;
 class RomAsmMappingFactory;
 
 class RomAsmMappingBinary : public RomAsmSequentialMappingBase
-	//public RomAsmMapping, public IRomAsmSequentialMapping
 {
 public:
 	RomAsmMappingBinary(CFFHacksterProject& project, std::string mapping);
@@ -24,5 +22,8 @@ protected:
 	int instoffset = -1;
 	int recwidth = -1;
 	std::string format = "$%02X"; //TODO - remove defualt and force mapping to specify the format instead?
-};
+	int groupsize = 0;            // 0 means no grouping, number of items per group (e.g. 4 yields "1,1,1,1,  1,1,1,1")
+	int groupspacecount = 0;      // 0 means no grouping, number of space characters (e.g. 8 yields "1,1,1,1,        1,1,1,1")
 
+	std::string FormatAsmSourceLine(std::string line, const std::vector<unsigned char>& rom, int& offset);
+};

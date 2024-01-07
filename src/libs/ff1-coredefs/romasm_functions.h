@@ -44,8 +44,8 @@ namespace RomAsm
 	// GENERAL PURPOSE ROUTINES
 	// These are also used to implemnt some of the routines above.
 
-	CString ReadIniText(CString mapini, CString valini, CString section, CString key);
-	int ReadIniInt(CString mapini, CString valini, CString section, CString key);
+	CString ReadIniText(CString mapini, CString valini, CString section, CString key, CString defaultValue = "");
+	int ReadIniInt(CString mapini, CString valini, CString section, CString key, CString defaultValue = "");
 	std::string ReadSource(CString mapini, CString valini, CString section, CString key);
 
 	std::deque<std::string> BuildLabelQueue(std::string label, std::string sublabel);

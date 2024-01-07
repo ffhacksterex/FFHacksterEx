@@ -24,22 +24,22 @@ namespace
 
 namespace RomAsm
 {
-    CString ReadIniText(CString mapini, CString valini, CString section, CString key)
+    CString ReadIniText(CString mapini, CString valini, CString section, CString key, CString defaultValue)
     {
         auto text = Ini::ReadIni(mapini, section, key, "");
         // If it's a @valini ref, then read the value from there using text as the key
         if (text.GetLength() > 0) {
             if (text[0] == '@')
-                text = Ini::ReadIni(valini, text.Mid(1), "value", "");
+                text = Ini::ReadIni(valini, text.Mid(1), "value", defaultValue);
         }
 
         return text;
     }
 
-    int ReadIniInt(CString mapini, CString valini, CString section, CString key)
+    int ReadIniInt(CString mapini, CString valini, CString section, CString key, CString defaultValue)
     {
         using namespace Types;
-        auto text = ReadIniText(mapini, valini, section, key);
+        auto text = ReadIniText(mapini, valini, section, key, defaultValue);
         try {
             return Types::to_int(text);
         }
