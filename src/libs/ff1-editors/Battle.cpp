@@ -26,6 +26,9 @@
 #include <BattleEditorSettingsDlg.h>
 #include <BattleEditorSettings.h>
 
+#include <RomAsmMappingFactory.h>
+#include <RomAsmSerializer.h>
+
 using namespace Editorlabels;
 using namespace Imaging;
 using namespace Ingametext;
@@ -185,6 +188,9 @@ BOOL CBattle::OnInitDialog()
 	BaseClass::OnInitDialog();
 	
 	try {
+		CBattleEditorSettings stgs(*Project);
+		m_usagedataon = stgs.ViewUsage;
+
 		this->LoadOffsets();
 		this->LoadRom();
 
@@ -222,8 +228,6 @@ BOOL CBattle::OnInitDialog()
 			rcPreview.OffsetRect(8, size.cy);
 		}
 
-		CBattleEditorSettings stgs(*Project);
-		m_usagedataon = stgs.ViewUsage;
 		if (m_usagedataon) {
 			try {
 				CWaitCursor wait;
@@ -386,6 +390,9 @@ void CBattle::LoadFiendChaosPic(int pattern_off,int palette_off,bool chaos)
 
 void CBattle::LoadOffsets()
 {
+	RomAsmMappingFactory fac;
+	m_groupedmappings = fac.ReadGroupedMappings(*Project, "battles");
+
 	BATTLE_COUNT = ReadDec(Project->ValuesPath, "BATTLE_COUNT");
 	BATTLE_OFFSET = ReadHex(Project->ValuesPath, "BATTLE_OFFSET");
 	BATTLE_BYTES = ReadHex(Project->ValuesPath, "BATTLE_BYTES");
@@ -427,39 +434,21 @@ void CBattle::LoadOffsets()
 void CBattle::LoadRom()
 {
 	Project->ClearROM();
+	RomAsmSerializer ras(*Project);
+	std::map<std::string, std::string> options;
+	if (m_usagedataon) options["viewusage"] = "true";
+	ras.Load(m_groupedmappings, Project->ROM, &options);
+
 	if (Project->IsRom()) {
 		load_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		CWaitCursor wait;
-		GameSerializer ser(*Project);
-		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.LoadAsmBin(BANK_07, BANK07_OFFSET);
-		ser.LoadAsmBin(BANK_08, BANK08_OFFSET);
-		ser.LoadAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.LoadAsmBin(BIN_BATTLEFORMATIONS, BINBATTLEFORMATIONS_OFFSET);
-		ser.LoadAsmBin(BIN_BATTLEPALETTES, BINBATTLEPALETTES_OFFSET);
-		ser.LoadAsmBin(BIN_CHAOSTSA, BINCHAOSTSA_OFFSET);
-		ser.LoadAsmBin(BIN_FIENDTSA, BINFIENDTSA_OFFSET);
-		ser.LoadAsmBin(BIN_ENEMYNAMES, BINENEMYNAMES_OFFSET);
-		ser.LoadAsmBin(BANK_00, BANK00_OFFSET); // used by subeditors
-
+		//TODO - eventually add rom support the serializer
 		if (m_usagedataon) {
+			CWaitCursor wait;
+			GameSerializer ser(*Project);
+
 			// Used by EnemyBattleUsageData (read-only)
-			auto BANK04_OFFSET = ReadHex(Project->ValuesPath, "BANK04_OFFSET");
-			auto BANK05_OFFSET = ReadHex(Project->ValuesPath, "BANK05_OFFSET");
-			auto BANK06_OFFSET = ReadHex(Project->ValuesPath, "BANK06_OFFSET");
-			auto ENEMY_OFFSET = ReadHex(Project->ValuesPath, "ENEMY_OFFSET");
-			auto BATTLEDOMAIN_OFFSET = ReadHex(Project->ValuesPath, "BATTLEDOMAIN_OFFSET");
-			unsigned int BATTLEPROBABILITY_OFFSET = ReadHex(Project->ValuesPath, "BATTLEPROBABILITY_OFFSET");
-			auto TALKROUTINEDATA_OFFSET = Ini::ReadHex(Project->ValuesPath, "TALKROUTINEDATA_OFFSET");
-			ser.LoadAsmBin(BANK_04, BANK04_OFFSET);
-			ser.LoadAsmBin(BANK_05, BANK05_OFFSET);
-			ser.LoadAsmBin(BANK_06, BANK06_OFFSET);
-			ser.LoadAsmBin(BIN_BATTLEDOMAINDATA, BATTLEDOMAIN_OFFSET);
-			ser.LoadAsmBin(BIN_OBJECTDATA, TALKROUTINEDATA_OFFSET);
-			ser.LoadAsmBin(BIN_ENEMYDATA, ENEMY_OFFSET);
-			ser.LoadInline(ASM_0F, { { asmlabel, "lut_FormationWeight", { BATTLEPROBABILITY_OFFSET } } });
 			ser.PreloadTalkAsmData(ASM_0E);
 		}
 	}
@@ -470,22 +459,14 @@ void CBattle::LoadRom()
 
 void CBattle::SaveRom()
 {
+	RomAsmSerializer ras(*Project);
+	ras.Load(m_groupedmappings, Project->ROM);
+
 	if (Project->IsRom()) {
 		save_binary(Project->WorkRomPath, Project->ROM);
 	}
 	else if (Project->IsAsm()) {
-		GameSerializer ser(*Project);
-		// Instead of writing to the entire buffer, just write to the parts we need
-		ser.SaveAsmBin(BANK_07, BANK07_OFFSET);
-		ser.SaveAsmBin(BANK_08, BANK08_OFFSET);
-		ser.SaveAsmBin(BANK_0A, BANK0A_OFFSET);
-		ser.SaveAsmBin(BIN_BATTLEPALETTES, BINBATTLEPALETTES_OFFSET);
-		ser.SaveAsmBin(BIN_BATTLEFORMATIONS, BINBATTLEFORMATIONS_OFFSET);
-		ser.SaveAsmBin(BIN_CHAOSTSA, BINCHAOSTSA_OFFSET);
-		ser.SaveAsmBin(BIN_FIENDTSA, BINFIENDTSA_OFFSET);
-		ser.SaveAsmBin(BIN_ENEMYNAMES, BINENEMYNAMES_OFFSET);
-
-		ser.LoadAsmBin(BANK_00, BANK00_OFFSET); // used by subeditors
+		//TODO - eventually add rom support the serializer
 	}
 	else {
 		throw bad_ffhtype_exception(EXCEPTIONPOINT, exceptop::writing, (LPCSTR)Project->ProjectTypeName);

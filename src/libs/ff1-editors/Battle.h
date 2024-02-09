@@ -4,6 +4,7 @@
 #include <EditorWithBackground.h>
 #include <DataListDialog.h>
 #include "EnemyBattleUsageData.h"
+#include <RomAsmMapping_t.h>
 class CFFHacksterProject;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -11,7 +12,7 @@ class CFFHacksterProject;
 
 class CBattle : public CEditorWithBackground
 {
-// Construction
+	// Construction
 public:
 	CBattle(CWnd* pParent = nullptr);   // standard constructor
 
@@ -23,6 +24,7 @@ protected:
 	virtual void StoreValues();
 	virtual void PaintClient(CDC& dc);
 
+	RomAsmGropuedMappingRefs m_groupedmappings;
 	bool m_usagedataon = false;
 	int cur;
 	bool form;
@@ -89,7 +91,7 @@ protected:
 	EnemyBattleUsageData m_usedata;
 	CDataListDialog m_dlgdatalist;
 
-// Dialog Data
+	// Dialog Data
 	enum { IDD = IDD_BATTLE };
 	CButton	m_viewmin;
 	CButton	m_viewmean;
@@ -157,13 +159,13 @@ protected:
 	CCloseButton m_closebutton;
 	CHelpbookButton m_helpbookbutton;
 
-// Overrides
-	// ClassWizard generated virtual function overrides
+	// Overrides
+		// ClassWizard generated virtual function overrides
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();
 
-// Implementation
-	// Generated message map functions
+	// Implementation
+		// Generated message map functions
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnSelchangeBattlelist();
 	afx_msg void UpdateQtyMin();

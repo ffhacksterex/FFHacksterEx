@@ -11,6 +11,8 @@
 #include "RomAsmMappingImmed.h"
 #include "RomAsmMappingCond.h"
 
+#include <set>
+
 RomAsmMappingFactory::RomAsmMappingFactory()
 {
 }
@@ -51,18 +53,43 @@ RomAsmGropuedMappingRefs RomAsmMappingFactory::ReadGroupedMappings(CFFHacksterPr
     std::map<std::string, RomAsmMappingRefs> groups;
     CString romasmini = project.GetIniFilePath(FFHFILE_RomAsmMappingsPath);
     auto sectionnames = Strings::split(Ini::ReadIni(romasmini, editor.c_str(), "mappings", ""), " ");
+    auto readonlynames = Strings::split(Ini::ReadIni(romasmini, editor.c_str(), "readonlymappings", ""), " ");
 
+    //TODO - detect duplicate mappings: should this be an error, remove and warn, or silent remove?
+    std::set<std::string> uniques;
     std::vector<std::string> failures;
-    for (const auto& section: sectionnames) {
+
+    const auto AddMapping = [&](CFFHacksterProject& project, CString romasmini, std::string section) -> RomAsmMappingRef
+    {
+        auto mapping = DeserializeMapping(project, romasmini, section.c_str());
+        const auto& source = mapping->source;
+        auto iter = groups.find(source);
+        if (iter == groups.end())
+            groups[source] = RomAsmMappingRefs();
+        groups[source].push_back(mapping);
+
+        if (uniques.find(section) != uniques.end())
+            throw std::runtime_error("Unable to add duplicate mapping '" + section + "'.");
+
+        uniques.emplace(section);
+        return mapping;
+    };
+
+    for (const auto& section : sectionnames) {
         try {
-            auto mapping = DeserializeMapping(project, romasmini, section);
-            const auto & source = mapping->source;
-            auto iter = groups.find(source);
-            if (iter == groups.end())
-                groups[source] = RomAsmMappingRefs();
-            groups[source].push_back(mapping);
+            AddMapping(project, romasmini, (LPCSTR)section);
         }
-        catch (std::exception & ex) {
+        catch (std::exception& ex) {
+            failures.push_back(ex.what());
+        }
+    }
+
+    for (const auto& section : readonlynames) {
+        try {
+            auto mapping = AddMapping(project, romasmini, (LPCSTR)section);
+            mapping->readonly = true;
+        }
+        catch (std::exception& ex) {
             failures.push_back(ex.what());
         }
     }
