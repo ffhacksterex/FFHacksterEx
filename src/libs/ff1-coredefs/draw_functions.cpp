@@ -277,7 +277,7 @@ void Draw_ExportToBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* pal, CS
 	int temp, co2 = 54;	//palette
 	for (int co = 0; co < draw->palmax; co++, co2 += 4) {
 		temp = cart->Palette[0][pal[co]];
-		header[co2] = (BYTE)(temp >> 16);
+		header[co2] = temp >> 16;
 		header[co2 + 1] = (temp >> 8) & 0xFF;
 		header[co2 + 2] = temp & 0xFF;
 	}
@@ -290,10 +290,10 @@ void Draw_ExportToBmp(DRAW_STRUCT* draw, CFFHacksterProject* cart, BYTE* pal, CS
 
 	for (height = (draw->Height << 3) - 1; height >= 0; height--) {
 		for (width = 0; width < draw->Width; width++) {
-			bigY = (byte)(height >> 3);
+			bigY = height >> 3;
 			smallY = height & 0x07;
 
-			auto co = draw->PicFormation[(bigY * draw->Width) + width];
+			int co = draw->PicFormation[(bigY * draw->Width) + width];
 			if (draw->PalFormation != nullptr) palshot = draw->PalFormation[(bigY * draw->Width) + width] << 2;
 			if (co != 0xFF) {
 				co = (co << 6) + (smallY << 3);
