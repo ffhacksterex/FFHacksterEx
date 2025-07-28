@@ -12,6 +12,21 @@
 
 namespace Strings
 {
+	namespace Convert
+	{
+		std::vector<unsigned char> ToBytvector(std::string text, char separator, bool removeEmptyElements)
+		{
+			std::string seps(1, separator);
+			auto parts = Strings::splitrx(text, seps, removeEmptyElements);
+
+			std::vector<unsigned char> result;
+			result.reserve(parts.size());
+			for (const auto& p : parts) result.push_back((unsigned char)strtoul(p.c_str(), nullptr, 16));
+			return result;
+		}
+	}
+
+
 	CString strip_newlines(const CString & str)
 	{
 		CString newstr(str);

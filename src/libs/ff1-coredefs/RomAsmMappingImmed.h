@@ -1,13 +1,11 @@
 #pragma once
 #include "RomAsmMapping.h"
-//#include "IRomAsmSequentialMapping.h"
 #include "RomAsmSequentialMappingBase.h"
 
 class CFFHacksterProject;
 class RomAsmMappingFactory;
 
 class RomAsmMappingImmed : public RomAsmSequentialMappingBase
-	//public RomAsmMapping, public IRomAsmSequentialMapping
 {
 public:
 	RomAsmMappingImmed(CFFHacksterProject& project, std::string mapping);
@@ -24,4 +22,3 @@ protected:
 	int instoffset = -1;
 	std::string format = "$%02X"; //TODO - remove defualt and force mapping to specify the format instead?
 };
-

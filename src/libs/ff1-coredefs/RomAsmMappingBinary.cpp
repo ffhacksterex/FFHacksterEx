@@ -66,15 +66,15 @@ namespace // DECLARATIONS
     // Use with regex_match.
     std::regex rxAsmDataRow(R"==((\s*(?::|@\w+:)?\s*)(\.(?:BYTE|WORD|FARADDR))(\s*)((?:[$%]?[A-Fa-f0-9]+(?:,\s*)?)+)(\s*;.*)?)==", std::regex::icase);
 
-    const std::map<std::string, int> l_datarowwidths = {
+    const std::map<std::string, int> l_datarowwidths = { //TODD - oved to RomAsm::Parse
         { ".byte", 1 },
         { ".word", 2 },
         { ".faraddr", 3 }
     };
 
     bool LooksLikeDataRow(const std::string& line);
-    int DataDirectiveToByteWidth(std::string directive);
-    int ExtractDataRowRecWidth(std::string& line);
+    int DataDirectiveToByteWidth(std::string directive); //TODO - moved to RomAsm::Parse
+    int ExtractDataRowRecWidth(std::string& line); //TODO - moved to RomAsm::Parse
     int TermToInt(const std::string& term, int recwidth);
 
     void AddToBuffer(int recwidth, int value, std::vector<unsigned char>& v); //TODO - add to RomAsm

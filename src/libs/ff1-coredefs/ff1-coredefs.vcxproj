@@ -210,6 +210,8 @@
     <ClCompile Include="RomAsmMappingBinary.cpp" />
     <ClCompile Include="RomAsmMappingCond.cpp" />
     <ClCompile Include="RomAsmMappingDatfile.cpp" />
+    <ClCompile Include="RomAsmMappingDialogue.cpp" />
+    <ClCompile Include="RomAsmMappingDialogue__old.cpp" />
     <ClCompile Include="RomAsmMappingFactory.cpp" />
     <ClCompile Include="RomAsmMappingImmed.cpp" />
     <ClCompile Include="RomAsmMappingIncbin.cpp" />
@@ -287,6 +289,8 @@
     <ClInclude Include="ResourceHandleScope.h" />
     <ClInclude Include="resource_coredefs.h" />
     <ClInclude Include="RomAsmMappingCond.h" />
+    <ClInclude Include="RomAsmMappingDialogue.h" />
+    <ClInclude Include="RomAsmMappingDialogue__old.h" />
     <ClInclude Include="RomAsmSequentialMappingBase.h" />
     <ClInclude Include="RomAsmFailedMappingException.h" />
     <ClInclude Include="RomAsmMapping.h" />

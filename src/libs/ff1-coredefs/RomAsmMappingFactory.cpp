@@ -10,6 +10,7 @@
 #include "RomAsmMappingBinary.h"
 #include "RomAsmMappingImmed.h"
 #include "RomAsmMappingCond.h"
+#include "RomAsmMappingDialogue.h"
 
 #include <set>
 
@@ -31,6 +32,7 @@ namespace // LOCAL HELPER DECLARATIONS
     RomAsmMappingRef ToBinary(CFFHacksterProject& project, CString romasmini, CString editorname);
     RomAsmMappingRef ToImmed(CFFHacksterProject& project, CString romasmini, CString editorname);
     RomAsmMappingRef ToCond(CFFHacksterProject& project, CString romasmini, CString editorname);
+    RomAsmMappingRef ToDialogue(CFFHacksterProject& project, CString romasmini, CString editorname);
 }
 
 // Read all mappiongs from the file.
@@ -114,7 +116,8 @@ namespace // LOCAL HELPER IMPLEMENTATION
         { "incbin", ToIncbin },
         { "binary", ToBinary },
         { "immed", ToImmed },
-        { "cond", ToCond }
+        { "cond", ToCond },
+        { "dialogue", ToDialogue }
     };
 
     RomAsmMappingRef DeserializeMapping(CFFHacksterProject& project, CString romasmini, CString editorname)
@@ -155,6 +158,11 @@ namespace // LOCAL HELPER IMPLEMENTATION
 
     RomAsmMappingRef ToCond(CFFHacksterProject& project, CString romasmini, CString editorname)
     {
-        return std::make_shared< RomAsmMappingCond>(project, (LPCSTR)editorname);
+        return std::make_shared<RomAsmMappingCond>(project, (LPCSTR)editorname);
+    }
+
+    RomAsmMappingRef ToDialogue(CFFHacksterProject& project, CString romasmini, CString editorname)
+    {
+        return std::make_shared<RomAsmMappingDialogue>(project, (LPCSTR)editorname);
     }
 }

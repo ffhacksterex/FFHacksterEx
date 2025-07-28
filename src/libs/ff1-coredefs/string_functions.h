@@ -8,6 +8,11 @@
 
 namespace Strings
 {
+	namespace Convert
+	{
+		std::vector<unsigned char> ToBytvector(std::string text, char separator, bool removeEmptyElements);
+	}
+
 	CString strip_newlines(const CString & str);
 	size_t count_char(const CString & str, const char chtofind);
 	std::string right_pad(std::string str, int minlength);
