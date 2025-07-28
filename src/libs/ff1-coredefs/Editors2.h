@@ -115,7 +115,7 @@ namespace Editors2
 	#define OVERWORLDEDIT   "overworld"
 	#define PARTYSETUPEDIT  "partysetup"
 
-	// Preview editors for 0.9.7.9
+	// Preview editors for 0.9.7.9 and later
 
 	#define PREV_LOCALMAPEDIT "$preview-localmap"
 	#define PREV_WORLDMAPEDIT "$preview-worldmap"
