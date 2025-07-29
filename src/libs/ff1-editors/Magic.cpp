@@ -548,13 +548,21 @@ void CMagic::StoreValues()
 	offset = (cur >> 3) + MAGICPERMISSIONS_OFFSET;
 	std::vector<CStrikeCheck*> vchecks{ &m_use1, &m_use2, &m_use3, &m_use4, &m_use5, &m_use6, &m_use7, &m_use8,
 		&m_use9, &m_use10, &m_use11, &m_use12 };
+
+	// In the loop below,
+	// if checked == true, then clear the bit (can cast the spell), e.g.
+	//		1111 1111 AND ~1000 0000 = 1111 1111 AND 0111 1111 = 0111 1111
+	//		0111 1111 AND ~1000 0000 = 0111 1111 AND 0111 1111 = 0111 1111
+	// else, set the bit (CANNOT cast the spell), e.g.
+	//		1111 1111 OR 1000 0000 = 1111 1111
+	//		0111 1111 OR 1000 0000 = 1111 1111
+
 	for (int co = 0, off = 0; co < (int)vchecks.size(); ++co, off += 0x08) {
 		bool checked = GetCheckValue(*vchecks[co]);
-		int bit = 1 << (7 - (cur & 7));  // slot 0 is the most significant bit, slot 7 is the least
+		// get the bit; offset 0 is the most significant bit, offset 7 is the least
+		int bit = 1 << (7 - (cur & 7));
 		temp = Project->ROM[offset + off];
-		if (!checked) bit = 0;           // when flipped, this preserves the "can't equip" bit
-		temp &= ~bit;
-
+		temp = checked ? (temp & ~bit) : (temp | bit);
 		Project->ROM[offset + off] = 0xFF & temp;
 	}
 	int co;
